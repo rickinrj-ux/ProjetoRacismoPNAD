@@ -1,0 +1,4 @@
+Comparação,LR,df,p-valor,Significativo
+M0_Nulo → M1_Individual,18805.893,8,0.0,Sim
+M1_Individual → M2_Localidade,70.462,3,0.0,Sim
+M2_Localidade → M3_Completo,13.842,3,0.003129,Sim

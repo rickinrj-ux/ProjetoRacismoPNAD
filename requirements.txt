@@ -1,0 +1,26 @@
+# ── Core Data Processing ──────────────────────────────────────────────────────
+pandas>=2.0.0
+numpy>=1.24.0
+pyarrow>=14.0.0
+
+# ── HTTP / File Handling ──────────────────────────────────────────────────────
+requests>=2.31.0
+tqdm>=4.65.0
+
+# ── Econometrics & Statistics ─────────────────────────────────────────────────
+statsmodels>=0.14.0
+scipy>=1.11.0
+
+# ── Machine Learning (Fase 2 — clustering, RF, XGBoost, SHAP) ────────────────
+scikit-learn>=1.3.0
+xgboost>=2.0.0
+shap>=0.43.0
+
+# ── Visualization ─────────────────────────────────────────────────────────────
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+joblib>=1.3.0
+psutil>=5.9.0
+openpyxl>=3.1.0

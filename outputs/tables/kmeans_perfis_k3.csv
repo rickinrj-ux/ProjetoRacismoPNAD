@@ -1,0 +1,4 @@
+cluster,N,% total,% Negro,% Mulher,% Empregado,log_Renda,Renda Bruta (R$),Educ. Ord.,PctNegroUPA_z,DesempregoUPA_z,Descricao
+0,778802,32.51,24.2,22.8,100.0,7.4396,2190.5476,5.5059,-0.9998,-0.7009,Cluster 0: alta renda (24% negros)
+1,1075250,44.89,86.1,0.0,100.0,6.7911,1185.5613,5.6348,0.628,0.2139,Cluster 1: alta renda (86% negros)
+2,541233,22.6,78.6,100.0,100.0,6.5352,908.4579,5.6961,0.3893,0.2477,Cluster 2: baixa renda (79% negros)

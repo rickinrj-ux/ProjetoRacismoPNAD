@@ -1,0 +1,39 @@
+\begin{table}
+\caption{Importância SHAP comparada — Random Forest e XGBoost. Predição de log-rendimento, PNAD 2016-2025 (N=50k subsample SHAP). Valores: |SHAP| médio; maior = maior impacto no rendimento predito.}
+\label{tab:shap_importance}
+\begin{tabular}{lrrrr}
+\toprule
+ & SHAP_mean_abs_RF & SHAP_mean_abs_XGB & Rank_RF & Rank_XGB \\
+Feature &  &  &  &  \\
+\midrule
+Renda média UPA & 0.330410 & 0.271550 & 1 & 1 \\
+Horas trabalhadas & 0.175230 & 0.165840 & 2 & 2 \\
+CBO: Profissionais & 0.112790 & 0.118570 & 4 & 3 \\
+Emprego formal (carteira) & 0.139790 & 0.109220 & 3 & 4 \\
+Gênero (feminino) & 0.089560 & 0.098750 & 5 & 5 \\
+Idade (centralizada) & 0.063900 & 0.096060 & 6 & 6 \\
+Conta própria & 0.020560 & 0.063270 & 9 & 7 \\
+Educ.: Superior & 0.001090 & 0.050390 & 18 & 8 \\
+CBO: Técnicos & 0.038890 & 0.046840 & 7 & 9 \\
+CBO: Dirigentes & 0.037060 & 0.039190 & 8 & 10 \\
+Raça (negro) & 0.000240 & 0.028630 & 25 & 11 \\
+CBO: Serviços/Vendas & 0.001250 & 0.027540 & 15 & 12 \\
+Desemprego na UPA & 0.001530 & 0.021500 & 14 & 13 \\
+CBO: Operários & 0.000680 & 0.020550 & 20 & 14 \\
+CBO: Op. Máquinas & 0.001140 & 0.020480 & 17 & 15 \\
+Trabalho doméstico & 0.006460 & 0.019170 & 11 & 16 \\
+CBO: Administrativo & 0.002950 & 0.017910 & 13 & 17 \\
+Idade² (experiência) & 0.005460 & 0.015290 & 12 & 18 \\
+Educ.: Médio & 0.000000 & 0.015200 & 27 & 19 \\
+CBO: Agropecuária & 0.001170 & 0.014480 & 16 & 20 \\
+% Negro no Estado & 0.000710 & 0.014200 & 19 & 21 \\
+Desemprego no Estado & 0.000440 & 0.013430 & 22 & 22 \\
+CBO: FFAA/Polícia & 0.011280 & 0.012700 & 10 & 23 \\
+% Negro na UPA & 0.000270 & 0.010240 & 24 & 24 \\
+Educ. média UPA & 0.000330 & 0.010160 & 23 & 25 \\
+Educ. média Estado & 0.000550 & 0.007060 & 21 & 26 \\
+Educ.: Fundamental & 0.000000 & 0.002540 & 27 & 27 \\
+Educ.: Pós-graduação & 0.000000 & 0.002180 & 27 & 28 \\
+\bottomrule
+\end{tabular}
+\end{table}

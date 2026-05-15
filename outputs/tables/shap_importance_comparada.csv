@@ -1,0 +1,29 @@
+Feature,SHAP_mean_abs_RF,SHAP_mean_abs_XGB,Rank_RF,Rank_XGB
+Renda média UPA,0.33041,0.27155,1,1
+Horas trabalhadas,0.17523,0.16584,2,2
+CBO: Profissionais,0.11279,0.11857,4,3
+Emprego formal (carteira),0.13979,0.10922,3,4
+Gênero (feminino),0.08956,0.09875,5,5
+Idade (centralizada),0.0639,0.09606,6,6
+Conta própria,0.02056,0.06327,9,7
+Educ.: Superior,0.00109,0.05039,18,8
+CBO: Técnicos,0.03889,0.04684,7,9
+CBO: Dirigentes,0.03706,0.03919,8,10
+Raça (negro),0.00024,0.02863,25,11
+CBO: Serviços/Vendas,0.00125,0.02754,15,12
+Desemprego na UPA,0.00153,0.0215,14,13
+CBO: Operários,0.00068,0.02055,20,14
+CBO: Op. Máquinas,0.00114,0.02048,17,15
+Trabalho doméstico,0.00646,0.01917,11,16
+CBO: Administrativo,0.00295,0.01791,13,17
+Idade² (experiência),0.00546,0.01529,12,18
+Educ.: Médio,0.0,0.0152,27,19
+CBO: Agropecuária,0.00117,0.01448,16,20
+% Negro no Estado,0.00071,0.0142,19,21
+Desemprego no Estado,0.00044,0.01343,22,22
+CBO: FFAA/Polícia,0.01128,0.0127,10,23
+% Negro na UPA,0.00027,0.01024,24,24
+Educ. média UPA,0.00033,0.01016,23,25
+Educ. média Estado,0.00055,0.00706,21,26
+Educ.: Fundamental,0.0,0.00254,27,27
+Educ.: Pós-graduação,0.0,0.00218,27,28

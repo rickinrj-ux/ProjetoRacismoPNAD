@@ -1,0 +1,4 @@
+Comparacao,LR,df,p-valor,Significativo
+M0_Nulo -> M1_Individual,,8,,Nao
+M1_Individual -> M2_Localidade,,3,,Nao
+M2_Localidade -> M3_Completo,,3,,Nao

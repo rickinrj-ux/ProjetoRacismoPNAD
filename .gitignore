@@ -1,0 +1,57 @@
+# ─── Dados brutos e processados (muito grandes para o Git) ───
+data/raw/*.zip
+data/raw/*.txt
+data/raw/*.csv
+data/processed/
+*.parquet
+!data/raw/layout/layout.parquet
+
+# ─── Cache Python ───
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ─── Ambientes virtuais ───
+venv/
+env/
+.env
+.venv/
+ENV/
+
+# ─── Logs ───
+logs/
+*.log
+
+# ─── Arquivos temporários do pipeline ───
+_seg_err.txt
+_seg_out.txt
+
+# ─── ZIP gerados (podem ser recriados) ───
+relatorio_tcc_overleaf.zip
+
+# ─── Configurações locais do Claude Code ───
+.claude/
+
+# ─── Temporários do Office (Word/Excel abertos) ───
+~$*
+
+# ─── IDE e sistema operacional ───
+.vscode/
+.idea/
+*.swp
+*~
+Thumbs.db
+.DS_Store
+
+# ─── Jupyter ───
+.ipynb_checkpoints/
+
+# ─── R ───
+.Rhistory
+.RData
+.Rproj.user/
