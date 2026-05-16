@@ -16,6 +16,10 @@ Fluxo:
         → log_renda, negro, educ_ord, horas_c, UF_str, ...
         → parquet em data/external/rais_processada.parquet
 
+Período coberto: 2016-2025 (espelho da PNAD Contínua).
+    Obs.: RAIS é divulgada com ~12 meses de defasagem. Em 2026, o dado mais
+    recente disponível costuma ser o de 2024.
+
 Como obter os dados:
     1. Acesse ftp://ftp.mtecaged.gov.br/ftp/rais/  (ou via IPEA/basedosdados)
     2. Baixe os arquivos de Vínculos por UF/ano (ex: RAIS_VINC_PUB_RJ_2022.txt.7z)
@@ -24,9 +28,10 @@ Como obter os dados:
     5. Execute: python run_ingestion_rais.py --rais_dir data/external/rais_raw/
 
 Referências de layout:
-    MTE. Dicionário de Variáveis RAIS — Vínculos (2019+). Brasília, 2023.
+    MTE. Dicionário de Variáveis RAIS — Vínculos (2016+). Brasília, 2024.
     Raca/Cor RAIS: 1=Indígena 2=Branca 4=Preta 6=Amarela 8=Parda 9=N.I.
     Grau Instrução: 1(Analfabeto) ... 11(Doutorado)
+    Salário mínimo: 2016=R$880 → 2025=R$1.518
 """
 
 import re
@@ -65,9 +70,11 @@ RAIS_EDUC_ORD = {
 }
 
 # Salário mínimo mensal nominal por ano (Decreto presidencial)
+# Período espelho da PNAD Contínua: 2016-2025
 SALARIO_MINIMO = {
-    2017: 937, 2018: 954, 2019: 998, 2020: 1045,
-    2021: 1100, 2022: 1212, 2023: 1320, 2024: 1412,
+    2016: 880,  2017: 937,  2018: 954,  2019: 998,
+    2020: 1045, 2021: 1100, 2022: 1212, 2023: 1320,
+    2024: 1412, 2025: 1518,
 }
 
 # Código IBGE UF (2 primeiros dígitos do município) → sigla

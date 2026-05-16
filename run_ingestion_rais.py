@@ -23,11 +23,15 @@ COMO OBTER OS ARQUIVOS RAIS
 5. Execute este script:
       python run_ingestion_rais.py --rais_dir data/external/rais_raw/
 
+Período coberto: 2016-2025 (espelho da PNAD Contínua).
+    Obs.: a RAIS é divulgada com ~12 meses de defasagem (em 2026, o dado
+    mais recente disponível costuma ser o de 2024).
+
 Uso:
     python run_ingestion_rais.py --rais_dir data/external/rais_raw/
-    python run_ingestion_rais.py --rais_dir data/external/rais_raw/ --anos 2019 2020 2021 2022
+    python run_ingestion_rais.py --rais_dir data/external/rais_raw/ --anos 2016 2017 2018 2019 2020 2021 2022 2023 2024
     python run_ingestion_rais.py --rais_dir data/external/rais_raw/ --ufs SP RJ MG --sample 0.10
-    python run_ingestion_rais.py --rais_dir data/external/rais_raw/ --output data/external/rais_2022.parquet
+    python run_ingestion_rais.py --rais_dir data/external/rais_raw/ --output data/external/rais_2016_2024.parquet
 
 Após concluir:
     python run_validacao.py --rais_path data/external/rais_processada.parquet
@@ -62,7 +66,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--anos", type=int, nargs="+", default=None,
-        help="Anos a processar (ex: 2019 2020 2021 2022). Default: todos os encontrados."
+        help="Anos a processar (ex: 2016 2017 ... 2025). Default: todos os encontrados."
     )
     parser.add_argument(
         "--ufs", type=str, nargs="+", default=None,
