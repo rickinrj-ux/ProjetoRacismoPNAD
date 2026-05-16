@@ -1,39 +1,47 @@
 """
 run_ingestion_rais.py
 =====================
-Ingestão e limpeza dos microdados RAIS (arquivos brutos MTE).
+Ingestao RAIS via basedosdados (BigQuery) — periodo 2016-2023.
 Output: data/external/rais_processada.parquet
 
-COMO OBTER OS ARQUIVOS RAIS
-----------------------------
-1. Acesse o FTP do MTE:
-      ftp://ftp.mtecaged.gov.br/ftp/rais/
-   Navegue até o ano desejado → pasta "RAIS_VINC_PUB_<UF>"
+PRE-REQUISITOS (uma vez so)
+---------------------------
+1. Crie um projeto gratuito no Google Cloud:
+   https://console.cloud.google.com/
+   (clique em "Criar projeto", anote o ID — ex: "meu-projeto-tcc-123")
 
-2. Alternativamente via navegador (IPEA/MTE):
-      https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/estatisticas-trabalho/rais
-      → "Microdados" → selecione o ano → baixe por UF
+2. Habilite a BigQuery API no projeto:
+   https://console.cloud.google.com/apis/library/bigquery.googleapis.com
 
-3. Os arquivos vêm compactados como .7z (use 7-Zip para descompactar)
-   Resultado: RAIS_VINC_PUB_<UF>_<ANO>.txt  (codificação cp1252)
+3. Instale o gcloud SDK e autentique:
+   https://cloud.google.com/sdk/docs/install-sdk
+   Depois, no terminal:
+   ! gcloud auth application-default login
 
-4. Coloque TODOS os .txt descompactados em um único diretório:
-      data/external/rais_raw/
+4. Execute este script:
+   python run_ingestion_rais.py --project meu-projeto-tcc-123
 
-5. Execute este script:
-      python run_ingestion_rais.py --rais_dir data/external/rais_raw/
+COTA GRATUITA
+-------------
+BigQuery oferece 1 TB/mes de consultas gratuitas.
+Esta ingestao le aproximadamente:
+   - Todos os anos (2016-2023), Brasil completo: ~300-400 GB
+   - Por ano: ~40-60 GB
+   - Com --sample 10: ~4-6 GB por ano (recomendado para testes)
+Use --sample para testes antes de rodar o dataset completo.
 
-Período coberto: 2016-2025 (espelho da PNAD Contínua).
-    Obs.: a RAIS é divulgada com ~12 meses de defasagem (em 2026, o dado
-    mais recente disponível costuma ser o de 2024).
+USO
+---
+    # Teste rapido (10% dos dados)
+    python run_ingestion_rais.py --project meu-projeto-tcc-123 --sample 10
 
-Uso:
-    python run_ingestion_rais.py --rais_dir data/external/rais_raw/
-    python run_ingestion_rais.py --rais_dir data/external/rais_raw/ --anos 2016 2017 2018 2019 2020 2021 2022 2023 2024
-    python run_ingestion_rais.py --rais_dir data/external/rais_raw/ --ufs SP RJ MG --sample 0.10
-    python run_ingestion_rais.py --rais_dir data/external/rais_raw/ --output data/external/rais_2016_2024.parquet
+    # Ano especifico, UFs especificas
+    python run_ingestion_rais.py --project meu-projeto-tcc-123 --anos 2022 2023 --ufs SP RJ MG
 
-Após concluir:
+    # Completo (todos os anos, Brasil)
+    python run_ingestion_rais.py --project meu-projeto-tcc-123
+
+    # Apos concluir, rodar a validacao cruzada:
     python run_validacao.py --rais_path data/external/rais_processada.parquet
 """
 import sys
@@ -53,49 +61,59 @@ logging.basicConfig(
     ],
 )
 
-from ingestion_rais import run_ingestion_rais
+from ingestion_rais import run_ingestion_rais, ANOS_DISPONIVEIS
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Ingestão RAIS — arquivos .txt brutos do MTE",
+        description="Ingestion RAIS via basedosdados (BigQuery)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--rais_dir", type=str, required=True,
-        help="Diretório com os arquivos .txt RAIS descompactados."
+        "--project", type=str, required=True,
+        help="ID do projeto Google Cloud para faturamento BigQuery. Ex: meu-projeto-tcc-123"
     )
     parser.add_argument(
         "--anos", type=int, nargs="+", default=None,
-        help="Anos a processar (ex: 2016 2017 ... 2025). Default: todos os encontrados."
+        help=f"Anos a processar. Default: todos disponiveis {ANOS_DISPONIVEIS}"
     )
     parser.add_argument(
         "--ufs", type=str, nargs="+", default=None,
-        help="UFs a incluir (ex: SP RJ MG). Default: todas."
+        help="UFs a incluir (ex: SP RJ MG BA). Default: todas (Brasil)."
     )
     parser.add_argument(
         "--output", type=str, default="data/external/rais_processada.parquet",
-        help="Caminho do parquet de saída. Default: data/external/rais_processada.parquet"
+        help="Caminho do parquet de saida. Default: data/external/rais_processada.parquet"
     )
     parser.add_argument(
         "--sample", type=float, default=None,
-        help="Fração amostral para testes (ex: 0.10). Default: dados completos."
+        help=(
+            "Percentual TABLESAMPLE para testes (0-100). "
+            "Ex: --sample 10 le ~10%% dos dados de cada ano. Default: dados completos."
+        )
     )
     args = parser.parse_args()
 
+    print(f"\nProjeto GCP : {args.project}")
+    print(f"Anos        : {args.anos or ANOS_DISPONIVEIS}")
+    print(f"UFs         : {args.ufs or 'todas (Brasil)'}")
+    print(f"Amostragem  : {f'{args.sample}%' if args.sample else 'completo'}")
+    print(f"Output      : {args.output}\n")
+
     df = run_ingestion_rais(
-        rais_dir=args.rais_dir,
+        project_id=args.project,
         anos=args.anos,
         output_path=args.output,
-        sample_frac=args.sample,
         ufs=args.ufs,
+        sample_pct=args.sample,
     )
 
-    print("\n=== CONCLUIDO ===")
-    print(f"Registros processados : {len(df):,}")
-    print(f"Anos                  : {sorted(df['Ano'].unique().tolist())}")
-    print(f"% negro               : {df['negro'].mean():.1%}")
     gap = df.groupby("negro")["log_renda"].mean()
-    gap_val = gap[1.0] - gap[0.0]
-    print(f"Gap bruto log-renda   : {gap_val:+.4f}  ({(pow(2.718281828, gap_val) - 1)*100:+.1f}%)")
+    gap_val = gap.get(1.0, float("nan")) - gap.get(0.0, float("nan"))
+
+    print("\n=== CONCLUIDO ===")
+    print(f"Registros     : {len(df):,}")
+    print(f"Anos          : {sorted(df['Ano'].unique().tolist())}")
+    print(f"% negro       : {df['negro'].mean():.1%}")
+    print(f"Gap bruto     : {gap_val:+.4f} ({(pow(2.718281828, gap_val) - 1)*100:+.1f}%)")
     print(f"\nProximo passo:")
     print(f"  python run_validacao.py --rais_path {args.output}")
