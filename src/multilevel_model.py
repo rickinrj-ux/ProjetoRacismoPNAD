@@ -19,7 +19,15 @@ Nível 1 — Indivíduo i (dentro da localidade j, no estado k):
                     + β₆·EducMedio_{ijk}
                     + β₇·EducSuperior_{ijk}
                     + β₈·EducPos_{ijk}
+                    + β₉·log(Horas)_{ijk}
+                    + β₁₀·Urbano_{ijk}
+                    + β₁₁ₜ·Anoₜ_{ijk}
                     + ε_{ijk},    ε ~ N(0, σ²)
+
+    log(Horas): controla jornada de trabalho — sem ele, sobre-representação
+    de negros em part-time infla o gap racial estimado.
+    Urbano: prêmio salarial urbano predeterminado (V1022 PNAD).
+    C(Ano): dummies anuais — remove viés de ciclo econômico em dados pooled.
 
 Nível 2 — Localidade j (UPA, proxy de bairro — Hipótese de Networking Local):
 
@@ -112,6 +120,7 @@ _INDIVIDUAL_TERMS = (
     "negro + sexo_fem + idade_c + idade_sq"
     " + educ_fund_completo + educ_medio_completo"
     " + educ_superior_completo + educ_pos_graduacao"
+    " + log_horas + urbano + C(Ano)"
 )
 
 _UPA_TERMS = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
@@ -130,6 +139,7 @@ KEY_PREDICTORS = [
     "Intercept", "negro", "sexo_fem", "idade_c", "idade_sq",
     "educ_fund_completo", "educ_medio_completo",
     "educ_superior_completo", "educ_pos_graduacao",
+    "log_horas", "urbano",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
     "pct_negro_uf_z",  "tx_desemprego_uf_z",  "media_educ_uf_z",
 ]
@@ -180,6 +190,7 @@ def load_features(sample_frac: Optional[float] = None) -> pd.DataFrame:
         "log_renda", "negro", "sexo_fem", "idade_c", "idade_sq",
         "educ_fund_completo", "educ_medio_completo",
         "educ_superior_completo", "educ_pos_graduacao",
+        "log_horas", "urbano", "Ano",
         "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
         "pct_negro_uf_z",  "tx_desemprego_uf_z",  "media_educ_uf_z",
     ]
@@ -194,6 +205,26 @@ def load_features(sample_frac: Optional[float] = None) -> pd.DataFrame:
     df = df[df["UPA"].isin(valid_upas)].reset_index(drop=True)
     if n_dropped:
         logger.info(f"Removidos {n_dropped:,} obs. de UPAs com n < 10.")
+
+    # Fallback: reconstrói colunas novas se features.parquet foi gerado
+    # antes da adição de log_horas / urbano em feature_engineering.py
+    if "log_horas" not in df.columns:
+        if "horas_trabalhadas" in df.columns:
+            df["log_horas"] = np.log(df["horas_trabalhadas"].clip(lower=1))
+            logger.warning("log_horas reconstruído a partir de horas_trabalhadas "
+                           "(regenere features.parquet via run_feature_engineering.py)")
+        else:
+            df["log_horas"] = np.nan
+            logger.warning("log_horas e horas_trabalhadas ausentes — coluna preenchida com NaN")
+
+    if "urbano" not in df.columns:
+        if "V1022" in df.columns:
+            df["urbano"] = (df["V1022"] == 1).fillna(False).astype("int8")
+            logger.warning("urbano reconstruído a partir de V1022 "
+                           "(regenere features.parquet via run_feature_engineering.py)")
+        else:
+            df["urbano"] = 1
+            logger.warning("V1022 ausente — urbano=1 para toda a amostra (fallback conservador)")
 
     if sample_frac:
         df = df.sample(frac=sample_frac, random_state=42).reset_index(drop=True)
@@ -629,6 +660,118 @@ def print_discussion_summary(models: Dict[str, "HLMResults"]) -> None:
     print("\n".join(lines))
 
 
+# ── Comparação de R² antes/depois das novas variáveis ────────────────────────
+
+_FORMULA_BASE_OLS = (
+    "log_renda ~ negro + sexo_fem + idade_c + idade_sq"
+    " + educ_fund_completo + educ_medio_completo"
+    " + educ_superior_completo + educ_pos_graduacao"
+)
+_FORMULA_EXT_OLS = _FORMULA_BASE_OLS + " + log_horas + urbano + C(Ano)"
+
+
+def comparar_r2_controles(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Quantifica o ganho de R² ao adicionar log_horas, urbano e C(Ano).
+
+    Usa OLS como proxy (HLM não tem R² analítico direto).
+    A redução em β_negro no modelo estendido mostra quanto do gap estimado
+    era confound de jornada, urbanização e ciclo econômico — tornando
+    o coeficiente residual uma medida mais conservadora de discriminação.
+    """
+    m_base = smf.ols(_FORMULA_BASE_OLS, data=df).fit()
+    m_ext  = smf.ols(_FORMULA_EXT_OLS,  data=df).fit()
+
+    b_base = m_base.params.get("negro", np.nan)
+    b_ext  = m_ext.params.get("negro", np.nan)
+
+    rows = [
+        {
+            "Especificação":   "Base (sem horas / urbano / ano)",
+            "R²":              round(m_base.rsquared, 4),
+            "R² adj.":         round(m_base.rsquared_adj, 4),
+            "RMSE":            round(np.sqrt(m_base.mse_resid), 4),
+            "β_negro":         round(b_base, 4),
+            "Gap % estimado":  round((np.exp(b_base) - 1) * 100, 2),
+        },
+        {
+            "Especificação":   "Estendido (+log_horas +urbano +C(Ano))",
+            "R²":              round(m_ext.rsquared, 4),
+            "R² adj.":         round(m_ext.rsquared_adj, 4),
+            "RMSE":            round(np.sqrt(m_ext.mse_resid), 4),
+            "β_negro":         round(b_ext, 4),
+            "Gap % estimado":  round((np.exp(b_ext) - 1) * 100, 2),
+        },
+    ]
+    comp = pd.DataFrame(rows)
+    comp.loc[1, "ΔR²"]      = round(comp.loc[1, "R²"]     - comp.loc[0, "R²"], 4)
+    comp.loc[1, "ΔRMSE"]    = round(comp.loc[1, "RMSE"]   - comp.loc[0, "RMSE"], 4)
+    comp.loc[1, "Δβ_negro"] = round(comp.loc[1, "β_negro"]- comp.loc[0, "β_negro"], 4)
+
+    return comp, m_base, m_ext
+
+
+def plotar_ganho_fitted(
+    df: pd.DataFrame,
+    m_base,
+    m_ext,
+    out_fig: Path = None,
+) -> None:
+    """
+    Figura 2×2: resíduos e fitted values antes/depois das novas variáveis.
+    """
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    if out_fig is None:
+        out_fig = Path(__file__).parent.parent / "outputs" / "figures"
+    out_fig.mkdir(parents=True, exist_ok=True)
+
+    y     = df["log_renda"].values
+    fv_b  = m_base.fittedvalues.values
+    fv_e  = m_ext.fittedvalues.values
+    res_b = m_base.resid.values
+    res_e = m_ext.resid.values
+
+    fig, axes = plt.subplots(2, 2, figsize=(12, 9))
+    fig.suptitle(
+        "Ganho de Ajuste: Modelo Base vs. Estendido (+log_horas, +urbano, +C(Ano))",
+        fontsize=12, fontweight="bold",
+    )
+
+    # Fitted vs Actual — Base
+    axes[0, 0].scatter(fv_b, y, alpha=0.08, s=4, color="#2166ac")
+    lims = [min(fv_b.min(), y.min()), max(fv_b.max(), y.max())]
+    axes[0, 0].plot(lims, lims, "r--", linewidth=1)
+    axes[0, 0].set_title(f"Base — R²={m_base.rsquared:.4f}")
+    axes[0, 0].set_xlabel("Fitted log-renda"); axes[0, 0].set_ylabel("Real log-renda")
+
+    # Fitted vs Actual — Estendido
+    axes[0, 1].scatter(fv_e, y, alpha=0.08, s=4, color="#4dac26")
+    axes[0, 1].plot(lims, lims, "r--", linewidth=1)
+    axes[0, 1].set_title(f"Estendido — R²={m_ext.rsquared:.4f}")
+    axes[0, 1].set_xlabel("Fitted log-renda"); axes[0, 1].set_ylabel("Real log-renda")
+
+    # Distribuição de resíduos — Base
+    axes[1, 0].hist(res_b, bins=80, color="#2166ac", alpha=0.7, density=True)
+    axes[1, 0].axvline(0, color="red", linestyle="--", linewidth=1)
+    axes[1, 0].set_title(f"Resíduos Base — RMSE={np.sqrt(m_base.mse_resid):.4f}")
+    axes[1, 0].set_xlabel("Resíduo")
+
+    # Distribuição de resíduos — Estendido
+    axes[1, 1].hist(res_e, bins=80, color="#4dac26", alpha=0.7, density=True)
+    axes[1, 1].axvline(0, color="red", linestyle="--", linewidth=1)
+    axes[1, 1].set_title(f"Resíduos Estendido — RMSE={np.sqrt(m_ext.mse_resid):.4f}")
+    axes[1, 1].set_xlabel("Resíduo")
+
+    plt.tight_layout()
+    path = out_fig / "hlm_ganho_r2_fitted.png"
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    logger.info(f"Figura salva: {path}")
+
+
 # ── Pipeline Principal ────────────────────────────────────────────────────────
 
 def run_models(
@@ -719,7 +862,43 @@ def run_models(
             log_artifacts_dir(OUTPUTS, subfolder="tables")
 
     print_discussion_summary(models)
+
+    # ── Comparação de R² antes/depois das 3 novas variáveis ─────────────────
+    comp_r2, m_base, m_ext = comparar_r2_controles(df)
+    _imprimir_ganho_r2(comp_r2)
+    if save:
+        comp_r2.to_csv(OUTPUTS / "hlm_ganho_r2.csv", index=False)
+        plotar_ganho_fitted(df, m_base, m_ext)
+
     return models
+
+
+def _imprimir_ganho_r2(comp: pd.DataFrame) -> None:
+    sep = "=" * 78
+    row_b = comp.iloc[0]
+    row_e = comp.iloc[1]
+    print(f"\n{sep}")
+    print("  GANHO DE R² — NOVAS VARIÁVEIS (+log_horas, +urbano, +C(Ano))")
+    print(sep)
+    print(f"  {'Especificação':<42} {'R²':>7}  {'R²adj':>7}  {'RMSE':>7}  {'β_negro':>8}  {'Gap%':>7}")
+    print("-" * 78)
+    print(f"  {row_b['Especificação']:<42} {row_b['R²']:>7.4f}  {row_b['R² adj.']:>7.4f}  "
+          f"{row_b['RMSE']:>7.4f}  {row_b['β_negro']:>8.4f}  {row_b['Gap % estimado']:>6.1f}%")
+    print(f"  {row_e['Especificação']:<42} {row_e['R²']:>7.4f}  {row_e['R² adj.']:>7.4f}  "
+          f"{row_e['RMSE']:>7.4f}  {row_e['β_negro']:>8.4f}  {row_e['Gap % estimado']:>6.1f}%")
+    print("-" * 78)
+    print(f"  {'Ganho (Δ)':<42} {row_e['ΔR²']:>7.4f}  {'—':>7}  {row_e['ΔRMSE']:>7.4f}  "
+          f"{row_e['Δβ_negro']:>8.4f}")
+    print(f"\n  Interpretação:")
+    print(f"    ΔR² = {row_e['ΔR²']:.4f} → as 3 variáveis explicam {row_e['ΔR²']*100:.2f}pp"
+          " adicionais da variância de log-renda.")
+    delta_gap = abs(row_e["Gap % estimado"]) - abs(row_b["Gap % estimado"])
+    direcao = "menor" if delta_gap < 0 else "maior"
+    print(f"    Δβ_negro = {row_e['Δβ_negro']:.4f} → gap estimado fica {abs(delta_gap):.1f}pp {direcao}")
+    print(f"    após controlar por jornada, urbanização e ciclo econômico.")
+    print(f"    O gap residual de {abs(row_e['Gap % estimado']):.1f}% é mais conservador e")
+    print(f"    portanto mais difícil de contestar na banca.")
+    print(f"{sep}\n")
 
 
 if __name__ == "__main__":

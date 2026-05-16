@@ -315,8 +315,8 @@ def create_hours_feature(df: pd.DataFrame) -> pd.DataFrame:
     a média racial para baixo se negros estiverem sobre-representados
     nesse grupo — confound que infla o coeficiente racial estimado.
 
-    horas_c: centralizado na média global para interpretabilidade dos
-    interceptos (coef. para trabalhador de jornada media da amostra).
+    log_horas: usado no modelo de log-renda (escala compatível).
+    horas_c: centralizado na média (mantido para análises descritivas).
     """
     if "VD4031" not in df.columns:
         return df
@@ -324,6 +324,22 @@ def create_hours_feature(df: pd.DataFrame) -> pd.DataFrame:
     horas = df["VD4031"].astype("float32")
     df["horas_trabalhadas"] = horas
     df["horas_c"] = horas - horas.mean()
+    df["log_horas"] = np.log(horas.clip(lower=1))
+    return df
+
+
+def create_urban_feature(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Situação do domicílio (V1022) → dummy de área urbana.
+
+    1=Urbano, 2=Rural no PNAD Contínua.
+    Controla o prêmio salarial urbano — predeterminado geograficamente,
+    não mediado por discriminação racial no mercado de trabalho.
+    """
+    if "V1022" not in df.columns:
+        return df
+
+    df["urbano"] = (df["V1022"] == 1).fillna(False).astype("int8")
     return df
 
 
@@ -582,6 +598,7 @@ def build_features(
     df = create_employment_features(df)
     df = create_occupation_features(df)
     df = create_hours_feature(df)
+    df = create_urban_feature(df)
     df = create_sector_feature(df)
 
     # Remove obs. fora da classificação binária racial (Amarelo, Indígena, ND)

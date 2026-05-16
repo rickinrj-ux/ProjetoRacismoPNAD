@@ -57,11 +57,12 @@ REGIOES: Dict[str, List[int]] = {
 }
 QUANTILES = [0.10, 0.25, 0.50, 0.75, 0.90]
 
-# Fórmula base — consistent com run_hlm_serie_completa.py
+# Fórmula base — consistent com multilevel_model.py
 _IND = (
     "negro + sexo_fem + idade_c + idade_sq"
     " + educ_fund_completo + educ_medio_completo"
     " + educ_superior_completo + educ_pos_graduacao"
+    " + log_horas + urbano + C(Ano)"
 )
 _CTX = " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
 FORMULA_HLM = f"log_renda ~ {_IND}{_CTX}"
@@ -71,6 +72,7 @@ MODEL_VARS = [
     "log_renda", "negro", "sexo_fem", "idade_c", "idade_sq",
     "educ_fund_completo", "educ_medio_completo",
     "educ_superior_completo", "educ_pos_graduacao",
+    "log_horas", "urbano", "Ano",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
     "UPA", "UF",
 ]
@@ -82,6 +84,11 @@ def carregar_dados(sample_frac: Optional[float] = None) -> pd.DataFrame:
     """Carrega features.parquet, aplica filtros e adiciona coluna 'regiao'."""
     df = pd.read_parquet(FEATURES_PATH)
     df = df[df["log_renda"].notna() & (df["log_renda"] > 0)].copy()
+    # Fallback: recria colunas ausentes se features.parquet foi gerado antes
+    if "log_horas" not in df.columns and "horas_trabalhadas" in df.columns:
+        df["log_horas"] = np.log(df["horas_trabalhadas"].clip(lower=1))
+    if "urbano" not in df.columns:
+        df["urbano"] = (df["V1022"] == 1).astype("int8") if "V1022" in df.columns else 1
     df = df.dropna(subset=MODEL_VARS).reset_index(drop=True)
 
     # Filtra UPAs com n mínimo para estimação estável (Raudenbush & Bryk, cap. 4)

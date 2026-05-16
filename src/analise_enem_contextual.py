@@ -66,6 +66,7 @@ _IND = (
     "negro + sexo_fem + idade_c + idade_sq"
     " + educ_fund_completo + educ_medio_completo"
     " + educ_superior_completo + educ_pos_graduacao"
+    " + log_horas + urbano + C(Ano)"
 )
 _UPA = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
 _UF  = "pct_negro_uf_z + tx_desemprego_uf_z + media_educ_uf_z"
@@ -77,6 +78,7 @@ MODEL_VARS = [
     "log_renda", "negro", "sexo_fem", "idade_c", "idade_sq",
     "educ_fund_completo", "educ_medio_completo",
     "educ_superior_completo", "educ_pos_graduacao",
+    "log_horas", "urbano", "Ano",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
     "pct_negro_uf_z", "tx_desemprego_uf_z", "media_educ_uf_z",
     "UPA", "UF",
