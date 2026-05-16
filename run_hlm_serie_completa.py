@@ -60,11 +60,13 @@ OUTPUTS.mkdir(parents=True, exist_ok=True)
 # ── Formulas ───────────────────────────────────────────────────────────────────
 _IND = ("negro + sexo_fem + idade_c + idade_sq"
         " + educ_fund_completo + educ_medio_completo"
-        " + educ_superior_completo + educ_pos_graduacao")
+        " + educ_superior_completo + educ_pos_graduacao"
+        " + log_horas + urbano + C(Ano)")
 _UPA = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
 _UF  = "pct_negro_uf_z + tx_desemprego_uf_z + media_educ_uf_z"
-# M4: controles de trabalho — horas, formalidade e grupo CBO (referência: elementar)
-_OCC = ("horas_c + emprego_formal + conta_propria + trab_domestico"
+# M4: formalidade e grupo CBO (referência: elementar)
+# log_horas e urbano já entram via _IND — removidos aqui para evitar duplicação
+_OCC = ("emprego_formal + conta_propria + trab_domestico"
         " + ocp_dirigente + ocp_profissional + ocp_tecnico + ocp_administrativo"
         " + ocp_servicos + ocp_agro + ocp_operario + ocp_operador + ocp_ffaa")
 
@@ -88,9 +90,10 @@ MODEL_VARS = [
     "log_renda", "negro", "sexo_fem", "idade_c", "idade_sq",
     "educ_fund_completo", "educ_medio_completo",
     "educ_superior_completo", "educ_pos_graduacao",
+    "log_horas", "urbano", "Ano",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
     "pct_negro_uf_z",  "tx_desemprego_uf_z",  "media_educ_uf_z",
-    "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
+    "emprego_formal", "conta_propria", "trab_domestico",
     "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
     "ocp_servicos", "ocp_agro", "ocp_operario", "ocp_operador", "ocp_ffaa",
     "UPA", "UF",
@@ -106,6 +109,14 @@ def load_data(sample_frac=None):
 
     df = df[df["log_renda"].notna() & (df["log_renda"] > 0)].copy()
     logger.info(f"  Com renda positiva: {len(df):,} obs.")
+
+    # Fallback: reconstrói colunas se features.parquet for anterior à atualização
+    if "log_horas" not in df.columns and "horas_trabalhadas" in df.columns:
+        df["log_horas"] = np.log(df["horas_trabalhadas"].clip(lower=1))
+        logger.warning("log_horas reconstruído a partir de horas_trabalhadas")
+    if "urbano" not in df.columns:
+        df["urbano"] = (df["V1022"] == 1).astype("int8") if "V1022" in df.columns else 1
+        logger.warning("urbano reconstruído")
 
     n_before = len(df)
     df = df.dropna(subset=MODEL_VARS).reset_index(drop=True)
@@ -247,9 +258,10 @@ KEY_VARS = [
     "Intercept", "negro", "sexo_fem", "idade_c", "idade_sq",
     "educ_fund_completo", "educ_medio_completo",
     "educ_superior_completo", "educ_pos_graduacao",
+    "log_horas", "urbano",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
     "pct_negro_uf_z",  "tx_desemprego_uf_z",  "media_educ_uf_z",
-    "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
+    "emprego_formal", "conta_propria", "trab_domestico",
     "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
     "ocp_servicos", "ocp_agro", "ocp_operario", "ocp_operador", "ocp_ffaa",
 ]
