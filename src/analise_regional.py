@@ -34,6 +34,10 @@ import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 
+from mlflow_utils import (
+    log_artifacts_dir, log_metrics, log_params, run_context, set_tag,
+)
+
 logger = logging.getLogger(__name__)
 
 ROOT          = Path(__file__).parent.parent
@@ -150,7 +154,7 @@ def ajustar_hlm_regional(df: pd.DataFrame, nome_regiao: str) -> Optional[Dict]:
         f"  {nome_regiao}: beta_negro={b:.4f}{stars}  ICC_UF={icc_uf:.3f}  "
         f"gap={(np.exp(b)-1)*100:.1f}%"
     )
-    return {
+    row = {
         "regiao":     nome_regiao,
         "n_obs":      len(df_r),
         "n_ufs":      n_ufs,
@@ -163,6 +167,18 @@ def ajustar_hlm_regional(df: pd.DataFrame, nome_regiao: str) -> Optional[Dict]:
         "var_res":    var_res,
         "aic":        result.aic,
     }
+    with run_context(f"HLM_{nome_regiao}", "Analise_Regional", nested=True):
+        log_params({
+            "regiao": nome_regiao, "method": "powell",
+            "maxiter": 500, "reml": True,
+            "n_obs": len(df_r), "n_ufs": n_ufs,
+        })
+        log_metrics({
+            "beta_negro": b, "se_negro": se, "pval_negro": pv,
+            "gap_pct": row["gap_pct"], "icc_uf": icc_uf,
+            "var_uf": var_uf, "var_res": var_res, "aic": result.aic,
+        })
+    return row
 
 
 def tabela_hlm_regional(resultados: List[Dict]) -> pd.DataFrame:
@@ -205,14 +221,22 @@ def ajustar_quantilica_regional(
             ci   = res.conf_int()
             ci_l = ci.loc["negro", 0] if "negro" in ci.index else np.nan
             ci_h = ci.loc["negro", 1] if "negro" in ci.index else np.nan
-            rows.append({
+            row_q = {
                 "regiao":     nome_regiao,
                 "quantil":    q,
                 "beta_negro": b,
                 "ci_low":     ci_l,
                 "ci_high":    ci_h,
                 "gap_pct":    (np.exp(b) - 1) * 100,
-            })
+            }
+            rows.append(row_q)
+            with run_context(f"QR_{nome_regiao}_q{int(q*100)}", "Analise_Regional",
+                             nested=True):
+                log_params({"regiao": nome_regiao, "quantil": q, "max_iter": 2000})
+                log_metrics({
+                    "beta_negro": b, "ci_low": ci_l,
+                    "ci_high": ci_h, "gap_pct": row_q["gap_pct"],
+                })
         except Exception as exc:
             logger.warning(f"  QuantReg {nome_regiao} τ={q:.2f}: {exc}")
     return pd.DataFrame(rows)
@@ -312,52 +336,72 @@ def run_analise_regional(sample_frac: Optional[float] = None) -> Dict:
     """
     df = carregar_dados(sample_frac=sample_frac)
 
-    # ── HLM por região ────────────────────────────────────────────────────
-    rows_hlm = []
-    for regiao in REGIOES:
-        res = ajustar_hlm_regional(df, regiao)
-        if res:
-            rows_hlm.append(res)
+    with run_context("pipeline_regional", "Analise_Regional",
+                     tags={"sample_frac": str(sample_frac or "completo"),
+                           "n_obs": str(len(df))}):
+        log_params({"sample_frac": sample_frac, "n_obs": len(df),
+                    "n_regioes": len(REGIOES), "quantiles": str(QUANTILES)})
 
-    hlm_tab = pd.DataFrame(rows_hlm)
-    hlm_tab.to_csv(OUT_TAB / "regional_hlm.csv", index=False)
+        # ── HLM por região ────────────────────────────────────────────────
+        rows_hlm = []
+        for regiao in REGIOES:
+            res = ajustar_hlm_regional(df, regiao)
+            if res:
+                rows_hlm.append(res)
 
-    latex = (
-        hlm_tab[["regiao", "n_obs", "n_ufs", "beta_negro", "se_negro",
-                 "pval", "gap_pct", "icc_uf"]]
-        .rename(columns={
-            "regiao": "Região", "n_obs": "N", "n_ufs": "UFs",
-            "beta_negro": "β_negro", "se_negro": "SE",
-            "pval": "p-valor", "gap_pct": "Gap (%)", "icc_uf": "ICC_UF",
-        })
-        .to_latex(
-            index=False, float_format="%.4f",
-            caption=(
-                "Modelos HLM por Macrorregião — Gap Salarial Racial (β_negro) "
-                "com RE por UF. PNAD Contínua. "
-                "*** p<0,001; ** p<0,01; * p<0,05."
-            ),
-            label="tab:regional_hlm",
+        hlm_tab = pd.DataFrame(rows_hlm)
+        hlm_tab.to_csv(OUT_TAB / "regional_hlm.csv", index=False)
+
+        latex = (
+            hlm_tab[["regiao", "n_obs", "n_ufs", "beta_negro", "se_negro",
+                     "pval", "gap_pct", "icc_uf"]]
+            .rename(columns={
+                "regiao": "Região", "n_obs": "N", "n_ufs": "UFs",
+                "beta_negro": "β_negro", "se_negro": "SE",
+                "pval": "p-valor", "gap_pct": "Gap (%)", "icc_uf": "ICC_UF",
+            })
+            .to_latex(
+                index=False, float_format="%.4f",
+                caption=(
+                    "Modelos HLM por Macrorregião — Gap Salarial Racial (β_negro) "
+                    "com RE por UF. PNAD Contínua. "
+                    "*** p<0,001; ** p<0,01; * p<0,05."
+                ),
+                label="tab:regional_hlm",
+            )
         )
-    )
-    (OUT_TAB / "regional_hlm.tex").write_text(latex, encoding="utf-8")
-    plotar_coeficientes_regionais(hlm_tab)
-    plotar_icc_regional(hlm_tab)
+        (OUT_TAB / "regional_hlm.tex").write_text(latex, encoding="utf-8")
+        plotar_coeficientes_regionais(hlm_tab)
+        plotar_icc_regional(hlm_tab)
 
-    # ── Regressão quantílica por região ──────────────────────────────────
-    qr_frames = [ajustar_quantilica_regional(df, r) for r in REGIOES]
-    qr_tab = pd.concat([f for f in qr_frames if not f.empty], ignore_index=True)
-    qr_tab.to_csv(OUT_TAB / "regional_qr.csv", index=False)
-    plotar_perfil_quantilico(qr_tab)
+        # ── Regressão quantílica por região ──────────────────────────────
+        qr_frames = [ajustar_quantilica_regional(df, r) for r in REGIOES]
+        qr_tab = pd.concat([f for f in qr_frames if not f.empty], ignore_index=True)
+        qr_tab.to_csv(OUT_TAB / "regional_qr.csv", index=False)
+        plotar_perfil_quantilico(qr_tab)
 
-    # ── Sumário narrativo ─────────────────────────────────────────────────
-    if not hlm_tab.empty:
-        maior_gap = hlm_tab.loc[hlm_tab["beta_negro"].idxmin(), "regiao"]
-        menor_gap = hlm_tab.loc[hlm_tab["beta_negro"].idxmax(), "regiao"]
-        print("\n--- SUMARIO: Analise Regional ---")
-        print(hlm_tab[["regiao", "beta_negro", "gap_pct", "icc_uf", "pval"]]
-              .to_string(index=False))
-        print(f"\nMaior gap racial: {maior_gap}")
-        print(f"Menor gap racial: {menor_gap}")
+        # Métricas resumo na run pai
+        if not hlm_tab.empty:
+            maior_gap = hlm_tab.loc[hlm_tab["beta_negro"].idxmin(), "regiao"]
+            menor_gap = hlm_tab.loc[hlm_tab["beta_negro"].idxmax(), "regiao"]
+            log_metrics({
+                "beta_negro_min": hlm_tab["beta_negro"].min(),
+                "beta_negro_max": hlm_tab["beta_negro"].max(),
+                "gap_pct_min":    hlm_tab["gap_pct"].min(),
+                "gap_pct_max":    hlm_tab["gap_pct"].max(),
+                "icc_uf_max":     hlm_tab["icc_uf"].max(),
+            })
+            set_tag("maior_gap_regiao", maior_gap)
+            set_tag("menor_gap_regiao", menor_gap)
+            log_artifacts_dir(OUT_TAB, subfolder="tables")
+            log_artifacts_dir(OUT_FIG, subfolder="figures")
+
+        # ── Sumário narrativo ─────────────────────────────────────────────
+        if not hlm_tab.empty:
+            print("\n--- SUMARIO: Analise Regional ---")
+            print(hlm_tab[["regiao", "beta_negro", "gap_pct", "icc_uf", "pval"]]
+                  .to_string(index=False))
+            print(f"\nMaior gap racial: {maior_gap}")
+            print(f"Menor gap racial: {menor_gap}")
 
     return {"hlm": hlm_tab, "qr": qr_tab}

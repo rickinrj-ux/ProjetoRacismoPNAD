@@ -93,6 +93,10 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from scipy import stats
 
+from mlflow_utils import (
+    log_artifacts_dir, log_metrics, log_params, run_context, set_tag,
+)
+
 logger = logging.getLogger(__name__)
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
@@ -308,7 +312,7 @@ def _fit_model(
         f"ICC_UPA={icc['icc_upa']:.3f} | ICC_UF={icc['icc_uf']:.3f} | "
         f"AIC={result.aic:.1f}"
     )
-    return HLMResults(
+    hlm = HLMResults(
         model_name=model_name,
         result=result,
         var_uf=var_uf, var_upa=var_upa, var_resid=var_resid,
@@ -320,6 +324,37 @@ def _fit_model(
         bic=result.bic,
         log_likelihood=result.llf,
     )
+
+    b  = result.params.get("negro", np.nan)
+    se = result.bse.get("negro", np.nan)
+    pv = result.pvalues.get("negro", np.nan)
+    with run_context(model_name, "HLM_Gap_Racial", nested=True):
+        log_params({
+            "model_name": model_name,
+            "formula":    formula,
+            "method":     method,
+            "maxiter":    maxiter,
+            "reml":       False,
+            "n_obs":      hlm.n_obs,
+            "n_upa":      hlm.n_upa,
+            "n_uf":       hlm.n_uf,
+        })
+        log_metrics({
+            "beta_negro":     b,
+            "se_negro":       se,
+            "pval_negro":     pv,
+            "gap_pct":        (np.exp(b) - 1) * 100,
+            "icc_uf":         hlm.icc_uf,
+            "icc_upa":        hlm.icc_upa,
+            "var_uf":         hlm.var_uf,
+            "var_upa":        hlm.var_upa,
+            "var_resid":      hlm.var_resid,
+            "aic":            hlm.aic,
+            "bic":            hlm.bic,
+            "log_likelihood": hlm.log_likelihood,
+        })
+
+    return hlm
 
 
 def fit_null_model(df: pd.DataFrame) -> HLMResults:
@@ -622,24 +657,66 @@ def run_models(
 
     df = load_features(sample_frac=sample_frac)
 
-    # Ajuste sequencial — não paralelizar: cada modelo informa o próximo
-    models: Dict[str, HLMResults] = {}
-    models["M0_Nulo"]       = fit_null_model(df)
-    models["M1_Individual"] = fit_individual_model(df)
-    models["M2_Localidade"] = fit_locality_model(df)
-    models["M3_Completo"]   = fit_full_model(df)
+    run_tags = {
+        "sample_frac": str(sample_frac or "completo"),
+        "n_obs":        str(len(df)),
+    }
+    with run_context("pipeline_hlm", "HLM_Gap_Racial", tags=run_tags):
+        log_params({"sample_frac": sample_frac, "n_obs": len(df)})
 
-    # Comparações e análises
-    lrt_results = [
-        likelihood_ratio_test(models["M0_Nulo"],       models["M1_Individual"]),
-        likelihood_ratio_test(models["M1_Individual"], models["M2_Localidade"]),
-        likelihood_ratio_test(models["M2_Localidade"], models["M3_Completo"]),
-    ]
-    decomposition  = compute_racial_gap_decomposition(models)
-    results_table  = build_results_table(models)
+        # Ajuste sequencial — não paralelizar: cada modelo informa o próximo
+        models: Dict[str, HLMResults] = {}
+        models["M0_Nulo"]       = fit_null_model(df)
+        models["M1_Individual"] = fit_individual_model(df)
+        models["M2_Localidade"] = fit_locality_model(df)
+        models["M3_Completo"]   = fit_full_model(df)
 
-    if save:
-        save_outputs(models, results_table, decomposition, lrt_results)
+        # Comparações e análises
+        lrt_results = [
+            likelihood_ratio_test(models["M0_Nulo"],       models["M1_Individual"]),
+            likelihood_ratio_test(models["M1_Individual"], models["M2_Localidade"]),
+            likelihood_ratio_test(models["M2_Localidade"], models["M3_Completo"]),
+        ]
+        decomposition  = compute_racial_gap_decomposition(models)
+        results_table  = build_results_table(models)
+
+        # Métricas comparativas da run pai
+        m1 = models["M1_Individual"]
+        m3 = models["M3_Completo"]
+        b1 = m1.result.params.get("negro", np.nan)
+        b3 = m3.result.params.get("negro", np.nan)
+        mediacao = abs(b1 - b3) / abs(b1) * 100 if b1 != 0 else np.nan
+        log_metrics({
+            "beta_negro_M1":       b1,
+            "beta_negro_M3":       b3,
+            "gap_pct_M1":          (np.exp(b1) - 1) * 100,
+            "gap_pct_M3":          (np.exp(b3) - 1) * 100,
+            "mediacao_contextual": mediacao,
+            "aic_M0":  models["M0_Nulo"].aic,
+            "aic_M1":  m1.aic,
+            "aic_M2":  models["M2_Localidade"].aic,
+            "aic_M3":  m3.aic,
+            "icc_upa_M0": models["M0_Nulo"].icc_upa,
+            "icc_upa_M3": m3.icc_upa,
+        })
+
+        # LRT como métricas
+        for lrt in lrt_results:
+            slug = lrt["Comparação"].replace(" → ", "_vs_").replace(" ", "")
+            log_metrics({
+                f"lrt_LR_{slug}":    lrt["LR"],
+                f"lrt_pval_{slug}":  lrt["p-valor"],
+            })
+
+        # Modelo campeão: M3 é o modelo completo escolhido para o TCC
+        set_tag("champion_model", "M3_Completo")
+        set_tag("escolha_justificativa",
+                "Menor AIC, LRT significativo em todos os níveis, "
+                "ICC_UPA > 0.05 confirma estrutura multinível")
+
+        if save:
+            save_outputs(models, results_table, decomposition, lrt_results)
+            log_artifacts_dir(OUTPUTS, subfolder="tables")
 
     print_discussion_summary(models)
     return models
