@@ -15,6 +15,7 @@ import logging
 import argparse
 from pathlib import Path
 
+sys.stdout.reconfigure(encoding='utf-8')
 sys.path.insert(0, "src")
 Path("logs").mkdir(exist_ok=True)
 logging.basicConfig(
@@ -37,6 +38,6 @@ if __name__ == "__main__":
     resultados = run_analise_regional(sample_frac=args.sample)
 
     print("\n=== CONCLUÍDO ===")
-    print(f"HLM por região: {len(resultados['hlm'])} regiões estimadas")
-    print(f"Regressão quantílica: {len(resultados['qr'])} registros")
+    print(f"HLM por regiao: {len(resultados['hlm'])} regioes estimadas")
+    print(f"Regressao quantilica: {len(resultados['qr'])} registros")
     print("Outputs salvos em: outputs/figures/ e outputs/tables/")

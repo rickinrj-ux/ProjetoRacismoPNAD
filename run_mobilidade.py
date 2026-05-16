@@ -16,6 +16,7 @@ import logging
 import argparse
 from pathlib import Path
 
+sys.stdout.reconfigure(encoding='utf-8')
 sys.path.insert(0, "src")
 Path("logs").mkdir(exist_ok=True)
 logging.basicConfig(

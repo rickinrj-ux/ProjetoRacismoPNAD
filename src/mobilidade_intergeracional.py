@@ -188,9 +188,12 @@ def ajustar_igm_ols(df: pd.DataFrame) -> object:
         "log_renda_filho ~ educ_chefe_ord * negro"
         " + educ_filho_ord + sexo_fem + idade_c + C(UF_str)"
     )
-    logger.info("Ajustando IGM-OLS (interação raça × educ. parental)...")
+    logger.info("Ajustando IGM-OLS (interacao raca x educ. parental)...")
+    cols = ["log_renda_filho", "educ_chefe_ord", "negro",
+            "educ_filho_ord", "sexo_fem", "idade_c", "UF_str"]
+    df = df[cols].dropna().reset_index(drop=True)
     result = smf.ols(formula, data=df).fit(
-        cov_type="cluster", cov_kwds={"groups": df["UF_str"]}
+        cov_type="cluster", cov_kwds={"groups": df["UF_str"].values}
     )
     b_educ   = result.params.get("educ_chefe_ord", np.nan)
     b_inter  = result.params.get("educ_chefe_ord:negro", np.nan)
@@ -215,6 +218,9 @@ def ajustar_igm_hlm(df: pd.DataFrame) -> object:
         " + educ_filho_ord + sexo_fem + idade_c"
     )
     logger.info("Ajustando IGM-HLM (RE por UF)...")
+    cols = ["log_renda_filho", "educ_chefe_ord", "negro",
+            "educ_filho_ord", "sexo_fem", "idade_c", "UF_str"]
+    df = df[cols].dropna().reset_index(drop=True)
     with warnings.catch_warnings(record=True):
         warnings.simplefilter("always")
         model  = smf.mixedlm(formula, data=df, groups=df["UF_str"])

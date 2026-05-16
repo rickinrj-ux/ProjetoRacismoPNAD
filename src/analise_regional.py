@@ -147,7 +147,7 @@ def ajustar_hlm_regional(df: pd.DataFrame, nome_regiao: str) -> Optional[Dict]:
     stars = "***" if pv < 0.001 else "**" if pv < 0.01 else "*" if pv < 0.05 else "ns"
 
     logger.info(
-        f"  {nome_regiao}: β_negro={b:.4f}{stars}  ICC_UF={icc_uf:.3f}  "
+        f"  {nome_regiao}: beta_negro={b:.4f}{stars}  ICC_UF={icc_uf:.3f}  "
         f"gap={(np.exp(b)-1)*100:.1f}%"
     )
     return {
@@ -354,7 +354,7 @@ def run_analise_regional(sample_frac: Optional[float] = None) -> Dict:
     if not hlm_tab.empty:
         maior_gap = hlm_tab.loc[hlm_tab["beta_negro"].idxmin(), "regiao"]
         menor_gap = hlm_tab.loc[hlm_tab["beta_negro"].idxmax(), "regiao"]
-        print("\n── SUMÁRIO: Análise Regional ──")
+        print("\n--- SUMARIO: Analise Regional ---")
         print(hlm_tab[["regiao", "beta_negro", "gap_pct", "icc_uf", "pval"]]
               .to_string(index=False))
         print(f"\nMaior gap racial: {maior_gap}")
