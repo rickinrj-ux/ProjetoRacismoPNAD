@@ -86,19 +86,19 @@ SELECT
     grau_instrucao_apos_2005,
     sexo,
     idade,
-    vl_remun_dezembro_nom,
-    vl_remun_media_nom,
-    vl_remun_dezembro_sm,
-    qtd_hora_contr,
+    valor_remuneracao_dezembro,
+    valor_remuneracao_media,
+    valor_remuneracao_dezembro_sm,
+    quantidade_horas_contratadas,
     natureza_juridica,
-    cbo_ocupacao_2002,
+    cbo_2002,
     cnae_2_subclasse,
     tempo_emprego
 FROM `basedosdados.br_me_rais.microdados_vinculos`
 WHERE ano = {ano}
-  AND vinculo_ativo_3112 = TRUE
-  AND raca_cor IN (2, 4, 8)
-  AND vl_remun_dezembro_nom > 0
+  AND vinculo_ativo_3112 = '1'
+  AND SAFE_CAST(raca_cor AS INT64) IN (2, 4, 8)
+  AND valor_remuneracao_dezembro > 0
 {filtro_uf}
 """
 
@@ -192,13 +192,13 @@ def harmonizar_rais(df_raw: pd.DataFrame) -> pd.DataFrame:
 
     # ── Salario → log_renda ──────────────────────────────────────────────────
     # Prioridade: dezembro nominal > media nominal > dezembro em SM * SM_ano
-    sal = pd.to_numeric(df_raw.get("vl_remun_dezembro_nom"), errors="coerce")
+    sal = pd.to_numeric(df_raw.get("valor_remuneracao_dezembro"), errors="coerce")
     if sal.isna().mean() > 0.5:
-        sal = pd.to_numeric(df_raw.get("vl_remun_media_nom"), errors="coerce")
-    if sal.isna().mean() > 0.5 and "vl_remun_dezembro_sm" in df_raw.columns:
+        sal = pd.to_numeric(df_raw.get("valor_remuneracao_media"), errors="coerce")
+    if sal.isna().mean() > 0.5 and "valor_remuneracao_dezembro_sm" in df_raw.columns:
         ano_ref = int(out["Ano"].iloc[0])
         sm = SALARIO_MINIMO.get(ano_ref, 1100)
-        sal = pd.to_numeric(df_raw["vl_remun_dezembro_sm"], errors="coerce") * sm
+        sal = pd.to_numeric(df_raw["valor_remuneracao_dezembro_sm"], errors="coerce") * sm
 
     sal = sal.where(sal > 0)
     p01, p99 = sal.quantile(0.01), sal.quantile(0.99)
@@ -206,7 +206,7 @@ def harmonizar_rais(df_raw: pd.DataFrame) -> pd.DataFrame:
     out["log_renda"] = np.log1p(sal)
 
     # ── Horas contratadas ────────────────────────────────────────────────────
-    horas = pd.to_numeric(df_raw.get("qtd_hora_contr"), errors="coerce")
+    horas = pd.to_numeric(df_raw.get("quantidade_horas_contratadas"), errors="coerce")
     horas = horas.where(horas.between(1, 99))
     out["horas_c"] = horas - horas.mean()
 
@@ -226,9 +226,9 @@ def harmonizar_rais(df_raw: pd.DataFrame) -> pd.DataFrame:
     out["UF_str"] = df_raw["sigla_uf"].astype("category")
 
     # ── CBO → grupo ocupacional (primeiro digito) ────────────────────────────
-    if "cbo_ocupacao_2002" in df_raw.columns:
+    if "cbo_2002" in df_raw.columns:
         out["ocp_grupo_cbo"] = (
-            df_raw["cbo_ocupacao_2002"].astype(str).str.strip().str[:1]
+            df_raw["cbo_2002"].astype(str).str.strip().str[:1]
         )
 
     # ── Limpeza final ────────────────────────────────────────────────────────
