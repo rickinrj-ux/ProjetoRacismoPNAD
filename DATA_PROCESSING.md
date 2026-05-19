@@ -408,23 +408,76 @@ Adiciona `gap_enem_uf_z` ao M3 completo como preditor de Nível 3:
 ## 9. Ingestão RAIS
 
 **Arquivo:** `src/ingestion_rais.py`  
-**Runner:** `python run_ingestion_rais.py`  
-**Fonte:** `basedosdados.br_me_rais.microdados_vinculos` (BigQuery)
+**Runner:** `python run_ingestion_rais.py --project tcc-racismo-pnad`  
+**Fonte:** `basedosdados.br_me_rais.microdados_vinculos` (BigQuery)  
+**Validação:** `python run_validacao_rais.py`
 
 ### Variáveis selecionadas
 
-| Variável | Código RAIS | Uso |
-|----------|------------|-----|
-| Ano | `ano` | Painel temporal |
-| UF | `sigla_uf` | Nível 3 |
-| Raça/cor | `raca_cor` | `negro` binário |
-| Remuneração média | `valor_remuneracao_media` | Validação cruzada com PNAD |
-| Horas semanais | `quantidade_horas_contratadas` | `log_horas_rais` |
-| Vínculo ativo | `vinculo_ativo_31_12` | Filtro de vínculos ativos |
-| CNAE setor | `cnae2_subclasse` | `setor_cnae_rais` |
-| Grau instrução | `grau_instrucao_apos_2005` | `educ_rais` |
+| Variável RAIS | Coluna basedosdados | Mapeamento para PNAD |
+|---|---|---|
+| Raça/cor | `raca_cor` | `negro`: 4 (Preta) + 8 (Parda) = 1; 2 (Branca) = 0 |
+| Grau instrução | `grau_instrucao_apos_2005` | `educ_ord` 0–7 via tabela `RAIS_EDUC_ORD` |
+| Remuneração dezembro | `valor_remuneracao_dezembro` | `log_renda = log1p(sal_clipado_p01_p99)` |
+| Horas contratadas | `quantidade_horas_contratadas` | `horas_c` (centralizada) |
+| Sexo | `sexo` | `sexo_fem`: 3=Feminino → 1 |
+| Idade | `idade` | `idade_c`, `idade_sq` (faixa 14–80) |
+| Vínculo ativo | `vinculo_ativo_3112` | Filtro: `= '1'` (STRING, não BOOL) |
+| Natureza jurídica | `natureza_juridica` | `setor_publico`: nat < 2000 → 1 |
+| UF | `sigla_uf` | `UF_str` (categoria) |
 
-**Uso no projeto:** validação cruzada dos gaps salariais estimados via PNAD. A RAIS cobre apenas o setor formal, portanto os gaps tendem a ser menores que na PNAD (que inclui informal).
+**Nota técnica:** `vinculo_ativo_3112` no schema basedosdados é STRING (`'1'`/`'0'`), não BOOL.
+Usar `= '1'` e não `= TRUE` na query BigQuery (erro anterior na versão 1 do ingestion).
+
+**Raça/cor RAIS:** 1=Indígena, 2=Branca, 4=Preta, 6=Amarela, 8=Parda, 9=N.I.
+Filtramos `raca_cor IN (2, 4, 8)` e convertemos com `SAFE_CAST(raca_cor AS INT64)`.
+
+### Pipeline de ingestão
+
+1. Query BigQuery por ano (`ano = {ano}`) — vínculos ativos com raça conhecida e remuneração > 0
+2. `harmonizar_rais(df_raw)` — aplica mapeamentos acima
+3. **Salva imediatamente** em `data/external/rais_{ano}.parquet` (fix de OOM)
+4. Após todos os anos: merge incremental via `pyarrow.ParquetWriter` → `rais_processada.parquet`
+
+**Motivação do fix de OOM:** na primeira execução (2026-05-16), o pipeline acumulou os 7 anos em RAM antes de salvar. O `pd.concat(230M rows)` + `to_parquet()` excedeu a memória disponível sem lançar exceção (saiu silenciosamente após as estatísticas). A versão corrigida salva cada ano individualmente e usa escrita incremental com pyarrow, mantendo no máximo ~2 GB de dados em RAM por vez.
+
+**Resume capability:** se `rais_{ano}.parquet` já existir com tamanho > 0, o download é pulado. Útil para reiniciar após falha de rede (como o timeout do ano 2021).
+
+### Estatísticas da ingestão (2026-05-16/17)
+
+| Ano | Observações | % Negro | Gap bruto (log) | Gap bruto (%) |
+|-----|------------|---------|----------------|--------------|
+| 2016 | 32.186.550 | 42,2% | −0,2355 | −21,0% |
+| 2017 | 31.829.836 | 43,0% | −0,2304 | −20,6% |
+| 2018 | 32.021.431 | 44,4% | −0,2383 | −21,2% |
+| 2019 | 30.419.745 | 45,0% | −0,2414 | −21,4% |
+| 2020 | 29.046.555 | 46,1% | −0,2457 | −21,8% |
+| 2021 | — | — | — | *(timeout de rede)* |
+| 2022 | 31.901.065 | 48,3% | −0,2582 | −22,8% |
+| 2023 | 43.552.744 | 50,0% | −0,2654 | −23,3% |
+| **Total** | **230.957.926** | **45,8%** | **−0,2277** | **−20,4%** |
+
+Gap bruto = média(log_renda_negro) − média(log_renda_branco), sem controles.
+O sinal negativo confirma que negros ganham menos no setor formal.
+
+### Validação cruzada (run_validacao_rais.py)
+
+Estimativa do mesmo modelo HLM (intercepto aleatório por UF) em PNAD e RAIS com especificação idêntica:
+
+```
+log_renda ~ negro + sexo_fem + idade_c + idade_sq
+          + educ_fund_completo + educ_medio_completo
+          + educ_superior_completo + educ_pos_graduacao
+groups = UF_str
+```
+
+Dado o volume de 230M obs (OOM em RAM), a validação processa **um ano por vez** e agrega os coeficientes com **Inverse-Variance Weighting (IVW)**:
+
+$$\hat{\beta}_{IVW} = \frac{\sum_t w_t \hat{\beta}_t}{\sum_t w_t}, \quad w_t = \frac{1}{SE_t^2}$$
+
+Outputs: `outputs/tables/rais_comparacao.csv|.tex`, `outputs/figures/rais_comparacao_geral.png`, `rais_comparacao_temporal.png`, `rais_scatter_uf.png`.
+
+**Uso no projeto:** validação cruzada dos gaps salariais estimados via PNAD. A RAIS cobre apenas o setor formal (~60% da força de trabalho), portanto os gaps brutos são menores que na PNAD (que inclui informal). Consistência entre os coeficientes ajustados das duas bases indica que a discriminação ocorre também no setor formal regulamentado.
 
 ---
 

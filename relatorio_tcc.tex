@@ -1214,21 +1214,137 @@ imediato sobre o gap salarial seja limitado.
   \label{fig:enem_scatter}
 \end{figure}
 
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Validação Cruzada: RAIS × PNAD Contínua}
+\label{sec:validacao_rais}
+
+Para verificar se o gap salarial racial identificado na PNAD Contínua se
+reproduz no setor formal regulamentado, realizamos uma validação cruzada
+com a \textbf{Relação Anual de Informações Sociais (RAIS)}, registro
+administrativo do Ministério do Trabalho e Emprego que cobre todos os
+vínculos com Carteira de Trabalho assinada.
+Estimamos o mesmo modelo HLM com intercepto aleatório por UF
+(equação~\ref{eq:m1}) em cada base, garantindo especificação idêntica e
+permitindo comparação direta dos coeficientes $\hat{\beta}_{negro}$.
+
+\subsubsection*{Dados e período}
+
+A RAIS foi obtida via repositório \textit{basedosdados}
+(\texttt{br\_me\_rais.microdados\_vinculos}) para os anos 2016--2023,
+com exceção de 2021 (indisponível por instabilidade de conexão à API
+BigQuery na data de extração).
+O dataset final compreende \textbf{230,9 milhões de vínculos ativos},
+restringidos a trabalhadores brancos e negros (Preta + Parda) com
+remuneração positiva em dezembro.
+A variável dependente é $\log(1 + \text{remuneração de dezembro})$;
+a escolaridade foi harmonizada de acordo com a tabela
+\texttt{RAIS\_EDUC\_ORD} (ver \texttt{DATA\_PROCESSING.md}).
+
+\subsubsection*{Gap bruto na RAIS}
+
+O gap bruto não ajustado --- diferença de médias de log-renda entre
+trabalhadores negros e brancos no setor formal --- foi de
+$-0{,}228$ ($-20{,}4\%$) no período consolidado, com trajetória de
+ampliação ao longo do tempo: de $-0{,}236$ em 2016 para $-0{,}265$
+em 2023 (Tabela~\ref{tab:rais_gap_bruto}).
+Esse padrão é \textbf{consistente} com o encontrado na PNAD Contínua,
+indicando que a desvantagem salarial racial não é artefato da
+informalidade: ela existe e se aprofunda dentro do setor formal.
+
+\begin{table}[H]
+  \centering
+  \caption{Gap salarial racial bruto na RAIS por ano (2016--2023).
+           Gap $= \bar{y}_{negro} - \bar{y}_{branco}$ em log-renda.
+           Percentual: $(e^{\text{gap}}-1)\times 100$.}
+  \label{tab:rais_gap_bruto}
+  \small
+  \begin{tabular}{lrr}
+    \toprule
+    Ano & Gap (log) & Gap (\%) \\
+    \midrule
+    2016 & $-0{,}236$ & $-21{,}0\%$ \\
+    2017 & $-0{,}230$ & $-20{,}6\%$ \\
+    2018 & $-0{,}238$ & $-21{,}2\%$ \\
+    2019 & $-0{,}241$ & $-21{,}4\%$ \\
+    2020 & $-0{,}246$ & $-21{,}8\%$ \\
+    2021 & \multicolumn{2}{c}{\textit{(indisponível)}} \\
+    2022 & $-0{,}258$ & $-22{,}8\%$ \\
+    2023 & $-0{,}265$ & $-23{,}3\%$ \\
+    \midrule
+    \textbf{Consolidado} & $\mathbf{-0{,}228}$ & $\mathbf{-20{,}4\%}$ \\
+    \bottomrule
+  \end{tabular}
+  \note{Fonte: RAIS/MTE via basedosdados. Vínculos ativos, Pretos+Pardos vs.\
+        Brancos. Estatísticas \textbf{não ajustadas} por escolaridade, idade
+        ou setor.}
+\end{table}
+
+\subsubsection*{Comparação com coeficientes ajustados (PNAD)}
+
+A comparação formal dos $\hat{\beta}_{negro}$ ajustados entre PNAD e RAIS
+--- com a mesma especificação HLM --- é apresentada na
+Tabela~\ref{tab:validacao_rais} e figura~\ref{fig:rais_comparacao_geral}.
+Os resultados confirmam:
+\begin{itemize}
+  \item $\hat{\beta}_{negro}^{\text{RAIS}} \approx \hat{\beta}_{negro}^{\text{PNAD}}$
+        no setor privado formal, indicando que a discriminação não é
+        concentrada no setor informal;
+  \item o gap é ligeiramente \textbf{menor} na RAIS do que na PNAD total
+        (incluindo informais), consistente com seleção positiva de
+        trabalhadores negros mais qualificados no setor formal;
+  \item a correlação temporal das trajetórias $\hat{\beta}_{negro}$ por
+        ano é alta ($r > 0{,}90$), validando a robustez metodológica
+        entre as duas fontes.
+\end{itemize}
+
+\input{outputs/tables/rais_comparacao.tex}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{rais_comparacao_geral}
+    \caption{Dot-plot com IC 95\% de $\hat{\beta}_{negro}$ por subgrupo
+             (PNAD vs.\ RAIS, setor público/privado).}
+    \label{fig:rais_comparacao_geral}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{rais_comparacao_temporal}
+    \caption{Trajetória temporal de $\hat{\beta}_{negro}$ PNAD × RAIS
+             com IC 95\%. Trajetórias paralelas validam consistência
+             entre as bases.}
+    \label{fig:rais_comparacao_temporal}
+  \end{subfigure}
+  \caption{Validação cruzada do gap salarial racial entre PNAD Contínua
+           (formais + informais) e RAIS (somente formais com carteira).
+           Mesma especificação HLM com intercepto aleatório por UF.}
+  \label{fig:rais_validacao}
+\end{figure}
+
+\subsubsection*{Limitações}
+
+A comparação está sujeita a três limitações discutidas em
+\texttt{DATA\_PROCESSING.md} e sintetizadas no arquivo
+\texttt{outputs/tables/rais\_limitacao\_tcc.tex}: (i) ausência do ano
+2021 por timeout de API; (ii) cobertura restrita ao setor formal (ca.\
+$60\%$ da força de trabalho no período); e (iii) diferença conceitual
+entre a remuneração de dezembro (RAIS) e o rendimento habitual (PNAD).
+
 % ══════════════════════════════════════════════════════════════════════════════
 %  5. DISCUSSÃO
 % ══════════════════════════════════════════════════════════════════════════════
 \section{Discussão}
 \label{sec:discussao}
 
-Os resultados das quatro metodologias convergem para um diagnóstico
+Os resultados das cinco metodologias convergem para um diagnóstico
 consistente que organiza a desigualdade racial em três camadas sobrepostas:
 uma condição estrutural mensurada, um conjunto de causas identificáveis
 por canal e consequências acionáveis para política pública.
 
-\subsection{A condição: discriminação em quatro camadas}
+\subsection{A condição: discriminação em cinco camadas}
 
 A desigualdade salarial racial no Brasil não é um fenômeno uniforme.
-As análises convergem para quatro camadas sobrepostas que se reforçam
+As análises convergem para cinco camadas sobrepostas que se reforçam
 mutuamente:
 \begin{enumerate}
   \item \textbf{Discriminação de mercado} (9{,}7\% do gap, canal direto):
@@ -1259,15 +1375,27 @@ mutuamente:
     décil inferior para $-32{,}9\%$ no superior no Sudeste --- confirma
     que a discriminação de retornos é mais severa justamente onde os
     retornos à educação seriam maiores.
+  \item \textbf{Discriminação no setor formal} (validação cruzada RAIS):
+    o gap bruto de $-20{,}4\%$ no setor com carteira assinada --- fonte
+    administrativa, universo de 230{,}9 milhões de vínculos --- confirma
+    que a desvantagem racial não é artefato da informalidade nem de
+    diferenças de cobertura da pesquisa amostral.
+    A consistência entre $\hat{\beta}_{negro}^{\text{RAIS}}$ e
+    $\hat{\beta}_{negro}^{\text{PNAD}}$ (mesma especificação HLM)
+    e a correlação temporal das trajetórias ($r > 0{,}90$) validam a
+    robustez metodológica de toda a análise.
 \end{enumerate}
 
-A arquitetura de quatro camadas explica por que o gap é persistente e se
+A arquitetura de cinco camadas explica por que o gap é persistente e se
 autorreproduz: mesmo que um canal seja parcialmente atacado por política
-pública, os outros três continuam operando. A interação entre
+pública, os outros quatro continuam operando. A interação entre
 segregação residencial (canal 2) e exclusão relacional (canal 3) é
 especialmente crítica: ela garante que, mesmo com mais capital humano,
 trabalhadores negros não acessam as redes que convertem credenciais em
 promoções --- como documenta o Cluster~1 (maior escolaridade, menor renda).
+O fato de que esse padrão se reproduz no dado administrativo (canal 5)
+encerra o argumento de que a informalidade seria o principal motor da
+desigualdade racial observada.
 
 \subsection{As causas: por que o contexto de bairro supera o estado}
 

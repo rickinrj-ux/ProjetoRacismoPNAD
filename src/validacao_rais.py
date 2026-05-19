@@ -48,10 +48,22 @@ logger = logging.getLogger(__name__)
 ROOT          = Path(__file__).parent.parent
 FEATURES_PATH = ROOT / "data" / "processed" / "features.parquet"
 RAIS_DEFAULT  = ROOT / "data" / "external" / "rais_processada.parquet"
+RAIS_EXT_DIR  = ROOT / "data" / "external"
 OUT_FIG       = ROOT / "outputs" / "figures"
 OUT_TAB       = ROOT / "outputs" / "tables"
 OUT_FIG.mkdir(parents=True, exist_ok=True)
 OUT_TAB.mkdir(parents=True, exist_ok=True)
+
+
+def _listar_year_files(base_dir: Path) -> list[Path]:
+    """Retorna rais_{YYYY}.parquet ordenados por ano."""
+    return sorted(base_dir.glob("rais_20??.parquet"))
+
+
+def _rais_usa_year_files(rais_path: Path) -> bool:
+    """True quando o parquet consolidado está vazio mas os year-files existem."""
+    vazio = (not rais_path.exists()) or (rais_path.stat().st_size < 1000)
+    return vazio and len(_listar_year_files(rais_path.parent)) > 0
 
 # Fórmula comparable entre PNAD e RAIS (sem variáveis UPA)
 FORMULA_BASE = (
@@ -556,6 +568,193 @@ entre os mercados formal e informal.
     logger.info("LaTeX: rais_limitacao_tcc.tex")
 
 
+# ── Agregação IVW (inverse-variance weighting) ───────────────────────────────
+
+def _ivw_agg(rows: list[dict]) -> dict:
+    """
+    Agrega estimativas por ano com IVW.
+
+    Cada elemento de rows deve ter: beta_negro, se_negro, n_obs, label, base,
+    subgrupo (opcional).
+    """
+    if not rows:
+        return {}
+    betas = np.array([r["beta_negro"] for r in rows])
+    ses   = np.array([r["se_negro"]   for r in rows])
+    ns    = np.array([r["n_obs"]      for r in rows])
+
+    # pesos = 1/se²; estimativas com se=0 ignoradas
+    valid = ses > 0
+    if not valid.any():
+        return {}
+    w     = 1.0 / (ses[valid] ** 2)
+    beta  = np.average(betas[valid], weights=w)
+    se    = 1.0 / np.sqrt(w.sum())
+    pv    = 2 * (1 - float(np.exp(-0.5 * (beta / se) ** 2)))  # approx normal
+    pv    = max(1e-16, min(pv, 1.0))
+    return {
+        "label":      rows[0]["label"].rsplit(" ", 1)[0] if " " in rows[0]["label"] else rows[0]["label"],
+        "base":       rows[0].get("base", ""),
+        "subgrupo":   rows[0].get("subgrupo", ""),
+        "n_obs":      int(ns.sum()),
+        "n_ufs":      rows[0].get("n_ufs", 0),
+        "beta_negro": float(beta),
+        "se_negro":   float(se),
+        "pval":       float(pv),
+        "gap_pct":    (np.exp(float(beta)) - 1) * 100,
+        "icc_uf":     float(np.mean([r.get("icc_uf", 0) for r in rows])),
+    }
+
+
+# ── Pipeline por year-files (resistente a OOM para RAIS ≥ 100M obs) ──────────
+
+def _run_validacao_por_ano(
+    df_pnad: pd.DataFrame,
+    year_files: list[Path],
+    anos: Optional[list] = None,
+) -> Dict:
+    """
+    Processa validação cruzada carregando um ano de RAIS por vez.
+
+    Para cada ano disponível em year_files (e na PNAD), estima HLM com a
+    mesma especificação e agrega com IVW ao final.  Evita carregar todos os
+    230M registros RAIS simultâneos na RAM.
+    """
+    rows_comp: dict[str, list] = {
+        "RAIS — todos":    [],
+        "RAIS — privado":  [],
+        "RAIS — publico":  [],
+        "PNAD — todos":    [],
+        "PNAD — formais":  [],
+    }
+    rows_temp: list[dict] = []
+    rows_uf:   list[dict] = []
+
+    anos_rais: list[int] = []
+
+    for yp in year_files:
+        try:
+            ano = int(yp.stem.split("_")[1])
+        except (IndexError, ValueError):
+            continue
+
+        if anos and ano not in anos:
+            continue
+
+        logger.info(f"── Processando ano {ano} ────────────────────────────────")
+
+        # RAIS deste ano
+        df_rais_ano = pd.read_parquet(str(yp))
+        df_rais_ano = _educ_fund_de_ord(df_rais_ano)
+        df_rais_ano = _prep_comum(df_rais_ano, "RAIS")
+        if df_rais_ano.empty:
+            continue
+
+        # PNAD deste ano
+        df_pnad_ano = df_pnad[df_pnad["Ano"] == ano].copy() if "Ano" in df_pnad.columns else df_pnad.copy()
+        if df_pnad_ano.empty:
+            logger.warning(f"  PNAD sem dados para {ano} — pulando")
+            continue
+
+        anos_rais.append(ano)
+
+        # ── Comparação geral ──────────────────────────────────────────────────
+        r = _ajustar_hlm_uf(df_pnad_ano, f"PNAD — todos {ano}")
+        if r:
+            r.update({"base": "PNAD", "subgrupo": "todos", "ano": ano})
+            rows_comp["PNAD — todos"].append(r)
+
+        if "emprego_formal" in df_pnad_ano.columns:
+            sub = df_pnad_ano[df_pnad_ano["emprego_formal"] == 1]
+            r = _ajustar_hlm_uf(sub, f"PNAD — formais {ano}")
+            if r:
+                r.update({"base": "PNAD", "subgrupo": "formais", "ano": ano})
+                rows_comp["PNAD — formais"].append(r)
+
+        r = _ajustar_hlm_uf(df_rais_ano, f"RAIS — todos {ano}")
+        if r:
+            r.update({"base": "RAIS", "subgrupo": "todos", "ano": ano})
+            rows_comp["RAIS — todos"].append(r)
+            rows_temp.append({**r, "label": f"RAIS {ano}", "ano": ano})
+
+        if "setor_publico" in df_rais_ano.columns:
+            for setor, nome in [(0, "privado"), (1, "publico")]:
+                sub = df_rais_ano[df_rais_ano["setor_publico"] == setor]
+                r = _ajustar_hlm_uf(sub, f"RAIS — {nome} {ano}")
+                if r:
+                    r.update({"base": "RAIS", "subgrupo": nome, "ano": ano})
+                    rows_comp[f"RAIS — {nome}"].append(r)
+
+        # ── PNAD temporal ─────────────────────────────────────────────────────
+        r_p = _ajustar_hlm_uf(df_pnad_ano, f"PNAD {ano}")
+        if r_p:
+            rows_temp.append({**r_p, "label": f"PNAD {ano}", "base": "PNAD", "ano": ano})
+
+        # ── Por UF (OLS, mais leve) ───────────────────────────────────────────
+        ufs_comuns = sorted(
+            set(df_pnad_ano["UF_str"].unique()) & set(df_rais_ano["UF_str"].unique())
+        )
+        for uf in ufs_comuns:
+            for df_sub, base in [(df_pnad_ano, "PNAD"), (df_rais_ano, "RAIS")]:
+                sub = df_sub[df_sub["UF_str"] == uf].copy()
+                if len(sub) < 100 or sub["negro"].nunique() < 2:
+                    continue
+                try:
+                    with warnings.catch_warnings(record=True):
+                        warnings.simplefilter("ignore")
+                        res = smf.ols(FORMULA_BASE, data=sub).fit()
+                    b  = res.params.get("negro", np.nan)
+                    se = res.bse.get("negro", np.nan)
+                    pv = res.pvalues.get("negro", np.nan)
+                    rows_uf.append({
+                        "uf": uf, "base": base, "ano": ano,
+                        "beta_negro": b, "se_negro": se, "pval": pv,
+                        "gap_pct": (np.exp(b) - 1) * 100,
+                        "n_obs": len(sub),
+                    })
+                except Exception:
+                    pass
+
+        del df_rais_ano  # libera RAM antes do próximo ano
+
+    # ── Agregação IVW ─────────────────────────────────────────────────────────
+    comp_rows = []
+    for label, lista in rows_comp.items():
+        if lista:
+            agg = _ivw_agg(lista)
+            if agg:
+                agg["label"] = label
+                comp_rows.append(agg)
+    df_comp = pd.DataFrame(comp_rows)
+
+    # Agrega β_negro por UF (IVW over years)
+    df_uf_raw = pd.DataFrame(rows_uf)
+    df_uf = pd.DataFrame()
+    if not df_uf_raw.empty:
+        agg_rows = []
+        for (uf, base), grp in df_uf_raw.groupby(["uf", "base"]):
+            agg = _ivw_agg(grp.to_dict("records"))
+            if agg:
+                agg["uf"]   = uf
+                agg["base"] = base
+                agg_rows.append(agg)
+        df_uf = pd.DataFrame(agg_rows)
+        if not df_uf.empty and "PNAD" in df_uf["base"].values and "RAIS" in df_uf["base"].values:
+            pivot = df_uf.pivot_table(index="uf", columns="base", values="beta_negro").dropna()
+            if len(pivot) >= 5:
+                corr = pivot.corr().iloc[0, 1]
+                logger.info(f"  Correlação β_negro por UF (PNAD×RAIS): r={corr:.3f}")
+
+    df_temp = pd.DataFrame(rows_temp)
+
+    return {
+        "comparacao": df_comp,
+        "temporal":   df_temp,
+        "por_uf":     df_uf,
+        "anos_rais":  anos_rais,
+    }
+
+
 # ── Pipeline principal ─────────────────────────────────────────────────────────
 
 def run_validacao_rais(
@@ -566,41 +765,75 @@ def run_validacao_rais(
     """
     Pipeline de validação cruzada PNAD × RAIS.
 
+    Quando o parquet consolidado está ausente/vazio mas existem arquivos
+    rais_{YYYY}.parquet em data/external/, processa ano a ano com IVW para
+    evitar OOM (RAIS tem ~230M obs no período completo).
+
     Parameters
     ----------
     rais_path   : path do parquet RAIS harmonizado (ingestion_rais.py)
     sample_frac : fração de amostragem para testes (None = dados completos)
     anos        : lista de anos a usar (None = todos disponíveis em comum)
-
-    Returns
-    -------
-    dict com chaves: 'comparacao', 'temporal', 'por_uf'
     """
-    # ── Carregamento ──────────────────────────────────────────────────────────
+    rais_path_obj = Path(rais_path) if rais_path else RAIS_DEFAULT
+
+    # ── Carregamento PNAD ─────────────────────────────────────────────────────
     df_pnad = carregar_pnad(sample_frac=sample_frac, anos=anos)
-    df_rais = carregar_rais(rais_path=rais_path, sample_frac=sample_frac, anos=anos)
 
-    # ── Limitação metodológica (LaTeX para TCC) ───────────────────────────────
-    anos_rais_disp = sorted(df_rais["Ano"].unique().tolist()) if "Ano" in df_rais.columns else []
-    anos_pnad_disp = sorted(df_pnad["Ano"].unique().tolist()) if "Ano" in df_pnad.columns else []
-    _gerar_latex_limitacao(anos_rais_disp, anos_pnad_disp)
+    # ── Rota: year-files (OOM-safe) vs. parquet único (pequeno/sample) ────────
+    if _rais_usa_year_files(rais_path_obj):
+        year_files = _listar_year_files(rais_path_obj.parent)
+        logger.info(
+            f"Modo year-files: {len(year_files)} arquivos em {rais_path_obj.parent} "
+            f"(parquet consolidado vazio ou ausente)"
+        )
 
-    # ── Análises ──────────────────────────────────────────────────────────────
-    logger.info("Iniciando comparação geral PNAD × RAIS...")
-    df_comp = comparar_pnad_rais(df_pnad, df_rais)
+        # Limitação metodológica LaTeX
+        anos_rais_disp = []
+        for yp in year_files:
+            try:
+                anos_rais_disp.append(int(yp.stem.split("_")[1]))
+            except Exception:
+                pass
+        anos_pnad_disp = sorted(df_pnad["Ano"].unique().tolist()) if "Ano" in df_pnad.columns else []
+        _gerar_latex_limitacao(sorted(anos_rais_disp), anos_pnad_disp)
+
+        resultados = _run_validacao_por_ano(df_pnad, year_files, anos=anos)
+
+    else:
+        # Parquet consolidado disponível — abordagem original (RAM adequada)
+        df_rais = carregar_rais(rais_path=rais_path, sample_frac=sample_frac, anos=anos)
+        anos_rais_disp = sorted(df_rais["Ano"].unique().tolist()) if "Ano" in df_rais.columns else []
+        anos_pnad_disp = sorted(df_pnad["Ano"].unique().tolist()) if "Ano" in df_pnad.columns else []
+        _gerar_latex_limitacao(anos_rais_disp, anos_pnad_disp)
+
+        logger.info("Iniciando comparação geral PNAD × RAIS...")
+        df_comp = comparar_pnad_rais(df_pnad, df_rais)
+        logger.info("Iniciando comparação temporal...")
+        df_temp = comparar_temporal(df_pnad, df_rais)
+        logger.info("Iniciando comparação por UF...")
+        df_uf   = comparar_por_uf(df_pnad, df_rais)
+        resultados = {
+            "comparacao": df_comp,
+            "temporal":   df_temp,
+            "por_uf":     df_uf,
+            "anos_rais":  anos_rais_disp,
+        }
+
+    df_comp = resultados["comparacao"]
+    df_temp = resultados["temporal"]
+    df_uf   = resultados["por_uf"]
+
+    # ── Outputs ───────────────────────────────────────────────────────────────
     if not df_comp.empty:
         df_comp.to_csv(OUT_TAB / "rais_comparacao.csv", index=False)
         _gerar_latex_comparacao(df_comp)
         plotar_comparacao_geral(df_comp)
 
-    logger.info("Iniciando comparação temporal...")
-    df_temp = comparar_temporal(df_pnad, df_rais)
     if not df_temp.empty:
         df_temp.to_csv(OUT_TAB / "rais_comparacao_temporal.csv", index=False)
         plotar_comparacao_temporal(df_temp)
 
-    logger.info("Iniciando comparação por UF...")
-    df_uf = comparar_por_uf(df_pnad, df_rais)
     if not df_uf.empty:
         df_uf.to_csv(OUT_TAB / "rais_comparacao_uf.csv", index=False)
         plotar_comparacao_uf(df_uf)
@@ -609,7 +842,7 @@ def run_validacao_rais(
     print("\n── SUMÁRIO: Validação Cruzada PNAD × RAIS ──")
     if not df_comp.empty:
         for _, r in df_comp.iterrows():
-            sig = "***" if r["pval"] < 0.001 else ("**" if r["pval"] < 0.01 else "*")
+            sig = "***" if r["pval"] < 0.001 else ("**" if r["pval"] < 0.01 else ("*" if r["pval"] < 0.05 else ""))
             print(
                 f"  {r['label']:<28} β={r['beta_negro']:+.4f}{sig}"
                 f"  gap={r['gap_pct']:+.1f}%  n={int(r['n_obs']):,}"
@@ -618,12 +851,14 @@ def run_validacao_rais(
     if not df_temp.empty and "ano" in df_temp.columns:
         pnad_t = df_temp[df_temp["base"] == "PNAD"]
         rais_t = df_temp[df_temp["base"] == "RAIS"]
-        print(f"\n  Temporal PNAD: β médio={pnad_t['beta_negro'].mean():.4f}"
-              f"  range=[{pnad_t['beta_negro'].min():.4f}, {pnad_t['beta_negro'].max():.4f}]")
-        print(f"  Temporal RAIS: β médio={rais_t['beta_negro'].mean():.4f}"
-              f"  range=[{rais_t['beta_negro'].min():.4f}, {rais_t['beta_negro'].max():.4f}]")
+        if not pnad_t.empty:
+            print(f"\n  Temporal PNAD: β médio={pnad_t['beta_negro'].mean():.4f}"
+                  f"  range=[{pnad_t['beta_negro'].min():.4f}, {pnad_t['beta_negro'].max():.4f}]")
+        if not rais_t.empty:
+            print(f"  Temporal RAIS: β médio={rais_t['beta_negro'].mean():.4f}"
+                  f"  range=[{rais_t['beta_negro'].min():.4f}, {rais_t['beta_negro'].max():.4f}]")
 
-    if not df_uf.empty:
+    if not df_uf.empty and "base" in df_uf.columns:
         pivot = df_uf.pivot_table(index="uf", columns="base", values="beta_negro").dropna()
         if "PNAD" in pivot.columns and "RAIS" in pivot.columns and len(pivot) >= 5:
             corr = pivot[["PNAD", "RAIS"]].corr().iloc[0, 1]

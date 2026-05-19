@@ -278,8 +278,27 @@ def run_ingestion_rais(
     if sample_pct:
         logger.info(f"  Modo amostra: TABLESAMPLE {sample_pct}%")
 
-    frames = []
+    # year_paths: lista de Paths para parquets por ano (já existentes ou a criar)
+    year_paths = []
+    n_total = 0
+    stats_acum = {"negro_sum": 0.0, "negro_n": 0, "gap_values": []}
+
     for ano in sorted(anos_validos):
+        year_path = output_path.parent / f"rais_{ano}.parquet"
+
+        # Resume: pula download se arquivo já existe com dados
+        if year_path.exists() and year_path.stat().st_size > 0:
+            try:
+                import pyarrow.parquet as pq
+                meta = pq.read_metadata(str(year_path))
+                n = meta.num_rows
+                logger.info(f"  {ano}: arquivo existente ({n:,} obs) — pulando download")
+                year_paths.append(year_path)
+                n_total += n
+                continue
+            except Exception:
+                pass  # arquivo corrompido → re-baixa
+
         try:
             df_raw  = _query_ano(ano, project_id, ufs=ufs, sample_pct=sample_pct)
             df_harm = harmonizar_rais(df_raw)
@@ -290,12 +309,16 @@ def run_ingestion_rais(
                 f"negro={df_harm['negro'].mean():.1%} | "
                 f"gap bruto={gap_val:+.4f} ({(np.exp(gap_val)-1)*100:+.1f}%)"
             )
-            frames.append(df_harm)
+            # Salva imediatamente — evita OOM por acumulação em RAM
+            df_harm.to_parquet(year_path, index=False)
+            logger.info(f"    Salvo: {year_path.name}")
+            year_paths.append(year_path)
+            n_total += len(df_harm)
         except Exception as exc:
             logger.error(f"  Erro no ano {ano}: {exc}")
             continue
 
-    if not frames:
+    if not year_paths:
         raise RuntimeError(
             "Nenhum dado retornado. Verifique:\n"
             "  1. gcloud auth application-default login\n"
@@ -303,16 +326,54 @@ def run_ingestion_rais(
             f"  3. project_id correto: '{project_id}'"
         )
 
-    df_final = pd.concat(frames, ignore_index=True)
+    # ── Merge incremental via pyarrow — sem carregar tudo em RAM ─────────────
+    try:
+        import pyarrow.parquet as pq
+        import pyarrow.compute as pc
+        writer = None
+        n_merged = 0
+        anos_merged = []
+        neg_sum, neg_n, log_sum, log_n = 0.0, 0, 0.0, 0
+        try:
+            for yp in year_paths:
+                table = pq.read_table(str(yp))
+                if writer is None:
+                    writer = pq.ParquetWriter(str(output_path), table.schema)
+                writer.write_table(table)
+                n_merged += table.num_rows
+                # estatísticas acumuladas sem manter o table em memória
+                neg_col = table.column("negro")
+                neg_sum += pc.sum(neg_col).as_py() or 0.0
+                neg_n   += table.num_rows
+                lr_col  = table.column("log_renda")
+                log_sum += pc.sum(lr_col).as_py() or 0.0
+                log_n   += table.num_rows
+                # ano da primeira linha (todos iguais dentro do arquivo)
+                ano_col = table.column("Ano")
+                anos_merged.append(ano_col[0].as_py())
+                del table
+        finally:
+            if writer:
+                writer.close()
 
-    # ── Estatisticas finais ───────────────────────────────────────────────────
-    gap = df_final.groupby("negro")["log_renda"].mean()
-    gap_val = gap.get(1.0, np.nan) - gap.get(0.0, np.nan)
-    logger.info(f"RAIS final: {len(df_final):,} obs | anos={sorted(df_final['Ano'].unique().tolist())}")
-    logger.info(f"  % negro  : {df_final['negro'].mean():.1%}")
-    logger.info(f"  gap bruto: {gap_val:+.4f} ({(np.exp(gap_val)-1)*100:+.1f}%)")
+        logger.info(f"RAIS final: {n_merged:,} obs | anos={sorted(anos_merged)}")
+        logger.info(f"  % negro  : {neg_sum/neg_n:.1%}" if neg_n else "  % negro  : N/A")
+        logger.info(f"Salvo em: {output_path}")
 
-    df_final.to_parquet(output_path, index=False)
-    logger.info(f"Salvo em: {output_path}")
+    except ImportError:
+        # fallback pandas se pyarrow indisponível
+        logger.warning("pyarrow não disponível — merge via pandas (pode usar muita RAM)")
+        frames = [pd.read_parquet(yp) for yp in year_paths]
+        df_final = pd.concat(frames, ignore_index=True)
+        gap = df_final.groupby("negro")["log_renda"].mean()
+        gap_val = gap.get(1.0, np.nan) - gap.get(0.0, np.nan)
+        logger.info(f"RAIS final: {len(df_final):,} obs | anos={sorted(df_final['Ano'].unique().tolist())}")
+        logger.info(f"  % negro  : {df_final['negro'].mean():.1%}")
+        logger.info(f"  gap bruto: {gap_val:+.4f} ({(np.exp(gap_val)-1)*100:+.1f}%)")
+        df_final.to_parquet(output_path, index=False)
+        logger.info(f"Salvo em: {output_path}")
+        return df_final
 
-    return df_final
+    # Retorna um DataFrame leve (primeiras 1000 linhas) só para compatibilidade
+    # — o parquet completo está em output_path
+    return pd.read_parquet(output_path, filters=[("Ano", "==", sorted(anos_merged)[-1])]).head(1000)
