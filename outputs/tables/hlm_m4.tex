@@ -1,0 +1,17 @@
+\begin{table}[H]
+\centering
+\caption{M4 --- Modelo com \textit{Random Slope} de \texttt{educ\_ord\_c} por UPA.
+         Efeito fixo $\hat{\beta}_{\text{negro}}$ e componentes de variância.
+         Pseudo-^2$ de Nakagawa \& Schielzeth (2013).
+         PNAD Contínua 2016--2025, 20\% da amostra (=471.570$; 31.694 UPAs).}
+\label{tab:hlm_m4}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Parâmetro & Estimativa & SE & hBcvalor & \midrule
+  \textbf{Raça (negro)} & -0.0642 & 0.0022 & 0.0000e+00 & *** \n  Educação ordinal (centrada) & 0.0534 & 0.0013 & 0.0000e+00 & *** \n  \% Negro na UPA ($) & -0.1200 & 0.0035 & 0.0000e+00 & *** \n  Desemprego UPA ($) & -0.0056 & 0.0020 & 6.0230e-03 & ** \n  Educ.\ média UPA ($) & 0.0274 & 0.0019 & 0.0000e+00 & *** \n\midrule
+\multicolumn{5}{l}{\textit{Componentes de variância (efeitos aleatórios por UPA)}}   $	au^2_0$ (intercepto) & 0.0495 & & & \n  $	au^2_1$ (slope educ) & 0.0065 & & & \n  $	ext{corr}(u_0, u_1)$ & -0.059 & & & \n  $\sigma^2$ (residual) & 0.3689 & & & \n  ICC	extsubscript{UPA} & 0.1182 & & & \n\midrule
+\multicolumn{5}{l}{\textit{Pseudo-^2$ (Nakagawa \& Schielzeth, 2013)}}   ^2_m$ (marginal --- ef.~fixos) & 0.4049 & & & \n  ^2_c$ (condicional --- completo) & 0.4828 & & & \n\midrule
+\multicolumn{5}{l}{\textit{ICC estratificado por raça (Modelo Nulo,  como fixo)}}   ICC	extsubscript{UPA} --- Brancos & 0.1124 & & & \n  ICC	extsubscript{UPA} --- Negros & 0.1462 & & & \n  $\Delta (NegroshBc) & +0.0338 & & & \n\bottomrule
+\end{tabular}
+\end{table}

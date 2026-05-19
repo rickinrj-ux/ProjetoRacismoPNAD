@@ -101,6 +101,9 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from scipy import stats
 
+FIGURES = Path(__file__).parent.parent / "outputs" / "figures"
+FIGURES.mkdir(parents=True, exist_ok=True)
+
 from mlflow_utils import (
     log_artifacts_dir, log_metrics, log_params, run_context, set_tag,
 )
@@ -188,6 +191,7 @@ def load_features(sample_frac: Optional[float] = None) -> pd.DataFrame:
     # Crítico: statsmodels vc_formula não suporta NaN implícito — causa IndexError
     model_vars = [
         "log_renda", "negro", "sexo_fem", "idade_c", "idade_sq",
+        "educ_ord",
         "educ_fund_completo", "educ_medio_completo",
         "educ_superior_completo", "educ_pos_graduacao",
         "log_horas", "urbano", "Ano",
@@ -205,6 +209,12 @@ def load_features(sample_frac: Optional[float] = None) -> pd.DataFrame:
     df = df[df["UPA"].isin(valid_upas)].reset_index(drop=True)
     if n_dropped:
         logger.info(f"Removidos {n_dropped:,} obs. de UPAs com n < 10.")
+
+    # Adiciona educ_ord centrada (necessária para M4 random slope)
+    if "educ_ord" in df.columns:
+        df["educ_ord_c"] = (df["educ_ord"] - df["educ_ord"].mean()).astype("float32")
+    else:
+        df["educ_ord_c"] = np.nan
 
     # Fallback: reconstrói colunas novas se features.parquet foi gerado
     # antes da adição de log_horas / urbano em feature_engineering.py
@@ -899,6 +909,378 @@ def _imprimir_ganho_r2(comp: pd.DataFrame) -> None:
     print(f"    O gap residual de {abs(row_e['Gap % estimado']):.1f}% é mais conservador e")
     print(f"    portanto mais difícil de contestar na banca.")
     print(f"{sep}\n")
+
+
+# ── Pseudo-R² Nakagawa-Schielzeth (2013) ──────────────────────────────────────
+
+def compute_nakagawa_r2(
+    result,
+    sigma2_u: float,
+    var_predictor: float = 0.0,
+    sigma2_u_slope: float = 0.0,
+) -> Dict[str, float]:
+    """
+    Pseudo-R² marginal e condicional para LMM (Nakagawa & Schielzeth, 2013).
+
+    R²m: variância explicada apenas pelos efeitos fixos.
+    R²c: variância explicada pelos efeitos fixos + aleatórios (modelo completo).
+
+    Para modelos com random slope:
+        sigma2_u_total = tau²_intercept + tau²_slope * Var(preditor centrado)
+    Para modelos sem random slope:
+        sigma2_u_total = tau²_upa + tau²_uf
+
+    Referência: Nakagawa, S. & Schielzeth, H. (2013). A general and simple
+        method for obtaining R² from generalized linear mixed-effects models.
+        Methods in Ecology and Evolution, 4(2), 133-142.
+    """
+    # Variância dos efeitos fixos: Var(Xβ)
+    try:
+        fixed_pred = result.model.exog @ result.fe_params
+        sigma2_f = float(np.var(fixed_pred))
+    except Exception:
+        sigma2_f = float(np.var(result.fittedvalues))
+
+    # Variância total dos efeitos aleatórios (inclui random slope se presente)
+    sigma2_u_total = sigma2_u + sigma2_u_slope * var_predictor
+    sigma2_e = float(result.scale)
+    total = sigma2_f + sigma2_u_total + sigma2_e
+
+    r2m = sigma2_f / total if total > 0 else np.nan
+    r2c = (sigma2_f + sigma2_u_total) / total if total > 0 else np.nan
+    return {
+        "sigma2_f":  round(sigma2_f, 6),
+        "sigma2_u":  round(sigma2_u_total, 6),
+        "sigma2_e":  round(sigma2_e, 6),
+        "R2m":       round(r2m, 4),
+        "R2c":       round(r2c, 4),
+    }
+
+
+# ── M4: Random Slope de educ_ord por UPA ──────────────────────────────────────
+
+# Fórmula M4: usa educ_ord_c no lugar das 4 dummies + UF como efeito fixo
+_M4_INDIVIDUAL = (
+    "negro + sexo_fem + idade_c + idade_sq + educ_ord_c"
+    " + log_horas + urbano + C(Ano)"
+)
+FORMULA_M4 = (
+    f"log_renda ~ {_M4_INDIVIDUAL}"
+    " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
+    " + C(UF_str)"
+)
+
+
+def fit_random_slope_model(
+    df: pd.DataFrame,
+    method: str = "lbfgs",
+    maxiter: int = 1500,
+) -> Dict:
+    """
+    M4: random intercept + random slope de educ_ord_c por UPA (2 níveis).
+
+    Hipótese testada: o retorno à educação (educ_ord_c) varia entre
+    localidades — negros concentrados em UPAs de menor capital social
+    enfrentam menores retornos, mesmo com mesma escolaridade.
+
+    UF entra como efeito fixo (C(UF_str)) em vez de nível aleatório,
+    pois statsmodels não suporta random slope em vc_formula de forma estável.
+
+    re_formula="~educ_ord_c" → random intercept (u₀ⱼ) + random slope (u₁ⱼ)
+    cov_re = [[τ²₀, τ₀₁], [τ₀₁, τ²₁]]
+
+    Retorna:
+        dict com result, var components, ICC, Nakagawa R², LRT vs M3-equiv.
+    """
+    logger.info("Ajustando M4 (random slope educ_ord_c por UPA) ...")
+    model = smf.mixedlm(
+        formula=FORMULA_M4,
+        data=df,
+        groups=df["UPA_str"],
+        re_formula="~educ_ord_c",
+    )
+    result = model.fit(method=method, maxiter=maxiter, reml=False)
+
+    cov_re = result.cov_re
+    tau2_int   = float(cov_re.iloc[0, 0]) if cov_re.shape[0] > 0 else 0.0
+    tau2_slope = float(cov_re.iloc[1, 1]) if cov_re.shape[0] > 1 else 0.0
+    tau_cov    = float(cov_re.iloc[0, 1]) if cov_re.shape[0] > 1 else 0.0
+    var_resid  = float(result.scale)
+
+    # ICC para observação "típica" (educ_ord_c = 0 = média)
+    total_var = tau2_int + var_resid
+    icc_upa   = tau2_int / total_var if total_var > 0 else np.nan
+
+    # Correlação entre intercepto e slope aleatórios
+    corr_int_slope = (
+        tau_cov / np.sqrt(tau2_int * tau2_slope)
+        if (tau2_int > 0 and tau2_slope > 0) else np.nan
+    )
+
+    var_educ_c = float(df["educ_ord_c"].var())
+    ns_r2 = compute_nakagawa_r2(
+        result,
+        sigma2_u=tau2_int,
+        var_predictor=var_educ_c,
+        sigma2_u_slope=tau2_slope,
+    )
+
+    b_negro = result.params.get("negro", np.nan)
+    b_educ  = result.params.get("educ_ord_c", np.nan)
+
+    logger.info(
+        f"  M4 convergiu | β_negro={b_negro:.4f} | β_educ_c={b_educ:.4f} | "
+        f"τ²₀={tau2_int:.4f} | τ²₁={tau2_slope:.4f} | "
+        f"corr={corr_int_slope:.3f} | ICC_UPA={icc_upa:.3f} | "
+        f"R²m={ns_r2['R2m']:.3f} | R²c={ns_r2['R2c']:.3f}"
+    )
+
+    return {
+        "result":           result,
+        "tau2_int":         tau2_int,
+        "tau2_slope":       tau2_slope,
+        "tau_cov":          tau_cov,
+        "corr_int_slope":   corr_int_slope,
+        "var_resid":        var_resid,
+        "icc_upa":          icc_upa,
+        "nakagawa":         ns_r2,
+        "b_negro":          b_negro,
+        "b_educ_c":         b_educ,
+        "n_obs":            len(df),
+        "n_upa":            df["UPA_str"].nunique(),
+        "aic":              result.aic,
+        "bic":              result.bic,
+        "llf":              result.llf,
+    }
+
+
+# ── ICC Estratificado por Raça ─────────────────────────────────────────────────
+
+def compute_race_stratified_icc(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Modelo nulo (M0) ajustado separadamente para negros e brancos.
+
+    Hipótese de duplo disadvantage contextual: se ICC_UPA(negros) >
+    ICC_UPA(brancos), o contexto de moradia explica maior fração da
+    variância de renda para trabalhadores negros — evidência de que
+    segregação residencial é canal amplificador da desigualdade racial.
+
+    Usa groups=UPA_str (2-nível) para consistência com M4 e para
+    estabilidade de convergência nas subamostras estratificadas.
+    """
+    rows = []
+    for label, val in [("Brancos", 0), ("Negros", 1)]:
+        sub = df[df["negro"] == val].copy()
+        # Garante mínimo de 10 obs por UPA para estimação estável
+        upa_cnt = sub["UPA_str"].value_counts()
+        sub = sub[sub["UPA_str"].isin(upa_cnt[upa_cnt >= 10].index)].copy()
+        logger.info(f"  ICC estratificado — {label} (n={len(sub):,}, UPAs≥10) ...")
+        try:
+            # UF como efeito fixo evita que variância de UF colapse para boundary
+            m0 = smf.mixedlm("log_renda ~ C(UF_str)", data=sub, groups=sub["UPA_str"])
+            # powell é mais robusto que lbfgs para o caso de boundary na variância UPA
+            res = m0.fit(method="powell", maxiter=2000, reml=False)
+            var_upa  = float(res.cov_re.iloc[0, 0]) if res.cov_re.shape[0] > 0 else 0.0
+            var_e    = float(res.scale)
+            total    = var_upa + var_e
+            icc      = var_upa / total if total > 0 else np.nan
+            ns       = compute_nakagawa_r2(res, sigma2_u=var_upa)
+        except Exception as e:
+            logger.warning(f"  {label}: falha no ajuste — {e}")
+            var_upa = var_e = icc = np.nan
+            ns = {"R2m": np.nan, "R2c": np.nan, "sigma2_f": np.nan,
+                  "sigma2_u": np.nan, "sigma2_e": np.nan}
+
+        rows.append({
+            "Grupo":        label,
+            "N":            len(sub),
+            "N_UPAs":       sub["UPA_str"].nunique(),
+            "τ²_UPA":       round(var_upa, 5),
+            "σ²_residual":  round(var_e, 5),
+            "ICC_UPA":      round(icc, 4),
+            "R²m (M0)":     ns["R2m"],
+            "R²c (M0)":     ns["R2c"],
+        })
+    df_out = pd.DataFrame(rows)
+    delta_icc = (
+        df_out.loc[df_out["Grupo"] == "Negros", "ICC_UPA"].values[0]
+        - df_out.loc[df_out["Grupo"] == "Brancos", "ICC_UPA"].values[0]
+    )
+    logger.info(
+        f"  ΔICC_UPA (Negros−Brancos) = {delta_icc:+.4f} — "
+        + ("confirma duplo disadvantage contextual" if delta_icc > 0
+           else "diferença não confirma hipótese contextual")
+    )
+    return df_out
+
+
+# ── Figura: Variância do Slope por UPA ────────────────────────────────────────
+
+def plot_random_slope_effects(m4_res: Dict, df: pd.DataFrame) -> None:
+    """
+    Figura de diagnóstico para M4: distribuição dos slopes aleatórios por UPA.
+    Mostra heterogeneidade no retorno à educação entre localidades.
+    """
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    result = m4_res["result"]
+    re_df  = result.random_effects
+    slopes = {upa: v.get("educ_ord_c", np.nan) for upa, v in re_df.items()}
+    s_vals = np.array([v for v in slopes.values() if not np.isnan(v)])
+
+    fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+
+    # Histograma dos slopes aleatórios
+    axes[0].hist(s_vals, bins=60, color="#1565C0", alpha=0.8, edgecolor="white")
+    axes[0].axvline(0, color="red", lw=1.2, ls="--")
+    axes[0].set_xlabel("Slope aleatório de educ_ord_c (u₁ⱼ)", fontsize=11)
+    axes[0].set_ylabel("Frequência (UPAs)", fontsize=11)
+    axes[0].set_title(
+        f"Distribuição dos Slopes Aleatórios\n"
+        f"τ²₁ = {m4_res['tau2_slope']:.4f}  |  "
+        f"corr(u₀,u₁) = {m4_res['corr_int_slope']:.3f}",
+        fontsize=11, fontweight="bold",
+    )
+    axes[0].spines["top"].set_visible(False)
+    axes[0].spines["right"].set_visible(False)
+
+    # Scatter: intercepto aleatório vs slope aleatório por UPA
+    ints   = np.array([v.get("Group Var", v.get("Intercept", np.nan))
+                       for v in re_df.values()])
+    # Melhor abordagem: lê colunas direto do DataFrame de random effects
+    re_frame = pd.DataFrame(re_df).T
+    col_int   = re_frame.columns[0]   # "Group Var" ou "Intercept"
+    col_slope = "educ_ord_c" if "educ_ord_c" in re_frame.columns else re_frame.columns[-1]
+    x = re_frame[col_int].values.astype(float)
+    y = re_frame[col_slope].values.astype(float)
+    mask = np.isfinite(x) & np.isfinite(y)
+
+    axes[1].scatter(x[mask], y[mask], alpha=0.15, s=8, color="#1565C0")
+    axes[1].axhline(0, color="gray", lw=0.8); axes[1].axvline(0, color="gray", lw=0.8)
+    axes[1].set_xlabel("Intercepto aleatório (u₀ⱼ)", fontsize=11)
+    axes[1].set_ylabel("Slope aleatório educ_ord_c (u₁ⱼ)", fontsize=11)
+    axes[1].set_title(
+        f"Intercepto vs Slope por UPA\n"
+        f"corr = {m4_res['corr_int_slope']:.3f}",
+        fontsize=11, fontweight="bold",
+    )
+    axes[1].spines["top"].set_visible(False)
+    axes[1].spines["right"].set_visible(False)
+
+    fig.suptitle(
+        "M4 — Heterogeneidade do Retorno Educacional por UPA\n"
+        "PNAD Contínua 2016–2025, amostra 20%, grupos=UPA_str",
+        fontsize=12, fontweight="bold",
+    )
+    plt.tight_layout()
+    out = FIGURES / "hlm_m4_random_slope.png"
+    plt.savefig(out, dpi=150, bbox_inches="tight")
+    plt.close()
+    logger.info(f"Figura salva: {out}")
+
+
+# ── Tabela LaTeX: M4 + ICC Racial + Nakagawa R² ──────────────────────────────
+
+def save_m4_outputs(
+    m4_res: Dict,
+    icc_racial: pd.DataFrame,
+    nakagawa_rows: List[Dict],
+) -> None:
+    """Salva CSVs e LaTeX para M4, ICC racial e pseudo-R²."""
+
+    # CSV: M4 coeficientes principais
+    r   = m4_res["result"]
+    rows_coef = []
+    for var in ["negro", "educ_ord_c", "pct_negro_upa_z",
+                "tx_desemprego_upa_z", "media_educ_upa_z"]:
+        if var not in r.params:
+            continue
+        b  = r.params[var]; se = r.bse[var]; p = r.pvalues[var]
+        rows_coef.append({
+            "variavel": var, "beta": round(b, 5), "se": round(se, 5),
+            "p_valor": round(p, 6),
+            "stars": "***" if p < 0.001 else "**" if p < 0.01 else "*" if p < 0.05 else "",
+        })
+    pd.DataFrame(rows_coef).to_csv(OUTPUTS / "hlm_m4_coeficientes.csv", index=False, encoding="utf-8")
+
+    # CSV: variância random effects M4
+    vc_df = pd.DataFrame([{
+        "componente":    "τ²₀ (intercepto UPA)",
+        "variancia":     round(m4_res["tau2_int"], 6),
+    }, {
+        "componente":    "τ²₁ (slope educ_ord_c por UPA)",
+        "variancia":     round(m4_res["tau2_slope"], 6),
+    }, {
+        "componente":    "τ₀₁ (covariância int×slope)",
+        "variancia":     round(m4_res["tau_cov"], 6),
+    }, {
+        "componente":    "σ² (residual)",
+        "variancia":     round(m4_res["var_resid"], 6),
+    }, {
+        "componente":    "ICC_UPA (q=0)",
+        "variancia":     round(m4_res["icc_upa"], 6),
+    }, {
+        "componente":    "corr(u₀,u₁)",
+        "variancia":     round(m4_res["corr_int_slope"], 6),
+    }])
+    vc_df.to_csv(OUTPUTS / "hlm_m4_variancia.csv", index=False, encoding="utf-8")
+
+    # CSV: ICC racial
+    icc_racial.to_csv(OUTPUTS / "hlm_icc_racial.csv", index=False, encoding="utf-8")
+
+    # CSV: Nakagawa R²
+    pd.DataFrame(nakagawa_rows).to_csv(OUTPUTS / "hlm_nakagawa_r2.csv", index=False, encoding="utf-8")
+
+    # LaTeX combinada
+    ns = m4_res["nakagawa"]
+    delta_icc = (
+        icc_racial.loc[icc_racial["Grupo"] == "Negros", "ICC_UPA"].values[0]
+        - icc_racial.loc[icc_racial["Grupo"] == "Brancos", "ICC_UPA"].values[0]
+    )
+    tex = r"""\begin{table}[H]
+\centering
+\caption{M4 — Modelo com \textit{Random Slope} de \texttt{educ\_ord\_c} por UPA.
+         Efeito fixo $\hat{\beta}_{\text{negro}}$ e componentes de variância.
+         Pseudo-$R^2$ de Nakagawa \& Schielzeth (2013).
+         PNAD Contínua 2016--2025, 20\% da amostra.}
+\label{tab:hlm_m4}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Parâmetro & Estimativa & SE & $p$-valor & \\
+\midrule
+"""
+    for row in rows_coef:
+        name = row["variavel"].replace("_", r"\_")
+        tex += f"  {name} & {row['beta']:.4f} & {row['se']:.4f} & {row['p_valor']:.4e} & {row['stars']} \\\\\n"
+    tex += r"""\midrule
+\multicolumn{5}{l}{\textit{Componentes de variância (efeitos aleatórios por UPA)}} \\
+"""
+    tex += f"  $\\tau^2_0$ (intercepto) & {m4_res['tau2_int']:.4f} & & & \\\\\n"
+    tex += f"  $\\tau^2_1$ (slope educ) & {m4_res['tau2_slope']:.4f} & & & \\\\\n"
+    tex += f"  $\\text{{corr}}(u_0, u_1)$ & {m4_res['corr_int_slope']:.3f} & & & \\\\\n"
+    tex += f"  $\\sigma^2$ (residual) & {m4_res['var_resid']:.4f} & & & \\\\\n"
+    tex += f"  ICC\\textsubscript{{UPA}} & {m4_res['icc_upa']:.4f} & & & \\\\\n"
+    tex += r"""\midrule
+\multicolumn{5}{l}{\textit{Pseudo-$R^2$ (Nakagawa \& Schielzeth, 2013)}} \\
+"""
+    tex += f"  $R^2_m$ (marginal — ef.~fixos) & {ns['R2m']:.4f} & & & \\\\\n"
+    tex += f"  $R^2_c$ (condicional — completo) & {ns['R2c']:.4f} & & & \\\\\n"
+    tex += r"""\midrule
+\multicolumn{5}{l}{\textit{ICC estratificado por raça (Modelo Nulo)}} \\
+"""
+    for _, rw in icc_racial.iterrows():
+        g = rw["Grupo"]
+        tex += f"  ICC\\textsubscript{{UPA}} — {g} & {rw['ICC_UPA']:.4f} & & & \\\\\n"
+    tex += f"  $\\Delta$ICC (Negros$-$Brancos) & {delta_icc:+.4f} & & & \\\\\n"
+    tex += r"""\bottomrule
+\end{tabular}
+\end{table}
+"""
+    (OUTPUTS / "hlm_m4.tex").write_text(tex, encoding="utf-8")
+    logger.info("hlm_m4.tex salvo.")
 
 
 if __name__ == "__main__":

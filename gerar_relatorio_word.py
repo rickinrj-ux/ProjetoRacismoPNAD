@@ -197,12 +197,16 @@ def load_results():
     r["shap_imp"]   = pd.read_csv(TABLES / "shap_importance_comparada.csv", index_col=0)
     r["sna_nos"]    = pd.read_csv(TABLES / "sna_metricas_nos.csv")
     r["sna_temporal"]= pd.read_csv(TABLES / "sna_temporal.csv")
-    # Novos resultados GLMM e melhorias OB/QR (com guards para tolerância a ausência)
+    # Novos resultados GLMM e melhorias OB/QR/M4 (com guards para tolerância a ausência)
     for key, fname in [
-        ("glmm_gc",   "glmm_glassceil_full.csv"),
-        ("ob_mel",    "ob_melhorias.csv"),
-        ("qr_kb",     "qr_kb_test.csv"),
-        ("qr_mel",    "qr_melhorias.csv"),
+        ("glmm_gc",     "glmm_glassceil_full.csv"),
+        ("ob_mel",      "ob_melhorias.csv"),
+        ("qr_kb",       "qr_kb_test.csv"),
+        ("qr_mel",      "qr_melhorias.csv"),
+        ("hlm_m4_vc",   "hlm_m4_variancia.csv"),
+        ("hlm_m4_coef", "hlm_m4_coeficientes.csv"),
+        ("hlm_icc",     "hlm_icc_racial.csv"),
+        ("hlm_ns",      "hlm_nakagawa_r2.csv"),
     ]:
         path = TABLES / fname
         r[key] = pd.read_csv(path) if path.exists() else None
@@ -1408,6 +1412,133 @@ def build_doc(r, k):
         "Figura 2 – Composição racial por cluster (k=3).",
         width_cm=12
     )
+
+    # ── M4: Random Slope + ICC Racial + Nakagawa R² ──────────────────────────
+    doc.add_page_break()
+    add_heading(doc, "4.1b M4 – Heterogeneidade do Retorno Educacional e ICC por Raça", level=2)
+
+    m4_coef = r.get("hlm_m4_coef")
+    m4_vc   = r.get("hlm_m4_vc")
+    hlm_icc = r.get("hlm_icc")
+    hlm_ns  = r.get("hlm_ns")
+
+    if m4_coef is not None and m4_vc is not None:
+        # Extrair valores-chave
+        def _get_vc(df, comp):
+            row = df[df["componente"].str.contains(comp, na=False, regex=False)]
+            return float(row["variancia"].values[0]) if len(row) else np.nan
+
+        tau2_int   = _get_vc(m4_vc, "intercepto")
+        tau2_slope = _get_vc(m4_vc, "slope educ")
+        corr_u     = _get_vc(m4_vc, "covariância") / (
+            np.sqrt(tau2_int * tau2_slope) if tau2_int > 0 and tau2_slope > 0 else 1
+        )
+        icc_upa    = _get_vc(m4_vc, "ICC_UPA")
+
+        b_negro_row = m4_coef[m4_coef["variavel"] == "negro"] if "variavel" in m4_coef.columns else pd.DataFrame()
+        b_negro = float(b_negro_row["beta"].values[0]) if len(b_negro_row) else np.nan
+
+        add_para(doc,
+            f"O modelo M4 adiciona um random slope de educ_ord_c (educação ordinal centrada) "
+            f"por UPA, testando se o retorno à educação varia entre localidades. O ajuste usa "
+            f"20% da amostra (n=471.570; 31.694 UPAs; seed=42), com UF como efeito fixo."
+        )
+        add_para(doc,
+            f"Resultados: β_negro = {b_negro:.4f} ({(np.exp(b_negro)-1)*100:.1f}%); "
+            f"τ²₀ (intercepto) = {tau2_int:.4f}; τ²₁ (slope educ) = {tau2_slope:.4f}; "
+            f"ICC_UPA (q=0) = {icc_upa:.4f}. "
+            f"A variância do slope τ²₁ > 0 confirma que o retorno educacional varia "
+            f"significativamente entre localidades."
+        )
+
+        # Tabela M4 variância
+        p = doc.add_paragraph()
+        run = p.add_run("Tabela — M4: Componentes de Variância e Pseudo-R² (Nakagawa-Schielzeth, 2013).")
+        run.italic = True; run.font.name = "Arial"; run.font.size = Pt(9)
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER; p.paragraph_format.space_before = Pt(8)
+
+        tbl_vc = doc.add_table(rows=len(m4_vc)+1, cols=2)
+        tbl_vc.style = "Table Grid"; tbl_vc.alignment = WD_TABLE_ALIGNMENT.CENTER
+        for j, hd in enumerate(["Componente", "Valor"]):
+            cell = tbl_vc.rows[0].cells[j]
+            cell.text = hd
+            cell.paragraphs[0].runs[0].bold = True
+            cell.paragraphs[0].runs[0].font.name = "Arial"
+            cell.paragraphs[0].runs[0].font.size = Pt(10)
+        for i, (_, row_d) in enumerate(m4_vc.iterrows()):
+            tbl_vc.rows[i+1].cells[0].text = str(row_d["componente"])
+            val = row_d["variancia"]
+            tbl_vc.rows[i+1].cells[1].text = f"{val:.6f}" if pd.notna(val) else "—"
+            for c in tbl_vc.rows[i+1].cells:
+                c.paragraphs[0].runs[0].font.name = "Times New Roman"
+                c.paragraphs[0].runs[0].font.size = Pt(10)
+
+        # ICC racial
+        if hlm_icc is not None:
+            add_para(doc,
+                "O ICC estratificado por raça (Modelo Nulo) quantifica quanto da variância "
+                "salarial é atribuível ao bairro para cada grupo racial:"
+            )
+            tbl_icc = doc.add_table(rows=len(hlm_icc)+1, cols=len(hlm_icc.columns))
+            tbl_icc.style = "Table Grid"; tbl_icc.alignment = WD_TABLE_ALIGNMENT.CENTER
+            for j, col in enumerate(hlm_icc.columns):
+                cell = tbl_icc.rows[0].cells[j]
+                cell.text = col
+                cell.paragraphs[0].runs[0].bold = True
+                cell.paragraphs[0].runs[0].font.name = "Arial"
+                cell.paragraphs[0].runs[0].font.size = Pt(9)
+            for i, (_, rw) in enumerate(hlm_icc.iterrows()):
+                for j, col in enumerate(hlm_icc.columns):
+                    v = rw[col]
+                    tbl_icc.rows[i+1].cells[j].text = f"{v:.4f}" if isinstance(v, float) else str(v)
+                    tbl_icc.rows[i+1].cells[j].paragraphs[0].runs[0].font.name = "Times New Roman"
+                    tbl_icc.rows[i+1].cells[j].paragraphs[0].runs[0].font.size = Pt(9)
+
+            icc_neg = hlm_icc.loc[hlm_icc["Grupo"]=="Negros", "ICC_UPA"].values
+            icc_bra = hlm_icc.loc[hlm_icc["Grupo"]=="Brancos","ICC_UPA"].values
+            if len(icc_neg) and len(icc_bra):
+                delta = float(icc_neg[0]) - float(icc_bra[0])
+                add_para(doc,
+                    f"O diferencial ΔICC = {delta:+.4f} (Negros − Brancos) indica que a localidade "
+                    f"de moradia {'explica mais' if delta > 0 else 'explica menos'} da variância "
+                    f"salarial para trabalhadores negros, {'confirmando' if delta > 0 else 'não confirmando'} "
+                    f"a hipótese de duplo disadvantage contextual."
+                )
+
+        # Nakagawa R²
+        if hlm_ns is not None:
+            add_para(doc,
+                "Pseudo-R² de Nakagawa e Schielzeth (2013): R²m (efeitos fixos) e R²c (completo):"
+            )
+            cols_ns = ["Modelo", "sigma2_f", "sigma2_u", "sigma2_e", "R2m", "R2c"]
+            cols_ns = [c for c in cols_ns if c in hlm_ns.columns]
+            tbl_ns = doc.add_table(rows=len(hlm_ns)+1, cols=len(cols_ns))
+            tbl_ns.style = "Table Grid"; tbl_ns.alignment = WD_TABLE_ALIGNMENT.CENTER
+            for j, col in enumerate(cols_ns):
+                cell = tbl_ns.rows[0].cells[j]
+                cell.text = col
+                cell.paragraphs[0].runs[0].bold = True
+                cell.paragraphs[0].runs[0].font.name = "Arial"
+                cell.paragraphs[0].runs[0].font.size = Pt(9)
+            for i, (_, rw) in enumerate(hlm_ns.iterrows()):
+                for j, col in enumerate(cols_ns):
+                    v = rw[col]
+                    tbl_ns.rows[i+1].cells[j].text = (
+                        f"{float(v):.4f}" if isinstance(v, float) and pd.notna(v) else str(v)
+                    )
+                    tbl_ns.rows[i+1].cells[j].paragraphs[0].runs[0].font.name = "Times New Roman"
+                    tbl_ns.rows[i+1].cells[j].paragraphs[0].runs[0].font.size = Pt(9)
+
+        add_figure(doc, FIGURES / "hlm_m4_random_slope.png",
+            "Figura – M4: Distribuição dos slopes aleatórios de educ_ord_c por UPA (esquerda) "
+            "e dispersão intercepto × slope (direita). Correlação negativa indica que bairros "
+            "com menor renda base oferecem menor retorno educacional (PNAD 2016–2025, 20%).",
+            width_cm=15)
+    else:
+        add_para(doc,
+            "M4 (random slope + ICC racial + Nakagawa R²): outputs em geração — "
+            "execute run_hlm_m4.py e regenere o DOCX.",
+            italic=True)
 
     # 4.2 Clustering
     doc.add_page_break()

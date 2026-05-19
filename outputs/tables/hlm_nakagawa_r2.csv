@@ -1,0 +1,3 @@
+Modelo,sigma2_f,sigma2_u,sigma2_e,R2m,R2c,LRT_vs_prev,p_LRT
+M3-equiv. (sem slope),0.159126,0.0,0.349791,0.3127,0.3127,—,—
+M4 (random slope educ),0.288855,0.05552,0.368945,0.4049,0.4828,-inf,1.0000e+00

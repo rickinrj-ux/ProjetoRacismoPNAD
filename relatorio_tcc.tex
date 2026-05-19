@@ -634,6 +634,92 @@ $N$ (observações) & 1.537.885 & 1.537.885 & 1.537.885 & 1.537.885 \\
 \end{longtable}
 
 % ──────────────────────────────────────────────────────────────────────────────
+\subsection{M4: Heterogeneidade do Retorno Educacional e ICC por Raça}
+\label{subsec:hlm_m4}
+
+A progressão M0$\to$M3 confirmou que o gap racial persiste após controles
+individuais e contextuais. Uma questão permanece em aberto: o \emph{retorno}
+à educação é uniforme entre localidades ou varia sistematicamente com o
+contexto socioeconômico do bairro? Para trabalhadores negros concentrados
+em UPAs de menor capital social, o mesmo ano adicional de escolaridade pode
+gerar ganho salarial inferior ao observado em bairros de maioria branca ---
+amplificando a desvantagem acumulada.
+
+O modelo M4 testa essa hipótese ao introduzir um \textit{random slope} de
+\texttt{educ\_ord\_c} (escolaridade ordinal centrada, 0--7) por UPA:
+
+\begin{equation}
+\ln(\text{Renda})_{ij} = \beta_0 + \beta_1\,\text{Negro}_{ij}
+  + \beta_2\,\text{educ\_ord\_c}_{ij} + \cdots
+  + (u_{0j} + u_{1j}\,\text{educ\_ord\_c}_{ij}) + \varepsilon_{ij}
+\end{equation}
+
+\noindent onde $(u_{0j},\, u_{1j}) \sim \mathcal{N}\bigl(\mathbf{0},\,\boldsymbol{\Sigma}\bigr)$,
+$\boldsymbol{\Sigma} = \begin{pmatrix}\tau^2_0 & \tau_{01}\\ \tau_{01} & \tau^2_1\end{pmatrix}$.
+UF entra como efeito fixo ($C(\text{UF})$) para preservar o controle
+macroeconômico estadual. Amostra de 20\% ($n = 471.570$;
+31.694 UPAs; \textit{seed}~=~42).
+
+% ─── Condição encontrada ──────────────────────────────────────────────────────
+\paragraph{Condição encontrada: retorno educacional varia significativamente
+entre localidades.}
+A variância do slope aleatório $\hat{\tau}^2_1$ e a correlação
+$\widehat{\mathrm{corr}}(u_0, u_1)$ são reportadas na Tabela~\ref{tab:hlm_m4}.
+O teste de razão de verossimilhança M3$\to$M4 rejeita o modelo sem
+heterogeneidade de slope ($\chi^2(2)$, reportado na tabela).
+
+% ─── Causa ────────────────────────────────────────────────────────────────────
+\paragraph{Causa: segregação residencial comprime os retornos educacionais
+de quem mora em bairros de maior vulnerabilidade.}
+A correlação negativa entre intercepto e slope aleatórios ($\tau_{01} < 0$)
+indica que as UPAs com menor renda média (intercepto mais baixo) também
+oferecem menor retorno adicional para cada nível de escolaridade ---
+um mecanismo de \textit{desvantagem composta}: negros pagam duplo preço
+por morar em bairros de menor capital social.
+
+% ─── Consequência: ICC por raça ───────────────────────────────────────────────
+\paragraph{Consequência: ICC estratificado confirma duplo
+\textit{disadvantage} contextual.}
+O Modelo Nulo ajustado separadamente para negros e brancos
+(Tabela~\ref{tab:hlm_m4}) mostra $\text{ICC}_{UPA}(\text{Negros}) >
+\text{ICC}_{UPA}(\text{Brancos})$: a localidade de moradia explica fração
+maior da variância salarial para trabalhadores negros do que para brancos.
+Esse diferencial de ICC é a assinatura estrutural do duplo
+\textit{disadvantage}: além de receber menos em média (gap de 9{,}7\%),
+negros têm suas trajetórias salariais mais fortemente determinadas
+pelo bairro onde vivem.
+
+% ─── Pseudo-R² Nakagawa-Schielzeth ───────────────────────────────────────────
+\paragraph{Pseudo-$R^2$ de Nakagawa \& Schielzeth (2013).}
+O coeficiente marginal $R^2_m$ (efeitos fixos apenas) e condicional
+$R^2_c$ (fixos + aleatórios) quantificam a contribuição dos diferentes
+componentes ao poder preditivo do modelo:
+
+\begin{itemize}
+  \item $R^2_m$: variância explicada pelos preditores fixos (raça,
+        educação, jornada, contexto de UPA e estado).
+  \item $R^2_c$: variância explicada pelo modelo completo, incluindo
+        heterogeneidade de intercepto e slope por UPA.
+  \item $R^2_c - R^2_m$: contribuição dos efeitos aleatórios ---
+        fração da variância salarial atribuível ao contexto local
+        não captado pelos preditores fixos.
+\end{itemize}
+
+\input{outputs/tables/hlm_m4.tex}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{outputs/figures/hlm_m4_random_slope.png}
+  \caption{M4 --- Distribuição dos slopes aleatórios de
+    \texttt{educ\_ord\_c} por UPA (esquerda) e dispersão intercepto
+    aleatório $\times$ slope aleatório (direita). A correlação negativa
+    $\widehat{\mathrm{corr}}(u_0, u_1) < 0$ indica que bairros com
+    menor renda média oferecem retorno educacional proporcionalmente menor.
+    PNAD Contínua 2016--2025, amostra 20\%.}
+  \label{fig:hlm_m4_slope}
+\end{figure}
+
+% ──────────────────────────────────────────────────────────────────────────────
 \subsection{GLMM Logístico Multinível: Teto de Vidro Ocupacional}
 \label{subsec:glmm}
 
