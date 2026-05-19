@@ -1,0 +1,11 @@
+node,race,educ_label,betweenness,mean_renda,n_workers,gap_brokerage
+Branco_Sem_Instr,Branco,Sem_Instr,0.0,7.7293,4378114,0.0
+Branco_Fundamental,Branco,Fundamental,0.3056,6.559,57697,0.0
+Branco_Medio,Branco,Medio,0.0,7.0863,711014,0.0
+Branco_Superior,Branco,Superior,0.0,7.1736,1194442,0.0
+Branco_Pos,Branco,Pos,0.1111,7.0435,41357,0.0
+Negro_Sem_Instr,Negro,Sem_Instr,0.0,7.3161,6015628,0.0
+Negro_Fundamental,Negro,Fundamental,0.0,6.2968,191988,-0.3056
+Negro_Medio,Negro,Medio,0.0,6.7578,765906,0.0
+Negro_Superior,Negro,Superior,0.0,6.8653,2484813,0.0
+Negro_Pos,Negro,Pos,0.0,6.7251,100716,-0.1111
