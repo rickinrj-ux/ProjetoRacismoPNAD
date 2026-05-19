@@ -431,6 +431,26 @@ defensável que mantém a hipótese de \textit{networking} local testável
 \citep{raudenbush2002}. A estimação utiliza REML com método de Powell
 para evitar colapso de variância na fronteira $\tau^2=0$.
 
+\paragraph{M4: Random Slope de \texttt{educ\_ord\_c} por UPA.}
+O modelo M4 estende M3 ao introduzir um \textit{random slope} da escolaridade
+ordinal centrada (\texttt{educ\_ord\_c}, 0--7) por UPA, testando se o
+retorno educacional varia entre localidades:
+\begin{equation}
+  \ln(W)_{ij} = \beta_0 + \beta_1\,\text{Negro}_{ij}
+    + \beta_2\,\text{educ\_ord\_c}_{ij} + \cdots
+    + (u_{0j} + u_{1j}\,\text{educ\_ord\_c}_{ij}) + \varepsilon_{ij},
+  \quad
+  \begin{pmatrix}u_{0j}\\u_{1j}\end{pmatrix}
+  \sim \mathcal{N}\!\left(\mathbf{0},
+    \begin{pmatrix}\tau^2_0&\tau_{01}\\\tau_{01}&\tau^2_1\end{pmatrix}\right)
+  \label{eq:m4}
+\end{equation}
+UF entra como efeito fixo. Pseudo-$R^2$ marginal e condicional calculados
+segundo \citet{nakagawa2013}.
+ICC estratificado por raça usa modelo nulo separado para negros e brancos
+(método \textit{powell}, UF fixo, UPAs com $n \geq 10$), testando a hipótese
+de \emph{duplo disadvantage} contextual: $\text{ICC}_{UPA}(\text{Negros}) > \text{ICC}_{UPA}(\text{Brancos})$.
+
 \subsection{Clustering Socioeconômico (K-Means)}
 
 O algoritmo \textit{MiniBatchKMeans} foi aplicado sobre as
@@ -1712,7 +1732,7 @@ A robustez no setor formal (Seção~\ref{sec:robustez_formal}) encerra o
 argumento de que a informalidade seria o principal motor da desigualdade
 racial observada.
 
-\paragraph{Teto de vidro duplo: GLMM + QR.}
+\paragraph{Teto de vidro duplo: GLMM + QR + M4.}
 O GLMM logístico multinível (Seção~\ref{subsec:glmm}) acrescenta
 uma dimensão transversal a esse quadro:
 a discriminação não opera apenas nos salários (\emph{intra}-emprego)
@@ -1729,9 +1749,22 @@ geograficamente determinada do que a barreira de progressão salarial:
 a segregação residencial atua primariamente como um \textbf{filtro
 ocupacional}, não apenas como um depressor de salário.
 Combinado ao achado de QR de que o gap salarial cresce nos percentis
-superiores, o resultado configura um \textbf{teto de vidro duplo}:
+superiores (KB test: $Z=-2{,}75$, $p=0{,}006$; $\chi^2(2)=17{,}37$, $p<0{,}001$),
+o resultado configura um \textbf{teto de vidro duplo}:
 exclusão da porta de entrada aos cargos de topo (GLMM) e compressão
 da progressão salarial uma vez dentro deles (QR).
+O M4 acrescenta uma terceira dimensão: o ICC estratificado por raça
+($\text{ICC}_{UPA}^{\text{negros}} = 14{,}6\%$ \emph{vs.}
+$\text{ICC}_{UPA}^{\text{brancos}} = 11{,}2\%$; $\Delta\text{ICC} = +3{,}4$\,pp)
+revela que a trajetória salarial de trabalhadores negros é \emph{mais fortemente}
+determinada pelo bairro de moradia do que a de brancos.
+O pseudo-$R^2_c - R^2_m = 7{,}8$\,pp (Nakagawa-Schielzeth) quantifica
+a fração de variância salarial atribuível à heterogeneidade de localidade
+que os preditores fixos não captam.
+Juntos, GLMM, QR e M4 convergem para o mesmo mecanismo: a segregação
+residencial amplifica a desigualdade racial por três vias simultâneas ---
+filtro de acesso ocupacional (GLMM), compressão salarial nos percentis altos (QR)
+e compressão do retorno educacional em bairros de menor capital social (M4).
 
 \subsection{As causas: por que o contexto de bairro supera o estado}
 
@@ -1752,6 +1785,19 @@ em magnitude, à própria penalidade individual de ser negro ---
 a evidência mais direta do \emph{duplo disadvantage}.
 Isso sugere que políticas de redistribuição de renda que não enfrentem
 a segregação residencial têm eficácia limitada sobre o gap racial.
+
+O M4 acrescenta que esse mecanismo opera também sobre os \emph{retornos}
+à educação: a variância do slope aleatório
+$\hat{\tau}^2_1 = 0{,}0065$ indica que cada nível adicional de escolaridade
+(\texttt{educ\_ord\_c}) gera prêmio salarial distinto entre localidades.
+A correlação $\widehat{\mathrm{corr}}(u_0, u_1) = -0{,}059$ aponta na
+direção esperada --- bairros com menor renda base tendem a oferecer menor
+retorno educacional, embora a magnitude seja modesta.
+O diferencial de ICC ($+3{,}4$\,pp) é o indicador mais direto:
+trabalhadores negros, por estarem sobre-representados em UPAs de menor
+capital social, têm suas trajetórias salariais mais vulneráveis
+às condições locais do que trabalhadores brancos, mesmo com escolaridade
+equivalente.
 
 \subsection{As consequências: o que os dados prescrevem}
 
@@ -2065,18 +2111,26 @@ trabalhador mora, não por quem ele é. A decomposição de Oaxaca-Blinder
 revela que 75{,}2\% do gap bruto persiste mesmo quando negros têm as
 mesmas dotações observáveis que brancos --- evidência de que mecanismos
 de remuneração diferencial (não apenas diferenças de capital humano)
-são a causa dominante da desigualdade.
+são a causa dominante da desigualdade; o padrão é estável ao longo
+do tempo (retornos: 17{,}8\% em 2016--2018 $\to$ 15{,}7\% em 2022--2025)
+e consistente entre sexos (Homens: gap~55{,}8\%, Mulheres: 50{,}5\%).
 O gap é universal (presente em todas as 5 macrorregiões, $p<0{,}001$)
-e apresenta padrão \emph{glass ceiling} em todas as regiões:
-a discriminação é mais intensa nos postos mais bem remunerados.
-O GLMM logístico com efeito aleatório de UPA
-($n = 2{,}4$\,M empregados, $\text{ICC}_{UPA} = 26{,}2\%$) revela uma dimensão
-anterior ao gap salarial: negros têm $-29{,}6\%$ de chance de
-acessar os cargos qualificados (CBO~1--4) que geram esses salários
-mais elevados.
-Juntamente com o achado de QR, configura-se um
-\textbf{teto de vidro duplo}: exclusão da porta de entrada
-ocupacional (GLMM) + compressão salarial dentro das carreiras (QR).
+e apresenta padrão \emph{glass ceiling} com heterogeneidade estatisticamente
+confirmada pelo teste de Koenker-Bassett ($Z=-2{,}75$, $p=0{,}006$;
+$\chi^2(2)=17{,}37$, $p<0{,}001$): o gap cresce de $-8{,}2\%$ no $q10$
+a $-11{,}8\%$ no $q90$.
+O GLMM logístico ($n = 2{,}4$\,M empregados, $\text{ICC}_{UPA} = 26{,}2\%$)
+revela uma dimensão anterior ao gap salarial: negros têm $-29{,}6\%$ de
+chance de acessar os cargos qualificados (CBO~1--4).
+O M4 adiciona que a segregação residencial também comprime os retornos
+educacionais por localidade: $\text{ICC}_{UPA}^{\text{negros}} = 14{,}6\%$
+\emph{vs.} $\text{ICC}_{UPA}^{\text{brancos}} = 11{,}2\%$
+($\Delta\text{ICC} = +3{,}4$\,pp), e o pseudo-$R^2$ de Nakagawa-Schielzeth
+sobe de $R^2_m = 0{,}405$ para $R^2_c = 0{,}483$ (+7{,}8\,pp) ao incluir
+a heterogeneidade de slope por UPA.
+Configura-se assim um \textbf{teto de vidro triplo}: exclusão da porta de
+entrada ocupacional (GLMM), compressão salarial nos percentis altos (QR)
+e compressão do retorno educacional em bairros de menor capital social (M4).
 
 \subsection{O que as causas indicam sobre o diagnóstico}
 
@@ -2091,35 +2145,48 @@ A discriminação territorial (52{,}5\%) opera via bairro, não via estado
 A discriminação relacional (exclusão de posições de \emph{brokerage},
 confirmada pelo \emph{betweenness} nulo de todos os grupos negros)
 opera independentemente do capital humano.
-A discriminação de retornos (75{,}2\% do gap bruto, decomposição OB)
+A discriminação de retornos (75{,}2\% do gap bruto, OB estável entre 2016--2025)
 confirma que mecanismos de remuneração, não só diferenças de dotações,
 são a causa dominante.
-Esse diagnóstico multicausal em quatro camadas implica que
+O M4 acrescenta que o \emph{canal territorial} opera em dois níveis
+simultâneos: comprime o acesso (ΔICC~$=~+3{,}4$\,pp de Negros sobre Brancos)
+e comprime o retorno educacional em bairros de menor capital social
+($\hat{\tau}^2_1 = 0{,}0065$, correlação negativa intercepto-slope).
+Esse diagnóstico multicausal em cinco camadas implica que
 nenhuma política isolada é capaz de eliminá-la.
 
 \subsection{O que as consequências exigem da política pública}
 
-Três famílias de intervenção são indicadas pelos dados:
+Seis intervenções são indicadas pelos dados, classificadas pelo modelo
+AHP+TOPSIS (6 políticas, $CR=0{,}004$, Seção~\ref{subsec:po_expandido}):
 
 \begin{enumerate}
-  \item \textbf{Combate à segregação residencial}: intervenções habitacionais
-    e de mobilidade urbana com impacto potencial sobre mais da metade do gap.
-  \item \textbf{Transparência e equidade salarial}: fiscalização de processos
-    seletivos e obrigatoriedade de reporte de métricas raciais em empresas,
-    endereçando o gap líquido de 9{,}7\%.
-  \item \textbf{Inclusão em redes profissionais}: programas de mentoria
-    e cotas em cargos de liderança intermediária, endereçando o mecanismo
-    relacional identificado pela SNA.
-  \item \textbf{Cotas e transparência em cargos qualificados}: o teto de
-    vidro ocupacional (OR~$=~0{,}704$ para CBO~1--4, GLMM) exige metas
-    de representação nos cargos de dirigentes, profissionais e técnicos
-    (não apenas nos postos de trabalho em geral), combinadas à
-    obrigatoriedade de divulgação de métricas raciais por grupo CBO.
+  \item \textbf{Cotas ocupacionais CBO~1--4} ($CC=0{,}791$, \textbf{1°~TOPSIS}):
+    ataca diretamente OR~$=~0{,}708$ do GLMM;
+    solução ótima da PL-1 com $B=5$ prevê redução de 24{,}0\% do gap bruto.
+    Estratégia de maior impacto por atacar a barreira de entrada
+    antes da barreira de progressão.
+  \item \textbf{Equidade educacional} ($CC=0{,}559$, 2°~TOPSIS):
+    endereça o componente dotações (84{,}0\% do gap, OB) e o diferencial
+    de ICC ($+3{,}4$\,pp do M4) por equalizar o capital social das
+    localidades onde negros estudam.
+  \item \textbf{Mentoria e redes profissionais} ($CC=0{,}386$, 3°~TOPSIS):
+    supera exclusão de \textit{brokerage} (betweenness nulo na SNA) e
+    mitiga a mediação territorial do retorno educacional (M4 $\tau^2_1$).
+  \item \textbf{Transparência salarial obrigatória} ($CC=0{,}324$, 4°~TOPSIS):
+    medida de baixo custo ($c_6=0{,}8$) com efeito imediato sobre o
+    glass ceiling de progressão (QR $\Delta[q90-q10]=-3{,}99$\,pp).
+  \item \textbf{Enforcement anti-discriminação} ($CC=0{,}240$, 5°~TOPSIS):
+    endereça retornos diferenciais (OB: 16{,}0\%).
+  \item \textbf{Desegregação residencial} ($CC=0{,}107$, 6°~TOPSIS):
+    alto potencial (52{,}5\% do gap mediado pelo bairro,
+    $\hat{\gamma}_{01}=-0{,}271$), mas custo de implementação mais
+    elevado e horizonte de mais longo prazo.
 \end{enumerate}
 
 Ao ritmo de convergência observado --- queda de 2{,}4\% em dez anos ---
 a eliminação espontânea do diferencial levaria séculos. A evidência
-aponta para a necessidade de intervenção deliberada, simultânea nos três
+aponta para a necessidade de intervenção deliberada, simultânea nos seis
 canais, para que o capital humano negro se converta em renda na mesma
 proporção que o capital humano branco.
 
@@ -2127,13 +2194,19 @@ proporção que o capital humano branco.
 
 \noindent\textbf{Contribuição principal.}
 Este estudo oferece, ao nosso conhecimento, a primeira análise integrada
-de HLM multinível, GLMM logístico (lme4, população completa), regressão
-quantílica com interação racial, clustering socioeconômico, SHAP values
-(XGBoost) e SNA sobre a série completa da PNAD Contínua (2016--2025),
-com controles robustos de jornada, urbanização e ciclo econômico.
-A combinação inédita de GLMM (acesso ocupacional) + HLM (progressão salarial)
-estabelece um marco metodológico para a análise do teto de vidro racial
-com dados de pesquisa domiciliar de representatividade nacional.
+de HLM multinível (M0--M4 com random slope e ICC racial),
+GLMM logístico (população completa, $n=2{,}4$\,M),
+regressão quantílica com teste de Koenker-Bassett,
+decomposição OB com estabilidade temporal e por sexo,
+clustering socioeconômico, SHAP values (XGBoost) e SNA sobre a série
+completa da PNAD Contínua (2016--2025), com controles robustos de jornada,
+urbanização e ciclo econômico.
+A combinação inédita de GLMM (acesso ocupacional) + HLM/M4 (progressão
+salarial e heterogeneidade de retorno educacional por UPA) +
+QR/Koenker-Bassett (heterogeneidade distribucional confirmada) +
+Pesquisa Operacional (6 políticas, AHP+TOPSIS, PL biobjetivo)
+estabelece um marco metodológico integrado para a análise do teto
+de vidro racial com dados de pesquisa domiciliar de representatividade nacional.
 
 \bigskip
 
