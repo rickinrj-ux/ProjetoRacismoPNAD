@@ -1,0 +1,2 @@
+b_q10,b_q50,b_q90,diff_q90_q10,se_boot,ci_lo_boot,ci_hi_boot,z_stat,p_valor_z,wald_chi2_2,p_valor_wald,n_boot,boot_frac
+-0.08568,-0.08253,-0.12559,-0.03991,0.01449,-0.06778,-0.00996,-2.755,0.005877,17.367,0.000169,200,0.05

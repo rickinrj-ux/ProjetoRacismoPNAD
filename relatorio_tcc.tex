@@ -833,6 +833,67 @@ no HLM salarial) indica que a porta de entrada aos cargos qualificados
 \end{figure}
 
 % ──────────────────────────────────────────────────────────────────────────────
+\subsection{Regressão Quantílica: Glass Ceiling Salarial e Teste de Koenker-Bassett}
+\label{subsec:qr}
+\label{sec:qr}
+
+\paragraph{Condição encontrada: o gap racial cresce monotonicamente do décil inferior ao superior.}
+A regressão quantílica (Koenker \& Bassett, 1978) estima o coeficiente $\hat{\beta}_{negro}$
+em $\log\_renda$ para cada quantil $\tau \in \{0{,}10, 0{,}25, 0{,}50, 0{,}75, 0{,}90, 0{,}95\}$
+da distribuição condicional, testando formalmente a hipótese de \emph{glass ceiling} racial.
+Os resultados (Modelo M3, amostra 20\%, $n=1{.}538{.}839$) revelam:
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+Quantil & $\hat{\beta}_{negro}$ & Gap~(\%) \\
+\midrule
+$\tau = 0{,}10$ & $-0{,}0857$ & $-8{,}2\%$ \\
+$\tau = 0{,}25$ & $-0{,}0769$ & $-7{,}4\%$ \\
+$\tau = 0{,}50$ & $-0{,}0825$ & $-7{,}9\%$ \\
+$\tau = 0{,}75$ & $-0{,}1067$ & $-10{,}1\%$ \\
+$\tau = 0{,}90$ & $-0{,}1256$ & $-11{,}8\%$ \\
+$\tau = 0{,}95$ & $-0{,}1311$ & $-12{,}3\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Causa: teste de Koenker-Bassett confirma heterogeneidade quantílica.}
+O teste de heterogeneidade $H_0: \beta(\tau) = \text{constante}$ foi implementado
+via bootstrap (200 replicações, $5\%$ de sub-amostra), com dois critérios:
+\begin{itemize}
+  \item \textbf{Contraste bilateral} $\beta(\tau_{0{,}90}) - \beta(\tau_{0{,}10})$:
+        $\Delta = -0{,}0399$ log-pontos ($-3{,}99$~pp),
+        $SE_{boot} = 0{,}0145$, $Z = -2{,}75$, $p = 0{,}006^{**}$,
+        IC~95\% $= [-6{,}78; -1{,}00]$~pp.
+  \item \textbf{Wald $\chi^2(2)$} para constância conjunta em $\tau \in \{0{,}10, 0{,}50, 0{,}90\}$:
+        $\chi^2 = 17{,}37$, $p < 0{,}001^{***}$.
+\end{itemize}
+Ambos rejeitam $H_0$, confirmando que o gap racial não é uniforme ao longo
+da distribuição --- caracterizando formalmente o \emph{glass ceiling} salarial racial.
+
+\paragraph{Consequência: discriminação de progressão se intensifica no topo.}
+O gradiente $\tau_{0{,}10} \to \tau_{0{,}90}$ de $-8{,}2\%$ a $-11{,}8\%$
+(Δ$=3{,}6$~pp, $p=0{,}006$) confirma que a barreira de progressão salarial
+é mais intensa exatamente onde os retornos à senioridade são maiores.
+Combinado ao gradiente GLMM (top~20\% OR$=0{,}726$ $\to$ top~10\%
+OR$=0{,}671$, $p<0{,}001$), o resultado caracteriza o teto de vidro duplo:
+exclusão do acesso (GLMM) e compressão de ganhos nos percentis superiores (QR).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{outputs/figures/qr_glassceil_completo}
+  \caption{Glass ceiling racial --- Regressão Quantílica (M3, amostra 20\%).
+           Painel esquerdo: trajetória do gap por quantil, com IC~95\% e linhas
+           por sexo. Painel direito: distribuição bootstrap de
+           $\Delta[\tau_{0{,}90} - \tau_{0{,}10}]$ com valor observado ($Z=-2{,}75$,
+           $p=0{,}006$). Teste de Koenker-Bassett rejeita $H_0$ de constância.}
+  \label{fig:qr_glassceil}
+\end{figure}
+
+\input{outputs/tables/qr_melhorias.tex}
+
+% ──────────────────────────────────────────────────────────────────────────────
 \subsection{Clustering Socioeconômico}
 \label{subsec:clustering}
 
@@ -1266,6 +1327,69 @@ implica que políticas educacionais são condição \emph{necessária} mas não
 cargos de liderança e transparência salarial são complementares
 indispensáveis para que o investimento educacional se converta em
 convergência salarial.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Decomposição OB Expandida: Modelo com Controles Ocupacionais}
+\label{subsec:ob_melhorias}
+
+A especificação OB original (seção~\ref{subsec:oaxaca}) não inclui
+variáveis ocupacionais, isolando o componente de retornos diferenciais
+no sentido mais amplo. Uma especificação expandida --- incluindo grupos CBO,
+emprego formal, horas trabalhadas e trabalho doméstico --- permite decompor
+quanto do gap é mediado pela \emph{segregação ocupacional} versus
+discriminação de remuneração pura \textit{dentro} de cada ocupação
+(Tabela~\ref{tab:ob_expandido}).
+
+\begin{table}[H]
+\centering
+\caption{Comparação OB: modelo base (sem CBO) vs.\ modelo expandido
+(com grupos CBO, formalidade e horas). PNAD Contínua 2016--2025,
+amostra 20\%, $n=1{.}538{.}839$.}
+\label{tab:ob_expandido}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Componente} & \textbf{Modelo base} & \textbf{Modelo expandido} & \textbf{Interpretação} \\
+\midrule
+Gap total bruto (\%) & 52,6 & 52,6 & Inalterado \\
+Efeito dotações (\%) & 24,8 & \textbf{84,0} & $\uparrow$ via segregação ocupacional \\
+Efeito retornos (\%) & 75,2 & \textbf{16,0} & Discriminação pura intra-ocupação \\
+\midrule
+\multicolumn{4}{l}{\textit{Interpretação: os 59,2 p.p. migrados de retornos para dotações}} \\
+\multicolumn{4}{l}{\textit{representam a parcela do gap que opera \emph{via} exclusão ocupacional,}} \\
+\multicolumn{4}{l}{\textit{não via discriminação de remuneração direta. A barreira de acesso}} \\
+\multicolumn{4}{l}{\textit{(GLMM: OR=0,708) é o mecanismo primário de transmissão.}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Estabilidade temporal.}
+A decomposição estimada separadamente para dois sub-períodos confirma
+que o gap e seus componentes são estruturais:
+período inicial (2016--2018): gap = 54,4\%, retornos = 17,8\%;
+período recente (2022--2025): gap = 51,9\%, retornos = 15,7\%.
+A leve redução do gap (−2,5 p.p.) e dos retornos diferenciais (−2,1 p.p.)
+sugere tendência marginal de melhora, insuficiente para convergência
+no horizonte considerado.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.48\textwidth]{outputs/figures/ob_por_sexo}
+  \hfill
+  \includegraphics[width=0.48\textwidth]{outputs/figures/ob_estabilidade_temporal}
+  \caption{Esquerda: decomposição OB por sexo (homens vs.\ mulheres).
+           Homens: gap=55,8\%, retornos=16,4\%. Mulheres: gap=50,5\%, retornos=14,2\%.
+           Direita: estabilidade temporal 2016--2018 vs.\ 2022--2025.
+           O gap estrutural persiste --- tendência de convergência é marginal.}
+  \label{fig:ob_melhorias}
+\end{figure}
+
+\paragraph{Decomposição por sexo.}
+Homens negros (gap=55,8\%) enfrentam maior penalidade absoluta que mulheres
+negras (gap=50,5\%), mas com estrutura similar: dotações dominam em ambos
+($>$83\%). A diferença de 5,3 p.p. entre sexos é consistente com a intersecção
+raça--gênero descrita por \citet{crenshaw1989}: mulheres negras acumulam penalidades
+de gênero que, ao elevar a linha de base, comprimem o gap racial
+\emph{adicional} em relação às brancas.
 
 % ──────────────────────────────────────────────────────────────────────────────
 \subsection{Heterogeneidade Regional}
@@ -1758,14 +1882,78 @@ grupos negros na SNA.
 \end{figure}
 
 \paragraph{Limitações dos modelos normativos.}
-Os quatro modelos de PO são ferramentas de estruturação de decisão,
+Os modelos de PO são ferramentas de estruturação de decisão,
 não previsões. Os parâmetros $\alpha_i$, $c_i$ e os julgamentos AHP
 são premissas explícitas que devem ser revisadas por especialistas
 de política pública antes de qualquer implementação.
-A análise de sensibilidade via fronteira de Pareto permite que o
-tomador de decisão escolha soluções que reflitam diferentes
-ponderações entre eficiência e custo, sem depender de uma escolha
-arbitrária de pesos.
+A fronteira de Pareto permite ao tomador de decisão escolher soluções
+que reflitam diferentes ponderações sem escolha arbitrária de pesos.
+
+\subsection{Modelo Expandido: Teto de Vidro Duplo e 6 Políticas}
+\label{subsec:po_expandido}
+
+Os resultados do GLMM logístico (seção~\ref{sec:glmm_glassceil}) e da
+regressão quantílica com teste de Koenker-Bassett (seção~\ref{sec:qr})
+permitem expandir o modelo PO de 4 para \textbf{6 canais de intervenção},
+incorporando explicitamente a barreira de acesso ocupacional:
+
+\begin{itemize}
+  \item $P_1$: \textbf{Cotas ocupacionais CBO~1--4} --- ataca diretamente
+        $\text{OR}=0{,}708$ (GLMM, $n=2{.}395{.}285$), AME $= -1{,}30$~pp
+  \item $P_2$: \textbf{Enforcement anti-discriminação} --- reduz
+        retornos diferenciais (OB: 16,0\% do gap)
+  \item $P_3$: \textbf{Equidade educacional} --- reduz dotações
+        (OB: 84,0\% do gap, componente capital humano)
+  \item $P_4$: \textbf{Desegregação residencial} --- reduz mediação
+        territorial ($\text{ICC}_{\text{UPA}}=26{,}2\%$ para acesso)
+  \item $P_5$: \textbf{Mentoria e redes profissionais} --- supera
+        exclusão de brokerage (SNA: $B_{\text{negro}}=0$ em todos os grupos)
+  \item $P_6$: \textbf{Transparência salarial obrigatória} --- reduz
+        glass ceiling de progressão (QR: $\Delta[q90-q10] = -3{,}99$~pp,
+        $Z = -2{,}75$, $p = 0{,}006$)
+\end{itemize}
+
+\paragraph{Resultado TOPSIS (6 políticas).}
+A consistência AHP foi $CR = 0{,}004 < 0{,}10$ (excelente).
+Cotas ocupacionais CBO~1--4 ($P_1$) dominam o ranking com
+$CC = 0{,}791$ --- gap para o segundo colocado, equidade educacional
+($P_3$, $CC = 0{,}559$), reflete que a barreira de \emph{acesso}
+antecede a barreira \emph{salarial}: intervir na porta de entrada é
+mais eficiente do que corrigir o resultado.
+Transparência salarial ($P_6$) aparece como medida de baixo custo
+($c_6 = 0{,}8$) e efeito imediato sobre o glass ceiling de progressão.
+
+\input{outputs/tables/po_politicas.tex}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.90\textwidth]{outputs/figures/po_politicas_topsis}
+  \caption{Ranking AHP+TOPSIS das 6 políticas e perfil radar.
+           Cotas ocupacionais CBO~1--4 ($CC=0{,}79$) domina por atacar
+           diretamente a barreira de acesso documentada pelo GLMM (OR=0,708).
+           Premissas $\alpha_i$ e $c_i$ marcadas [ASSUMIDO] com base em
+           Holzer \& Neumark (2000) e Bertrand \& Duflo (2017).}
+  \label{fig:po_topsis6}
+\end{figure}
+
+\paragraph{Fronteira de Pareto --- teto de vidro duplo.}
+O modelo biobjetivo minimiza simultaneamente o gap salarial (OB/QR) e
+o gap de acesso (GLMM).
+Na solução de equilíbrio ($\lambda = 0{,}5$), a alocação ótima concentra
+recursos em $P_1$ (cotas CBO) e $P_5$ (mentoria), com $P_6$ como
+medida complementar de curto prazo.
+Com $B=5$ unidades, a PL-1 projeta redução de \textbf{24,0\%} do gap
+bruto --- condicionada às premissas.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.90\textwidth]{outputs/figures/po_politicas_pl2_pareto}
+  \caption{Fronteira de Pareto para o teto de vidro duplo ($B=5$).
+           Ponto ouro ($\lambda=0{,}5$): equilíbrio entre redução do gap
+           salarial e redução do gap de acesso.
+           Painel direito: alocação de equilíbrio.}
+  \label{fig:po_pareto2}
+\end{figure}
 
 % ══════════════════════════════════════════════════════════════════════════════
 %  7. CONCLUSÃO

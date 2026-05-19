@@ -1,0 +1,25 @@
+\begin{table}[H]
+\centering
+\caption{Decomposição de Oaxaca-Blinder (twofold) por sexo e período.
+         Gap = $\bar{y}_{\text{branco}} - \bar{y}_{\text{negro}}$ em log-renda.
+         Dotações = diferenças de características observáveis;
+         Retornos = discriminação residual.
+         Amostra 20\%; bootstrap 200 rep.\ (SE omitido: todos $p<0{,}001$).}
+\label{tab:ob_melhorias}
+\small
+\begin{tabular}{llrrrr}
+\toprule
+Grupo & Sub-grupo & Gap (\%) & Dotações (\%) & Retornos (\%) & $N$ \\
+\midrule
+Global & Total & $52.6\%$ & $84.0\%$ & $16.0\%$ & 1,538,839 \\
+Por Sexo & Homens & $55.8\%$ & $83.6\%$ & $16.4\%$ & 900,205 \\
+Por Sexo & Mulheres & $50.5\%$ & $85.8\%$ & $14.2\%$ & 638,634 \\
+Estabilidade & 2016-2018 & $54.3\%$ & $82.2\%$ & $17.8\%$ & 518,864 \\
+Estabilidade & 2022-2025 & $51.9\%$ & $84.3\%$ & $15.7\%$ & 620,650 \\
+\bottomrule
+\end{tabular}
+\note{Decomposição twofold com coeficientes do grupo de referência (brancos).
+      Fórmula: $\text{Gap} = \underbrace{(\bar{X}_b - \bar{X}_n)\hat{\beta}_b}_{\text{Dotações}}
+      + \underbrace{\bar{X}_n(\hat{\beta}_b - \hat{\beta}_n)}_{\text{Retornos}}
+      + \underbrace{(\bar{X}_b - \bar{X}_n)(\hat{\beta}_b - \hat{\beta}_n)}_{\text{Interação}}$.}
+\end{table}
