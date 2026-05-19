@@ -755,46 +755,70 @@ salarial via acesso ao quintil superior.
     \toprule
     Desfecho & Modelo & OR$_{\text{negro}}$ & IC~95\% & AME (pp) & $N$ \\
     \midrule
-    \multirow{2}{*}{\textbf{CBO~1--4}} &
-      M1 (GLMM, lme4, pop.\ comp.) &
-      $0{,}704^{***}$ & [0,694;0,715] & $-1{,}3$ & 2.395.285 \\
+    \multirow{3}{*}{\textbf{CBO~1--4}} &
+      M1 (ind.\ + UF FE) &
+      $0{,}708^{***}$ & [0,698;0,719] & $-1{,}3$ & 2.395.285 \\
     &
-      M2 (GLMM + UPA ctx.) &
-      $0{,}747^{***}$ & [0,735;0,758] & $-1{,}1$ & 2.395.285 \\
+      M2 (+ UPA ctx.) &
+      $0{,}741^{***}$ & [0,729;0,752] & $-1{,}1$ & 2.395.285 \\
+    &
+      M3 (+ negro$\times$edu, OR$_{inter}=1{,}009$) &
+      $0{,}740^{***}$ & [0,729;0,751] & $-1{,}1$ & 2.395.285 \\
     \addlinespace
-    \multirow{2}{*}{\textbf{Top~20\% renda}} &
-      M1 (logit, 20\% amostra) &
-      $0{,}528^{***}$ & [0,521;0,536] & $-9{,}7$ & 307.768 \\
+    \multirow{3}{*}{\textbf{Top 20\% renda}} &
+      M1 (ind.\ + UF FE) &
+      $0{,}726^{***}$ & [0,721;0,731] & $-4{,}8$ & 2.395.285 \\
     &
-      M2 (+ UPA ctx., 20\%) &
-      $0{,}726^{***}$ & [0,718;0,735] & $-4{,}6$ & 307.768 \\
+      M2 (+ UPA ctx.) &
+      $0{,}743^{***}$ & [0,737;0,749] & $-4{,}1$ & 2.395.285 \\
+    &
+      M3 (OR$_{inter}=1{,}012$) &
+      $0{,}743^{***}$ & [0,737;0,749] & $-4{,}1$ & 2.395.285 \\
+    \addlinespace
+    \multirow{3}{*}{\textbf{Top 10\% renda}} &
+      M1 (ind.\ + UF FE) &
+      $0{,}671^{***}$ & [0,664;0,678] & $-3{,}4$ & 2.395.285 \\
+    &
+      M2 (+ UPA ctx.) &
+      $0{,}698^{***}$ & [0,691;0,705] & $-2{,}9$ & 2.395.285 \\
+    &
+      M3 (OR$_{inter}=1{,}028$) &
+      $0{,}697^{***}$ & [0,690;0,704] & $-2{,}9$ & 2.395.285 \\
     \bottomrule
   \end{tabular}
-  \note{$^{***}p<0{,}001$.
-        CBO~1--4: estimado por GLMM lme4 (efeito aleatório de UPA, Laplace, full pop.)
-        controlando também por vínculo formal e setor público.
-        Top~20\%: logit com UF efeito fixo e SE clusterizado por UPA (20\% amostra
-        estratificada, $\text{SEED}=42$).
-        AME: Average Marginal Effect de ser negro vs.\ branco.}
+  \note{$^{***}p<0{,}001$. Logit com UF efeito fixo e SE robusto HC1,
+        população empregada completa ($n = 2.395.285$).
+        Controles M1: sexo, educação (anos centralizado), idade, horas,
+        vínculo formal e setor público.
+        OR$_{inter}$ (M3) = Odds Ratio da interação negro $\times$ edu\_anos\_c:
+        valores próximos de $1{,}0$ indicam que educação não atenua
+        substancialmente a penalidade racial no acesso ao topo.
+        Comparativo R lme4 (GLMM, efeito aleatório de UPA):
+        CBO~1--4 M1 OR~$=~0{,}704$, M2 OR~$=~0{,}747$ (ICC$_{UPA}=26{,}2\%$).}
 \end{table}
 
 \paragraph{Interpretação integrada.}
-A Tabela~\ref{tab:glmm_glassceil} revela dois níveis do teto de vidro:
-(i) o GLMM para CBO~1--4 (pop.\ completa) captura a barreira \emph{dentro}
-do mesmo tipo de vínculo empregatício: mesmo entre trabalhadores com vínculo
-formal (ou ambos informais), negros têm $-29{,}6\%$ de chance de ocupar cargos
-qualificados (OR~$=~0{,}704$);
-(ii) o logit para o quintil superior de renda (20\% amostra), sem controlar
-por tipo de vínculo, captura o efeito total: negros têm
-$-47{,}2\%$ de chance de acessar o topo salarial (OR~$=~0{,}528$, AME~$=-9{,}7$pp).
-A diferença entre $-47\%$ e $-30\%$ representa a parte da penalidade de renda
-que opera indiretamente via acesso diferencial ao emprego formal ---
-um canal territorial identificado pelo GLMM (ICC$_{UPA} = 26{,}2\%$).
+A Tabela~\ref{tab:glmm_glassceil} revela um padrão de gradiente que confirma
+o teto de vidro racial no nível do acesso (não apenas do salário):
+a desvantagem de ser negro \emph{aumenta} quanto mais alto o limiar de renda ---
+de $-27{,}4\%$ para o top~20\% (OR~$=~0{,}726$) a $-32{,}9\%$ para o
+top~10\% (OR~$=~0{,}671$), $p<0{,}001$ em todos os modelos.
+Isso é estruturalmente idêntico ao efeito encontrado na QR:
+o gap racial é mais intenso exatamente onde os retornos à educação são maiores.
 
-Assim, a mesma lógica de dupla barreira se manifesta em dois planos:
-\textbf{horizontal} (tipo de emprego) e \textbf{vertical} (progressão dentro do emprego),
-confirmando que o teto de vidro racial no Brasil é estrutural,
-não decorrente apenas de diferenças de capital humano observável.
+O modelo M3 com interação negro~$\times$~educação não encontra moderação
+relevante (OR$_{inter}$~$\approx 1{,}0$ para todos os desfechos),
+confirmando que mais anos de escolaridade não aliviam substancialmente
+a barreira racial de acesso ao topo.
+Isso reforça o \textbf{teto de credencial} identificado na QR e OB:
+o mecanismo discriminatório não pode ser eliminado apenas por acumulação
+de capital humano.
+
+O comparativo com o GLMM lme4 (OR~$=~0{,}704$ para CBO~1--4) é
+notavelmente consistente com o logit com UF FE (OR~$=~0{,}708$),
+validando a especificação. O ICC de $26{,}2\%$ no GLMM (vs.\ $9{,}8\%$
+no HLM salarial) indica que a porta de entrada aos cargos qualificados
+é o canal em que a segregação residencial tem maior poder discriminatório.
 
 \begin{figure}[H]
   \centering
@@ -1484,9 +1508,11 @@ uma dimensão transversal a esse quadro:
 a discriminação não opera apenas nos salários (\emph{intra}-emprego)
 mas também no \emph{acesso} às posições qualificadas que geram os
 maiores salários.
-Negros têm $-29{,}6\%$ de chance de ocupar cargos CBO~1--4 mesmo
+Negros têm $-29{,}2\%$ de chance de ocupar cargos CBO~1--4 mesmo
 com controles de escolaridade, experiência, vínculo e setor
-(OR~$=~0{,}704$, $p<0{,}001$, $n=2{,}4$\,M empregados).
+(OR~$=~0{,}708$, $p<0{,}001$, $n=2{,}4$\,M empregados);
+a penalidade é ainda maior no decil superior de renda ($-32{,}9\%$,
+OR~$=~0{,}671$), revelando o gradiente de teto de vidro.
 O ICC de $26{,}2\%$ --- mais que o dobro do HLM salarial (9{,}8\%) ---
 indica que a barreira de entrada a cargos qualificados é muito mais
 geograficamente determinada do que a barreira de progressão salarial:
