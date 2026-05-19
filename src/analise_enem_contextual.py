@@ -115,13 +115,19 @@ def carregar_dados_com_enem(
     df["UF_str"]  = df["UF"].astype(str)
     df["log_renda"] = df["log_renda"].astype(float)
 
-    # Merge com gap ENEM
+    # Merge com gap ENEM — normaliza tipos antes do join
     df_enem = pd.read_parquet(enem_path)[["ano", "UF_cod", "gap_enem_z"]]
     df_enem = df_enem.rename(columns={"ano": "Ano", "UF_cod": "UF",
                                        "gap_enem_z": "gap_enem_uf_z"})
+    df_enem["Ano"] = df_enem["Ano"].astype("int16")
+    df_enem["UF"]  = df_enem["UF"].astype("int64")
+
+    df["UF_merge"] = df["UF"].astype("int64")
 
     if "Ano" in df.columns:
-        df = df.merge(df_enem, on=["Ano", "UF"], how="left")
+        df_enem = df_enem.rename(columns={"UF": "UF_merge"})
+        df = df.merge(df_enem, on=["Ano", "UF_merge"], how="left")
+        df = df.drop(columns=["UF_merge"])
         n_com_enem = df["gap_enem_uf_z"].notna().sum()
         logger.info(
             f"Merge ENEM: {n_com_enem:,}/{len(df):,} obs. com gap_enem_uf_z "
@@ -145,7 +151,14 @@ def carregar_dados_com_enem(
 def _ajustar_hlm(df: pd.DataFrame, formula: str,
                  label: str, method: str = "lbfgs",
                  maxiter: int = 1000) -> Optional[Dict]:
-    """Ajusta HLM 3-nível e retorna dicionário de métricas."""
+    """
+    Ajusta HLM 2-nível (individual → UF) para análise ENEM contextual.
+
+    O preditor de interesse (gap_enem_uf_z) é medido no nível UF (Nível 3
+    no modelo principal). Usar um modelo 2-nível individual→UF é
+    metodologicamente correto para testar preditores de UF, evitando
+    o custo de memória do vc_formula com 40k dummies de UPA (17.7 GiB).
+    """
     df_fit = df.dropna(subset=["gap_enem_uf_z"] if "gap_enem_uf_z" in formula else [])
     n_ufs = df_fit["UF_str"].nunique()
 
@@ -160,7 +173,6 @@ def _ajustar_hlm(df: pd.DataFrame, formula: str,
             model  = smf.mixedlm(
                 formula, data=df_fit,
                 groups=df_fit["UF_str"],
-                vc_formula={"UPA_str": "0 + C(UPA_str)"},
             )
             result = model.fit(method=method, maxiter=maxiter, reml=False)
     except Exception as exc:

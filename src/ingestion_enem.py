@@ -82,9 +82,9 @@ WHERE ano BETWEEN {ano_ini} AND {ano_fim}
   AND nota_linguagens_codigos IS NOT NULL
   AND nota_matematica         IS NOT NULL
   AND nota_redacao            IS NOT NULL
-  AND presenca_ciencias_natureza = 'Presente'
-  AND presenca_matematica        = 'Presente'
-  AND presenca_redacao           = 'Presente'
+  AND presenca_ciencias_natureza = '1'
+  AND presenca_matematica        = '1'
+  AND presenca_redacao           = '1'
 GROUP BY 1, 2, 3
 """.format(score=_SCORE_EXPR, ano_ini="{ano_ini}", ano_fim="{ano_fim}")
 

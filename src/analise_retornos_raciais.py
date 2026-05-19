@@ -172,8 +172,15 @@ def oaxaca_blinder(
     res_b = _ols_grupo(df_b, FORMULA_OLS)
     res_n = _ols_grupo(df_n, FORMULA_OLS)
 
-    mean_b = df_b[res_b.model.exog_names[1:]].mean()  # exclui Intercept
-    mean_n = df_n[res_n.model.exog_names[1:]].mean()
+    # Usa a matriz de design expandida pelo modelo (correto para C(Ano), C(UF) etc.)
+    mean_b = pd.Series(
+        res_b.model.exog[:, 1:].mean(axis=0),
+        index=res_b.model.exog_names[1:],
+    )
+    mean_n = pd.Series(
+        res_n.model.exog[:, 1:].mean(axis=0),
+        index=res_n.model.exog_names[1:],
+    )
 
     coef_b = res_b.params.drop("Intercept", errors="ignore")
     coef_n = res_n.params.drop("Intercept", errors="ignore")
@@ -209,8 +216,14 @@ def oaxaca_blinder(
             rn = _ols_grupo(dn, FORMULA_OLS)
             cb = rb.params.drop("Intercept", errors="ignore")
             cn = rn.params.drop("Intercept", errors="ignore")
-            mb = db[rb.model.exog_names[1:]].mean()
-            mn = dn[rn.model.exog_names[1:]].mean()
+            mb = pd.Series(
+                rb.model.exog[:, 1:].mean(axis=0),
+                index=rb.model.exog_names[1:],
+            )
+            mn = pd.Series(
+                rn.model.exog[:, 1:].mean(axis=0),
+                index=rn.model.exog_names[1:],
+            )
             boot_dot.append(float((mb - mn) @ cb))
             boot_coef.append(float(mn @ (cb - cn)))
         except Exception:

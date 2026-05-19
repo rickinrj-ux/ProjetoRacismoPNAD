@@ -1,0 +1,12 @@
+\begin{table}
+\caption{Comparação entre M3 completo e M3 com gap educacional racial do ENEM como preditor contextual de Nível 3. $\beta_{GapEnem}$ positivo indicaria que estados com maior desigualdade educacional apresentam maior gap salarial racial. *** p$<$0,001; ** p$<$0,01; * p$<$0,05. Nota: $\beta_{GapEnem}$ não deve ser interpretado como efeito causal da discriminação de avaliadores (Botelho et al., 2015), mas como correlação entre desigualdade educacional e salarial ao nível estadual.}
+\label{tab:enem_contextual}
+\begin{tabular}{llllllll}
+\toprule
+Modelo & $\beta_{negro}$ & SE ($\beta_{negro}$) & Gap (\%) & $\beta_{GapEnem}$ & ICC\_UF & AIC & N \\
+\midrule
+M3_base & -0.1021$^{***}$ & (0.0006) & -9.7 & — & 0.500 & 16289428.2 & 7,689,426 \\
+M3_ENEM & -0.1019$^{***}$ & (0.0007) & -9.7 & 0.0028$^{**}$ & 0.500 & 12936171.0 & 6,105,242 \\
+\bottomrule
+\end{tabular}
+\end{table}

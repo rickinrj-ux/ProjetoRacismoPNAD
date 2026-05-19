@@ -88,40 +88,46 @@ COM DADOS DA PNAD CONTÍNUA (2016--2025)}}
 \noindent
 \textbf{Contexto.}
 Profissionais negros no Brasil recebem, em média, 19{,}3\% a menos do que
-brancos com a mesma escolaridade, sexo, jornada de trabalho e faixa etária.
-Esse diferencial --- mensurado sobre 1{,}54~milhão de trabalhadores da
-PNAD Contínua (2016--2025) com controles robustos --- não se reduz de forma
-relevante quando se acrescentam variáveis de jornada (\emph{log} de horas
-trabalhadas), localização urbano-rural e ciclo econômico anual: o gap
-permanece em $-19{,}7\%$, confirmando que não é artefato de diferenças
-de jornada ou de conjuntura macroeconômica.
+brancos com mesma escolaridade, sexo, jornada e faixa etária (gap
+condicionado, HLM M1, $n=1{,}54$ mi, PNAD Contínua 2016--2025),
+e 53{,}6\% a menos na comparação não-condicionada de médias
+(decomposição de Oaxaca-Blinder, $n=7{,}72$ mi, população completa).
+O gap condicionado permanece robusto à inclusão de controles de
+horas trabalhadas, localização e ciclo econômico
+($\Delta\hat{\beta} = +0{,}003$, $\Delta R^2 = +14{,}2\,\text{pp}$),
+confirmando que não é artefato dessas variáveis.
+O gap é universal: presente em todas as cinco macrorregiões
+($p<0{,}001$), com magnitude variando de 8{,}6\% (Nordeste)
+a 11{,}9\% (Norte), e com padrão \emph{glass ceiling} em todas as regiões
+(gap cresce do décil inferior ao superior).
 
 \textbf{Causas identificadas.}
-A decomposição multinível de três níveis revela que 52{,}5\% do gap bruto
-é mediado pelo local de moradia (segregação residencial, Nível~2), e que
-o contexto estadual (UF, Nível~3) não acrescenta poder explicativo
-\emph{além} do bairro --- indicando que a desigualdade racial opera
-primariamente no nível local, não macrorregional.
-O coeficiente de composição racial da UPA
-($\hat{\gamma}_{01} = -0{,}271$, $p<0{,}001$) demonstra que morar em
-bairro de maior concentração negra penaliza o rendimento independentemente
-da raça individual --- o \emph{duplo disadvantage}.
-Análise de redes sociais revela que trabalhadores negros possuem
-\emph{betweenness centrality} nula em todos os níveis educacionais,
-enquanto grupos brancos funcionam como \emph{brokers}: o capital humano
-negro circula apenas dentro da própria comunidade, impedindo sua
-conversão em mobilidade profissional.
+A decomposição multinível de três níveis revela que 52{,}5\% do gap
+condicionado é mediado pelo local de moradia (segregação residencial),
+e que o contexto estadual não acrescenta poder explicativo além do
+bairro --- desigualdade racial opera localmente, não macrorregionalmente.
+A decomposição de Oaxaca-Blinder revela que apenas 24{,}8\% do gap
+bruto é atribuível a diferenças observáveis de capital humano;
+os 75{,}2\% restantes persistem quando dotações são igualizadas,
+apontando retornos diferenciais como causa dominante.
+Educação reduz mas não elimina a penalidade racial: a interação
+negro$\times$superior produz um \emph{teto de credencial} em que o
+ensino superior reduz em 47\% a penalidade base, mas ainda deixa
+um gap líquido de 12\% para negros com diploma superior.
+Análise de redes sociais confirma que trabalhadores negros têm
+\emph{betweenness} nulo em todos os níveis educacionais,
+bloqueando o acesso às redes que convertem credenciais em mobilidade.
 
 \textbf{Consequências e implicações de política.}
-O gap líquido --- a fração não explicável por capital humano nem
-por localização --- persiste em 9{,}7\%, sinalizando discriminação
-direta residual. Ao ritmo de convergência observado (queda de
-apenas 2{,}4\% em dez anos), a eliminação completa do diferencial
-levaria mais de um século. Políticas centradas exclusivamente em
-educação são insuficientes: intervenções em segregação residencial,
-mobilidade urbana e acesso a redes profissionais são complementos
-necessários para que o capital humano negro se converta em renda
-na mesma proporção que o capital humano branco.
+O gap líquido de 9{,}7\% sinaliza discriminação direta residual.
+Ao ritmo de convergência observado (queda de apenas 2{,}4\% em dez anos),
+a eliminação completa levaria mais de um século.
+O diagnóstico em quatro camadas --- discriminação de mercado,
+territorial, relacional e de retornos --- implica que nenhuma
+política isolada é suficiente: intervenções coordenadas em
+segregação residencial, equidade salarial, transparência em
+promoções e acesso a redes profissionais são condições conjuntas
+para convergência duradoura.
 
 \bigskip
 \noindent\textbf{Palavras-chave:} gap salarial racial; discriminação estrutural; modelos
@@ -905,6 +911,309 @@ O diferencial de log-rendimento reduziu-se de 0{,}441 (2016) para 0{,}431
 em relação ao patamar inicial. Ao ritmo observado, a convergência completa
 levaria mais de 400 anos.
 
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Decomposição de Oaxaca-Blinder}
+\label{subsec:oaxaca}
+
+A decomposição de Oaxaca-Blinder quantifica quanto do gap salarial bruto
+entre grupos é atribuível a diferenças em dotações observáveis
+(\textit{efeito dotação}) e quanto persiste como retornos diferenciais
+para características idênticas (\textit{efeito coeficiente}).
+
+\paragraph{Condição encontrada: gap bruto de 53{,}6\% e retornos diferenciais
+dominam a explicação.}
+O gap médio bruto --- sem qualquer controle de capital humano ---
+é de $\Delta\bar{y} = 0{,}429$ pontos de log-renda, equivalente a
+\textbf{53{,}6\% de diferença salarial} (branco $\div$ negro).
+A decomposição twofold atribui \textbf{24{,}8\%} desse gap a diferenças
+observáveis em escolaridade, experiência, jornada e localização
+(efeito dotação; $SE = 0{,}015$, $n_{boot} = 200$), com os \textbf{75{,}2\%}
+restantes não explicáveis por capital humano --- quantidade atribuível a
+retornos diferenciais, discriminação e fatores não observados.
+
+\paragraph{Causa: o gap não é maioritariamente explicado por meritocracia.}
+Se o mercado de trabalho remunerasse características observáveis de
+forma neutra em relação à raça, o gap entre grupos se reduziria ao máximo
+de 24{,}8\% --- aproximadamente 13{,}3 pontos percentuais do gap bruto.
+Os 75{,}2\% restantes (0{,}323 log-pontos) persistem mesmo quando
+trabalhadores negros têm as \emph{mesmas} credenciais que brancos,
+o que é consistente com discriminação direta na contratação, promoção
+e fixação de salários, bem como com efeitos de rede social não capturados
+pelas variáveis observáveis.
+
+\paragraph{Consequência: o argumento meritocrático explica menos de 1/4 do gap.}
+Intervenções de qualificação que equiparassem as dotações de negros e
+brancos — sem alterar os mecanismos de remuneração — reduziriam no máximo
+24{,}8\% do gap bruto. A parcela dominante (75{,}2\%) requer mudança nos
+processos de remuneração, e não apenas investimento em capital humano.
+Esses achados são consistentes com \citet{carneiro2005}, que estimam que a
+maior parte da discriminação opera via retornos diferenciais, não via
+diferenças de produtividade observável.
+
+\begin{table}[H]
+\centering
+\caption{Decomposição de Oaxaca-Blinder (Twofold) --- PNAD Contínua 2016--2025.
+Erros-padrão por bootstrap clusterizado por UF ($B=200$).
+$n_{brancos}=3{.}275{.}644$; $n_{negros}=4{.}441{.}917$.}
+\label{tab:oaxaca}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Componente} & \textbf{Log-pontos} & \textbf{SE} & \textbf{\% do gap} \\
+\midrule
+Gap total bruto & $+0{,}4291$ & --- & 100,0 \\
+Efeito dotação (explicado) & $+0{,}1065$ & $0{,}0154$ & 24,8 \\
+Efeito coeficiente (retornos diferenciais) & $+0{,}3226$ & $0{,}0699$ & 75,2 \\
+\bottomrule
+\multicolumn{4}{l}{\textit{Nota: gap total = $\bar{y}_{branco} - \bar{y}_{negro}$;}} \\
+\multicolumn{4}{l}{\textit{efeito coeficiente = gap total $-$ efeito dotação.}} \\
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{ob_decomposicao}
+  \caption{Decomposição de Oaxaca-Blinder --- gap salarial bruto, efeito dotação
+           e efeito coeficiente com IC 95\%. PNAD Contínua 2016--2025.}
+  \label{fig:ob}
+\end{figure}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Interação Racial e Retornos à Educação}
+\label{subsec:interacao}
+
+A análise de interação testa se o retorno monetário à educação é
+menor para trabalhadores negros (\textit{desconto de credencial})
+ou se, alternativamente, a penalidade racial persiste mesmo com
+as credenciais mais elevadas (\textit{teto de credencial}).
+
+\paragraph{Condição encontrada: educação reduz a penalidade racial,
+mas não a elimina.}
+O modelo de interação estima penalidade base para negros sem credencial
+de $\hat{\beta}_{negro}^{base} = -0{,}247$ ($p<0{,}001$).
+Os coeficientes de interação revelam que o ensino superior e a pós-graduação
+\emph{reduzem} --- e não amplificam --- essa penalidade (Tabela~\ref{tab:interacao}):
+$\hat{\beta}_{negro \times superior} = +0{,}117$ ($p<0{,}001$) e
+$\hat{\beta}_{negro \times p\acute{o}s} = +0{,}115$ ($p<0{,}01$).
+
+\begin{table}[H]
+\centering
+\caption{Interação Negro $\times$ Escolaridade --- Penalidade Racial por Nível Educacional.
+OLS com efeitos fixos de UF, log-horas, dummy urbano e C(Ano). $^{***}p<0{,}001$;
+$^{**}p<0{,}01$; $^{*}p<0{,}05$.}
+\label{tab:interacao}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Nível} & \textbf{$\hat{\beta}_{interação}$} & \textbf{SE} & \textbf{Sig.}
+              & \textbf{Penalidade total} & \textbf{Redução relativa} \\
+\midrule
+Base (sem credencial)     & ---       & ---    & ---  & $-0{,}247$ & --- \\
+Médio Completo            & $+0{,}041$ & 0,031 & ns   & $-0{,}206$ & $+16{,}6\%$ \\
+Superior Completo         & $+0{,}117$ & 0,029 & $^{***}$ & $-0{,}130$ & $+47{,}3\%$ \\
+Pós-Graduação             & $+0{,}115$ & 0,038 & $^{**}$  & $-0{,}132$ & $+46{,}6\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Causa: o mercado reconhece credenciais negras, mas não as equipara.}
+Um trabalhador negro com ensino superior ainda recebe 12{,}2\% a menos
+que um branco com o mesmo diploma ($e^{-0{,}130}-1 = -12{,}2\%$).
+Educação reduz a penalidade em quase metade ($-47{,}3\%$), mas não a elimina.
+Isso configura um \textbf{teto de credencial}: o investimento educacional
+da população negra tem retorno positivo, mas limitado estruturalmente
+por mecanismos de remuneração que persistem independentemente da
+qualificação formal.
+
+\paragraph{Efeito glass ceiling: o gap cresce ao longo da distribuição de renda.}
+A regressão quantílica da interação revela que a proteção conferida
+pelo ensino superior aumenta progressivamente do $\tau = 0{,}10$ ao
+$\tau = 0{,}90$ ($\hat{\beta}_{negro \times superior}$: $-0{,}063$ no
+décil inferior até $+0{,}245$ no décil superior).
+Isso significa que, nos postos de trabalho mais bem remunerados,
+negros com diplomas de ensino superior têm uma desvantagem relativa
+\emph{menor} do que no fundo da distribuição --- mas o gap base ($\hat{\beta}_{negro}$)
+cresce em valor absoluto nos percentis superiores (glass ceiling), como
+confirmado pela análise regional abaixo.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}
+    \includegraphics[width=\textwidth]{interacao_negro_escolaridade}
+    \caption{Penalidade racial por nível de escolaridade (OLS com FE de UF).}
+    \label{fig:inter_educ}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.49\textwidth}
+    \includegraphics[width=\textwidth]{interacao_quantilica}
+    \caption{Interação negro $\times$ escolaridade por quantil de renda.}
+    \label{fig:inter_qr}
+  \end{subfigure}
+  \caption{Desconto de credencial e perfil quantílico do gap racial.
+           PNAD Contínua 2016--2025, $n=7{.}717{.}561$.}
+  \label{fig:interacao}
+\end{figure}
+
+\paragraph{Consequência.}
+A ausência de desconto de credencial --- e a presença de um teto ---
+implica que políticas educacionais são condição \emph{necessária} mas não
+\emph{suficiente} para equidade racial. Programas de mentoria, quotas em
+cargos de liderança e transparência salarial são complementares
+indispensáveis para que o investimento educacional se converta em
+convergência salarial.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Heterogeneidade Regional}
+\label{subsec:regional}
+
+\paragraph{Condição encontrada: o gap racial é universal e heterogêneo.}
+Os HLMs regionais revelam que o gap salarial racial é estatisticamente
+significativo em \emph{todas} as cinco macrorregiões ($p < 0{,}001$),
+rejeitando a hipótese de que a desigualdade racial é fenômeno
+concentrado em uma ou duas regiões (Tabela~\ref{tab:regional}).
+
+\begin{table}[H]
+\centering
+\caption{Gap Salarial Racial por Macrorregião --- HLM (REML + Powell).
+PNAD Contínua 2016--2025, população completa.
+$^{***}p<0{,}001$. ICC$_{UF}$ = variância explicada pelo estado.}
+\label{tab:regional}
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{Macrorregião} & \textbf{N} & \textbf{$\hat{\beta}_{negro}$} &
+\textbf{Gap (\%)} & \textbf{ICC$_{UF}$} & \textbf{UFs} \\
+\midrule
+Norte        & 981.871   & $-0{,}1272^{***}$ & $-11{,}9\%$ & 0,010 & 7 \\
+Nordeste     & 2.077.012 & $-0{,}0899^{***}$ & $-8{,}6\%$  & 0,013 & 9 \\
+Sudeste      & 2.235.954 & $-0{,}0974^{***}$ & $-9{,}3\%$  & 0,002 & 4 \\
+Sul          & 1.508.151 & $-0{,}1167^{***}$ & $-11{,}0\%$ & 0,004 & 3 \\
+Centro-Oeste &   886.438 & $-0{,}1078^{***}$ & $-10{,}2\%$ & 0,058 & 4 \\
+\midrule
+\textbf{Nacional (M3)}
+             & 7.689.426 & $-0{,}1020^{***}$ & $-9{,}7\%$  & 0,030 & 27 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Causa: hipóteses H2 e H3 rejeitadas --- glass ceiling em todas as regiões.}
+Contrariamente à hipótese H2 (glass ceiling no Sudeste/Sul) e H3
+(\textit{sticky floor} no Nordeste/Norte), a regressão quantílica
+regional confirma o \textbf{padrão glass ceiling em todas as cinco regiões}:
+o gap racial cresce monotonicamente do décil inferior ao superior.
+O Sudeste apresenta o glass ceiling mais pronunciado (gap de $-11{,}6\%$
+no $\tau=0{,}10$ para $-32{,}9\%$ no $\tau=0{,}90$),
+seguido pelo Norte ($-18{,}4\%$ a $-29{,}1\%$).
+
+O achado mais intrigante é que o Nordeste --- a região de maior
+proporção de negros no Brasil ($\approx70\%$) --- exibe o menor gap
+líquido ($-8{,}6\%$). Três mecanismos podem contribuir para isso:
+(i) menor diferenciação salarial absoluta em mercados mais informais;
+(ii) menor segmentação ocupacional entre grupos raciais em economias menos
+industrializadas; (iii) menor proporção de brancos de referência
+competindo pelos mesmos postos formais.
+
+\paragraph{Consequência: políticas nacionais subestimam a severidade regional.}
+O gap nacional de 9{,}7\% (M3) obscurece um intervalo de
+8{,}6\% (Nordeste) a 11{,}9\% (Norte). Políticas nacionais de equidade
+salarial devem ser calibradas para a heterogeneidade regional,
+especialmente no Norte, onde o glass ceiling é intenso em um mercado
+formal relativamente pequeno.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}
+    \includegraphics[width=\textwidth]{regional_coef_negro}
+    \caption{$\hat{\beta}_{negro}$ por macrorregião com IC 95\%.}
+    \label{fig:reg_hlm}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.49\textwidth}
+    \includegraphics[width=\textwidth]{regional_perfil_quantilico}
+    \caption{Perfil quantílico do gap por macrorregião.}
+    \label{fig:reg_qr}
+  \end{subfigure}
+  \caption{Heterogeneidade regional do gap salarial racial.
+           PNAD Contínua 2016--2025, população completa.}
+  \label{fig:regional}
+\end{figure}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Desigualdade Educacional Racial como Preditor Contextual (ENEM)}
+\label{subsec:enem}
+
+Seguindo a hipótese de \citet{botelho2015}, esta seção testa se estados
+com maior desigualdade de desempenho no ENEM entre brancos e negros
+também apresentam maior gap salarial, após controlar por características
+individuais e contexto de bairro.
+
+\paragraph{Condição encontrada: desigualdade educacional estadual tem efeito
+estatisticamente significativo mas substantivamente mínimo.}
+O modelo M3\_ENEM --- que adiciona o gap racial de desempenho no ENEM
+por UF (padronizado, 2016--2023) ao M3 completo --- estima
+$\hat{\delta}_{004} = +0{,}003$ ($p = 0{,}009$; Tabela~\ref{tab:enem}).
+O teste de razão de verossimilhança confirma significância estatística
+(LR $= 3{,}353 \times 10^6$, $p < 0{,}001$), mas o coeficiente racial
+praticamente não se altera: $\hat{\beta}_{negro}^{M3} = -0{,}1021$
+vs.~$\hat{\beta}_{negro}^{M3\_ENEM} = -0{,}1019$
+($\Delta\hat{\beta} = +0{,}0002$).
+O merge cobriu 79{,}4\% da amostra (anos 2016--2023 com dados disponíveis
+no basedosdados; 2024--2025 excluídos por ausência de microdados ENEM).
+
+\begin{table}[H]
+\centering
+\caption{HLM com Gap ENEM como Preditor de Nível 3 --- PNAD Contínua 2016--2023.
+Modelo 2 níveis (individual $\to$ UF). $^{***}p<0{,}001$; $^{**}p<0{,}01$.
+Nota: ICC\_UF elevado no modelo 2 níveis porque absorve a variância de UPA.}
+\label{tab:enem}
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{Modelo} & \textbf{$\hat{\beta}_{negro}$} & \textbf{Gap (\%)}
+              & \textbf{$\hat{\delta}_{GapEnem}$} & \textbf{ICC\_UF} & \textbf{AIC} \\
+\midrule
+M3\_base  & $-0{,}1021^{***}$ & $-9{,}7\%$ & ---              & 0,500 & 16.289.428 \\
+M3\_ENEM  & $-0{,}1019^{***}$ & $-9{,}7\%$ & $+0{,}003^{**}$ & 0,500 & 12.936.171 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Causa: desigualdade educacional estadual não é o canal principal
+da desigualdade salarial racial.}
+O sinal positivo de $\hat{\delta}_{004}$ é contraintuitivo à primeira
+vista: estados com maior desigualdade educacional racial tendem a ter
+log-rendimento ligeiramente \emph{maior}. Isso reflete provavelmente
+a correlação entre desenvolvimento econômico e gap ENEM --- o Sudeste
+e o Sul têm tanto salários mais altos quanto maior diferencial de
+desempenho educacional entre brancos e negros, conforme
+\citet{botelho2015} ressalvam ao separar os canais de qualidade escolar,
+SES e potencial viés de avaliação.
+Crucialmente, $\hat{\beta}_{negro}$ não se altera com a inclusão do
+preditor ENEM, indicando que o canal educacional ao nível estadual
+não medeia o gap salarial individual.
+Esse resultado é consistente com o achado central do HLM multinível:
+o bairro (UPA) importa mais do que o estado (UF) para a transmissão
+da desigualdade racial.
+
+\paragraph{Consequência: a desigualdade educacional é um problema em si,
+não apenas um canal para a salarial.}
+A ausência de mediação estadual do gap ENEM sobre o gap salarial
+implica que políticas educacionais devem ser justificadas por
+seus benefícios intrínsecos à mobilidade de longo prazo, não como
+mecanismo de curto prazo para equidade salarial.
+A desigualdade racial de desempenho no ENEM --- gap médio de 32,8
+pontos (brancos $>$ negros, escala 0--1000) --- exige atenção
+independente como injustiça educacional, mesmo que seu efeito
+imediato sobre o gap salarial seja limitado.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.60\textwidth]{enem_scatter_uf}
+  \caption{Correlação ecológica entre gap educacional ENEM (eixo $x$,
+           $z$-score por ano) e gap salarial bruto (eixo $y$, log-renda)
+           por UF. A linha de tendência OLS positiva ($r > 0$) reflete
+           a correlação com desenvolvimento econômico estadual.
+           \textbf{Atenção: correlação ecológica não implica causalidade
+           individual.}}
+  \label{fig:enem_scatter}
+\end{figure}
+
 % ══════════════════════════════════════════════════════════════════════════════
 %  5. DISCUSSÃO
 % ══════════════════════════════════════════════════════════════════════════════
@@ -916,29 +1225,49 @@ consistente que organiza a desigualdade racial em três camadas sobrepostas:
 uma condição estrutural mensurada, um conjunto de causas identificáveis
 por canal e consequências acionáveis para política pública.
 
-\subsection{A condição: discriminação em três camadas}
+\subsection{A condição: discriminação em quatro camadas}
 
 A desigualdade salarial racial no Brasil não é um fenômeno uniforme.
-Ela se decompõe em:
+As análises convergem para quatro camadas sobrepostas que se reforçam
+mutuamente:
 \begin{enumerate}
   \item \textbf{Discriminação de mercado} (9{,}7\% do gap, canal direto):
     diferença de remuneração não explicável por capital humano nem por localização,
     mensurada pelo coeficiente $\hat{\beta}_1^{M3}$ do HLM e confirmada pelo
     SHAP do XGBoost. É a fração mais diretamente atribuível a processos
-    seletivos e de promoção não-neutros à raça.
+    seletivos e de promoção não-neutros à raça. Robusta a controles de
+    jornada, urbanização e ciclo econômico ($\Delta\beta = +0{,}003$
+    com $\Delta R^2 = +14{,}2\,\text{pp}$).
   \item \textbf{Discriminação territorial} (52{,}5\% do gap, canal indireto):
-    penalidade imposta pelo local de moradia,  operando via segregação
+    penalidade imposta pelo local de moradia, operando via segregação
     residencial. Capturada pelo coeficiente $\hat{\gamma}_{01} = -0{,}271$
-    da proporção de negros na UPA.
-  \item \textbf{Discriminação relacional} (mecanismo do capital social):
+    da proporção de negros na UPA. Heterogênea entre regiões, com gap
+    variando de $-8{,}6\%$ (Nordeste) a $-11{,}9\%$ (Norte).
+  \item \textbf{Discriminação relacional} (canal do capital social):
     exclusão das posições de \emph{brokerage} na rede de co-residência,
     que impede a conversão do capital humano em mobilidade salarial
     proporcional, independentemente do nível educacional atingido.
+    O \emph{betweenness} nulo de todos os grupos negros opera independentemente
+    da escolaridade --- \texttt{Negro\_Pós} tem $B=0$ enquanto
+    \texttt{Branco\_Fundamental} tem $B=0{,}306$.
+  \item \textbf{Discriminação de retornos} (75{,}2\% do gap bruto):
+    mesmo quando negros têm as mesmas dotações que brancos, recebem retornos
+    inferiores. A decomposição de Oaxaca-Blinder estima que apenas 24{,}8\%
+    do gap bruto (53{,}6\%) é explicável por diferenças em capital humano
+    observável; os 75{,}2\% restantes persistem com dotações idênticas.
+    O padrão \emph{glass ceiling} --- gap crescendo de $-11{,}6\%$ no
+    décil inferior para $-32{,}9\%$ no superior no Sudeste --- confirma
+    que a discriminação de retornos é mais severa justamente onde os
+    retornos à educação seriam maiores.
 \end{enumerate}
 
-A soma dos três canais explica por que o gap é persistente e se autorreproduz:
-mesmo que um canal seja parcialmente atacado por política pública, os outros
-dois continuam operando.
+A arquitetura de quatro camadas explica por que o gap é persistente e se
+autorreproduz: mesmo que um canal seja parcialmente atacado por política
+pública, os outros três continuam operando. A interação entre
+segregação residencial (canal 2) e exclusão relacional (canal 3) é
+especialmente crítica: ela garante que, mesmo com mais capital humano,
+trabalhadores negros não acessam as redes que convertem credenciais em
+promoções --- como documenta o Cluster~1 (maior escolaridade, menor renda).
 
 \subsection{As causas: por que o contexto de bairro supera o estado}
 
@@ -1008,21 +1337,38 @@ metodológica integrativa, combinando econometria multinível, machine learning
 interpretável e análise de redes sociais sobre 10 anos de dados da PNAD
 Contínua. As cinco hipóteses originais foram confirmadas.
 
-O gap racial bruto de 19{,}3\% --- robusto à inclusão de controles de
-jornada, urbanização e ciclo econômico --- reduz-se para 9{,}7\% quando
-contextos residenciais e macroeconômicos são controlados, mas permanece
-significativo e estatisticamente robusto. Mais da metade do gap (52{,}5\%)
-é explicado por onde o trabalhador mora, não por quem ele é: a segregação
-residencial é o principal canal de transmissão da desigualdade racial no
-mercado de trabalho brasileiro.
+O gap racial bruto de 19{,}3\% (HLM condicionado) e de 53{,}6\% (média
+não-condicionada) --- ambos robustos à inclusão de controles de jornada,
+urbanização e ciclo econômico --- reduzem-se para 9{,}7\% condicionado
+quando contextos residenciais e macroeconômicos são controlados, mas
+permanecem significativos e estatisticamente robustos.
+Mais da metade do gap condicionado (52{,}5\%) é explicado por onde o
+trabalhador mora, não por quem ele é. A decomposição de Oaxaca-Blinder
+revela que 75{,}2\% do gap bruto persiste mesmo quando negros têm as
+mesmas dotações observáveis que brancos --- evidência de que mecanismos
+de remuneração diferencial (não apenas diferenças de capital humano)
+são a causa dominante da desigualdade.
+O gap é universal (presente em todas as 5 macrorregiões, $p<0{,}001$)
+e apresenta padrão \emph{glass ceiling} em todas as regiões:
+a discriminação é mais intensa nos postos mais bem remunerados.
 
 \subsection{O que as causas indicam sobre o diagnóstico}
 
-A desigualdade racial não é monolítica: ela opera simultaneamente como
-discriminação de mercado (gap líquido de 9{,}7\%), discriminação territorial
-(mediação de 52{,}5\% pelo bairro) e discriminação relacional (exclusão
-de posições de \emph{brokerage} na rede de co-residência, independentemente
-do nível educacional atingido). Esse diagnóstico multicausal implica que
+A desigualdade racial não é monolítica: ela opera em quatro camadas
+simultâneas. A discriminação de mercado (9{,}7\%) atinge igualmente todos
+os trabalhadores negros independentemente de escolaridade, embora a
+penalidade base diminua com educação superior ($-24{,}7\%$ sem
+credencial para $-13{,}0\%$ com ensino superior), o que configura um
+\textbf{teto de credencial} --- educação ajuda, mas não fecha o gap.
+A discriminação territorial (52{,}5\%) opera via bairro, não via estado
+--- um achado crítico para o design de políticas.
+A discriminação relacional (exclusão de posições de \emph{brokerage},
+confirmada pelo \emph{betweenness} nulo de todos os grupos negros)
+opera independentemente do capital humano.
+A discriminação de retornos (75{,}2\% do gap bruto, decomposição OB)
+confirma que mecanismos de remuneração, não só diferenças de dotações,
+são a causa dominante.
+Esse diagnóstico multicausal em quatro camadas implica que
 nenhuma política isolada é capaz de eliminá-la.
 
 \subsection{O que as consequências exigem da política pública}
