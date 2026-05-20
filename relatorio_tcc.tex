@@ -1576,10 +1576,18 @@ formal relativamente pequeno.
 \subsection{Desigualdade Educacional Racial como Preditor Contextual (ENEM)}
 \label{subsec:enem}
 
-Seguindo a hipótese de \citet{botelho2015}, esta seção testa se estados
-com maior desigualdade de desempenho no ENEM entre brancos e negros
-também apresentam maior gap salarial, após controlar por características
-individuais e contexto de bairro.
+\citet{botelho2015} demonstraram, num experimento com professores
+brasileiros, que avaliadores atribuem notas sistematicamente mais baixas
+a estudantes negros quando sua identidade racial é visível na prova ---
+viés implícito de avaliação que, ao longo do percurso escolar, deprime
+as credenciais educacionais mensuráveis dos trabalhadores negros e,
+por essa via indireta, amplifica o gap salarial via sinalização de
+capital humano.
+Esta seção testa se, ao nível agregado, estados com maior desigualdade
+de desempenho no ENEM entre brancos e negros (reflexo parcial desse
+viés acumulado ao longo de trajetórias escolares) também apresentam
+maior gap salarial, após controlar por características individuais
+e contexto de bairro.
 
 \paragraph{Condição encontrada: desigualdade educacional estadual tem efeito
 estatisticamente significativo mas substantivamente mínimo.}
@@ -1619,8 +1627,9 @@ log-rendimento ligeiramente \emph{maior}. Isso reflete provavelmente
 a correlação entre desenvolvimento econômico e gap ENEM --- o Sudeste
 e o Sul têm tanto salários mais altos quanto maior diferencial de
 desempenho educacional entre brancos e negros, conforme
-\citet{botelho2015} ressalvam ao separar os canais de qualidade escolar,
-SES e potencial viés de avaliação.
+\citet{botelho2015} documentam ao mostrar que o viés de avaliação
+racial opera sobre as credenciais mensuradas, não sobre a produtividade
+subjacente.
 Crucialmente, $\hat{\beta}_{negro}$ não se altera com a inclusão do
 preditor ENEM, indicando que o canal educacional ao nível estadual
 não medeia o gap salarial individual.
@@ -1975,18 +1984,82 @@ mais alto de qualquer intervenção testada neste modelo.
 \subsection{AHP + TOPSIS: Ranking Multicritério de Políticas}
 \label{subsec:po_topsis}
 
-\paragraph{Formulação AHP.}
-A matriz de julgamentos par-a-par ($5 \times 5$, escala de Saaty)
-produz autovetor dominante $\boldsymbol{w}$ com
-$\lambda_{\max} = 5{,}068$, $CI = 0{,}017$, $CR = 0{,}015 < 0{,}10$
-(consistência satisfatória).
-Pesos: $w_{C1} = 0{,}419$, $w_{C2} = 0{,}263$,
-       $w_{C4} = 0{,}160$, $w_{C3} = 0{,}097$, $w_{C5} = 0{,}062$.
+\paragraph{Formulação AHP \citep{saaty1980}.}
+O AHP estrutura a priorização de critérios por meio de comparações
+par-a-par na escala semântica de Saaty (1 = igual importância;
+3 = moderada; 5 = forte; 7 = muito forte; 9 = extrema).
+Para os cinco critérios de avaliação das políticas
+($C_1$: redução do gap salarial; $C_2$: custo-efetividade;
+$C_3$: tempo de implementação; $C_4$: viabilidade política;
+$C_5$: impacto sistêmico de longo prazo),
+a matriz de julgamentos par-a-par é:
 
-\paragraph{Formulação TOPSIS.}
-Normalização vetorial da matriz de decisão, ponderação por $\boldsymbol{w}$,
-distâncias Euclidianas à solução ideal positiva/negativa,
-score $CC_i = d_i^- / (d_i^+ + d_i^-)$.
+\[
+\mathbf{A} =
+\begin{pmatrix}
+  1   & 2   & 4   & 3   & 7   \\
+  1/2 & 1   & 3   & 2   & 4   \\
+  1/4 & 1/3 & 1   & 1/2 & 2   \\
+  1/3 & 1/2 & 2   & 1   & 3   \\
+  1/7 & 1/4 & 1/2 & 1/3 & 1
+\end{pmatrix}
+\qquad (C_1, C_2, C_3, C_4, C_5)
+\]
+
+O vetor de prioridades $\boldsymbol{w}$ é o autovetor normalizado da
+equação $\mathbf{A}\boldsymbol{w} = \lambda_{\max}\boldsymbol{w}$,
+calculado pelo método da média geométrica das linhas.
+A consistência interna é verificada por:
+\[
+  CI = \frac{\lambda_{\max} - n}{n - 1}, \qquad
+  CR = \frac{CI}{RI_n}
+\]
+onde $RI_5 = 1{,}12$ é o índice aleatório de Saaty para $n = 5$ critérios.
+O ajuste produziu $\lambda_{\max} = 5{,}068$, $CI = 0{,}017$,
+$CR = 0{,}015 < 0{,}10$ (consistência satisfatória).
+Pesos resultantes: $w_{C1} = 0{,}419$, $w_{C2} = 0{,}263$,
+$w_{C4} = 0{,}160$, $w_{C3} = 0{,}097$, $w_{C5} = 0{,}062$.
+
+\paragraph{Formulação TOPSIS \citep{hwang1981}.}
+O TOPSIS ordena as alternativas pela proximidade relativa à solução
+ideal, em cinco passos:
+
+\begin{enumerate}
+  \item \textbf{Normalização vetorial}: cada elemento $x_{ij}$ da
+        matriz de decisão ($m$ políticas $\times$ $n$ critérios) é
+        normalizado por
+        \[
+          r_{ij} = \frac{x_{ij}}{\sqrt{\displaystyle\sum_{k=1}^{m} x_{kj}^2}}
+        \]
+
+  \item \textbf{Ponderação}: $v_{ij} = w_j \cdot r_{ij}$, onde $w_j$
+        é o peso AHP do critério $j$.
+
+  \item \textbf{Soluções ideais positiva e negativa}:
+        \[
+          A^{+} = \bigl\{v_j^{+}\bigr\}_{j=1}^{n},\quad
+          v_j^{+} =
+            \begin{cases}
+              \max_i v_{ij} & \text{critério benefício} \\
+              \min_i v_{ij} & \text{critério custo}
+            \end{cases}
+        \]
+        $A^{-}$ é definido de forma análoga, com max/min invertidos.
+
+  \item \textbf{Distâncias Euclidianas à solução ideal}:
+        \[
+          d_i^{+} = \sqrt{\sum_{j=1}^{n}\bigl(v_{ij} - v_j^{+}\bigr)^2},
+          \qquad
+          d_i^{-} = \sqrt{\sum_{j=1}^{n}\bigl(v_{ij} - v_j^{-}\bigr)^2}
+        \]
+
+  \item \textbf{Coeficiente de proximidade}:
+        \[
+          CC_i = \frac{d_i^{-}}{d_i^{+} + d_i^{-}}, \qquad CC_i \in [0,1]
+        \]
+        Alternativas com $CC_i \to 1$ são as mais próximas da solução
+        ideal positiva e as mais distantes da solução ideal negativa.
+\end{enumerate}
 
 \paragraph{Resultado.}
 
