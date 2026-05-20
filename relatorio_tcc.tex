@@ -677,8 +677,8 @@ O modelo M4 testa essa hipótese ao introduzir um \textit{random slope} de
 \noindent onde $(u_{0j},\, u_{1j}) \sim \mathcal{N}\bigl(\mathbf{0},\,\boldsymbol{\Sigma}\bigr)$,
 $\boldsymbol{\Sigma} = \begin{pmatrix}\tau^2_0 & \tau_{01}\\ \tau_{01} & \tau^2_1\end{pmatrix}$.
 UF entra como efeito fixo ($C(\text{UF})$) para preservar o controle
-macroeconômico estadual. Amostra de 20\% ($n = 471.570$;
-31.694 UPAs; \textit{seed}~=~42).
+macroeconômico estadual. Estimado na população completa ($n = 2{.}357{.}851$;
+31.950 UPAs).
 
 % ─── Condição encontrada ──────────────────────────────────────────────────────
 \paragraph{Condição encontrada: retorno educacional varia significativamente
@@ -698,16 +698,20 @@ um mecanismo de \textit{desvantagem composta}: negros pagam duplo preço
 por morar em bairros de menor capital social.
 
 % ─── Consequência: ICC por raça ───────────────────────────────────────────────
-\paragraph{Consequência: ICC estratificado confirma duplo
-\textit{disadvantage} contextual.}
+\paragraph{Consequência: ICC estratificado e mecanismo de slope composto.}
 O Modelo Nulo ajustado separadamente para negros e brancos
-(Tabela~\ref{tab:hlm_m4}) mostra $\text{ICC}_{UPA}(\text{Negros}) >
-\text{ICC}_{UPA}(\text{Brancos})$: a localidade de moradia explica fração
-maior da variância salarial para trabalhadores negros do que para brancos.
-Esse diferencial de ICC é a assinatura estrutural do duplo
-\textit{disadvantage}: além de receber menos em média (gap de 9{,}7\%),
-negros têm suas trajetórias salariais mais fortemente determinadas
-pelo bairro onde vivem.
+(Tabela~\ref{tab:hlm_m4}) revela ICCs praticamente idênticos:
+$\text{ICC}_{UPA}(\text{Negros}) = 17{,}8\%$ e
+$\text{ICC}_{UPA}(\text{Brancos}) = 17{,}8\%$ ($\Delta\text{ICC} = +0{,}02$\,pp).
+Ambos os grupos têm a localidade de moradia como fator igualmente determinante
+da variância salarial.
+O mecanismo de desvantagem composta opera, portanto, não pelo nível de
+dependência contextual, mas pela heterogeneidade do \emph{retorno} a cada
+ano adicional de escolaridade: a correlação negativa intercepto-slope
+($\widehat{\mathrm{corr}}(u_0,u_1) = -0{,}121$) e a variância
+$\hat{\tau}^2_1 = 0{,}0089$ indicam que bairros com menor renda média
+comprimem desproporcionalmente os retornos educacionais --- mecanismo
+que penaliza sobretudo trabalhadores negros concentrados nessas localidades.
 
 % ─── Pseudo-R² Nakagawa-Schielzeth ───────────────────────────────────────────
 \paragraph{Pseudo-$R^2$ de Nakagawa \& Schielzeth (2013).}
@@ -735,7 +739,7 @@ componentes ao poder preditivo do modelo:
     aleatório $\times$ slope aleatório (direita). A correlação negativa
     $\widehat{\mathrm{corr}}(u_0, u_1) < 0$ indica que bairros com
     menor renda média oferecem retorno educacional proporcionalmente menor.
-    PNAD Contínua 2016--2025, amostra 20\%.}
+    PNAD Contínua 2016--2025, população completa.}
   \label{fig:hlm_m4_slope}
 \end{figure}
 
@@ -969,11 +973,11 @@ O teste de heterogeneidade $H_0: \beta(\tau) = \text{constante}$ foi implementad
 via bootstrap (200 replicações, $5\%$ de sub-amostra), com dois critérios:
 \begin{itemize}
   \item \textbf{Contraste bilateral} $\beta(\tau_{0{,}90}) - \beta(\tau_{0{,}10})$:
-        $\Delta = -0{,}0399$ log-pontos ($-3{,}99$~pp),
-        $SE_{boot} = 0{,}0145$, $Z = -2{,}75$, $p = 0{,}006^{**}$,
-        IC~95\% $= [-6{,}78; -1{,}00]$~pp.
+        $\Delta = -0{,}0386$ log-pontos ($-3{,}86$~pp),
+        $SE_{boot} = 0{,}0074$, $Z = -5{,}25$, $p < 0{,}001^{***}$,
+        IC~95\% $= [-5{,}09; -2{,}13]$~pp.
   \item \textbf{Wald $\chi^2(2)$} para constância conjunta em $\tau \in \{0{,}10, 0{,}50, 0{,}90\}$:
-        $\chi^2 = 17{,}37$, $p < 0{,}001^{***}$.
+        $\chi^2 = 67{,}07$, $p < 0{,}001^{***}$.
 \end{itemize}
 Ambos rejeitam $H_0$, confirmando que o gap racial não é uniforme ao longo
 da distribuição --- caracterizando formalmente o \emph{glass ceiling} salarial racial.
@@ -989,11 +993,11 @@ exclusão do acesso (GLMM) e compressão de ganhos nos percentis superiores (QR)
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.85\textwidth]{outputs/figures/qr_glassceil_completo}
-  \caption{Glass ceiling racial --- Regressão Quantílica (M3, amostra 20\%).
+  \caption{Glass ceiling racial --- Regressão Quantílica (M3, população completa).
            Painel esquerdo: trajetória do gap por quantil, com IC~95\% e linhas
            por sexo. Painel direito: distribuição bootstrap de
-           $\Delta[\tau_{0{,}90} - \tau_{0{,}10}]$ com valor observado ($Z=-2{,}75$,
-           $p=0{,}006$). Teste de Koenker-Bassett rejeita $H_0$ de constância.}
+           $\Delta[\tau_{0{,}90} - \tau_{0{,}10}]$ com valor observado ($Z=-5{,}25$,
+           $p<0{,}001$). Teste de Koenker-Bassett rejeita $H_0$ de constância.}
   \label{fig:qr_glassceil}
 \end{figure}
 
@@ -1471,9 +1475,9 @@ Efeito retornos (\%) & 75,2 & \textbf{16,0} & Discriminação pura intra-ocupaç
 \paragraph{Estabilidade temporal.}
 A decomposição estimada separadamente para dois sub-períodos confirma
 que o gap e seus componentes são estruturais:
-período inicial (2016--2018): gap = 54,4\%, retornos = 17,8\%;
-período recente (2022--2025): gap = 51,9\%, retornos = 15,7\%.
-A leve redução do gap (−2,5 p.p.) e dos retornos diferenciais (−2,1 p.p.)
+período inicial (2016--2018): gap = 54,9\%, retornos = 18,2\%;
+período recente (2022--2025): gap = 52,1\%, retornos = 16,0\%.
+A leve redução do gap ($-2{,}8$~p.p.) e dos retornos diferenciais ($-2{,}2$~p.p.)
 sugere tendência marginal de melhora, insuficiente para convergência
 no horizonte considerado.
 
@@ -1483,16 +1487,16 @@ no horizonte considerado.
   \hfill
   \includegraphics[width=0.48\textwidth]{outputs/figures/ob_estabilidade_temporal}
   \caption{Esquerda: decomposição OB por sexo (homens vs.\ mulheres).
-           Homens: gap=55,8\%, retornos=16,4\%. Mulheres: gap=50,5\%, retornos=14,2\%.
+           Homens: gap=56,3\%, retornos=17,1\%. Mulheres: gap=50,9\%, retornos=14,1\%.
            Direita: estabilidade temporal 2016--2018 vs.\ 2022--2025.
            O gap estrutural persiste --- tendência de convergência é marginal.}
   \label{fig:ob_melhorias}
 \end{figure}
 
 \paragraph{Decomposição por sexo.}
-Homens negros (gap=55,8\%) enfrentam maior penalidade absoluta que mulheres
-negras (gap=50,5\%), mas com estrutura similar: dotações dominam em ambos
-($>$83\%). A diferença de 5,3 p.p. entre sexos é consistente com a intersecção
+Homens negros (gap=56,3\%) enfrentam maior penalidade absoluta que mulheres
+negras (gap=50,9\%), mas com estrutura similar: dotações dominam em ambos
+($>$83\%). A diferença de 5,4~p.p. entre sexos é consistente com a intersecção
 raça--gênero descrita por \citet{crenshaw1989}: mulheres negras acumulam penalidades
 de gênero que, ao elevar a linha de base, comprimem o gap racial
 \emph{adicional} em relação às brancas.
@@ -1758,16 +1762,20 @@ geograficamente determinada do que a barreira de progressão salarial:
 a segregação residencial atua primariamente como um \textbf{filtro
 ocupacional}, não apenas como um depressor de salário.
 Combinado ao achado de QR de que o gap salarial cresce nos percentis
-superiores (KB test: $Z=-2{,}75$, $p=0{,}006$; $\chi^2(2)=17{,}37$, $p<0{,}001$),
+superiores (KB test: $Z=-5{,}25$, $p<0{,}001$; $\chi^2(2)=67{,}07$, $p<0{,}001$),
 o resultado configura um \textbf{teto de vidro duplo}:
 exclusão da porta de entrada aos cargos de topo (GLMM) e compressão
 da progressão salarial uma vez dentro deles (QR).
-O M4 acrescenta uma terceira dimensão: o ICC estratificado por raça
-($\text{ICC}_{UPA}^{\text{negros}} = 14{,}6\%$ \emph{vs.}
-$\text{ICC}_{UPA}^{\text{brancos}} = 11{,}2\%$; $\Delta\text{ICC} = +3{,}4$\,pp)
-revela que a trajetória salarial de trabalhadores negros é \emph{mais fortemente}
-determinada pelo bairro de moradia do que a de brancos.
-O pseudo-$R^2_c - R^2_m = 7{,}8$\,pp (Nakagawa-Schielzeth) quantifica
+O M4 acrescenta uma terceira dimensão: a heterogeneidade do \emph{retorno}
+educacional entre localidades ($\hat{\tau}^2_1 = 0{,}0089$;
+$\widehat{\mathrm{corr}}(u_0,u_1) = -0{,}121$) revela que bairros com menor
+renda média comprimem desproporcionalmente os ganhos por escolaridade,
+penalizando trabalhadores negros concentrados nessas UPAs.
+O ICC estratificado mostra que a dependência contextual é praticamente
+idêntica entre negros ($17{,}8\%$) e brancos ($17{,}8\%$),
+confirmando que o mecanismo territorial opera via \emph{compressão
+de slope}, não via diferença no nível de determinação contextual.
+O pseudo-$R^2_c - R^2_m = 8{,}2$\,pp (Nakagawa-Schielzeth) quantifica
 a fração de variância salarial atribuível à heterogeneidade de localidade
 que os preditores fixos não captam.
 Juntos, GLMM, QR e M4 convergem para o mesmo mecanismo: a segregação
@@ -2114,8 +2122,8 @@ incorporando explicitamente a barreira de acesso ocupacional:
   \item $P_5$: \textbf{Mentoria e redes profissionais} --- supera
         exclusão de brokerage (SNA: $B_{\text{negro}}=0$ em todos os grupos)
   \item $P_6$: \textbf{Transparência salarial obrigatória} --- reduz
-        glass ceiling de progressão (QR: $\Delta[q90-q10] = -3{,}99$~pp,
-        $Z = -2{,}75$, $p = 0{,}006$)
+        glass ceiling de progressão (QR: $\Delta[q90-q10] = -3{,}86$~pp,
+        $Z = -5{,}25$, $p < 0{,}001$)
 \end{itemize}
 
 \paragraph{Resultado TOPSIS (6 políticas).}
@@ -2186,21 +2194,22 @@ mesmas dotações observáveis que brancos --- evidência de que mecanismos
 de remuneração diferencial (não apenas diferenças de capital humano)
 são a causa dominante da desigualdade; o padrão é estável ao longo
 do tempo (retornos: 17{,}8\% em 2016--2018 $\to$ 15{,}7\% em 2022--2025)
-e consistente entre sexos (Homens: gap~55{,}8\%, Mulheres: 50{,}5\%).
+e consistente entre sexos (Homens: gap~56{,}3\%, Mulheres: 50{,}9\%).
 O gap é universal (presente em todas as 5 macrorregiões, $p<0{,}001$)
 e apresenta padrão \emph{glass ceiling} com heterogeneidade estatisticamente
-confirmada pelo teste de Koenker-Bassett ($Z=-2{,}75$, $p=0{,}006$;
-$\chi^2(2)=17{,}37$, $p<0{,}001$): o gap cresce de $-8{,}2\%$ no $q10$
+confirmada pelo teste de Koenker-Bassett ($Z=-5{,}25$, $p<0{,}001$;
+$\chi^2(2)=67{,}07$, $p<0{,}001$): o gap cresce de $-8{,}3\%$ no $q10$
 a $-11{,}8\%$ no $q90$.
 O GLMM logístico ($n = 2{,}4$\,M empregados, $\text{ICC}_{UPA} = 26{,}2\%$)
 revela uma dimensão anterior ao gap salarial: negros têm $-29{,}6\%$ de
 chance de acessar os cargos qualificados (CBO~1--4).
-O M4 adiciona que a segregação residencial também comprime os retornos
-educacionais por localidade: $\text{ICC}_{UPA}^{\text{negros}} = 14{,}6\%$
-\emph{vs.} $\text{ICC}_{UPA}^{\text{brancos}} = 11{,}2\%$
-($\Delta\text{ICC} = +3{,}4$\,pp), e o pseudo-$R^2$ de Nakagawa-Schielzeth
-sobe de $R^2_m = 0{,}405$ para $R^2_c = 0{,}483$ (+7{,}8\,pp) ao incluir
-a heterogeneidade de slope por UPA.
+O M4 adiciona que a segregação residencial comprime os retornos educacionais
+por localidade: $\hat{\tau}^2_1 = 0{,}0089$ e
+$\widehat{\mathrm{corr}}(u_0,u_1) = -0{,}121$ indicam que bairros com
+menor renda média oferecem menor ganho por escolaridade --- penalizando
+desproporcionalmente trabalhadores negros concentrados nessas UPAs.
+O pseudo-$R^2$ de Nakagawa-Schielzeth sobe de $R^2_m = 0{,}400$ para
+$R^2_c = 0{,}483$ (+8{,}3\,pp) ao incluir a heterogeneidade de slope por UPA.
 Configura-se assim um \textbf{teto de vidro triplo}: exclusão da porta de
 entrada ocupacional (GLMM), compressão salarial nos percentis altos (QR)
 e compressão do retorno educacional em bairros de menor capital social (M4).
@@ -2221,10 +2230,11 @@ opera independentemente do capital humano.
 A discriminação de retornos (75{,}2\% do gap bruto, OB estável entre 2016--2025)
 confirma que mecanismos de remuneração, não só diferenças de dotações,
 são a causa dominante.
-O M4 acrescenta que o \emph{canal territorial} opera em dois níveis
-simultâneos: comprime o acesso (ΔICC~$=~+3{,}4$\,pp de Negros sobre Brancos)
-e comprime o retorno educacional em bairros de menor capital social
-($\hat{\tau}^2_1 = 0{,}0065$, correlação negativa intercepto-slope).
+O M4 acrescenta que o \emph{canal territorial} opera pela heterogeneidade
+do retorno educacional entre bairros: a correlação negativa
+intercepto-slope ($\widehat{\mathrm{corr}} = -0{,}121$) e a variância de
+slope ($\hat{\tau}^2_1 = 0{,}0089$) indicam que UPAs com menor renda média
+comprimem desproporcionalmente os ganhos por escolaridade.
 Esse diagnóstico multicausal em cinco camadas implica que
 nenhuma política isolada é capaz de eliminá-la.
 

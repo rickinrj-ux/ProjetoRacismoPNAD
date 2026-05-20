@@ -31,7 +31,7 @@ ROOT    = Path(r"C:\Users\user\Documents\ProjetoRacismoPNAD")
 FIGURES = ROOT / "outputs" / "figures"
 TABLES  = ROOT / "outputs" / "tables"
 
-SAMPLE_FRAC = 0.20
+SAMPLE_FRAC = None   # None = população completa
 SEED        = 42
 QUANTIS     = [0.10, 0.25, 0.50, 0.75, 0.90, 0.95]
 N_BOOT      = 200   # bootstrap reps para KB test (rodado em 5% da amostra)
@@ -58,10 +58,14 @@ BASE_DROP = ["negro", "sexo_fem", "idade_c", "idade_sq",
 mask = (df_full["pea"] == 1) & (df_full["renda_bruta"] > 0) & df_full["negro"].notna()
 df_full = df_full[mask].dropna(subset=BASE_DROP)
 
-rng = np.random.default_rng(SEED)
-idx = rng.choice(len(df_full), size=int(len(df_full) * SAMPLE_FRAC), replace=False)
-df  = df_full.iloc[idx].reset_index(drop=True)
-print(f"  Amostra {int(SAMPLE_FRAC*100)}%: {len(df):,} | "
+if SAMPLE_FRAC:
+    rng = np.random.default_rng(SEED)
+    idx = rng.choice(len(df_full), size=int(len(df_full) * SAMPLE_FRAC), replace=False)
+    df  = df_full.iloc[idx].reset_index(drop=True)
+else:
+    df = df_full
+_label = f"Amostra {int(SAMPLE_FRAC*100)}%" if SAMPLE_FRAC else "Pop. completa"
+print(f"  {_label}: {len(df):,} | "
       f"Brancos={int((df['negro']==0).sum()):,} | Negros={int((df['negro']==1).sum()):,}")
 
 HAS_OCC = all(c in df.columns for c in ["horas_c","emprego_formal","ocp_dirigente"]) \

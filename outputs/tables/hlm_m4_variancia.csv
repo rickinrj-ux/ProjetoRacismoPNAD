@@ -1,8 +1,8 @@
 componente,variancia
-τ²₀ (intercepto UPA),0.049476
-τ²₁ (slope educ_ord_c por UPA),0.006462
-τ₀₁ (covariância int×slope),-0.001055
-σ² (residual),0.368945
-ICC_UPA (q=0),0.118245
-"corr(u₀,u₁)",-0.059
+τ²₀ (intercepto UPA),0.050091
+τ²₁ (slope educ_ord_c por UPA),0.008945
+τ₀₁ (covariância int×slope),-0.002562
+σ² (residual),0.369187
+ICC_UPA (q=0),0.11947
+"corr(u₀,u₁)",-0.121038
 LRT M3→M4 χ²(2)=-inf p=1.0000e+00 ns,-inf

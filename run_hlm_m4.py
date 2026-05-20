@@ -40,15 +40,13 @@ from multilevel_model import (
     FORMULAS,
 )
 
-SAMPLE_FRAC = 0.20
+SAMPLE_FRAC = None   # None = população completa
 SEED        = 42
 
 # ── Carregar dados ────────────────────────────────────────────────────────────
-logger.info(f"Carregando dados ({int(SAMPLE_FRAC*100)}% amostra, seed={SEED}) ...")
-df_full = load_features(sample_frac=None)
-rng = np.random.default_rng(SEED)
-idx = rng.choice(len(df_full), size=int(len(df_full) * SAMPLE_FRAC), replace=False)
-df  = df_full.iloc[idx].reset_index(drop=True)
+_label = f"{int(SAMPLE_FRAC*100)}% amostra" if SAMPLE_FRAC else "população completa"
+logger.info(f"Carregando dados ({_label}, seed={SEED}) ...")
+df = load_features(sample_frac=SAMPLE_FRAC)
 logger.info(
     f"  {len(df):,} obs | {df['UPA_str'].nunique():,} UPAs | "
     f"Negros={int((df['negro']==1).sum()):,} | Brancos={int((df['negro']==0).sum()):,}"
