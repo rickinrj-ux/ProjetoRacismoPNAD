@@ -49,6 +49,7 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from statsmodels.regression.mixed_linear_model import MixedLM
 from scipy import stats
+from mlflow_utils import run_context, log_params, log_metrics, log_artifacts_dir
 
 # ── Configuracao ───────────────────────────────────────────────────────────────
 SAMPLE_FRAC  = 0.20          # 20% ≈ 1.54M obs. | None = dados completos
@@ -396,93 +397,118 @@ def main():
     logger.info(f"Amostra: {SAMPLE_FRAC*100 if SAMPLE_FRAC else 100:.0f}%")
     logger.info("=" * 70)
 
+    _sample_label = f"{int(SAMPLE_FRAC*100)}pct" if SAMPLE_FRAC else "completo"
+
     df = load_data(sample_frac=SAMPLE_FRAC)
 
-    # ── Passo 1: HLM nulo para ICC de referencia ───────────────────────────────
-    logger.info("--- Passo 1: Modelo Nulo (ICC de referencia) ---")
-    res_m0, var_uf_m0, var_resid_m0, icc_uf_m0, sing_m0 = fit_hlm(
-        "M0_Nulo", FORMULAS["M0_Nulo"], df
-    )
+    with run_context(
+        f"HLM_Serie_{_sample_label}",
+        "HLM_Gap_Racial",
+        tags={"sample_frac": str(SAMPLE_FRAC or "completo"),
+              "n_obs": str(len(df))},
+    ):
+        log_params({"sample_frac": SAMPLE_FRAC, "random_state": RANDOM_STATE,
+                    "method": "powell", "reml": True, "n_obs": len(df)})
 
-    # ── Passo 2: HLM M1-M3 (REML) para componentes de variancia ──────────────
-    logger.info("--- Passo 2: HLM M1-M3 (REML + Powell) ---")
-    hlm_results = {"M0_Nulo": (res_m0, var_uf_m0, var_resid_m0, icc_uf_m0, sing_m0)}
-    for name, formula in list(FORMULAS.items())[1:]:
-        r, vu, vr, icc, sing = fit_hlm(name, formula, df)
-        hlm_results[name] = (r, vu, vr, icc, sing)
-
-    # ── Passo 3: OLS com UF FE (robusto, SE clusterizado) ────────────────────
-    logger.info("--- Passo 3: OLS com UF FE + SE clusterizado ---")
-    ols_results = {}
-    for name, formula in FORMULAS_OLS.items():
-        ols_results[name] = fit_ols_uf_fe(name, formula, df)
-
-    ols_m1 = ols_results["M1_Individual_OLS"]
-    ols_m2 = ols_results["M2_Localidade_OLS"]
-    ols_m3 = ols_results["M3_Completo_OLS"]
-    ols_m4 = ols_results["M4_Ocupacao_OLS"]
-
-    # ── Decomposicao ───────────────────────────────────────────────────────────
-    b_m1 = ols_m1.params.get("negro", np.nan)
-    b_m2 = ols_m2.params.get("negro", np.nan)
-    b_m3 = ols_m3.params.get("negro", np.nan)
-    b_m4 = ols_m4.params.get("negro", np.nan)
-    decomp_df = gap_decomp(b_m1, b_m2, b_m3, b_m4)
-
-    # ── Tabela combinada ───────────────────────────────────────────────────────
-    table = build_table(hlm_results, ols_results)
-
-    # ── Salvar outputs ─────────────────────────────────────────────────────────
-    suffix = f"_s{int(SAMPLE_FRAC*100)}pct" if SAMPLE_FRAC else "_completo"
-    table.to_csv(OUTPUTS / f"hlm_serie{suffix}.csv")
-    decomp_df.to_csv(OUTPUTS / f"gap_decomposicao_serie{suffix}.csv", index=False)
-
-    try:
-        import jinja2  # noqa: F401
-        latex_str = table.to_latex(
-            caption=(
-                "Modelos de Determinantes do Log-Rendimento por Raca -- "
-                "PNAD Continua 2016-2025 (N=1.54M). "
-                "Coeficientes com SE clusterizado por UF entre parenteses. "
-                "*** p<0,001; ** p<0,01; * p<0,05. "
-                "HLM: efeito aleatorio por UF (REML). "
-                "OLS: UF como efeito fixo (dummies)."
-            ),
-            label="tab:hlm_serie_completa",
-            escape=False,
-            column_format="l" + "c" * len(table.columns),
+        # ── Passo 1: HLM nulo para ICC de referencia ───────────────────────────────
+        logger.info("--- Passo 1: Modelo Nulo (ICC de referencia) ---")
+        res_m0, var_uf_m0, var_resid_m0, icc_uf_m0, sing_m0 = fit_hlm(
+            "M0_Nulo", FORMULAS["M0_Nulo"], df
         )
-        (OUTPUTS / f"hlm_serie{suffix}.tex").write_text(latex_str, encoding="utf-8")
-    except ImportError:
-        logger.warning("jinja2 nao instalado — LaTeX nao gerado.")
 
-    logger.info(f"Outputs salvos em: {OUTPUTS}")
+        # ── Passo 2: HLM M1-M3 (REML) para componentes de variancia ──────────────
+        logger.info("--- Passo 2: HLM M1-M3 (REML + Powell) ---")
+        hlm_results = {"M0_Nulo": (res_m0, var_uf_m0, var_resid_m0, icc_uf_m0, sing_m0)}
+        for name, formula in list(FORMULAS.items())[1:]:
+            r, vu, vr, icc, sing = fit_hlm(name, formula, df)
+            hlm_results[name] = (r, vu, vr, icc, sing)
 
-    # ── Sumario narrativo ──────────────────────────────────────────────────────
-    print_summary(ols_m1, ols_m2, ols_m3, ols_m4, res_m0, df, icc_uf_m0)
+        # ── Passo 3: OLS com UF FE (robusto, SE clusterizado) ────────────────────
+        logger.info("--- Passo 3: OLS com UF FE + SE clusterizado ---")
+        ols_results = {}
+        for name, formula in FORMULAS_OLS.items():
+            ols_results[name] = fit_ols_uf_fe(name, formula, df)
 
-    # ── Tabela reduzida no console ─────────────────────────────────────────────
-    print("\n--- Coeficientes Selecionados (HLM e OLS) ---")
-    display_rows = [
-        "negro", "sexo_fem", "pct_negro_upa_z", "tx_desemprego_upa_z",
-        "media_educ_upa_z", "pct_negro_uf_z",
-        "sigma2 (Nivel 1)", "tau2_UF (Nivel 3)", "ICC_UF", "N (obs.)", "AIC",
-    ]
-    display_rows = [r for r in display_rows if r in table.index]
-    print(table.loc[display_rows].to_string())
+        ols_m1 = ols_results["M1_Individual_OLS"]
+        ols_m2 = ols_results["M2_Localidade_OLS"]
+        ols_m3 = ols_results["M3_Completo_OLS"]
+        ols_m4 = ols_results["M4_Ocupacao_OLS"]
 
-    print("\n--- Decomposicao do Gap Racial (base OLS com UF FE) ---")
-    print(decomp_df.round(4).to_string(index=False))
+        # ── Decomposicao ───────────────────────────────────────────────────────────
+        b_m1 = ols_m1.params.get("negro", np.nan)
+        b_m2 = ols_m2.params.get("negro", np.nan)
+        b_m3 = ols_m3.params.get("negro", np.nan)
+        b_m4 = ols_m4.params.get("negro", np.nan)
+        decomp_df = gap_decomp(b_m1, b_m2, b_m3, b_m4)
 
-    print("\n--- ICC por Modelo (HLM REML) ---")
-    for mname, entry in hlm_results.items():
-        _, vu, vr, icc, sing = entry
-        flag = " [SINGULAR]" if sing else ""
-        print(f"  {mname:<20s}  ICC_UF={icc:.4f}  tau2={vu:.5f}  sigma2={vr:.4f}{flag}")
+        # ── MLflow: log métricas-chave ─────────────────────────────────────────────
+        log_metrics({
+            "icc_uf_m0":      icc_uf_m0,
+            "beta_negro_m1":  b_m1,
+            "beta_negro_m3":  b_m3,
+            "beta_negro_m4":  b_m4,
+            "gap_pct_m1":     (np.exp(b_m1) - 1) * 100 if not np.isnan(b_m1) else np.nan,
+            "gap_pct_m3":     (np.exp(b_m3) - 1) * 100 if not np.isnan(b_m3) else np.nan,
+            "gap_pct_m4":     (np.exp(b_m4) - 1) * 100 if not np.isnan(b_m4) else np.nan,
+            "med_upa_pct":    abs(b_m1 - b_m2) / abs(b_m1) * 100 if not np.isnan(b_m1) else np.nan,
+            "med_uf_pct":     abs(b_m2 - b_m3) / abs(b_m1) * 100 if not np.isnan(b_m1) else np.nan,
+        })
 
-    elapsed = (time.time() - t_total) / 60
-    logger.info(f"CONCLUIDO em {elapsed:.1f} min")
-    print(f"\n=== CONCLUIDO em {elapsed:.1f} min | Outputs: {OUTPUTS} ===")
+        # ── Tabela combinada ───────────────────────────────────────────────────────
+        table = build_table(hlm_results, ols_results)
+
+        # ── Salvar outputs ─────────────────────────────────────────────────────────
+        suffix = f"_s{int(SAMPLE_FRAC*100)}pct" if SAMPLE_FRAC else "_completo"
+        table.to_csv(OUTPUTS / f"hlm_serie{suffix}.csv")
+        decomp_df.to_csv(OUTPUTS / f"gap_decomposicao_serie{suffix}.csv", index=False)
+
+        try:
+            import jinja2  # noqa: F401
+            latex_str = table.to_latex(
+                caption=(
+                    "Modelos de Determinantes do Log-Rendimento por Raca -- "
+                    "PNAD Continua 2016-2025. "
+                    "Coeficientes com SE clusterizado por UF entre parenteses. "
+                    "*** p<0,001; ** p<0,01; * p<0,05. "
+                    "HLM: efeito aleatorio por UF (REML). "
+                    "OLS: UF como efeito fixo (dummies)."
+                ),
+                label="tab:hlm_serie_completa",
+                escape=False,
+                column_format="l" + "c" * len(table.columns),
+            )
+            (OUTPUTS / f"hlm_serie{suffix}.tex").write_text(latex_str, encoding="utf-8")
+        except ImportError:
+            logger.warning("jinja2 nao instalado — LaTeX nao gerado.")
+
+        log_artifacts_dir(OUTPUTS, subfolder="tables")
+        logger.info(f"Outputs salvos em: {OUTPUTS}")
+
+        # ── Sumario narrativo ──────────────────────────────────────────────────────
+        print_summary(ols_m1, ols_m2, ols_m3, ols_m4, res_m0, df, icc_uf_m0)
+
+        # ── Tabela reduzida no console ─────────────────────────────────────────────
+        print("\n--- Coeficientes Selecionados (HLM e OLS) ---")
+        display_rows = [
+            "negro", "sexo_fem", "pct_negro_upa_z", "tx_desemprego_upa_z",
+            "media_educ_upa_z", "pct_negro_uf_z",
+            "sigma2 (Nivel 1)", "tau2_UF (Nivel 3)", "ICC_UF", "N (obs.)", "AIC",
+        ]
+        display_rows = [r for r in display_rows if r in table.index]
+        print(table.loc[display_rows].to_string())
+
+        print("\n--- Decomposicao do Gap Racial (base OLS com UF FE) ---")
+        print(decomp_df.round(4).to_string(index=False))
+
+        print("\n--- ICC por Modelo (HLM REML) ---")
+        for mname, entry in hlm_results.items():
+            _, vu, vr, icc, sing = entry
+            flag = " [SINGULAR]" if sing else ""
+            print(f"  {mname:<20s}  ICC_UF={icc:.4f}  tau2={vu:.5f}  sigma2={vr:.4f}{flag}")
+
+        elapsed = (time.time() - t_total) / 60
+        logger.info(f"CONCLUIDO em {elapsed:.1f} min")
+        print(f"\n=== CONCLUIDO em {elapsed:.1f} min | Outputs: {OUTPUTS} ===")
 
 
 if __name__ == "__main__":

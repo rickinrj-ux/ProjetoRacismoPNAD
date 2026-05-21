@@ -45,8 +45,8 @@ def setup_experiment(nome: str) -> Optional[str]:
     """Cria ou recupera experimento MLflow. Retorna experiment_id ou None."""
     if not MLFLOW_AVAILABLE:
         return None
-    mlflow_dir = ROOT / "mlruns"
-    mlflow.set_tracking_uri(f"file:///{mlflow_dir.as_posix()}")
+    db_path = ROOT / "mlflow.db"
+    mlflow.set_tracking_uri(f"sqlite:///{db_path.as_posix()}")
     exp = mlflow.set_experiment(nome)
     return exp.experiment_id
 
