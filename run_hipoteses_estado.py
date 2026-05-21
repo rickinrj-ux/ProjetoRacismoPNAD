@@ -34,12 +34,10 @@ print("Carregando dados ...")
 df_full = pd.read_parquet(ROOT / "data" / "processed" / "features.parquet")
 print(f"  Total: {len(df_full):,} obs.")
 
-# Amostra 20% de empregados com renda para regressões
+# População completa de empregados com renda
 df_emp_full = df_full[df_full["log_renda"].notna() & (df_full["renda_bruta"] > 0)].copy()
-np.random.seed(42)
-idx = np.random.choice(len(df_emp_full), int(len(df_emp_full) * 0.20), replace=False)
-df = df_emp_full.iloc[idx].reset_index(drop=True)
-print(f"  Amostra 20% (empregados c/ renda): {len(df):,} obs.")
+df = df_emp_full.reset_index(drop=True)
+print(f"  Pop. completa (empregados c/ renda): {len(df):,} obs.")
 print(f"  Setor público: {df['setor_publico'].sum():,} | Privado: {(df['setor_publico']==0).sum():,}")
 
 # ════════════════════════════════════════════════════════════════════════════

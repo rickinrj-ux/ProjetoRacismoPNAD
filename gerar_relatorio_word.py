@@ -2637,7 +2637,7 @@ def build_doc(r, k):
     )
     add_para(doc,
         "P2.2 — Transparência salarial no setor público. O gap racial persiste no setor público "
-        "mesmo com controles (−25,2% vs −29,2% no privado). A publicação de faixas salariais por "
+        "mesmo com controles (−24,6% vs −29,2% no privado). A publicação de faixas salariais por "
         "cargo, nível e raça nos relatórios anuais de gestão de pessoas das autarquias federais e "
         "estaduais tornaria visíveis eventuais diferenciais de progressão na carreira."
     )
@@ -2815,8 +2815,8 @@ def build_doc(r, k):
     add_para(doc,
         "Este anexo apresenta os resultados de cinco hipóteses complementares sobre o papel do "
         "Estado como indutor ou moderador de desigualdades de renda, estimadas com a mesma base "
-        "de dados PNAD Contínua 2016–2025. As análises utilizam amostra de 20% (1,54 milhão de "
-        "observações de trabalhadores com renda positiva) e regressões OLS com erros clusterizados "
+        "de dados PNAD Contínua 2016–2025. As análises utilizam a população completa de trabalhadores "
+        "com renda positiva (7,72 milhões de observações) e regressões OLS com erros clusterizados "
         "por UPA, além de indicadores descritivos calculados sobre o universo completo."
     )
 
@@ -2853,12 +2853,12 @@ def build_doc(r, k):
     )
     add_para(doc,
         "Resultado: REFUTADA parcialmente. O gap racial bruto é menor no setor público "
-        "(−33,3%) do que no privado (−44,1%). Após controle por escolaridade, experiência e "
+        "(−32,4%) do que no privado (−44,1%). Após controle por escolaridade, experiência e "
         "horas trabalhadas (regressão com interação negro × setor_publico), o gap controlado "
-        "é −29,2% no privado e −25,2% no público — uma diferença de 4 pontos percentuais "
+        "é −29,2% no privado e −24,6% no público — uma diferença de 4,6 pontos percentuais "
         "favorável ao setor público. A interação negro:setor_publico é positiva e "
         "estatisticamente significativa, indicando que o Estado atenua (mas não elimina) o "
-        "gap racial. O gap de 25,2% que persiste mesmo no setor público — onde a admissão "
+        "gap racial. O gap de 24,6% que persiste mesmo no setor público — onde a admissão "
         "é via concurso público padronizado — é consistente com discriminação na progressão "
         "de carreira: cargos de Direção e Assessoramento Superior (DAS) são preenchidos por "
         "indicação política, e a sub-representação de negros nesses cargos perpetua o gap "
