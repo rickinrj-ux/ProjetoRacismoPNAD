@@ -7,3 +7,6 @@ Método,Modelo,Estatística central,Resultado robustez,Aplica ao modelo primári
 "E-value (VanderWeele & Ding, 2017)",GLMM M1 (ocp_qualif),OR = 0.7084,E = 2.174 (CI: 2.129),✓ Sim,Usa OR; agnóstico ao link function e R² misto
 "E-value (VanderWeele & Ding, 2017)",GLMM M2 (ocp_qualif),OR = 0.7405,E = 2.038 (CI: 1.992),✓ Sim,Usa OR; agnóstico ao link function e R² misto
 "E-value (VanderWeele & Ding, 2017)",GLMM M3 (ocp_qualif),OR = 0.7399,E = 2.041 (CI: 1.995),✓ Sim,Usa OR; agnóstico ao link function e R² misto
+"Oster bounds (Oster, 2019)",OLS Negro (sem controles),R² = 0.5039,δ* = -0.48; β*(δ=1) = -0.1833,✗ Não (OLS auxiliar),Válido para OB; não aplica ao HLM (ICC>5%)
+"Oster bounds (Oster, 2019)",OLS Negro + demografia,R² = 0.5039,δ* = -0.43; β*(δ=1) = -0.1968,✗ Não (OLS auxiliar),Válido para OB; não aplica ao HLM (ICC>5%)
+"Oster bounds (Oster, 2019)",OLS Negro + dem. + educação,R² = 0.5039,δ* = -0.39; β*(δ=1) = -0.211,✗ Não (OLS auxiliar),Válido para OB; não aplica ao HLM (ICC>5%)

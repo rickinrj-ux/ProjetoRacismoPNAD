@@ -1844,6 +1844,69 @@ A interpretação correta de $\delta^* < 0$ é de \emph{maior} robustez que o li
 unitário sugere: não basta um confundidor com magnitude equivalente aos observáveis ---
 seria necessário um confundidor na direção contrária.
 
+\subsubsection*{Síntese comparativa: antes × depois da escolha metodológica}
+
+A Tabela~\ref{tab:sensibilidade_sintese} consolida os três métodos de sensibilidade
+e evidencia o impacto da escolha metodológica sobre as conclusões de robustez.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Síntese comparativa dos métodos de sensibilidade a variáveis omitidas.
+  Konfound e E-values são os métodos corretos para os modelos primários deste trabalho.
+  Oster bounds é válido apenas para os modelos OLS auxiliares da decomposição OB.
+  PNAD Contínua 2016--2025.}
+\label{tab:sensibilidade_sintese}
+\begin{tabular}{llllll}
+\toprule
+Método & Modelo & Estatística & Robustez & Aplica? & Limitação \\
+\midrule
+\multicolumn{6}{l}{\textit{Métodos corretos para os modelos primários}} \\[2pt]
+Konfound \citep{frank2013}  & HLM M1  & $t = -165{,}3$ & pkonfound $= 98{,}8\%$ & \checkmark & --- \\
+Konfound \citep{frank2013}  & HLM M4  & $t = -53{,}1$  & pkonfound $= 96{,}3\%$ & \checkmark & --- \\
+E-value \citep{vanderweele2017}  & GLMM M2 & OR $= 0{,}741$ & $E = 2{,}04$ & \checkmark & --- \\[4pt]
+\multicolumn{6}{l}{\textit{Método auxiliar válido apenas para OLS (decomposição OB)}} \\[2pt]
+Oster \citep{oster2019}  & OLS M3  & $R^2 = 0{,}504$ & $\delta^* = -0{,}39$; ``Não'' & $\times$ & Exige $R^2$ linear; \\
+ &  &  & $\beta^*(\delta{=}1) = -0{,}211$ &  & inválido para HLM/GLMM \\[4pt]
+\multicolumn{6}{l}{\textit{Comparação antes $\times$ depois: Konfound aplicado a OLS vs.\ HLM}} \\[2pt]
+Konfound (incorreto) & OLS M4 & $t = -14{,}8$ & pkonfound $= 86{,}8\%$ & $\times$ & SE do OLS ignora ICC \\
+Konfound (correto)   & HLM M4 & $t = -53{,}1$ & pkonfound $= 96{,}3\%$ & \checkmark & $\Delta = +9{,}5\,\text{pp}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Três conclusões emergem desta síntese:
+
+\begin{enumerate}
+  \item \textbf{Escolha do método afeta a conclusão quantitativamente, não apenas qualitativamente.}
+    Aplicar Konfound ao OLS auxiliar (método incorreto) em vez de ao HLM primário (método correto)
+    subestima o pkonfound em $5{,}0$--$9{,}5$ pontos percentuais. No M4, a diferença é de
+    $86{,}8\%$ (OLS) vs.\ $96{,}3\%$ (HLM) --- uma subestimação de $9{,}5\,\text{pp}$ que
+    poderia levar a conclusões equivocadas sobre a robustez do achado.
+
+  \item \textbf{Oster bounds não é aplicável aos modelos primários.}
+    O $\delta^*$ de Oster pressupõe decomposição linear da variância via $R^2$ e coeficiente
+    único sem estrutura de efeitos aleatórios. No HLM, a variância é particionada entre
+    níveis (UPA, UF, indivíduo) por definição --- aplicar Oster ao HLM seria
+    equivalente a tratar $R^2$ marginal e condicional como intercambiáveis.
+    Para o GLMM, a função de ligação logística invalida a lógica do $R^2$ linear de Oster
+    \citep[ver][seção 2.3]{oster2019}.
+    O uso de Oster para os modelos OLS da decomposição OB é metodologicamente adequado
+    e complementa, mas não substitui, os testes para os modelos primários.
+
+  \item \textbf{O sinal de $\delta^* < 0$ no OLS é o mais favorável possível.}
+    Valores negativos de $\delta^*$ indicam que variáveis omitidas precisariam
+    ter efeito \emph{oposto} ao dos observáveis para anular $\hat{\beta}_{\text{negro}}$.
+    Dado que os observáveis trabalham sistematicamente \emph{contra} negros (maior escolaridade
+    e menor renda simultaneamente), um confundidor favorável a negros não tem suporte
+    empírico no contexto brasileiro. O critério $|\delta^*| > 1$ não capta esta
+    direção --- o que reforça, e não enfraquece, a conclusão de robustez.
+\end{enumerate}
+
+Em conjunto, Konfound (pkonfound $\geq 96{,}3\%$ para o HLM) e E-values ($E \geq 2{,}04$ para
+o GLMM) estabelecem que a inferência central --- gap salarial racial condicionado e
+desvantagem ocupacional racial --- é altamente robusta à presença de variáveis omitidas
+não observadas, mesmo assumindo confundidores de magnitude comparável aos controles incluídos.
 
 % ──────────────────────────────────────────────────────────────────────────────
 
