@@ -2425,6 +2425,23 @@ def build_doc(r, k):
             "robustez (95% para Konfound; E=2 para E-values).",
             width_cm=16)
 
+    add_para(doc,
+        "Síntese comparativa — Oster bounds vs. métodos corretos:\n"
+        "Oster bounds (Oster, 2019) foi desenvolvido para OLS linear e pressupõe "
+        "decomposição de variância via R², coeficiente único sem efeitos aleatórios e "
+        "seleção proporcional à variância explicada. Não se aplica ao HLM (variância "
+        "particionada em níveis) nem ao GLMM (link function não linear).\n"
+        "Aplicado aos modelos OLS auxiliares (decomposição OB), o Oster retorna "
+        "δ* negativo em todos os modelos (δ* ∈ {−0,48; −0,43; −0,39}): variáveis "
+        "omitidas precisariam trabalhar na direção oposta aos observáveis para anular "
+        "β_negro — empiricamente implausível no Brasil. β*(δ=1) ∈ {−0,183; −0,197; −0,211} "
+        "mantém o mesmo sinal de β_full (−0,060), indicando que o OLS M3 subestima o gap real.\n"
+        "Se Konfound fosse incorretamente aplicado ao OLS (em vez do HLM), o pkonfound "
+        "seria subestimado em 5,0–9,5 pp: OLS M4 = 86,8% vs. HLM M4 = 96,3% (Δ = +9,5 pp). "
+        "Essa diferença pode, em princípio, alterar a conclusão de robustez se o limiar "
+        "adotado for entre 87% e 96%."
+    )
+
     add_heading(doc, "4.12 Interseccionalidade Formal: Decomposição OB em 4 Grupos", level=2)
     add_para(doc,
         "Para formalizar o conceito de interseccionalidade de Crenshaw (1989), aplicamos "
@@ -2440,12 +2457,36 @@ def build_doc(r, k):
             "para cada grupo vs. Homem Branco. Penalidade interseccional extra = gap(Mulher Negra) "
             "− gap(Mulher Branca) − gap(Homem Negro).",
             width_cm=15)
+
+    ob4_path = TABLES / "interseccional_ob4grupos.csv"
+    if ob4_path.exists():
+        import pandas as _pd
+        df4 = _pd.read_csv(ob4_path)
+        mb = df4[df4["grupo"] == "Mulher Branca"].iloc[0] if "Mulher Branca" in df4["grupo"].values else None
+        hn = df4[df4["grupo"] == "Homem Negro"].iloc[0]   if "Homem Negro"   in df4["grupo"].values else None
+        mn = df4[df4["grupo"] == "Mulher Negra"].iloc[0]  if "Mulher Negra"  in df4["grupo"].values else None
+        if mb is not None and hn is not None and mn is not None:
+            add_para(doc,
+                f"Resultados OB 4 grupos (N = 2.357.851, população completa):\n"
+                f"• Mulher Branca: gap = {mb['gap_pct']:.1f}% vs. Homem Branco. "
+                f"Dotações = {mb['end_pct']:.1f}%, Retornos = {mb['ret_pct']:.1f}%. "
+                f"Gap quase inteiramente discriminatório (retornos dominam).\n"
+                f"• Homem Negro: gap = {hn['gap_pct']:.1f}% vs. Homem Branco. "
+                f"Dotações = {hn['end_pct']:.1f}%, Retornos = {hn['ret_pct']:.1f}%. "
+                f"Gap majoritariamente por composição de capital humano (dotações dominam).\n"
+                f"• Mulher Negra: gap = {mn['gap_pct']:.1f}% vs. Homem Branco. "
+                f"Dotações = {mn['end_pct']:.1f}%, Retornos = {mn['ret_pct']:.1f}%. "
+                f"Penalidade interseccional extra = +{mn['penalidade_extra_pct']:.1f} pp "
+                f"acima da soma dos gaps isolados — confirma mecanismo discriminatório específico "
+                f"à intersecção raça-gênero (Crenshaw, 1989)."
+            )
+
     add_para(doc,
-        "O modelo HLM interseccional (com termos negro×mulher e negro×mulher×superior) "
-        "complementa a análise OB testando se o efeito de interação é estatisticamente "
-        "significativo (β_negro×mulher < 0 → duplo disadvantage confirmado) e se a "
-        "interação tripla com ensino superior identifica penalidade adicional específica "
-        "para mulheres negras com diploma."
+        "HLM interseccional: β_negro = −0,112 (−10,6%), β_mulher = −0,477 (−37,9%), "
+        "β_negro×mulher = +0,069 (p<0,001). A interação positiva indica que a penalidade "
+        "combinada (−40,5%) é menor que a soma das penalidades isoladas (−44,5%), "
+        "caracterizando efeito de atenuação: as duas desvantagens competem pelo mesmo "
+        "mecanismo de exclusão."
     )
 
     add_heading(doc, "4.13 Decomposição RIF-OB: Sticky Floor Discriminatório e Glass Ceiling por Dotações", level=2)
