@@ -411,9 +411,140 @@ def run_interseccionalidade(sample_frac: Optional[float] = None) -> Dict:
     print("\nEMEs por grupo (top 8):")
     print(df_eme[["grupo", "n_obs", "log_renda_pred", "renda_pred_exp"]].to_string(index=False))
 
+    # ── OB 4 grupos ────────────────────────────────────────────────────
+    df_4g = decomposicao_ob_4grupos(df)
+    df_4g.to_csv(OUT_TAB / "interseccional_ob4grupos.csv", index=False)
+    plotar_ob_4grupos(df_4g)
+    print("\n── OB 4 Grupos (vs. Homem Branco) ──")
+    print(df_4g[["grupo", "gap_pct", "end_pct", "ret_pct", "penalidade_extra_pct", "n_n"]].
+          round(1).to_string(index=False))
+
     return {
-        "result_base": result_base,
+        "result_base":  result_base,
         "result_inter": result_inter,
-        "eme": df_eme,
+        "eme":          df_eme,
         "coeficientes": tab_coef,
+        "ob_4grupos":   df_4g,
     }
+
+
+# ── OB 4 Grupos ───────────────────────────────────────────────────────────────
+
+def _ob_twofold(df_ref: pd.DataFrame, df_trt: pd.DataFrame,
+                formula: str) -> Optional[Dict]:
+    """Decomposição OB twofold entre grupo de referência e tratamento."""
+    if len(df_ref) < 100 or len(df_trt) < 100:
+        return None
+    with warnings.catch_warnings(record=True):
+        warnings.simplefilter("always")
+        m_ref = smf.ols(formula, data=df_ref).fit()
+        m_trt = smf.ols(formula, data=df_trt).fit()
+
+    xbar_r = m_ref.model.exog.mean(axis=0)
+    xbar_t = m_trt.model.exog.mean(axis=0)
+    beta_r = m_ref.params.values
+    beta_t = m_trt.params.values
+
+    gap   = df_ref["log_renda"].mean() - df_trt["log_renda"].mean()
+    end   = (xbar_r - xbar_t) @ beta_r
+    ret   = xbar_t @ (beta_r - beta_t)
+    inter = (xbar_r - xbar_t) @ (beta_r - beta_t)
+
+    def _pct(x):
+        return x / gap * 100 if abs(gap) > 1e-8 else 0.0
+
+    return {
+        "gap": gap, "gap_pct": (np.exp(gap) - 1) * 100,
+        "end": end, "end_pct": _pct(end),
+        "ret": ret, "ret_pct": _pct(ret),
+        "inter": inter, "inter_pct": _pct(inter),
+        "n_ref": len(df_ref), "n_n": len(df_trt),
+    }
+
+
+def decomposicao_ob_4grupos(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Decompõe o gap salarial de cada grupo vs. Homem Branco (referência)
+    em dotações e retornos (OB twofold).
+
+    Grupos comparados:
+        G1: Mulher Branca  vs. Homem Branco  → gap de gênero (brancos)
+        G2: Homem Negro    vs. Homem Branco  → gap racial (homens)
+        G3: Mulher Negra   vs. Homem Branco  → gap total (mulher negra)
+
+    A diferença entre G3 e (G1 + G2) mede a penalidade interseccional
+    adicional além dos efeitos aditivos de raça e gênero.
+    """
+    formula = (
+        "log_renda ~ idade_c + idade_sq"
+        " + educ_fund_completo + educ_medio_completo"
+        " + educ_superior_completo + educ_pos_graduacao"
+        " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
+    )
+
+    ref = df[(df["negro"] == 0) & (df["sexo_fem"] == 0)]  # Homem Branco
+
+    grupos = {
+        "Mulher Branca":  df[(df["negro"] == 0) & (df["sexo_fem"] == 1)],
+        "Homem Negro":    df[(df["negro"] == 1) & (df["sexo_fem"] == 0)],
+        "Mulher Negra":   df[(df["negro"] == 1) & (df["sexo_fem"] == 1)],
+    }
+
+    rows = []
+    for nome, sub in grupos.items():
+        r = _ob_twofold(ref, sub, formula)
+        if r:
+            rows.append({"grupo": nome, **r})
+
+    df_out = pd.DataFrame(rows)
+
+    # Penalidade interseccional extra = gap(Mulher Negra) - gap(Mulher Branca) - gap(Homem Negro)
+    if len(df_out) == 3:
+        g_mn = df_out.loc[df_out["grupo"] == "Mulher Negra",  "gap_pct"].values[0]
+        g_mb = df_out.loc[df_out["grupo"] == "Mulher Branca", "gap_pct"].values[0]
+        g_hn = df_out.loc[df_out["grupo"] == "Homem Negro",   "gap_pct"].values[0]
+        df_out["penalidade_extra_pct"] = df_out.apply(
+            lambda row: g_mn - g_mb - g_hn
+            if row["grupo"] == "Mulher Negra" else 0.0,
+            axis=1,
+        )
+    else:
+        df_out["penalidade_extra_pct"] = 0.0
+
+    return df_out
+
+
+def plotar_ob_4grupos(df_4g: pd.DataFrame) -> None:
+    """Gráfico de barras agrupadas: dotações e retornos por grupo."""
+    grupos = df_4g["grupo"].tolist()
+    x = np.arange(len(grupos))
+    w = 0.28
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(x - w, df_4g["end_pct"], w, label="Dotações (%)", color="#3498db", alpha=0.85)
+    ax.bar(x,     df_4g["ret_pct"], w, label="Retornos (%)", color="#e74c3c", alpha=0.85)
+    ax.bar(x + w, df_4g["inter_pct"], w, label="Interação (%)", color="#95a5a6", alpha=0.7)
+
+    for xi, (_, row) in zip(x, df_4g.iterrows()):
+        ax.text(xi - w, row["end_pct"] + 1, f"{row['end_pct']:.0f}%",
+                ha="center", fontsize=8)
+        ax.text(xi,     row["ret_pct"] + 1, f"{row['ret_pct']:.0f}%",
+                ha="center", fontsize=8)
+        # Gap total acima das barras
+        ax.text(xi, max(row["end_pct"], row["ret_pct"]) + 6,
+                f"gap={row['gap_pct']:.1f}%", ha="center", fontsize=8, fontweight="bold")
+
+    ax.axhline(0, color="black", linewidth=0.8, linestyle="--")
+    ax.set_xticks(x)
+    ax.set_xticklabels([f"{g}\nvs.\nHomem Branco" for g in grupos])
+    ax.set_ylabel("Parcela do gap (%)")
+    ax.set_title(
+        "OB 4 Grupos — Decomposição do Gap Salarial vs. Homem Branco\n"
+        "Dotações (capital humano) × Retornos (discriminação estrutural)",
+        fontsize=11,
+    )
+    ax.legend(fontsize=9)
+    plt.tight_layout()
+    fig.savefig(OUT_FIG / "interseccional_ob4grupos.png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    logger.info("Figura: interseccional_ob4grupos.png")
