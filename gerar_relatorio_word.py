@@ -2448,38 +2448,53 @@ def build_doc(r, k):
         "para mulheres negras com diploma."
     )
 
-    add_heading(doc, "4.13 Decomposição RIF-OB: Glass Ceiling Discriminatório por Quantil", level=2)
+    add_heading(doc, "4.13 Decomposição RIF-OB: Sticky Floor Discriminatório e Glass Ceiling por Dotações", level=2)
     add_para(doc,
-        "A regressão quantílica (seção 4.10) documenta que o gap racial cresce nos "
-        "quantis superiores (glass ceiling salarial), mas não distingue sua origem: "
-        "dotações piores no topo (negros concentrados em ocupações de menor status) "
-        "ou retornos diferencialmente menores (discriminação crescente com a hierarquia). "
+        "A regressão quantílica (seção 4.10) documenta que o gap racial cresce nos quantis "
+        "superiores (glass ceiling salarial), mas não distingue sua origem: dotações piores "
+        "no topo (acúmulo de desvantagens pré-mercado) ou retornos diferencialmente menores "
+        "(discriminação crescente com a hierarquia salarial). "
         "A Decomposição RIF-OB (Firpo, Fortin & Lemieux, 2018) responde essa questão: "
         "calcula, para cada quantil incondicional τ, a Recentered Influence Function "
         "RIF(y; Qτ) = Qτ + [τ − 1(y ≤ Qτ)] / f̂_Y(Qτ), regride RIF separadamente "
-        "para Brancos e Negros, e aplica OB twofold nos coeficientes resultantes."
+        "para Brancos e Negros, e aplica OB twofold nos coeficientes resultantes. "
+        "O componente de retornos mede a parcela do gap atribuível à discriminação de "
+        "mercado diferencial por faixa salarial — após controlar as dotações observáveis."
     )
     rif_path = ROOT / "outputs" / "tables" / "rif_ob_decomposicao.csv"
     if rif_path.exists():
         import pandas as _pd
         df_rif = _pd.read_csv(rif_path)
         q10 = df_rif[df_rif["tau"] == 0.10].iloc[0] if len(df_rif[df_rif["tau"] == 0.10]) > 0 else None
+        q50 = df_rif[df_rif["tau"] == 0.50].iloc[0] if len(df_rif[df_rif["tau"] == 0.50]) > 0 else None
         q90 = df_rif[df_rif["tau"] == 0.90].iloc[0] if len(df_rif[df_rif["tau"] == 0.90]) > 0 else None
         if q10 is not None and q90 is not None:
+            delta_ret = q10['ret_pct'] - q90['ret_pct']
+            delta_end = q90['end_pct'] - q10['end_pct']
             add_para(doc,
-                f"Resultado central: a parcela de retornos (componente discriminatório) "
-                f"cresce de {q10['ret_pct']:.1f}% no q10 para {q90['ret_pct']:.1f}% no q90 "
-                f"(Δ = +{q90['ret_pct']-q10['ret_pct']:.1f} pp). Isso confirma que o glass "
-                f"ceiling salarial racial é predominantemente discriminatório — não é explicado "
-                f"por diferenças de dotações nos quantis superiores, mas por retornos às "
-                f"características observáveis sistematicamente menores para negros no topo "
-                f"da distribuição de renda."
+                f"Os resultados (N = 7.694.198 obs.) revelam um padrão contrário à hipótese "
+                f"do glass ceiling discriminatório. O componente de retornos DECLINA de "
+                f"{q10['ret_pct']:.1f}% no q10 para "
+                f"{q50['ret_pct']:.1f}% no q50 e {q90['ret_pct']:.1f}% no q90 "
+                f"(Δ = −{delta_ret:.1f} pp). A discriminação de mercado é proporcionalmente "
+                f"mais intensa na base da distribuição — padrão denominado sticky floor "
+                f"discriminatório. Em contrapartida, o componente de dotações AVANÇA de "
+                f"{q10['end_pct']:.1f}% no q10 para {q90['end_pct']:.1f}% no q90 "
+                f"(Δ = +{delta_end:.1f} pp), indicando que o glass ceiling no gap bruto "
+                f"é explicado pelo acúmulo de desvantagens pré-mercado (educação, segregação "
+                f"residencial, capital social), e não por discriminação crescente no topo."
+            )
+            add_para(doc,
+                "Implicação de política: políticas antidiscriminação formal reduziriam o gap "
+                "mais intensamente na base da distribuição; corrigir as desigualdades em "
+                "dotações (acesso à educação de qualidade, capital social, redes profissionais) "
+                "é o mecanismo necessário para erodir o glass ceiling salarial racial no topo."
             )
     if (FIGURES / "rif_ob_retornos_quantis.png").exists():
         add_figure(doc, FIGURES / "rif_ob_retornos_quantis.png",
             "Figura 39 – RIF-OB: parcela discriminatória (retornos) do gap racial por quantil "
-            "incondicional. Gradiente crescente confirma que o glass ceiling é estruturalmente "
-            "discriminatório — não um artefato de composição de dotações.",
+            "incondicional. O padrão decrescente (q10: 33,1% → q90: 11,2%) caracteriza um "
+            "sticky floor discriminatório: a penalidade de mercado é maior na base da distribuição.",
             width_cm=14)
 
     doc.add_page_break()

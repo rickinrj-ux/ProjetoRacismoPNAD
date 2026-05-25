@@ -1,0 +1,9 @@
+Método,Modelo,Estatística central,Resultado robustez,Aplica ao modelo primário,Nota
+"Konfound (Frank et al., 2013)",HLM M1,t = -165.3,pkonfound = 98.8%,✓ Sim,Usa t do próprio HLM; agnóstico ao R²
+"Konfound (Frank et al., 2013)",HLM M2,t = -78.5,pkonfound = 97.5%,✓ Sim,Usa t do próprio HLM; agnóstico ao R²
+"Konfound (Frank et al., 2013)",HLM M3,t = -78.5,pkonfound = 97.5%,✓ Sim,Usa t do próprio HLM; agnóstico ao R²
+"Konfound (Frank et al., 2013)",HLM M4,t = -53.1,pkonfound = 96.3%,✓ Sim,Usa t do próprio HLM; agnóstico ao R²
+"Konfound (Frank et al., 2013)",HLM M4 (pop. completa),t = -70.4,pkonfound = 97.2%,✓ Sim,Usa t do próprio HLM; agnóstico ao R²
+"E-value (VanderWeele & Ding, 2017)",GLMM M1 (ocp_qualif),OR = 0.7084,E = 2.174 (CI: 2.129),✓ Sim,Usa OR; agnóstico ao link function e R² misto
+"E-value (VanderWeele & Ding, 2017)",GLMM M2 (ocp_qualif),OR = 0.7405,E = 2.038 (CI: 1.992),✓ Sim,Usa OR; agnóstico ao link function e R² misto
+"E-value (VanderWeele & Ding, 2017)",GLMM M3 (ocp_qualif),OR = 0.7399,E = 2.041 (CI: 1.995),✓ Sim,Usa OR; agnóstico ao link function e R² misto

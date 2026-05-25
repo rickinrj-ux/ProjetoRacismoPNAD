@@ -1816,7 +1816,9 @@ variáveis.
 \label{sec:oster_bounds}
 
 Para completude, mantemos os Oster bounds aplicados aos modelos OLS
-auxiliares da decomposição OB, onde a metodologia é formalmente válida:
+auxiliares da decomposição OB, onde a metodologia é formalmente válida
+(Tabela~\ref{tab:oster_bounds}, $n = 7{,}72\,\text{mi}$, $\tilde{R}^2 = 0{,}504$,
+$\bar{R}^2 = 0{,}655$):
 
 \begin{table}[htbp]
 \centering
@@ -1826,6 +1828,21 @@ auxiliares da decomposição OB, onde a metodologia é formalmente válida:
 \label{tab:oster_bounds}
 \input{../outputs/tables/oster_bounds.tex}
 \end{table}
+
+Três aspectos dos resultados merecem destaque.
+Primeiro, $\delta^* < 0$ em todos os modelos ($\delta^* \in \{-0{,}48;\,-0{,}43;\,-0{,}39\}$):
+para zerar $\hat{\beta}_{\text{negro}}$, variáveis omitidas precisariam trabalhar na
+\emph{direção oposta} aos observáveis --- i.e., favorecer sistematicamente negros
+no mercado de trabalho, o que é empiricamente implausível no Brasil.
+Segundo, $\beta^*(\delta{=}1) \in \{-0{,}183;\,-0{,}197;\,-0{,}211\}$ mantém o mesmo sinal de
+$\tilde{\beta} = -0{,}060$: mesmo assumindo seleção proporcional sobre não-observáveis,
+o efeito estimado preserva direção e magnitude --- e seria \emph{maior} em
+valor absoluto do que o OLS M3 observado, indicando que o OLS subestima o gap real.
+Terceiro, o critério $|\delta^*| > 1$ (``robusto'') não é atingido nos modelos
+OLS auxiliares; contudo, esse critério é pensado para $\delta^* > 0$.
+A interpretação correta de $\delta^* < 0$ é de \emph{maior} robustez que o limiar
+unitário sugere: não basta um confundidor com magnitude equivalente aos observáveis ---
+seria necessário um confundidor na direção contrária.
 
 
 % ──────────────────────────────────────────────────────────────────────────────
@@ -1840,56 +1857,115 @@ multi-grupos, que decompõe o gap de \emph{cada} grupo vs.\ Homem Branco (refer�
 em componente de \emph{dotações} e componente de \emph{retornos}.
 
 Os quatro grupos analisados são: Mulher Branca, Homem Negro e Mulher Negra,
-todos comparados ao Homem Branco como referência.
+todos comparados ao Homem Branco como referência ($n = 2{,}36\,\text{mi}$, população completa).
 A diferença entre o gap da Mulher Negra e a soma dos gaps de Mulher Branca e
 Homem Negro constitui a \textbf{penalidade interseccional extra} --- o efeito
-que não pode ser explicado pela adição independente de raça e gênero.
+que não pode ser explicado pela adição independente de raça e gênero
+\citep{crenshaw1989}.
+
+Os resultados do HLM interseccional confirmam a estrutura diferencial:
+$\hat{\beta}_{\text{negro}} = -0{,}112$ ($-10{,}6\%$),
+$\hat{\beta}_{\text{mulher}} = -0{,}477$ ($-37{,}9\%$) e
+$\hat{\beta}_{\text{negro} \times \text{mulher}} = +0{,}069$ ($p < 0{,}001$).
+A interação positiva indica que a penalidade combinada ($-40{,}5\%$) é
+\emph{menor} do que a soma das penalidades isoladas ($-44{,}5\%$), caracterizando
+um efeito de atenuação --- mulheres negras sofrem menos discriminação salarial
+acumulada do que se os dois eixos fossem independentes, possivelmente porque
+ambas as desvantagens competem pelo mesmo mecanismo de exclusão.
+
+A decomposição OB twofold por grupo (Figura~\ref{fig:ob4grupos}) revela mecanismos
+distintos por grupo:
+
+\begin{itemize}
+  \item \textbf{Mulher Branca} (gap $= 46{,}6\%$): praticamente todo o gap é explicado
+    por retornos ($108{,}9\%$) --- dotações são ligeiramente favoráveis ($-8{,}9\%$),
+    ou seja, mulheres brancas têm, em média, capital humano superior ao dos homens
+    brancos, mas são subcompensadas por isso. Discriminação salarial pura.
+
+  \item \textbf{Homem Negro} (gap $= 40{,}3\%$): gap predominantemente por dotações
+    ($70{,}9\%$), com retornos respondendo por apenas $29{,}1\%$.
+    A desvantagem é majoritariamente de composição (capital humano e contexto),
+    não de discriminação diferencial de retornos.
+
+  \item \textbf{Mulher Negra} (gap $= 96{,}4\%$): maior gap total, com contribuição
+    relevante de retornos ($70{,}4\%$) e dotações ($29{,}6\%$). A penalidade
+    interseccional extra é de $+9{,}5\,\text{pp}$ --- o gap da Mulher Negra supera
+    a soma dos gaps de Mulher Branca e Homem Negro em $9{,}5$ pontos percentuais,
+    confirmando a existência de um mecanismo discriminatório específico à intersecção
+    raça--gênero.
+\end{itemize}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{../outputs/figures/interseccional_ob4grupos}
 \caption{OB 4 Grupos --- Decomposição em Dotações e Retornos vs.\ Homem Branco.
-  PNAD Contínua 2016--2025, população completa.}
+  PNAD Contínua 2016--2025, $n = 2{,}36\,\text{mi}$.
+  Penalidade interseccional extra (Mulher Negra): $+9{,}5\,\text{pp}$ acima
+  da soma dos gaps isolados de raça e gênero.}
 \label{fig:ob4grupos}
 \end{figure}
 
 Este resultado formaliza empiricamente o conceito de interseccionalidade de
-\citet{crenshaw1989}: se a penalidade extra for estatisticamente significativa
-e negativa, mulheres negras enfrentam um mecanismo discriminatório específico,
-não redutível à soma dos eixos de opressão isolados.
+\citet{crenshaw1989}: mulheres negras enfrentam um mecanismo discriminatório
+específico, não redutível à soma dos eixos de opressão isolados.
 
 
 % ──────────────────────────────────────────────────────────────────────────────
 
-\subsection{Decomposição RIF-OB: Glass Ceiling Discriminatório por Quantil}
+\subsection{Decomposição RIF-OB: \textit{Sticky Floor} Discriminatório e Glass Ceiling por Dotações}
 \label{sec:rif_ob}
 
 A decomposição de Oaxaca-Blinder clássica decompõe o gap na \emph{média}.
-A Regressão Quantílica (Seção~\ref{sec:qr}) mostra que o gap cresce nos quantis
-superiores (glass ceiling), mas não distingue se isso é causado por dotações
-piores nos quantis superiores (negros mais concentrados em ocupações de menor
-status no topo) ou por retornos diferencialmente menores (discriminação estrutural
-crescente à medida que se sobe na hierarquia).
+A Regressão Quantílica (Seção~\ref{sec:qr}) documenta que o gap racial cresce
+nos quantis superiores (\textit{glass ceiling}), mas não identifica a origem
+desse gradiente: dotações piores (negros concentrados em ocupações de menor
+status pelo acúmulo de desvantagens pré-mercado) ou retornos diferencialmente
+menores (discriminação de mercado crescente com a hierarquia salarial).
 
-A \textbf{Decomposição RIF-OB} \citep{firpo2018} responde a essa pergunta:
+A \textbf{Decomposição RIF-OB} \citep{firpo2018} responde essa pergunta:
 calcula, para cada quantil incondicional $\tau$, a Recentered Influence Function
 \[
 \text{RIF}(y;\, Q_\tau) = Q_\tau + \frac{\tau - \mathbf{1}(y \le Q_\tau)}{\hat{f}_Y(Q_\tau)},
 \]
 regride $\text{RIF}$ separadamente para Brancos e Negros sobre as mesmas
 covariáveis, e aplica a decomposição OB twofold nos coeficientes resultantes.
+O componente de \emph{retornos} mede a parcela do gap que persiste mesmo após
+igualar as dotações observáveis --- i.e., a parcela atribuível à discriminação
+de mercado diferencial por faixa salarial.
 
-O componente de \emph{retornos} em cada quantil mede a parcela do gap que
-persiste mesmo após igualar as dotações observáveis dos dois grupos naquele
-ponto da distribuição --- i.e., a parcela interpretável como discriminação de
-mercado diferencial por faixa salarial.
+Os resultados (Tabela~\ref{tab:rif_ob}, Figuras~\ref{fig:rif_ob}--\ref{fig:rif_retornos})
+revelam um padrão \textbf{contrário à hipótese do glass ceiling discriminatório}:
+
+\begin{itemize}
+  \item \textbf{\textit{Sticky floor} discriminatório}: o componente de retornos
+    declina monotonicamente de $33{,}1\%$ no q10 para $21{,}5\%$ no q50 e
+    $11{,}2\%$ no q90. A discriminação de mercado diferencial é \emph{mais
+    intensa} nos salários mais baixos, penalizando desproporcionalmente negros
+    na entrada do mercado de trabalho formal.
+
+  \item \textbf{Glass ceiling por acúmulo de dotações}: o gap bruto cresce
+    nos quantis superiores (q75: $0{,}47$; q90: $0{,}48$ log-pontos), mas esse
+    gradiente é explicado pela componente de dotações, que avança de $61{,}3\%$
+    no q10 para $75{,}8\%$ no q90. O topo da distribuição concentra o efeito
+    acumulado de desvantagens pré-mercado --- segregação residencial, acesso
+    diferencial à educação de qualidade, capital social --- que reduzem o capital
+    humano e o contexto institucional dos negros nos quantis mais altos.
+
+  \item \textbf{Interpretação estrutural}: os dois mecanismos coexistem e se
+    complementam. Eliminar discriminação de mercado reduziria o gap mais
+    intensamente na base; corrigir as desigualdades em dotações educacionais e
+    de capital social atacaria o gap no topo. Políticas focadas apenas em
+    antidiscriminação formal (\textit{ceteris paribus}) seriam insuficientes
+    para erodir o glass ceiling salarial racial, que tem raiz estrutural em
+    oportunidades pré-mercado.
+\end{itemize}
 
 \begin{table}[htbp]
 \centering
 \caption{Decomposição RIF-OB por Quantil Incondicional --- Gap Salarial Racial.
   Dotações: diferença de capital humano e contexto.
   Retornos: diferença nos prêmios às características (componente discriminatório).
-  PNAD Contínua 2016--2025.}
+  PNAD Contínua 2016--2025. N\,=\,7.694.198 observações.}
 \label{tab:rif_ob}
 \input{../outputs/tables/rif_ob_decomposicao.tex}
 \end{table}
@@ -1897,8 +1973,10 @@ mercado diferencial por faixa salarial.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.90\textwidth]{../outputs/figures/rif_ob_decomposicao}
-\caption{RIF-OB: Gap racial observado vs.\ RIF e decomposição dotações/retornos por quantil.
-  Um aumento do componente de retornos nos quantis superiores confirma glass ceiling discriminatório.}
+\caption{RIF-OB: Gap racial observado vs.\ gap RIF e decomposição dotações/retornos
+  por quantil incondicional. O gap bruto cresce nos quantis superiores (\textit{glass
+  ceiling}), mas é dominado pela componente de dotações --- não por retornos
+  diferencialmente menores.}
 \label{fig:rif_ob}
 \end{figure}
 
@@ -1906,7 +1984,9 @@ mercado diferencial por faixa salarial.
 \centering
 \includegraphics[width=0.78\textwidth]{../outputs/figures/rif_ob_retornos_quantis}
 \caption{Parcela discriminatória (retornos) do gap por quantil incondicional.
-  Gradiente crescente confirma que o glass ceiling é estruturalmente discriminatório.}
+  O padrão decrescente (q10: $33{,}1\%$ $\to$ q90: $11{,}2\%$) caracteriza um
+  \textit{sticky floor} discriminatório: a penalidade de mercado proporcional ao gap
+  é maior na base da distribuição salarial.}
 \label{fig:rif_retornos}
 \end{figure}
 

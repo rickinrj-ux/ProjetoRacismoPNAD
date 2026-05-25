@@ -49,6 +49,7 @@ OUT_FIG       = ROOT / "outputs" / "figures"
 OUT_TAB       = ROOT / "outputs" / "tables"
 OUT_FIG.mkdir(parents=True, exist_ok=True)
 OUT_TAB.mkdir(parents=True, exist_ok=True)
+CHECKPOINT_DIR = OUT_TAB / "rif_checkpoints"
 
 QUANTIS_DEFAULT = [0.10, 0.25, 0.50, 0.75, 0.90]
 
@@ -169,11 +170,18 @@ def run_rif_ob(
     quantis: List[float] = QUANTIS_DEFAULT,
     formula_controles: str = CONTROLES,
 ) -> pd.DataFrame:
-    """Executa RIF-OB para todos os quantis e retorna DataFrame de resultados."""
+    """Executa RIF-OB para todos os quantis com checkpoint por quantil."""
+    CHECKPOINT_DIR.mkdir(exist_ok=True)
     rows = []
     for tau in quantis:
+        ckpt = CHECKPOINT_DIR / f"rif_q{int(tau*100):02d}.csv"
+        if ckpt.exists():
+            logger.info(f"  RIF-OB q{int(tau*100):02d}: checkpoint encontrado — pulando")
+            rows.append(pd.read_csv(ckpt).iloc[0].to_dict())
+            continue
         logger.info(f"  RIF-OB q{int(tau*100):02d} ...")
         r = rif_ob_quantil(df, tau, formula_controles)
+        pd.DataFrame([r]).to_csv(ckpt, index=False)
         rows.append(r)
         logger.info(f"    gap={r['gap_obs']:.4f}  dot={r['end_pct']:.1f}%  ret={r['ret_pct']:.1f}%")
     return pd.DataFrame(rows)
