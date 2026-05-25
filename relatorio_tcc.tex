@@ -67,8 +67,8 @@ UNIVERSIDADE DE SÃO PAULO}}
 \vspace{3cm}
 
 {\LARGE \textbf{RACISMO ESTRUTURAL NO MERCADO DE TRABALHO BRASILEIRO:
-UMA ABORDAGEM MULTINÍVEL, DE MACHINE LEARNING E DE REDES SOCIAIS
-COM DADOS DA PNAD CONTÍNUA (2016--2025)}}
+UMA ABORDAGEM MULTINÍVEL E LOGÍSTICA MISTA, MACHINE LEARNING
+E ANÁLISE DE REDES COM DADOS DA PNAD CONTÍNUA (2016--2025)}}
 
 \vspace{3cm}
 
@@ -114,6 +114,14 @@ Educação reduz mas não elimina a penalidade racial: a interação
 negro$\times$superior produz um \emph{teto de credencial} em que o
 ensino superior reduz em 47\% a penalidade base, mas ainda deixa
 um gap líquido de 12\% para negros com diploma superior.
+Modelo linear generalizado misto binomial ($n{=}2{,}39$ mi,
+$N_{\text{UPA}}{=}31.950$) estima que trabalhadores negros têm
+$\text{OR}{=}0{,}741$ (IC$_{95\%}$: 0,729--0,752) para ocupar
+cargo de alta qualificação em relação a brancos com as mesmas
+características observáveis --- efeito marginal médio de
+$-1{,}12$ p.p. --- configurando um \emph{teto de vidro ocupacional}
+independente do \emph{teto de retorno salarial} identificado pela
+regressão quantílica.
 Análise de redes sociais confirma que trabalhadores negros têm
 \emph{betweenness} nulo em todos os níveis educacionais,
 bloqueando o acesso às redes que convertem credenciais em mobilidade.
@@ -131,7 +139,8 @@ para convergência duradoura.
 
 \bigskip
 \noindent\textbf{Palavras-chave:} gap salarial racial; discriminação estrutural; modelos
-hierárquicos lineares; SHAP values; análise de redes sociais; PNAD Contínua.
+hierárquicos lineares; modelos logísticos mistos; teto de vidro ocupacional;
+SHAP values; análise de redes sociais; PNAD Contínua.
 \end{abstract}
 
 \newpage
@@ -160,7 +169,15 @@ the neighbourhood --- meaning racial inequality operates locally,
 not macroregionally. The neighbourhood racial composition coefficient
 ($\hat{\gamma}_{01} = -0.271$, $p<0.001$) constitutes a \emph{double
 disadvantage}: living in a predominantly Black neighbourhood reduces
-earnings independently of the individual's race. Social network analysis
+earnings independently of the individual's race. A binomial generalised linear mixed model (GLMM, $n{=}2.39$~million,
+$N_{\text{PSU}}{=}31{,}950$) estimates that Black workers face
+$\text{OR}{=}0.741$ (95\%~CI: 0.729--0.752) for holding a
+high-skill occupation relative to White workers with identical
+observable characteristics --- an average marginal effect of
+$-1.12$~p.p. --- constituting an \emph{occupational glass ceiling}
+distinct from the \emph{wage-return glass ceiling} identified by
+quantile regression.
+Social network analysis
 further reveals that Black workers have zero betweenness centrality at
 all educational levels, confirming structural exclusion from the
 information and opportunity flows that convert credentials into mobility.
@@ -176,7 +193,8 @@ to professional networks.
 
 \bigskip
 \noindent\textbf{Keywords:} racial wage gap; structural discrimination;
-hierarchical linear models; SHAP values; social network analysis; PNAD Contínua.
+hierarchical linear models; generalised linear mixed models;
+occupational glass ceiling; SHAP values; social network analysis; PNAD Contínua.
 \end{abstract}
 
 \newpage
