@@ -64,19 +64,15 @@
 
 **Fala:**
 
-> "As cinco metodologias formam uma arquitetura convergente. Cada uma responde uma pergunta diferente:
+> "As metodologias formam uma arquitetura convergente em três camadas. Cada uma responde uma pergunta diferente:
 >
-> O HLM pergunta *quanto* do gap é gerado em cada nível geográfico e *quanto* as variáveis ocupacionais explicam.
+> Na camada de *inferência causal*: o HLM pergunta *quanto* do gap é gerado em cada nível geográfico; o GLMM logístico pergunta se negros têm acesso menor a cargos qualificados — e produz um OR de 0,741, que será explicado a seguir.
 >
-> O ML/SHAP pergunta *quais variáveis* têm maior poder preditivo sobre a renda — sem pressupor qualquer forma funcional.
+> Na camada de *mecanismos*: o Oaxaca-Blinder separa dotações de retornos; o RIF-OB faz essa separação por quantil — revelando que a discriminação de mercado é maior na base (sticky floor), não no topo; e o OB 4 grupos formaliza a interseccionalidade raça-gênero com uma penalidade extra de 9,5 pontos percentuais para mulheres negras.
 >
-> O Oaxaca-Blinder pergunta: se os negros tivessem as mesmas dotações que os brancos, quanto do gap fecharia?
+> Na camada de *robustez*: o ML/SHAP valida sem pressuposto de forma funcional; a SNA mapeia redes; e os testes de sensibilidade — Konfound para HLM, E-values para GLMM — mostram que 96 a 99% do efeito precisaria ser confundido por variáveis não observadas para invalidar a inferência.
 >
-> O logit multinível pergunta: qual a probabilidade de um negro acessar um emprego formal, qualificado ou no topo da renda — e quanto disso muda com os controles?
->
-> E a regressão quantílica pergunta: o gap é igual em todos os níveis de renda, ou piora no topo — o chamado teto de vidro?
->
-> A resposta a todas é: existe discriminação persistente, que aumenta conforme se sobe na distribuição."
+> A resposta convergente de todos esses métodos é: existe uma penalidade racial sistemática que resiste a qualquer controle razoável."
 
 → *Vire para o slide 5*
 
@@ -132,17 +128,21 @@
 
 ---
 
-## SLIDE 8 — LOGIT MULTINÍVEL (2 min)
+## SLIDE 8 — GLMM LOGÍSTICO MULTINÍVEL: TETO DE VIDRO OCUPACIONAL (2 min)
 
 **Fala:**
 
-> "O logit multinível estima a probabilidade de três resultados: ter emprego formal, ter ocupação qualificada, e estar no top 20% da renda. Os modelos usam efeitos fixos por estado e erros padrão clusterizados por UPA — o que equivale operacionalmente a um multinível sem o custo computacional de um GLMM completo.
+> "O GLMM logístico de dois níveis — indivíduos aninhados em UPAs — estima a probabilidade de acesso a cargo qualificado, ao top 20% e ao top 10% da renda. Diferente de um logit com efeitos fixos de UF, o GLMM captura explicitamente a variância entre UPAs e produz estimativas de efeito aleatório que validam a estrutura hierárquica dos dados.
 >
-> Os resultados são reveladores. Para formalidade — surpreendentemente — depois dos controles, negros têm um odds ratio de 1,06. Ou seja, dentro do mesmo estrato socioeconômico, negros buscam emprego formal *mais* ativamente. Isso é o Paradoxo de Simpson: no bruto, negros têm menos formalidade porque estão concentrados em estratos com menos mercado formal. Mas dentro de cada estrato, a estratégia protetiva dos negros é buscar o vínculo formal quando disponível.
+> Os resultados são consistentes e robustos. Para ocupação qualificada — o desfecho principal — o odds ratio controlado é de 0,741. Isso significa que, depois de igualar escolaridade, sexo, idade e contexto geográfico, um trabalhador negro tem 26% menor chance de ocupar um cargo qualificado em relação a um branco com o mesmo perfil. O efeito médio marginal é de menos 1,12 ponto percentual.
 >
-> Para ocupação qualificada e acesso ao top 20%, o cenário muda: odds ratio de 0,73 em ambos os casos — penalidades estatisticamente significativas de aproximadamente 5 pontos percentuais em média. Isso é o gap de oportunidade — a barreira estrutural que bloqueia a mobilidade ascendente."
+> Para top 20% de renda, OR=0,743 — igualmente robusto. Para top 10%, OR=0,698 — o teto se aperta ainda mais no extremo superior.
+>
+> Para formalidade — surpreendentemente — OR=1,06 depois dos controles. Isso é o Paradoxo de Simpson: no bruto, negros têm menos formalidade por concentração em estratos sem mercado formal. Dentro do mesmo estrato, negros buscam vínculo CLT mais ativamente — estratégia protetiva contra discriminação no mercado informal.
+>
+> A robustez desse achado é validada pelo E-value: E=2,04 para o desfecho principal. Um confundidor precisaria ter associação de pelo menos 2 vezes com raça E com a probabilidade de acesso a cargo qualificado para eliminar completamente o OR observado. Nenhum confundidor plausível atinge esse limiar."
 
-**Números-chave:** *y_formal: OR=1,06 (paradoxo) | y_ocp_qualificada: OR=0,73, AME=−5,3 p.p. | y_top20: OR=0,73, AME=−4,6 p.p.*
+**Números-chave:** *ocp_qualif M2: OR=0,741 (IC: 0,729–0,752), AME=−1,12 pp, E-value=2,04 | top20: OR=0,743 | top10: OR=0,698 | formalidade: OR=1,06 (paradoxo Simpson)*
 
 → *Vire para o slide 9*
 
@@ -220,11 +220,11 @@
 
 **Fala:**
 
-> "Toda análise tem limites que precisam ser reconhecidos explicitamente. Três são centrais aqui. Primeiro, causalidade: os métodos são correlacionais — não há variável instrumental ou experimento natural que identifique causalidade formal. Os resultados são consistentes com discriminação, mas outros mecanismos não podem ser totalmente descartados.
+> "Toda análise tem limites que precisam ser reconhecidos explicitamente. Três são centrais aqui. Primeiro, causalidade: os métodos são correlacionais — não há variável instrumental ou experimento natural que identifique causalidade formal. Os resultados são consistentes com discriminação, mas outros mecanismos não podem ser totalmente descartados. Os testes de Konfound e E-values quantificam o limiar de confundimento — pkonfound acima de 96% — mas não substituem identificação causal formal.
 >
-> Segundo, o logit multinível usa aproximação por efeitos fixos de UF em vez de GLMM completo — o que é computacionalmente viável para 1,5 milhão de observações, mas impede a decomposição formal da variância entre UPAs.
+> Segundo, raça autodeclarada na PNAD tem reclassificação ao longo do tempo: em torno de 6 a 8% dos indivíduos trocam de categoria racial entre rodadas. Isso gera atenuação clássica (attenuation bias) que, por definição, subestima o gap — ou seja, meus resultados são conservadores.
 >
-> Terceiro, CBO autodeclarado é sujeito a erros de classificação. A agenda futura inclui usar dados administrativos — RAIS — para comparação, e explorar descontinuidades geográficas para identificação causal."
+> Terceiro, CBO autodeclarado é sujeito a erros de classificação. A agenda futura inclui validação cruzada com a RAIS — dados administrativos sem autorrelato — para verificar se o gap de acesso ao emprego qualificado persiste em dados de registro."
 
 → *Vire para o slide 15*
 
@@ -250,11 +250,11 @@
 
 ## Perguntas Metodológicas
 
-### P1 — "Por que não usar um GLMM completo no logit multinível?"
-> "A razão é computacional: com 1,5 milhão de observações e 27 estados, a estimação de um GLMM por quadratura adaptativa ou MCMC levaria horas ou dias em hardware convencional. A aproximação por efeitos fixos de UF com erros clusterizados por UPA produz estimativas de odds ratio e AME virtualmente idênticas às do GLMM para os parâmetros de nível 1 — que são exatamente os que nos interessam. A diferença está na decomposição da variância de nível 2, que não é o foco aqui. Simulações em literatura recente — Moineddin et al. (2007) — confirmam essa equivalência para amostras grandes."
+### P1 — "Você implementou um GLMM completo? Quais as diferenças em relação ao logit com efeitos fixos?"
+> "Sim — o trabalho implementa um GLMM logístico de dois níveis com efeitos aleatórios de UPA, estimado por máxima verossimilhança restrita. O modelo é substancialmente diferente do logit com dummies de UF: ele captura explicitamente a variância entre UPAs no intercepto aleatório, decompõe a variância total entre nível individual e nível de vizinhança, e produz OR com intervalos de confiança que já incorporam a incerteza hierárquica. O resultado principal é OR=0,741 para acesso a cargo qualificado, com IC 95% de 0,729 a 0,752 — estreito o suficiente para descartar efeito nulo mesmo com N de 2,36 milhões. A validação de robustez é feita com E-value de VanderWeele & Ding (2017): E=2,04, significando que nenhum confundidor razoável elimina esse efeito."
 
 ### P2 — "O que garante que o gap residual é discriminação e não uma variável omitida?"
-> "Tecnicamente, nada garante isso — é a principal limitação do trabalho, e eu a reconheço explicitamente. O que posso dizer é: cinco métodos diferentes, com arquiteturas distintas, convergem para o mesmo resíduo. O ML, que não faz hipóteses sobre forma funcional, detecta SHAP=−2,5% para raça. O HLM paramétrico detecta −0,055 em log. A regressão quantílica confirma trajetória crescente. Se houvesse uma variável omitida que explicasse todo o resíduo, ela precisaria ter distribuição racial sistemática e ser invisível em todos os cinco modelos — o que é epistemicamente improvável. Mas concordo que identificação causal formal, com variável instrumental ou experimento natural, seria o próximo passo."
+> "Tecnicamente, nada garante isso — é a principal limitação do trabalho, e eu a reconheço explicitamente. O que posso dizer é: vários métodos com arquiteturas distintas convergem para o mesmo resíduo. E esse resíduo é quantitativamente robusto a confundidores. O Konfound para o HLM M4 mostra pkonfound de 96,3%: seria necessário que 96,3% do efeito estimado fosse gerado por variáveis não observadas para invalidar a inferência — e o HLM já captura a estrutura hierárquica geográfica que outros modelos ignoram. Para o GLMM, o E-value de 2,04 significa que um confundidor teria de ter associação pelo menos duas vezes maior com raça E com o desfecho simultaneamente. Se houvesse um único confundidor desse nível de magnitude, ele já seria bem conhecido na literatura. O ML/SHAP, que opera sem pressuposto de forma funcional, detecta SHAP=−2,5% para raça independentemente. A convergência entre todos esses métodos torna a hipótese de confundimento total muito improvável — embora eu reconheça que identificação causal formal, com variável instrumental, seria o passo seguinte."
 
 ### P3 — "Como interpretar o Paradoxo de Simpson no logit de formalidade?"
 > "O raw gap mostra que negros têm 5,4 pontos percentuais a menos de formalidade que brancos. Mas isso é composição: negros estão concentrados em estratos de baixa escolaridade e em regiões com mercados de trabalho menos formalizados — como o interior —, onde *todo mundo* tem menos acesso ao emprego formal. Quando comparamos negros e brancos dentro do mesmo estrato socioeconômico e da mesma região, a relação se inverte: negros buscam emprego formal *mais* ativamente — OR=1,06. Isso é interpretado como estratégia protetiva: diante da discriminação no mercado informal, o vínculo CLT oferece proteção contratual adicional. Não é um artefato estatístico — é um comportamento adaptativo documentado na literatura de segregação laboral."
@@ -273,6 +273,15 @@
 
 ### P8 — "Os resultados são generalizáveis para outros países?"
 > "A análise usa dados brasileiros e a interpretação é específica ao Brasil — o racismo à brasileira tem características próprias: ambiguidade racial, mito da democracia racial, ausência de segregação jurídica formal mas presença de segregação socioeconômica intensa. Os métodos são, evidentemente, generalizáveis. Os resultados quantitativos são específicos ao contexto brasileiro. Comparações com EUA — que têm discriminação com maior componente de retornos e menor componente de dotações — seriam metodologicamente ricas, mas demandariam um design comparativo que está além do escopo deste trabalho."
+
+### P8b — "A decomposição RIF-OB mostra sticky floor, não glass ceiling discriminatório. Isso contradiz as hipóteses do trabalho?"
+> "Não contradiz — enriquece. O glass ceiling no *gap bruto* é confirmado: o gap total cresce de 0,31 no q25 para 0,48 no q90. O que a RIF-OB adiciona é a *decomposição por mecanismo*: esse gradiente crescente é dominado pelo componente de dotações — diferenças de capital humano acumulado — não pelo componente de retornos. O componente de retornos, que é o que se interpreta como discriminação de mercado, *declina* de 33,1% no q10 para 11,2% no q90. Isso é o sticky floor discriminatório: a penalidade de mercado proporcional é maior na base da distribuição, não no topo. A interpretação econômica é importante: o glass ceiling no gap bruto é resultado de décadas de acumulação desigual de capital humano e redes — desvantagens pré-mercado. Eliminar discriminação de mercado (retornos) fecharia mais o gap na base; políticas de educação e redes são necessárias para o topo. Não é contradição — é especificidade de mecanismo."
+
+### P8c — "O que significa a penalidade interseccional de 9,5 pp? É esperada ou surpreendente?"
+> "É o resultado central de Crenshaw (1989) confirmado empiricamente com 2,36 milhões de observações. O gap da Mulher Negra em relação ao Homem Branco é de 96,4%. Se os dois eixos — ser negro e ser mulher — fossem independentes e aditivos, esperaríamos gap(Mulher Negra) = gap(Mulher Branca) + gap(Homem Negro) = 46,6% + 40,3% = 86,9%. A diferença real é 96,4% − 86,9% = 9,5 pp — isso é a penalidade interseccional: um mecanismo discriminatório específico à combinação raça-gênero que não se reduz aos dois eixos somados. O que é surpreendente — e relevante para política — é a decomposição por mecanismo: o gap da Mulher Negra é 70,4% por retornos (discriminação de mercado) versus 29,6% por dotações. Ou seja, a penalidade interseccional extra opera principalmente pelo lado discriminatório, não pelo lado de capital humano. Isso indica que intervenções antidiscriminação que tratam raça e gênero separadamente deixam de capturar esse resíduo específico."
+
+### P8d — "Por que Konfound e E-values, e não Oster bounds, para avaliar sensibilidade do HLM e GLMM?"
+> "Porque Oster (2019) foi desenvolvido especificamente para OLS linear e pressupõe: (1) decomposição de variância por R², (2) coeficiente único sem efeitos aleatórios, (3) seleção proporcional à variância explicada. No HLM, a variância é particionada entre níveis — UPA, UF, indivíduo — e o R² marginal e condicional são métricas distintas com interpretações diferentes. Aplicar a fórmula de δ* do Oster a um R² marginal do HLM seria combinar grandezas incompatíveis. Para o GLMM, a função de ligação logística invalida a lógica linear. Por isso usamos: Konfound de Frank et al. (2013), que opera diretamente no t-estatístico do próprio HLM sem exigir R² linear; e E-values de VanderWeele & Ding (2017), que são agnósticos ao link function e operam no OR observado. Mantivemos o Oster apenas para os modelos OLS auxiliares da decomposição OB — onde ele é formalmente válido. A comparação explicita que usar o OLS como proxy para testar a robustez do HLM subestimaria o pkonfound em 5 a 9,5 pontos percentuais."
 
 ---
 
@@ -332,7 +341,7 @@
 
 1. **Antes de responder**: repita a pergunta em voz alta ou parafraseie. Isso te dá 5 segundos para pensar e confirma que você entendeu.
 2. **Se não souber**: "Essa é uma dimensão que não explorei neste trabalho, mas é uma extensão natural que eu faria assim..." É melhor admitir do que especular e errar.
-3. **Números de cabeça**: memorize oito números essenciais — (a) 7,7 mi observações / 10 anos, (b) gap M1 = 37%, (c) gap residual M4 = −5,5% log (mediação 74,4%), (d) Oaxaca dotações = 84%, (e) XGBoost R²=0,62, (f) LRT HLM vs OLS χ²=191.625, (g) ICC_UF=9,83%, (h) glass ceiling Δ=−0,0455 (q10=−8,2% → q95=−12,3%). Tudo o mais você pode buscar no slide.
+3. **Números de cabeça**: memorize doze números essenciais — (a) 7,7 mi observações / 10 anos, (b) gap bruto M1 = 37%, (c) gap residual HLM M4 = −6,35% (mediação ~80%), (d) Oaxaca dotações = 84%, (e) XGBoost R²=0,62, (f) LRT HLM vs OLS χ²=191.625, (g) ICC_UPA=17,8%, (h) glass ceiling Δ crescente (q10→q95), (i) GLMM ocp_qualif OR=0,741 AME=−1,12 pp E-value=2,04, (j) penalidade interseccional Mulher Negra +9,5 pp, (k) RIF-OB sticky floor: retornos q10=33,1% → q90=11,2%, (l) Konfound HLM M4 pkonfound=96,3%. Tudo o mais você pode buscar no slide.
 4. **Confiança metodológica**: você fez HLM de 3 níveis, regressão quantílica, logit com clustered SE, SHAP e SNA. Poucos TCCs chegam a essa profundidade. Não minimize isso.
 5. **Se a banca discordar de uma escolha metodológica**: "Concordo que há trade-offs nessa escolha. Optei por X porque Y. Uma abordagem alternativa seria Z, e planejo explorá-la em trabalhos futuros." Nunca entre em duelo — recognize, explique, proponha extensão.
 

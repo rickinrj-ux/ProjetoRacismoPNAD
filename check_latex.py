@@ -1,15 +1,32 @@
-"""Validação estrutural do arquivo LaTeX relatorio_tcc.tex."""
-import re, os, sys
+"""Validacao estrutural do arquivo LaTeX relatorio_tcc.tex."""
+import re, os
 from collections import Counter
 
 with open("relatorio_tcc.tex", encoding="utf-8") as f:
     content = f.read()
     lines = content.splitlines()
 
+# Expande \input para incluir labels de arquivos externos
+def expand_inputs(text, base_dir="."):
+    for m in re.finditer(r'\\input\{([^}]+)\}', text):
+        path = m.group(1).replace('../', '')
+        for candidate in [path, path + '.tex']:
+            full = os.path.join(base_dir, candidate)
+            if os.path.exists(full):
+                try:
+                    with open(full, encoding="utf-8") as f2:
+                        text += "\n" + f2.read()
+                except Exception:
+                    pass
+                break
+    return text
+
+content_full = expand_inputs(content)
+
 errors = []
 warnings = []
 
-# 1. Ambientes begin/end balanceados
+# 1. Ambientes begin/end balanceados (arquivo principal)
 begins = re.findall(r'\\begin\{(\w+)\}', content)
 ends   = re.findall(r'\\end\{(\w+)\}', content)
 bc, ec = Counter(begins), Counter(ends)
@@ -17,7 +34,7 @@ for env in sorted(set(list(bc.keys()) + list(ec.keys()))):
     if bc[env] != ec[env]:
         errors.append(f"  Ambiente nao balanceado: {env}  begins={bc[env]}  ends={ec[env]}")
 
-# 2. Chaves não balanceadas
+# 2. Chaves nao balanceadas
 depth = 0
 for i, line in enumerate(lines, 1):
     clean = re.sub(r'(?<!\\)%.*', '', line)
@@ -32,13 +49,13 @@ for i, line in enumerate(lines, 1):
 if depth != 0:
     errors.append(f"  {depth} chave(s) nao fechada(s) no final do arquivo")
 
-# 3. \ref sem \label
-defined_labels = set(re.findall(r'\\label\{([^}]+)\}', content))
+# 3. \ref sem \label (labels buscados em todos os inputs expandidos)
+defined_labels = set(re.findall(r'\\label\{([^}]+)\}', content_full))
 used_refs = set(re.findall(r'\\(?:ref|pageref)\{([^}]+)\}', content))
 for r in sorted(used_refs - defined_labels):
     warnings.append(f"  \\ref sem \\label: {r}")
 
-# 4. citações sem entrada .bib
+# 4. citacoes sem entrada .bib
 bib_keys = set()
 if os.path.exists("relatorio_tcc.bib"):
     bib_keys = set(re.findall(r'@\w+\{(\w+),', open("relatorio_tcc.bib", encoding="utf-8").read()))
@@ -62,7 +79,7 @@ for m in re.finditer(r'\\includegraphics(?:\[[^\]]*\])?\{([^}]+)\}', content):
     if not found:
         warnings.append(f"  \\includegraphics ausente: {m.group(1)}")
 
-# 7. Pacotes necessários para comandos usados
+# 7. Pacotes necessarios para comandos usados
 pkg_checks = {
     r'\\checkmark': 'amssymb',
     r'\\toprule|\\midrule|\\bottomrule': 'booktabs',
@@ -81,7 +98,7 @@ print('\n'.join(warnings) if warnings else "  Nenhum aviso.")
 
 print(f"\n=== ESTATISTICAS ===")
 print(f"  Linhas: {len(lines)}")
-print(f"  Labels definidos: {len(defined_labels)}")
+print(f"  Labels definidos (incl. inputs): {len(defined_labels)}")
 print(f"  Refs usadas: {len(used_refs)}")
 print(f"  Citacoes usadas: {len(used_cites)}")
 print(f"  Entradas .bib: {len(bib_keys)}")
