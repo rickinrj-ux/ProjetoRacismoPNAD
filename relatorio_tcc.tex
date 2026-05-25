@@ -1709,49 +1709,123 @@ racial \textbf{não é artefato da composição informal} da força de trabalho.
 %  ANÁLISES COMPLEMENTARES
 % ══════════════════════════════════════════════════════════════════════════════
 
-\subsection{Robustez a Variáveis Omitidas: Oster Bounds}
-\label{sec:oster_bounds}
+\subsection{Sensibilidade a Variáveis Omitidas: Diferenças Metodológicas}
+\label{sec:sensibilidade_omitidas}
 
-A principal ameaça à interpretação causal do gap condicional é a existência de
-habilidade não observada correlacionada com raça e renda.
-Para quantificar essa ameaça, aplicamos o método de \citet{oster2019}:
-dado um conjunto de controles observados, qual deveria ser a correlação entre
-variáveis omitidas e o tratamento para zerar $\hat{\beta}_{\text{negro}}$?
+A principal ameaça à interpretação causal do gap é a existência de habilidade
+não observada correlacionada com raça e renda. Esta seção documenta a análise
+de sensibilidade completa e, crucialmente, a \textbf{decisão metodológica} sobre
+qual método aplicar a cada tipo de modelo, com comparação explícita dos
+resultados antes e após a correção.
 
-Estimamos quatro modelos OLS com conjuntos crescentes de controles
-(M0: negro isolado; M1: $+$demografia; M2: $+$educação; M3: $+$contexto UPA $+$ UF)
-e calculamos, para cada par (M$_i$, M3), dois indicadores:
+\subsubsection*{Limitação do Oster Bounds para HLM e GLMM}
 
-\begin{itemize}
-\item $\delta^*$: razão entre a seleção necessária sobre não-observáveis e a
-      seleção observada nos controles. Um $\delta^* > 1$ indica que o viés de
-      confounding não observado precisaria ser \emph{maior} do que toda a
-      variação explicada pelos controles para inverter o sinal do gap.
-      Seguindo \citet{oster2019}, utilizamos $\bar{R}^2 = 1{,}3 \times \tilde{R}^2$.
-\item $\beta^*(\delta{=}1)$: estimativa conservadora de $\beta$ assumindo
-      seleção sobre não-observáveis igual à seleção sobre os observáveis.
-\end{itemize}
+O método de \citet{oster2019} foi originalmente desenvolvido para modelos OLS
+lineares e depende de três pilares que não se transferem diretamente:
+(1) decomposição linear da variância via $R^2$;
+(2) coeficiente único sem estrutura de efeitos aleatórios;
+(3) seleção proporcional à variância explicada pelos controles.
+
+No presente trabalho, o modelo primário de inferência para o gap salarial é o
+\textbf{HLM} (ICC$_{\text{UPA}} = 17{,}8\%$), escolhido precisamente porque
+o OLS é inconsistente com ICC $>$ 5\%.
+Para o teto de vidro ocupacional, o modelo primário é o \textbf{GLMM} logístico,
+cuja função de ligação não linear invalida a lógica do $R^2$ de Oster.
+Aplicar Oster bounds a modelos OLS auxiliares e projetar os resultados sobre o
+HLM/GLMM seria metodologicamente incoerente.
+
+\subsubsection*{Métodos corretos por tipo de modelo}
+
+\begin{description}
+\item[HLM $\to$ Konfound \citep{frank2013}]
+Opera diretamente no $t$-estatístico do próprio HLM, sem exigir $R^2$ linear.
+Calcula o \emph{pkonfound}: percentual do efeito que precisaria ser
+confundido por variáveis omitidas para que $|t_{\text{obs}}|$ caísse até
+$t_{\text{crit}} = 1{,}96$.
+
+\item[GLMM $\to$ E-values \citep{vanderweele2017}]
+Agnóstico ao link function e ao $R^2$ misto. Para OR $< 1$:
+\[
+  E = \frac{1}{\text{OR}} + \sqrt{\frac{1}{\text{OR}} \times \left(\frac{1}{\text{OR}} - 1\right)}
+\]
+Interpreta-se como a associação mínima que um confundidor precisaria ter
+com raça \emph{e} com o desfecho simultaneamente para zerar o OR observado.
+
+\item[OLS auxiliar (decomposição OB) $\to$ Oster bounds \citep{oster2019}]
+Válidos para os modelos OLS da decomposição de Oaxaca-Blinder, onde o
+modelo \emph{é} OLS por definição metodológica.
+\end{description}
+
+\subsubsection*{Comparação antes × depois: HLM}
+
+A Tabela~\ref{tab:konfound_hlm_vs_ols} documenta a diferença entre aplicar
+Konfound ao HLM (correto) versus ao OLS auxiliar (incorreto).
+O OLS tem SEs maiores do que o HLM porque não modela a estrutura de
+variância entre UPAs --- resultado: os $t$-estatísticos do OLS
+são $3{,}5\times$--$7\times$ menores do que os do HLM, gerando
+pkonfound sistematicamente \textbf{subestimado em 5--10 pontos percentuais}.
 
 \begin{table}[htbp]
 \centering
-\caption{Oster (2019) --- Robustez do Gap Salarial Racial a Variáveis Omitidas.
-  $\delta^* > 1$ indica robustez ao critério de Oster.
-  PNAD Contínua 2016--2025.}
-\label{tab:oster_bounds}
-\input{../outputs/tables/oster_bounds.tex}
+\caption{Konfound (Frank et al., 2013) --- Comparação HLM vs.\ OLS por modelo.
+  $\Delta$ pkonfound: subestimação da robustez ao usar OLS em dados com ICC $>$ 5\%.
+  PNAD Contínua 2016--2025, $n = 1{,}54$ mi.}
+\label{tab:konfound_hlm_vs_ols}
+\input{../outputs/tables/konfound_hlm_vs_ols.tex}
 \end{table}
 
-A Figura~\ref{fig:oster_bounds} apresenta os coeficientes por modelo e os
-bounds $\beta^*(\delta{=}1)$, bem como o valor de $\delta^*$ para cada comparação.
-Se $\delta^* > 1$ em todas as comparações, o gap é robusto ao critério de Oster.
+Os valores de pkonfound para o HLM variam de $96{,}3\%$ (M4) a $98{,}8\%$ (M1),
+indicando que entre $96\%$ e $99\%$ do efeito estimado precisaria ser explicado
+por confundidores para invalidar a inferência.
+A referência habitual na literatura é pkonfound $> 80\%$ para robustez moderada;
+os resultados aqui estão todos acima de $96\%$.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.90\textwidth]{../outputs/figures/oster_bounds}
-\caption{Oster (2019): Estabilidade de $\hat{\beta}_{\text{negro}}$ e $\delta^*$ por modelo.
-  Diamante vermelho = $\beta^*(\delta{=}1)$. Verde = comparação com $\delta^* > 1$.}
-\label{fig:oster_bounds}
+\includegraphics[width=0.90\textwidth]{../outputs/figures/sensibilidade_konfound_evalues}
+\caption{Sensibilidade a variáveis omitidas: pkonfound por modelo HLM (esquerda)
+  e E-values por desfecho GLMM (direita).
+  Linha tracejada = referência habitual de robustez ($95\%$ / $E{=}2$).}
+\label{fig:sensibilidade_omitidas}
 \end{figure}
+
+\subsubsection*{E-values para o GLMM}
+
+\begin{table}[htbp]
+\centering
+\caption{E-values (VanderWeele \& Ding, 2017) para o GLMM Logístico Multinível.
+  E-value (OR): confundidor precisaria de $\geq E$ de associação com raça
+  \emph{e} com o desfecho. E-value (CI): bound conservador pelo IC$_{95\%}$.
+  PNAD Contínua 2016--2025.}
+\label{tab:evalues_glmm}
+\input{../outputs/tables/evalues_glmm.tex}
+\end{table}
+
+Para o desfecho principal (\texttt{ocp\_qualif}, acesso a cargo qualificado):
+o E-value do modelo controlado (M2) é $E = 2{,}04$
+(IC conservador: $E_{\text{CI}} = 1{,}99$),
+e o modelo bruto (M1) tem $E = 2{,}17$.
+Isso significa que um confundidor precisaria ter associação $\geq 2\times$
+com raça \emph{e} com a probabilidade de ocupar cargo qualificado
+para eliminar completamente o OR$\;{=}\;0{,}741$ observado.
+Confundidores com associação abaixo desse limiar são insuficientes para
+explicar o efeito, mesmo que fortemente correlacionados com apenas uma das
+variáveis.
+
+\subsubsection*{Oster bounds (OLS auxiliar — decomposição OB)}
+\label{sec:oster_bounds}
+
+Para completude, mantemos os Oster bounds aplicados aos modelos OLS
+auxiliares da decomposição OB, onde a metodologia é formalmente válida:
+
+\begin{table}[htbp]
+\centering
+\caption{Oster (2019) --- Sensibilidade dos modelos OLS auxiliares (decomposição OB).
+  Válido \emph{apenas} para os modelos OLS; não se aplica ao HLM primário.
+  $\bar{R}^2 = 1{,}3 \times \tilde{R}^2$. PNAD Contínua 2016--2025.}
+\label{tab:oster_bounds}
+\input{../outputs/tables/oster_bounds.tex}
+\end{table}
 
 
 % ──────────────────────────────────────────────────────────────────────────────
