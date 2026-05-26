@@ -278,33 +278,29 @@ def run_konfound_evalues() -> Dict:
     Executa Konfound (HLM) e E-values (GLMM) sem re-estimar modelos —
     usa os coeficientes e SEs já salvos em outputs/tables/.
     """
-    # ── Dados HLM (hlm_serie_s20pct.csv) ──────────────────────────────────────
-    # Extraídos manualmente das colunas da tabela LaTeX (β e SE dentro de parênteses)
-    # n = 1,537,885 (20% da população, conforme log hlm_serie_completa.log)
-    # M4 full pop: n=2,357,851 (run_hlm_m4.py, hlm_m4_coeficientes.csv)
+    # ── Dados HLM (hlm_serie_completo.csv) — população completa ──────────────
+    # N=7,689,426 | 40,295 UPAs | 27 UFs | REML+Powell | run_hlm_serie_completa.py
     hlm_data = [
         {"modelo": "M1", "descricao": "Individual (dem. + educ. + horas)",
-         "beta": -0.2149, "se": 0.0013, "n": 1_537_885},
+         "beta": -0.2148, "se": 0.0006, "n": 7_689_426},
         {"modelo": "M2", "descricao": "Localidade (+contexto UPA)",
-         "beta": -0.1020, "se": 0.0013, "n": 1_537_885},
+         "beta": -0.1021, "se": 0.0006, "n": 7_689_426},
         {"modelo": "M3", "descricao": "Completo (+contexto UF)",
-         "beta": -0.1020, "se": 0.0013, "n": 1_537_885},
+         "beta": -0.1021, "se": 0.0006, "n": 7_689_426},
         {"modelo": "M4", "descricao": "Ocupação (controles CBO)",
-         "beta": -0.0637, "se": 0.0012, "n": 1_537_885},
-        {"modelo": "M4 (pop. completa)", "descricao": "M4 — pop. completa (n=2,36M)",
-         "beta": -0.0683, "se": 0.00097, "n": 2_357_851},
+         "beta": -0.0644, "se": 0.0005, "n": 7_689_426},
     ]
 
-    # Comparativo OLS (mesmos modelos, SEs maiores por não modelar clustering)
+    # Comparativo OLS (mesmos modelos, SEs clusterizados por UF)
     ols_data = [
         {"modelo": "M1_OLS", "descricao": "Individual (OLS, SE clusterizado)",
-         "beta": -0.2149, "se": 0.0094, "n": 1_537_885},
+         "beta": -0.2148, "se": 0.0093, "n": 7_689_426},
         {"modelo": "M2_OLS", "descricao": "Localidade (OLS)",
-         "beta": -0.1020, "se": 0.0039, "n": 1_537_885},
+         "beta": -0.1021, "se": 0.0034, "n": 7_689_426},
         {"modelo": "M3_OLS", "descricao": "Completo (OLS)",
-         "beta": -0.1020, "se": 0.0039, "n": 1_537_885},
+         "beta": -0.1021, "se": 0.0034, "n": 7_689_426},
         {"modelo": "M4_OLS", "descricao": "Ocupação (OLS)",
-         "beta": -0.0637, "se": 0.0043, "n": 1_537_885},
+         "beta": -0.0644, "se": 0.0037, "n": 7_689_426},
     ]
 
     tab_hlm = tabela_konfound_hlm(hlm_data)
