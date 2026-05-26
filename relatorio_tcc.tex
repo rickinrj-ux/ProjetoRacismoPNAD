@@ -89,7 +89,7 @@ E ANÁLISE DE REDES COM DADOS DA PNAD CONTÍNUA (2016--2025)}}
 \textbf{Contexto.}
 Profissionais negros no Brasil recebem, em média, 19{,}3\% a menos do que
 brancos com mesma escolaridade, sexo, jornada e faixa etária (gap
-condicionado, HLM M1, $n=1{,}54$ mi, PNAD Contínua 2016--2025),
+condicionado, HLM M1, $n=7{,}69$ mi, PNAD Contínua 2016--2025),
 e 53{,}6\% a menos na comparação não-condicionada de médias
 (decomposição de Oaxaca-Blinder, $n=7{,}72$ mi, população completa).
 O gap condicionado permanece robusto à inclusão de controles de
@@ -154,7 +154,7 @@ SHAP values; análise de redes sociais; PNAD Contínua.
 \textbf{Condition.}
 Black professionals in Brazil earn 19.3\% less than comparable White
 workers after controlling for education, sex, working hours, age, urban
-location, and annual economic cycle across 1.54~million observations
+location, and annual economic cycle across 7.69~million observations
 from Brazil's Continuous National Household Sample Survey
 (PNAD Contínua, 2016--2025). Adding controls for working hours and
 macroeconomic trends barely changes the estimate ($\Delta\beta = +0.003$),
@@ -167,7 +167,7 @@ A three-level hierarchical linear model decomposes the gross gap:
 while state-level context adds no incremental explanatory power beyond
 the neighbourhood --- meaning racial inequality operates locally,
 not macroregionally. The neighbourhood racial composition coefficient
-($\hat{\gamma}_{01} = -0.271$, $p<0.001$) constitutes a \emph{double
+($\hat{\gamma}_{01} = -0.272$, $p<0.001$) constitutes a \emph{double
 disadvantage}: living in a predominantly Black neighbourhood reduces
 earnings independently of the individual's race. A binomial generalised linear mixed model (GLMM, $n{=}2.40$~million,
 $N_{\text{PSU}}{=}31{,}950$) estimates that Black workers face
@@ -215,7 +215,7 @@ branco ganha, em média, 19{,}3\% a menos. Esse número não é produto de difer
 de esforço ou de qualificação: ele emerge de um modelo estatístico que controla
 escolaridade em quatro níveis, experiência potencial via equação de Mincer,
 jornada de trabalho, localização urbano-rural e variação macroeconômica anual,
-estimado sobre 1{,}54~milhão de trabalhadores ao longo de dez anos.
+estimado sobre 7{,}69~milhões de trabalhadores ao longo de dez anos.
 
 A persistência do gap diante de controles cada vez mais rigorosos é, em si
 mesma, informação: acrescentar horas trabalhadas, área urbana e dummies anuais
@@ -401,7 +401,7 @@ população completa (sem sub-amostragem).}
 \toprule
 \textbf{Método} & \textbf{Universo} & \textbf{$n$} & \textbf{Filtros} \\
 \midrule
-HLM (M0--M4)       & Empregados c/ renda & 7.694.198 & Renda$>$0; raça branco/negro; variáveis completas \\
+HLM (M0--M4)       & Empregados c/ renda & 7.689.426 & Renda$>$0; raça branco/negro; variáveis completas; UPA$\geq$10 obs. \\
 GLMM logístico      & Empregados c/ CBO   & 2.395.285 & CBO declarado; renda$>$0 \\
 Heckman (probit)    & PEA                 & 9.174.089 & PEA; após dropna vars probit \\
 Heckman (OLS)       & Empregados c/ renda & 7.694.198 & Subconjunto do probit \\
@@ -562,7 +562,7 @@ H1 & Gap bruto e líquido persistem após controles &
   \textbf{Confirmada} & HLM M0--M3 \\
 H2 & Mediação pelo networking local (bairro) &
   52{,}5\% do gap mediado pela UPA;
-  $\hat{\gamma}_{01} = -0{,}271$ ($p<0{,}001$) &
+  $\hat{\gamma}_{01} = -0{,}272$ ($p<0{,}001$) &
   \textbf{Confirmada} & HLM M2 \\
 H3 & Clusters socioeconômicos alinhados com raça &
   Cluster~1 (maior escolaridade, menor renda) 97{,}2\% negro;
@@ -588,7 +588,7 @@ A Tabela~\ref{tab:hlm_resultados} apresenta os quatro modelos HLM
 ajustados sequencialmente, do modelo nulo (M0) ao modelo de ocupação (M4).
 Os modelos foram estimados por REML com complementação por OLS com
 efeitos fixos de UF e erros-padrão clusterizados por UF para
-verificação de robustez (N = 1.537.885; 40.120 UPAs; 27 UFs).
+verificação de robustez (N = 7.689.426; 40.295 UPAs; 27 UFs).
 
 % ─── Condição 1: ICC justifica estrutura multinível ──────────────────────────
 \paragraph{Condição encontrada: variância de renda é estruturalmente
@@ -647,8 +647,8 @@ mediação incremental de estado = 0{,}0\%.
 macroregionalmente.}
 O mecanismo relevante não é ``morar no Nordeste'' ou ``morar no Sudeste'',
 mas ``morar em bairro de maior concentração negra''. O coeficiente contextual
-$\hat{\gamma}_{01} = -0{,}271$ ($p<0{,}001$) indica que um desvio-padrão
-adicional de proporção de negros na UPA reduz o log-rendimento em 0{,}271
+$\hat{\gamma}_{01} = -0{,}272$ ($p<0{,}001$) indica que um desvio-padrão
+adicional de proporção de negros na UPA reduz o log-rendimento em 0{,}272
 pontos --- magnitude comparável à própria penalidade individual de ser negro.
 Isso é o \textbf{duplo disadvantage}: a segregação residencial amplifica
 a desvantagem individual por meio do acesso diferencial a redes locais de
@@ -721,7 +721,7 @@ Educ.: Superior & --- & $-0{,}6145^{***}$ (0,0016) & $-0{,}5711^{***}$ (0,0015) 
 Educ.: Pós-graduação & --- & $-0{,}7177^{***}$ (0,0073) & $-0{,}6639^{***}$ (0,0072) & $-0{,}6639^{***}$ (0,0072) \\
 \addlinespace[3pt]
 \multicolumn{5}{l}{\textit{Contexto de localidade (Nível 2 --- UPA)}} \\
-\% Negro na UPA ($z$) & --- & --- & $-0{,}2713^{***}$ (0,0012) & $-0{,}2713^{***}$ (0,0012) \\
+\% Negro na UPA ($z$) & --- & --- & $-0{,}2720^{***}$ (0,0005) & $-0{,}2720^{***}$ (0,0005) \\
 Desemprego UPA ($z$) & --- & --- & $-0{,}0412^{***}$ (0,0008) & $-0{,}0412^{***}$ (0,0008) \\
 Educ.\ média UPA ($z$) & --- & --- & $-0{,}0042^{***}$ (0,0006) & $-0{,}0042^{***}$ (0,0006) \\
 \addlinespace[3pt]
@@ -731,10 +731,10 @@ Desemprego Estado ($z$) & --- & --- & --- & $0{,}0225$ (0,0301) \\
 Educ.\ média Estado ($z$) & --- & --- & --- & $0{,}1536^{***}$ (0,0218) \\
 \addlinespace[4pt] \midrule
 \multicolumn{5}{l}{\textit{Componentes de variância e ajuste}} \\
-$\hat{\sigma}^2$ (Nível 1) & 0,7653 & 0,5126 & 0,4864 & 0,4864 \\
-$\hat{\tau}^2_{UF}$ (Nível 3) & 0,08342 & 0,03993 & 0,03002 & 0,01520 \\
-$\text{ICC}_{UF}$ & 0,0983 & 0,0723 & 0,0581 & 0,0303 \\
-$N$ (observações) & 1.537.885 & 1.537.885 & 1.537.885 & 1.537.885 \\
+$\hat{\sigma}^2$ (Nível 1) & 0,7665 & 0,5132 & 0,4870 & 0,4870 \\
+$\hat{\tau}^2_{UF}$ (Nível 3) & 0,08327 & 0,03996 & 0,03006 & 0,01497 \\
+$\text{ICC}_{UF}$ & 0,0980 & 0,0722 & 0,0581 & 0,0298 \\
+$N$ (observações) & 7.689.426 & 7.689.426 & 7.689.426 & 7.689.426 \\
 \end{longtable}
 
 % ──────────────────────────────────────────────────────────────────────────────
@@ -2465,7 +2465,7 @@ mutuamente:
     com $\Delta R^2 = +14{,}2\,\text{pp}$).
   \item \textbf{Discriminação territorial} (52{,}5\% do gap, canal indireto):
     penalidade imposta pelo local de moradia, operando via segregação
-    residencial. Capturada pelo coeficiente $\hat{\gamma}_{01} = -0{,}271$
+    residencial. Capturada pelo coeficiente $\hat{\gamma}_{01} = -0{,}272$
     da proporção de negros na UPA. Heterogênea entre regiões, com gap
     variando de $-8{,}6\%$ (Nordeste) a $-11{,}9\%$ (Norte).
   \item \textbf{Discriminação relacional} (canal do capital social):
@@ -2616,7 +2616,7 @@ transferências de renda operadas em nível estadual ou federal não resolverão
 o problema do bairro, pois o mecanismo opera no nível da rede local de
 emprego, qualidade de serviços e composição social da vizinhança.
 
-O coeficiente $\hat{\gamma}_{01} = -0{,}271$ para a proporção de negros
+O coeficiente $\hat{\gamma}_{01} = -0{,}272$ para a proporção de negros
 na UPA indica que a penalidade de viver em bairro segregado equivale,
 em magnitude, à própria penalidade individual de ser negro ---
 a evidência mais direta do \emph{duplo disadvantage}.
@@ -2732,7 +2732,7 @@ O resultado indica que, dentro das premissas adotadas, políticas de
 acesso a redes ($x_4$) e equidade educacional ($x_3$) dominam o
 enforcement ($x_1$) na fronteira eficiente.
 A desegregação residencial ($x_2$), embora com alto efeito potencial
-($\hat{\gamma}_{01} = -0{,}271$), tem custo de implementação mais
+($\hat{\gamma}_{01} = -0{,}272$), tem custo de implementação mais
 elevado e menor retorno por unidade investida no prazo considerado.
 
 \subsection{Programação Multiobjetivo: Fronteira de Pareto}

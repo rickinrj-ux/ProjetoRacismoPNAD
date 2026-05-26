@@ -187,9 +187,9 @@ _EQ_ICC_NUM = _mwrap(
 
 def load_results():
     r = {}
-    r["hlm"]        = pd.read_csv(TABLES / "hlm_serie_s20pct.csv",        index_col=0)
-    r["gap"]        = pd.read_csv(TABLES / "gap_decomposicao_serie_s20pct.csv")
-    r["lrt"]        = pd.read_csv(TABLES / "lrt_serie_s20pct.csv")
+    r["hlm"]        = pd.read_csv(TABLES / "hlm_serie_completo.csv",        index_col=0)
+    r["gap"]        = pd.read_csv(TABLES / "gap_decomposicao_serie_completo.csv")
+    r["lrt"]        = pd.read_csv(TABLES / "lrt_serie_s20pct.csv")  # LRT NaN estrutural
     r["km_perfis"]  = pd.read_csv(TABLES / "kmeans_perfis_k3.csv",        index_col=0)
     r["km_gap"]     = pd.read_csv(TABLES / "kmeans_gap_racial_k3.csv")
     r["km_metricas"]= pd.read_csv(TABLES / "kmeans_metricas.csv")

@@ -25,13 +25,13 @@ def load_results():
     r = {}
 
     # HLM
-    hlm_raw = pd.read_csv(TABLES / "hlm_serie_s20pct.csv", index_col=0)
+    hlm_raw = pd.read_csv(TABLES / "hlm_serie_completo.csv", index_col=0)
     r["hlm"] = hlm_raw
 
-    gap = pd.read_csv(TABLES / "gap_decomposicao_serie_s20pct.csv")
+    gap = pd.read_csv(TABLES / "gap_decomposicao_serie_completo.csv")
     r["gap"] = gap
 
-    lrt = pd.read_csv(TABLES / "lrt_serie_s20pct.csv")
+    lrt = pd.read_csv(TABLES / "lrt_serie_s20pct.csv")  # LRT NaN estrutural
     r["lrt"] = lrt
 
     # K-Means

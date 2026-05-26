@@ -25,7 +25,7 @@ DARK  = "#1F3864"; GRAY = "#616161"; AMBER = "#FF8F00"
 
 # ── Carregar LLs salvos do HLM ─────────────────────────────────────────────
 print("Carregando log-likelihoods salvos ...")
-hlm_tab = pd.read_csv(TABLES / "hlm_serie_s20pct.csv", index_col=0)
+hlm_tab = pd.read_csv(TABLES / "hlm_serie_completo.csv", index_col=0)
 
 LL_ROW = "Log-Likelihood"
 ll_row = hlm_tab.loc[LL_ROW]

@@ -19,7 +19,7 @@ ESTRATEGIA COMPUTACIONAL (41.517 UPAs):
     ICC_UF = tau^2_UF / (tau^2_UF + sigma^2)
 
 AMOSTRA:
-    20% estratificado por UF (~1.54M obs.) para viabilidade computacional.
+    População completa (7.69M obs.). Para amostra 20%, definir SAMPLE_FRAC=0.20.
 """
 import sys
 import logging
@@ -52,7 +52,7 @@ from scipy import stats
 from mlflow_utils import run_context, log_params, log_metrics, log_artifacts_dir
 
 # ── Configuracao ───────────────────────────────────────────────────────────────
-SAMPLE_FRAC  = 0.20          # 20% ≈ 1.54M obs. | None = dados completos
+SAMPLE_FRAC  = None          # None = população completa | 0.20 = 20% (~1.54M obs.)
 RANDOM_STATE = 42
 FEATURES_PATH = Path("data/processed/features.parquet")
 OUTPUTS = Path("outputs/tables")
