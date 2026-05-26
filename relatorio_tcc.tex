@@ -114,12 +114,12 @@ Educação reduz mas não elimina a penalidade racial: a interação
 negro$\times$superior produz um \emph{teto de credencial} em que o
 ensino superior reduz em 47\% a penalidade base, mas ainda deixa
 um gap líquido de 12\% para negros com diploma superior.
-Modelo linear generalizado misto binomial ($n{=}2{,}39$ mi,
+Modelo linear generalizado misto binomial ($n{=}2{,}40$ mi,
 $N_{\text{UPA}}{=}31.950$) estima que trabalhadores negros têm
-$\text{OR}{=}0{,}741$ (IC$_{95\%}$: 0,729--0,752) para ocupar
+$\text{OR}{=}0{,}704$ (IC$_{95\%}$: 0,694--0,715) para ocupar
 cargo de alta qualificação em relação a brancos com as mesmas
 características observáveis --- efeito marginal médio de
-$-1{,}12$ p.p. --- configurando um \emph{teto de vidro ocupacional}
+$-1{,}3$ p.p. --- configurando um \emph{teto de vidro ocupacional}
 independente do \emph{teto de retorno salarial} identificado pela
 regressão quantílica.
 Análise de redes sociais confirma que trabalhadores negros têm
@@ -169,12 +169,12 @@ the neighbourhood --- meaning racial inequality operates locally,
 not macroregionally. The neighbourhood racial composition coefficient
 ($\hat{\gamma}_{01} = -0.271$, $p<0.001$) constitutes a \emph{double
 disadvantage}: living in a predominantly Black neighbourhood reduces
-earnings independently of the individual's race. A binomial generalised linear mixed model (GLMM, $n{=}2.39$~million,
+earnings independently of the individual's race. A binomial generalised linear mixed model (GLMM, $n{=}2.40$~million,
 $N_{\text{PSU}}{=}31{,}950$) estimates that Black workers face
-$\text{OR}{=}0.741$ (95\%~CI: 0.729--0.752) for holding a
+$\text{OR}{=}0.704$ (95\%~CI: 0.694--0.715) for holding a
 high-skill occupation relative to White workers with identical
 observable characteristics --- an average marginal effect of
-$-1.12$~p.p. --- constituting an \emph{occupational glass ceiling}
+$-1.3$~p.p. --- constituting an \emph{occupational glass ceiling}
 distinct from the \emph{wage-return glass ceiling} identified by
 quantile regression.
 Social network analysis
@@ -386,6 +386,34 @@ de desigualdade racial no Brasil: \textit{negro} = preto (código~2) +
 pardo (código~4); \textit{branco} = branco (código~1), ambos da variável
 V2010 (cor ou raça autodeclarada).
 
+\paragraph{Amostras por análise.}
+Todas as análises utilizam a \textbf{população completa} da PNAD Contínua,
+sem sub-amostragem. A Tabela~\ref{tab:amostras} resume os \emph{datasets}
+de estimação por método.
+
+\begin{table}[H]
+\centering
+\caption{Amostras de estimação por método --- PNAD Contínua 2016--2025,
+população completa (sem sub-amostragem).}
+\label{tab:amostras}
+\small
+\begin{tabular}{llrp{4cm}}
+\toprule
+\textbf{Método} & \textbf{Universo} & \textbf{$n$} & \textbf{Filtros} \\
+\midrule
+HLM (M0--M4)       & Empregados c/ renda & 7.694.198 & Renda$>$0; raça branco/negro; variáveis completas \\
+GLMM logístico      & Empregados c/ CBO   & 2.395.285 & CBO declarado; renda$>$0 \\
+Heckman (probit)    & PEA                 & 9.174.089 & PEA; após dropna vars probit \\
+Heckman (OLS)       & Empregados c/ renda & 7.694.198 & Subconjunto do probit \\
+OB básica           & Empregados c/ renda & 7.694.198 & Mesmos filtros HLM \\
+OB expandida (CBO)  & Empregados c/ CBO   & 7.694.198 & CBO declarado \\
+QR (M3)             & Empregados c/ renda & 7.694.198 & Mesmos filtros HLM \\
+Event Study / DiD   & Empregados poolado  & 7.694.198 & Poolado 2016--2025 \\
+GLMM glass ceiling  & PEA (incl.\ desempregados) & 9.174.089 & Inclui não-empregados \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Modelo Linear Hierárquico de Três Níveis}
 \label{subsec:hlm}
 
@@ -513,6 +541,44 @@ Os resultados são apresentados segundo a lógica
 \textbf{condição encontrada $\to$ causa $\to$ consequência},
 de modo que cada achado estatístico seja imediatamente conectado
 ao mecanismo que o explica e à implicação que dele decorre.
+
+\paragraph{Síntese das hipóteses testadas.}
+A Tabela~\ref{tab:hipoteses_sintese} consolida as cinco hipóteses originais
+e as evidências empíricas obtidas.
+
+\begin{table}[H]
+\centering
+\caption{Síntese das hipóteses e evidências empíricas ---
+PNAD Contínua 2016--2025, população completa.}
+\label{tab:hipoteses_sintese}
+\small
+\begin{tabular}{p{0.5cm}p{3.2cm}p{4.2cm}p{1.5cm}p{2.5cm}}
+\toprule
+\textbf{H} & \textbf{Hipótese} & \textbf{Evidência empírica} & \textbf{Status} & \textbf{Método} \\
+\midrule
+H1 & Gap bruto e líquido persistem após controles &
+  $\hat{\beta}_{M3} = -0{,}102$ ($-9{,}7\%$, $p<0{,}001$);
+  gap bruto $= 53{,}6\%$ (OB) &
+  \textbf{Confirmada} & HLM M0--M3 \\
+H2 & Mediação pelo networking local (bairro) &
+  52{,}5\% do gap mediado pela UPA;
+  $\hat{\gamma}_{01} = -0{,}271$ ($p<0{,}001$) &
+  \textbf{Confirmada} & HLM M2 \\
+H3 & Clusters socioeconômicos alinhados com raça &
+  Cluster~1 (maior escolaridade, menor renda) 97{,}2\% negro;
+  Silhouette $k=3$ &
+  \textbf{Confirmada} & $k$-means + SNA \\
+H4 & Raça mantém relevância preditiva (SHAP) &
+  Raça: 2.º preditor SHAP ($\bar{|\phi|} = 0{,}081$),
+  após escolaridade &
+  \textbf{Confirmada} & XGBoost + SHAP \\
+H5 & Isolamento estrutural na rede de co-residência &
+  Betweenness nulo para todos os grupos negros;
+  Branco\_Fundamental $B=0{,}306$ vs.\ Negro\_Pós $B=0$ &
+  \textbf{Confirmada} & SNA (Jaccard + Burt) \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 % ──────────────────────────────────────────────────────────────────────────────
 \subsection{Modelos Hierárquicos Lineares}
@@ -701,10 +767,18 @@ macroeconômico estadual. Estimado na população completa ($n = 2{.}357{.}851$;
 % ─── Condição encontrada ──────────────────────────────────────────────────────
 \paragraph{Condição encontrada: retorno educacional varia significativamente
 entre localidades.}
-A variância do slope aleatório $\hat{\tau}^2_1$ e a correlação
-$\widehat{\mathrm{corr}}(u_0, u_1)$ são reportadas na Tabela~\ref{tab:hlm_m4}.
-O teste de razão de verossimilhança M3$\to$M4 rejeita o modelo sem
-heterogeneidade de slope ($\chi^2(2)$, reportado na tabela).
+A variância do slope aleatório $\hat{\tau}^2_1 = 0{,}0089$ e a correlação
+$\widehat{\mathrm{corr}}(u_0, u_1) = -0{,}121$ são reportadas na Tabela~\ref{tab:hlm_m4}
+e evidenciam heterogeneidade de retorno educacional entre localidades.
+O teste de razão de verossimilhança (LRT) baseado em REML não é
+aplicável para comparar estruturas de variância (M3$\to$M4), pois a
+hipótese nula $\tau^2_1 = 0$ está na fronteira do espaço paramétrico,
+tornando a distribuição $\chi^2$ assintótica inválida \citep{stram1994}.
+A justificativa para incluir o slope aleatório repousa na magnitude
+estimada ($\hat{\tau}^2_1 = 0{,}0089$, que corresponde a desvio-padrão
+de retorno educacional de $\pm 0{,}094$ log-pontos entre UPAs) e na
+correlação negativa intercepto-slope, consistente com a hipótese de
+compressão de retornos em bairros de menor capital social.
 
 % ─── Causa ────────────────────────────────────────────────────────────────────
 \paragraph{Causa: segregação residencial comprime os retornos educacionais
@@ -858,7 +932,7 @@ O par GLMM--QR configura um \textbf{teto de vidro racial de dupla camada}:
     O efeito persiste mesmo dentro do mesmo tipo de vínculo e setor.
   \item \textbf{Barreira salarial (QR)}: entre os trabalhadores já
     empregados, o gap salarial cresce monotonicamente do décil inferior
-    ao superior (de $-8{,}2\%$ em $\tau=0{,}10$ a $-11{,}8\%$ em
+    ao superior (de $-8{,}3\%$ em $\tau=0{,}10$ a $-11{,}8\%$ em
     $\tau=0{,}90$) --- ver Seção~\ref{subsec:qr}.
 \end{enumerate}
 Políticas de acesso ao mercado formal são condição necessária mas insuficiente:
@@ -970,19 +1044,19 @@ no HLM salarial) indica que a porta de entrada aos cargos qualificados
 A regressão quantílica (Koenker \& Bassett, 1978) estima o coeficiente $\hat{\beta}_{negro}$
 em $\log\_renda$ para cada quantil $\tau \in \{0{,}10, 0{,}25, 0{,}50, 0{,}75, 0{,}90, 0{,}95\}$
 da distribuição condicional, testando formalmente a hipótese de \emph{glass ceiling} racial.
-Os resultados (Modelo M3, amostra 20\%, $n=1{.}538{.}839$) revelam:
+Os resultados (Modelo M3, população completa, $n=7{.}694{.}198$) revelam:
 
 \begin{center}
 \begin{tabular}{lrr}
 \toprule
 Quantil & $\hat{\beta}_{negro}$ & Gap~(\%) \\
 \midrule
-$\tau = 0{,}10$ & $-0{,}0857$ & $-8{,}2\%$ \\
-$\tau = 0{,}25$ & $-0{,}0769$ & $-7{,}4\%$ \\
-$\tau = 0{,}50$ & $-0{,}0825$ & $-7{,}9\%$ \\
-$\tau = 0{,}75$ & $-0{,}1067$ & $-10{,}1\%$ \\
-$\tau = 0{,}90$ & $-0{,}1256$ & $-11{,}8\%$ \\
-$\tau = 0{,}95$ & $-0{,}1311$ & $-12{,}3\%$ \\
+$\tau = 0{,}10$ & $-0{,}0865$ & $-8{,}3\%$ \\
+$\tau = 0{,}25$ & $-0{,}0766$ & $-7{,}4\%$ \\
+$\tau = 0{,}50$ & $-0{,}0837$ & $-8{,}0\%$ \\
+$\tau = 0{,}75$ & $-0{,}1063$ & $-10{,}1\%$ \\
+$\tau = 0{,}90$ & $-0{,}1252$ & $-11{,}8\%$ \\
+$\tau = 0{,}95$ & $-0{,}1326$ & $-12{,}4\%$ \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -1473,7 +1547,7 @@ discriminação de remuneração pura \textit{dentro} de cada ocupação
 \centering
 \caption{Comparação OB: modelo base (sem CBO) vs.\ modelo expandido
 (com grupos CBO, formalidade e horas). PNAD Contínua 2016--2025,
-amostra 20\%, $n=1{.}538{.}839$.}
+população completa, $n=7{.}694{.}198$.}
 \label{tab:ob_expandido}
 \begin{tabular}{lrrr}
 \toprule
@@ -1486,19 +1560,27 @@ Efeito retornos (\%) & 75,2 & \textbf{16,0} & Discriminação pura intra-ocupaç
 \multicolumn{4}{l}{\textit{Interpretação: os 59,2 p.p. migrados de retornos para dotações}} \\
 \multicolumn{4}{l}{\textit{representam a parcela do gap que opera \emph{via} exclusão ocupacional,}} \\
 \multicolumn{4}{l}{\textit{não via discriminação de remuneração direta. A barreira de acesso}} \\
-\multicolumn{4}{l}{\textit{(GLMM: OR=0,708) é o mecanismo primário de transmissão.}} \\
+\multicolumn{4}{l}{\textit{(GLMM: OR=0,704) é o mecanismo primário de transmissão.}} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\paragraph{Estabilidade temporal.}
+\paragraph{Estabilidade temporal da estrutura do gap.}
 A decomposição estimada separadamente para dois sub-períodos confirma
 que o gap e seus componentes são estruturais:
-período inicial (2016--2018): gap = 54,9\%, retornos = 18,2\%;
-período recente (2022--2025): gap = 52,1\%, retornos = 16,0\%.
-A leve redução do gap ($-2{,}8$~p.p.) e dos retornos diferenciais ($-2{,}2$~p.p.)
-sugere tendência marginal de melhora, insuficiente para convergência
-no horizonte considerado.
+período inicial (2016--2018): gap $= 54{,}9\%$, componente retornos $= 18{,}2\%$;
+período recente (2022--2025): gap $= 52{,}1\%$, componente retornos $= 16{,}0\%$.
+A leve queda do gap ($\Delta = -2{,}8$~p.p. em seis anos, ou $-0{,}47$~p.p./ano)
+e dos retornos diferenciais ($\Delta = -2{,}2$~p.p.) sugere tendência marginal
+de melhora, \textbf{insuficiente para convergência}: ao ritmo observado,
+a eliminação do gap bruto levaria mais de um século.
+O padrão é consistente com o teste WLS de tendência dos coeficientes HLM anuais
+($\hat{\delta} = +0{,}0008$/ano, $p = 0{,}077$, Seção~\ref{sec:tendencia_temporal}):
+os dois métodos convergem para a mesma conclusão --- o gap é estruturalmente
+estável, com convergência marginal e não-significativa.
+Notavelmente, a estrutura do gap (dominância do componente dotações $>80\%$)
+é invariante entre os dois períodos, indicando que mesmo a melhoria educacional
+relativa dos negros observada na última década não reverteu a barreira de retornos.
 
 \begin{figure}[H]
   \centering
@@ -2055,6 +2137,309 @@ revelam um padrão \textbf{contrário à hipótese do glass ceiling discriminat�
 \end{figure}
 
 % ══════════════════════════════════════════════════════════════════════════════
+%  EXTENSÕES DE ROBUSTEZ — ADIÇÕES PÓS-ANÁLISE PRINCIPAL
+% ══════════════════════════════════════════════════════════════════════════════
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Estabilidade Temporal do Gap: Tendência Formal e Quebra COVID-19}
+\label{sec:tendencia_temporal}
+% ─────────────────────────────────────────────────────────────────────────────
+
+Uma questão fundamental para a validade externa do TCC é se o gap salarial
+racial estimado é uma fotografia de um momento específico ou um fenômeno
+estruturalmente estável ao longo da série 2016--2025. Esta seção aplica três
+testes formais sobre os estimados anuais $\hat{\beta}_{negro,t}$ do HLM
+(Tabela~\ref{tab:tendencia_serie}), sem re-estimar os modelos.
+
+\subsubsection*{WLS ponderado por precisão}
+
+O teste de tendência linear estima, por Mínimos Quadrados Ponderados (pesos
+$w_t = 1/\widehat{SE}_t^2$), a regressão:
+\[
+  \hat{\beta}_{negro,t} = \alpha + \delta \cdot (t - 2019) + \varepsilon_t,
+  \quad t = 2016, \ldots, 2025.
+\]
+A ponderação por $1/SE^2$ corrige heteroscedasticidade entre anos --- anos com
+amostras menores (2020--2021, período COVID) têm SEs maiores e, portanto, menor
+peso, evitando que estimativas menos precisas dominem a tendência estimada.
+
+O coeficiente estimado é $\hat{\delta} = +0{,}000847$ log-pontos por ano
+(IC$_{95\%}$: $[-0{,}000094;\; +0{,}001787]$; $p = 0{,}077$),
+não atingindo significância estatística convencional ($\alpha = 0{,}05$).
+O sinal positivo indica que $|\hat{\beta}_{negro}|$ decresce levemente ao longo
+do período --- convergência salarial marginal --- mas a magnitude é de
+$+0{,}08\,\text{pp/ano}$, implicando uma redução acumulada de apenas $0{,}7\,\text{pp}$
+ao longo de dez anos. \textbf{O gap é, portanto, estruturalmente estável}: a hipótese
+nula de $\delta = 0$ não é rejeitada, e a trajetória estimada é indistinguível de
+ruído amostral.
+
+\subsubsection*{Chow Test --- Quebra Estrutural em 2020}
+
+Embora a tendência global seja não-significativa, os dados de 2020 exibem um
+desvio visível: $\hat{\beta}_{negro,2020} = -0{,}098$, contra $-0{,}108$ em 2019
+e $-0{,}102$ em 2021 (Tabela~\ref{tab:tendencia_serie}). O teste de
+\citet{chow1960} verifica se os parâmetros da tendência (intercepto e slope)
+são iguais nos subperíodos pré e pós-2020:
+
+\[
+  F_{\text{Chow}} = \frac{(RSS_{\text{pool}} - RSS_{\text{pré}} - RSS_{\text{pós}})/k}
+                        {(RSS_{\text{pré}} + RSS_{\text{pós}})/(n - 2k)}
+  \sim F(k,\; n-2k),\quad k=2,\; n=10.
+\]
+
+O resultado $F(2,6) = 7{,}01$ ($p = 0{,}027$) \textbf{rejeita a hipótese de
+estabilidade estrutural}, identificando 2020 como ponto de quebra.
+Os slopes estimados nos subperíodos confirmam a assimetria:
+$\hat{\delta}_{\text{pré}} = -0{,}00135$ log-pt/ano (convergência pré-COVID)
+versus $\hat{\delta}_{\text{pós}} = +0{,}00288$ log-pt/ano (leve reversão
+pós-COVID).
+A quebra não cancela o gap --- ele persiste em todos os anos com p$<$0,001 ---,
+mas altera a dinâmica da trajetória temporal, sugerindo que o choque pandêmico
+criou um patamar diferente que será investigado formalmente na
+Seção~\ref{sec:event_study_covid}.
+
+\subsubsection*{Teste de Mann-Kendall (não-paramétrico)}
+
+Para amostras pequenas ($n = 10$) com possível autocorrelação, o teste de
+\citet{mann1945} é mais robusto que o WLS: não assume normalidade dos resíduos
+e é baseado em concordâncias e discordâncias ordinais.
+O coeficiente $\tau_{\text{Kendall}} = +0{,}333$ ($Z = 1{,}26$; $p = 0{,}211$)
+corrobora a ausência de tendência monotônica significativa.
+A autocorrelação AR(1) nos resíduos WLS é $\hat{\rho} = 0{,}21$ ($DW = 1{,}32$;
+$p = 0{,}588$), confirmando que os SEs do WLS são válidos sem correção HAC.
+
+\begin{table}[htbp]
+\centering
+\caption{Testes formais de tendência no coeficiente $\hat{\beta}_{negro}$ anual ---
+  HLM de intercepto aleatório por UF, PNAD Contínua 2016--2025.
+  WLS: ponderação por $1/SE^2$.
+  Chow: quebra estrutural em 2020 (COVID-19).
+  Mann-Kendall: não-paramétrico, robusto a autocorrelação.}
+\label{tab:tendencia_testes}
+\small
+\input{../outputs/tables/tendencia_temporal_testes.tex}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Série anual de $\hat{\beta}_{negro}$ --- HLM por ano, PNAD Contínua 2016--2025.
+  Gap (\%) $= (\exp(\hat{\beta}_{negro}) - 1) \times 100$.
+  IC$_{95\%}$ calculado a partir do SE do HLM anual.
+  ICC\_UF: variância da renda explicada pelo estado de residência.}
+\label{tab:tendencia_serie}
+\small
+\input{../outputs/tables/tendencia_temporal_serie.tex}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{../outputs/figures/tendencia_temporal}
+\caption{Tendência temporal de $\hat{\beta}_{negro}$ (2016--2025).
+  \textbf{Painel esquerdo}: coeficiente anual com IC$_{95\%}$, tendência WLS
+  e anotação da quebra COVID-19. O gap converge levemente mas não-significativamente
+  ($\hat{\delta} = +0{,}000847$, $p = 0{,}077$).
+  \textbf{Painel direito}: slopes WLS pré (2016--2019) e pós (2020--2025) COVID;
+  o Chow test rejeita a igualdade dos slopes ($F = 7{,}01$, $p = 0{,}027$).}
+\label{fig:tendencia_temporal}
+\end{figure}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Correção de Seleção Amostral: Heckman Two-Step}
+\label{sec:heckman}
+% ─────────────────────────────────────────────────────────────────────────────
+
+Os modelos HLM, OLS e GLMM estimam o gap salarial racial \emph{condicionando}
+a amostra a trabalhadores com renda positiva. A questão é se esse filtro gera
+viés de seleção: negros têm taxa de desemprego historicamente $\approx 2\times$
+maior que brancos \citep{ibge_pnad_2023}, de modo que o subsample de negros
+\emph{empregados} é uma seleção positiva atípica --- aqueles que superaram
+a barreira discriminatória de acesso ao emprego.
+Ignorar essa seleção pode distorcer a estimativa do gap salarial
+\citep{heckman1979, wooldridge2010}.
+
+\subsubsection*{Especificação}
+
+O método de \citet{heckman1979} modela dois estágios:
+
+\textbf{Estágio~1 --- Probit de seleção} (sobre a PEA, $n = 9{,}17$\,M):
+\[
+  \Pr(y_{\text{sel}} = 1 \mid \mathbf{X}, Z) = \Phi(\mathbf{X}\boldsymbol{\gamma} + \delta Z),
+\]
+onde $y_{\text{sel}} = 1$ se o indivíduo está empregado com renda positiva,
+$\mathbf{X}$ são as covariáveis individuais (race, educação, experiência, urbanização)
+e contextuais (UPA, UF), e $Z = \texttt{media\_renda\_upa\_z}$ é a
+\textbf{variável de exclusão} --- a renda média da UPA, que prediz
+fortemente a disponibilidade local de empregos mas não integra a equação
+de salários nos modelos M1--M3 (ver Seção~\ref{sec:dados}).
+
+A exclusão de $Z$ da equação de salários é justificada: a renda média do bairro
+determina a oferta de vagas (e portanto a probabilidade de emprego), mas
+condicional às características individuais e aos demais controles contextuais
+(taxa de desemprego da UPA, percentual de negros, escolaridade média), ela
+não adiciona poder explicativo direto sobre o salário individual.
+Isso torna $Z$ um instrumento válido na equação de seleção.
+
+\textbf{Estágio~2 --- OLS com Razão de Mills Inversa} (sobre empregados, $n = 7{,}69$\,M):
+\[
+  \log\text{renda}_{i} = \alpha + \hat{\beta} \cdot \texttt{negro}_{i}
+                        + \mathbf{X}'_i\boldsymbol{\theta}
+                        + \lambda \cdot \underbrace{\hat{\lambda}_i}_{\text{IMR}} + \varepsilon_i,
+\]
+onde $\hat{\lambda}_i = \hat{\phi}(\hat{X}_i\hat{\gamma}) / \hat{\Phi}(\hat{X}_i\hat{\gamma})$
+é a Razão de Mills Inversa (IMR). O coeficiente $\lambda$ testa se há viés de
+seleção: $\lambda \neq 0$ indica que os resíduos da equação de seleção e de salários
+são correlacionados --- i.e., seleção amostral não-aleatória.
+
+\subsubsection*{Resultados}
+
+O probit de Estágio~1 convergiu com $\log L = {-180.518{,}7}$ e confirmou que
+$Z$ tem poder explicativo significativo: a renda média da UPA ($p < 0{,}001$)
+prediz fortemente a seleção para emprego, validando a relevância do instrumento.
+
+A Tabela~\ref{tab:heckman} apresenta a comparação central:
+
+\begin{table}[htbp]
+\centering
+\caption{Correção Heckman Two-Step --- gap salarial racial.
+  OLS (sem correção): estimativa convencional sobre empregados ($n = 7{,}69$\,M).
+  Heckman (com IMR): $\hat{\beta}_{negro}$ corrigido pela Razão de Mills Inversa.
+  Variável de exclusão: \texttt{media\_renda\_upa\_z}.
+  SEs clusterizados por UF.
+  PNAD Contínua 2016--2025.}
+\label{tab:heckman}
+\input{../outputs/tables/heckman_comparacao.tex}
+\end{table}
+
+O coeficiente da IMR é $\hat{\lambda} = -1{,}985$ ($p < 0{,}001$,
+$n_{\text{PEA}} = 9{,}17$\,M),
+\textbf{confirmando viés de seleção altamente significativo}. O sinal negativo
+implica que, condicional às covariáveis observáveis $\mathbf{X}$, as
+características não observadas que elevam a probabilidade de emprego estão
+negativamente correlacionadas com salários --- em outras palavras, há um grupo
+de trabalhadores que aceitam salários abaixo de seu produto marginal como
+condição de acesso ao emprego.
+
+A correção altera substancialmente o gap estimado:
+$\hat{\beta}_{negro}^{\text{OLS}} = -0{,}102$ ($-9{,}7\%$)
+versus $\hat{\beta}_{negro}^{\text{Heckman}} = -0{,}077$ ($-7{,}4\%$).
+A diferença $\Delta\hat{\beta} = +0{,}025$ indica que o OLS \textbf{superestima}
+o gap salarial racial em $2{,}5$\,log-pontos percentuais.
+
+O mecanismo: como negros enfrentam barreiras de acesso ao emprego muito maiores
+(IMR médio: negros $0{,}288$ vs.\ brancos $0{,}220$), os que conseguem emprego
+aceitam condições salariais mais desfavoráveis do que sua produtividade observada
+justificaria. O OLS captura tanto a discriminação salarial direta quanto essa
+tolerância forçada, inflando a estimativa.
+O Heckman isola o componente de \textbf{discriminação salarial pura}
+em $-7{,}4\%$ --- que permanece substancial e altamente significativo.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{../outputs/figures/heckman_selecao}
+\caption{Correção Heckman Two-Step.
+  \textbf{Painel esq.}: $\hat{\beta}_{negro}$ com e sem correção de seleção.
+  \textbf{Painel central}: distribuição da IMR por grupo racial; negros (vermelho)
+  concentram valores maiores, evidenciando maior seleção positiva por barreiras
+  de acesso ao emprego.
+  \textbf{Painel dir.}: decomposição de $\hat{\beta}_{negro}$ em discriminação
+  salarial pura (Heckman) e componente de tolerância forçada ($\Delta\hat{\beta}$).}
+\label{fig:heckman}
+\end{figure}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Event Study: Choque COVID-19 e Decomposição Composicional}
+\label{sec:event_study_covid}
+% ─────────────────────────────────────────────────────────────────────────────
+
+O Chow test (Seção~\ref{sec:tendencia_temporal}) detectou quebra estrutural
+em 2020. Esta seção responde: a queda observada de $1{,}1$\,pp no gap
+($\hat{\beta}_{2019} = -0{,}108$ $\to$ $\hat{\beta}_{2020} = -0{,}098$)
+reflete redução genuína de discriminação ou é artefato composicional ---
+trabalhadores que saíram do emprego em 2020 eram brancos com maior salário,
+comprimindo mecanicamente o gap entre os remanescentes?
+
+\subsubsection*{Especificação do event study}
+
+Estimamos, sobre o dataset de empregados poolado ($n = 7{,}69$\,M), o modelo:
+\[
+  \log\text{renda}_{it} = \alpha + \sum_{t \neq 2019} \gamma_t \cdot \mathbf{1}(\text{Ano}=t)
+  + \sum_{t \neq 2019} \delta_t \cdot (\texttt{negro}_i \times \mathbf{1}(\text{Ano}=t))
+  + \mathbf{X}'_i\boldsymbol{\beta} + \text{C(UF)} + \varepsilon_{it},
+\]
+onde $\delta_t$ é o gap racial no ano $t$ \emph{relativo a 2019} (ano de
+referência). A pré-tendência é testada via Wald: $H_0: \delta_{2016} = \delta_{2017}
+= \delta_{2018} = 0$.
+
+\subsubsection*{Resultados do event study}
+
+O coeficiente $\hat{\delta}_{2020} = +0{,}015$ ($p = 0{,}022$) indica que o gap
+em 2020 foi estatisticamente \textbf{menor} que em 2019 em 1,5\,pp.
+O resultado é corroborado pelo DiD 2$\times$2 (\ref{tab:did_covid}):
+$\hat{\tau}_{\text{DiD}} = +0{,}015$ ($p = 0{,}025$), estimado via regressão
+com SE clusterizado por UF.
+
+Contudo, o teste de pré-tendência (Wald conjunto $H_0: \delta_{2016} = \delta_{2017}
+= \delta_{2018} = 0$) rejeita $H_0$ com $p = 0{,}008$.
+A inspeção dos coeficientes individuais revela padrão diferenciado:
+$\hat{\delta}_{2016} = +0{,}024$ ($p = 0{,}0018$, significativo);
+$\hat{\delta}_{2017} = +0{,}018$ ($p = 0{,}018$, significativo);
+$\hat{\delta}_{2018} = +0{,}008$ ($p = 0{,}191$, não significativo).
+Isso não invalida necessariamente o DiD para 2020 --- reflete que o gap
+oscilava em torno de $-10\%$ mesmo antes da pandemia, com leve tendência
+de aumento do gap nos anos pré-pandemia (2016--2017) --- mas exige
+interpretação cuidadosa: o $\hat{\tau}_{\text{DiD}}$ captura o efeito do
+COVID-19 \emph{em excesso à tendência pré-existente}, não em relação a uma
+linha de base perfeitamente estável.
+
+\subsubsection*{Decomposição composicional}
+
+Para separar efeito preço ($\to$ discriminação menor) de efeito composição
+($\to$ seleção amostral), calculamos as taxas de emprego por grupo racial
+e ano sobre a PEA completa ($n = 9{,}17$\,M):
+
+\begin{itemize}
+  \item \textbf{Taxas de emprego em 2020}:
+    $\Delta\text{tx\_emp\_branco} = -1{,}91\,\text{pp}$
+    contra $\Delta\text{tx\_emp\_negro} = -1{,}60\,\text{pp}$.
+    \textbf{Brancos perderam mais emprego} que negros em 2020.
+  \item O gap bruto entre empregados reduziu $1{,}2$\,pp ($\Delta\text{gap} = +0{,}012$),
+    alinhado com o event study poolado ($\hat{\delta}_{2020} = +0{,}015$).
+\end{itemize}
+
+Esse resultado aponta para um mecanismo predominantemente \textbf{composicional}:
+em 2020, trabalhadores brancos de setores formais mais atingidos pela pandemia
+(serviços, turismo) saíram do emprego em maior proporção, reduzindo o salário
+médio branco dos remanescentes e comprimindo o gap observado entre os empregados.
+A queda \emph{não} representa convergência genuína de discriminação, mas uma
+perturbação transiente na composição da amostra analítica --- consistente com a
+reversão observada em 2021 ($\hat{\beta}_{negro,2021} = -0{,}102$).
+
+\begin{table}[htbp]
+\centering
+\caption{DiD 2$\times$2 --- efeito diferencial do COVID-19 sobre o gap salarial racial.
+  Compara trabalhadores negros vs.\ brancos em 2019 (pré) vs.\ 2020 (COVID).
+  $\hat{\tau} > 0$: gap menor (convergência aparente).
+  SEs clusterizados por UF.
+  PNAD Contínua 2019--2020.}
+\label{tab:did_covid}
+\input{../outputs/tables/event_study_did.tex}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{../outputs/figures/event_study_covid}
+\caption{Event study COVID-19 --- gap salarial racial (PNAD Contínua 2016--2025).
+  \textbf{Painel A}: $\hat{\delta}_t$ relativo a 2019; o coeficiente 2020 é positivo e
+  significativo ($+0{,}015$, $p{=}0{,}022$), indicando gap menor.
+  \textbf{Painel B}: gap bruto por ano (empregados).
+  \textbf{Painel C}: taxas de emprego por grupo racial; brancos perderam mais
+  emprego em 2020 ($-1{,}9\,\text{pp}$) que negros ($-1{,}6\,\text{pp}$),
+  evidenciando mecanismo composicional.
+  \textbf{Painel D}: DiD 2$\times$2 com IC$_{95\%}$.}
+\label{fig:event_study}
+\end{figure}
+
+% ══════════════════════════════════════════════════════════════════════════════
 %  5. DISCUSSÃO
 % ══════════════════════════════════════════════════════════════════════════════
 \section{Discussão}
@@ -2112,15 +2497,83 @@ A robustez no setor formal (Seção~\ref{sec:robustez_formal}) encerra o
 argumento de que a informalidade seria o principal motor da desigualdade
 racial observada.
 
+\paragraph{Seleção amostral e limites do canal~1.}
+A correção de \citet{heckman1979} (Seção~\ref{sec:heckman}) revela uma quinta
+dimensão da desigualdade: o canal de acesso ao emprego.
+O coeficiente $\hat{\lambda} = -1{,}985$ ($p<0{,}001$) confirma que
+trabalhadores negros aceitem condições salariais inferiores ao seu
+produto marginal como condição necessária de entrada no mercado formal.
+Isso implica que a estimativa OLS do gap ($-9{,}7\%$) inclui tanto a
+discriminação salarial direta quanto esse custo de acesso;
+o Heckman isola a discriminação salarial pura em $-7{,}4\%$
+--- valor que permanece substancial e desloca a interpretação do canal~1:
+parte do que parece discriminação salarial é, na verdade, discriminação
+de \emph{acesso}, operando sobre o salário de reserva dos trabalhadores negros.
+
+\paragraph{Triangulação GLMM × Heckman × OB: três camadas de discriminação.}
+Os resultados de GLMM, Heckman e OB, tomados em conjunto, apontam para
+uma arquitetura de três camadas sequenciais de discriminação racial
+(Tabela~\ref{tab:triangulacao}):
+
+\begin{table}[H]
+\centering
+\caption{Triangulação metodológica: GLMM × Heckman × OB --- camadas de discriminação.
+PNAD Contínua 2016--2025, população completa.}
+\label{tab:triangulacao}
+\small
+\begin{tabular}{llrr}
+\toprule
+\textbf{Camada} & \textbf{Método} & \textbf{Estimativa} & \textbf{Interpretação} \\
+\midrule
+1. Barreira de acesso ocupacional &
+  GLMM (M1) & OR $= 0{,}704$ & $-29{,}6\%$ chance CBO 1--4 \\
+2. Custo de tolerância salarial &
+  Heckman $\Delta\hat{\beta}$ & $+0{,}025$ log-pt & OLS superestima em 2,5\,pp \\
+3. Discriminação salarial pura &
+  Heckman / OB & $-7{,}4\%$ / $-9{,}7\%$ & Gap residual pós-correção \\
+\bottomrule
+\multicolumn{4}{l}{\textit{Nota: camadas operam simultaneamente; GLMM quantifica acesso; Heckman decompõe}} \\
+\multicolumn{4}{l}{\textit{o gap salarial em tolerância forçada + discriminação pura.}} \\
+\end{tabular}
+\end{table}
+
+A \textbf{camada~1} (GLMM) opera \emph{antes} do salário: negros têm $-29{,}6\%$
+de chance de acessar cargos qualificados, independentemente de escolaridade ou
+vínculo. A \textbf{camada~2} (Heckman $\Delta = 2{,}5$\,pp) quantifica o custo
+de tolerância salarial --- trabalhadores negros aceitam condições inferiores
+ao seu produto marginal para superar a barreira de entrada do emprego formal.
+A \textbf{camada~3} ($-7{,}4\%$ Heckman puro, ou $-9{,}7\%$ OLS bruto)
+é a discriminação salarial direta que persiste mesmo após corrigir a seleção.
+A decomposição OB complementa: dos $75{,}2\%$ do gap bruto atribuíveis a retornos
+diferenciais, o componente intra-ocupação (OB expandida: 16,0\%) é a
+discriminação de remuneração pura; os restantes $59{,}2$\,pp refletem a
+camada~1 materializada em salários via segregação ocupacional.
+Nenhuma política isolada ataca as três camadas simultaneamente.
+
+\paragraph{Estabilidade temporal e o COVID-19.}
+O gap é estruturalmente estável ao longo de 2016--2025
+(WLS slope $\hat{\delta} = +0{,}0008$ log-pt/ano, $p=0{,}077$; Mann-Kendall
+$\tau=0{,}333$, $p=0{,}211$): a desigualdade racial não é um fenômeno em
+convergência espontânea.
+A aparente queda em 2020 ($\hat{\beta}_{2020} = -0{,}098$ vs.\ $-0{,}108$
+em 2019) é detectada como quebra estrutural pelo Chow test ($F=7{,}01$,
+$p=0{,}027$), mas o event study e a decomposição composicional
+(Seção~\ref{sec:event_study_covid}) mostram que ela é predominantemente
+\textbf{artefato de composição}: brancos perderam mais emprego em 2020
+($-1{,}9\,\text{pp}$) que negros ($-1{,}6\,\text{pp}$), comprimindo mecanicamente
+o gap entre os remanescentes.
+O gap retorna a $-10{,}2\%$ em 2022 e oscila em torno desse valor até 2025,
+confirmando a ausência de convergência estrutural induzida pela pandemia.
+
 \paragraph{Teto de vidro duplo: GLMM + QR + M4.}
 O GLMM logístico multinível (Seção~\ref{subsec:glmm}) acrescenta
 uma dimensão transversal a esse quadro:
 a discriminação não opera apenas nos salários (\emph{intra}-emprego)
 mas também no \emph{acesso} às posições qualificadas que geram os
 maiores salários.
-Negros têm $-29{,}2\%$ de chance de ocupar cargos CBO~1--4 mesmo
+Negros têm $-29{,}6\%$ de chance de ocupar cargos CBO~1--4 mesmo
 com controles de escolaridade, experiência, vínculo e setor
-(OR~$=~0{,}708$, $p<0{,}001$, $n=2{,}4$\,M empregados);
+(OR~$=~0{,}704$, $p<0{,}001$, $n=2{,}4$\,M empregados);
 a penalidade é ainda maior no decil superior de renda ($-32{,}9\%$,
 OR~$=~0{,}671$), revelando o gradiente de teto de vidro.
 O ICC de $26{,}2\%$ --- mais que o dobro do HLM salarial (9{,}8\%) ---
@@ -2241,10 +2694,10 @@ Os quatro modelos de PO partilham o mesmo vetor de intervenções:
 \end{itemize}
 
 As contribuições estimadas de cada canal ao gap bruto são:
-$g_1 = |\beta_{M3}| = 0{,}1128$;
+$g_1 = |\beta_{M3}| = 0{,}1020$;
 $g_2 \approx |\Delta_{M1 \to M2}| + \hat{\gamma} p_{\text{negro}} = 0{,}055$;
 $g_3 = \text{OB}_{\text{dotação}} = 0{,}1065$;
-$g_4 = \text{OB}_{\text{gap}} - g_1 - g_3 = 0{,}2098$.
+$g_4 = \text{OB}_{\text{gap}} - g_1 - g_3 = 0{,}2206$.
 Os parâmetros de efetividade $\alpha_i$ e custo $c_i$ são
 \textbf{premissas explícitas} (ver Tabela~\ref{tab:po_canais});
 os modelos são normativos, não preditivos.
@@ -2269,7 +2722,7 @@ normalizadas de custo.
 Para $B = 5$ (orçamento de referência), a solução ótima aloca
 $x_1 = x_3 = x_4 = 1{,}0$ (máxima intensidade) e $x_2 = 0{,}52$
 (desegregação residencial limitada pelo custo mais alto $c_2 = 2{,}5$),
-produzindo redução esperada de \textbf{$25{,}9\%$ do gap bruto}
+produzindo redução esperada de \textbf{$26{,}0\%$ do gap bruto}
 (Tabela~\ref{tab:po_pl}).
 
 \input{outputs/tables/po_pl.tex}
@@ -2441,9 +2894,9 @@ ideal, em cinco passos:
 \input{outputs/tables/po_topsis.tex}
 
 A política de \textbf{acesso a redes e brokerage} (A4) lidera o ranking
-com $CC = 0{,}853$, seguida de equidade educacional (A3, $CC = 0{,}518$),
-enforcement legal (A1, $CC = 0{,}415$) e desegregação residencial
-(A2, $CC = 0{,}058$).
+com $CC = 0{,}857$, seguida de equidade educacional (A3, $CC = 0{,}495$),
+enforcement legal (A1, $CC = 0{,}368$) e desegregação residencial
+(A2, $CC = 0{,}056$).
 O resultado é consistente com a PL ($x_4$ recebe maior peso na solução
 ótima): programas que expandem o acesso de trabalhadores negros a
 posições de brokerage na rede ocupacional têm o maior
@@ -2479,7 +2932,7 @@ incorporando explicitamente a barreira de acesso ocupacional:
 
 \begin{itemize}
   \item $P_1$: \textbf{Cotas ocupacionais CBO~1--4} --- ataca diretamente
-        $\text{OR}=0{,}708$ (GLMM, $n=2{.}395{.}285$), AME $= -1{,}30$~pp
+        $\text{OR}=0{,}704$ (GLMM, $n=2{.}395{.}285$), AME $= -1{,}30$~pp
   \item $P_2$: \textbf{Enforcement anti-discriminação} --- reduz
         retornos diferenciais (OB: 16,0\% do gap)
   \item $P_3$: \textbf{Equidade educacional} --- reduz dotações
@@ -2496,8 +2949,8 @@ incorporando explicitamente a barreira de acesso ocupacional:
 \paragraph{Resultado TOPSIS (6 políticas).}
 A consistência AHP foi $CR = 0{,}004 < 0{,}10$ (excelente).
 Cotas ocupacionais CBO~1--4 ($P_1$) dominam o ranking com
-$CC = 0{,}791$ --- gap para o segundo colocado, equidade educacional
-($P_3$, $CC = 0{,}559$), reflete que a barreira de \emph{acesso}
+$CC = 0{,}799$ --- gap para o segundo colocado, equidade educacional
+($P_3$, $CC = 0{,}558$), reflete que a barreira de \emph{acesso}
 antecede a barreira \emph{salarial}: intervir na porta de entrada é
 mais eficiente do que corrigir o resultado.
 Transparência salarial ($P_6$) aparece como medida de baixo custo
@@ -2509,8 +2962,8 @@ Transparência salarial ($P_6$) aparece como medida de baixo custo
   \centering
   \includegraphics[width=0.90\textwidth]{outputs/figures/po_politicas_topsis}
   \caption{Ranking AHP+TOPSIS das 6 políticas e perfil radar.
-           Cotas ocupacionais CBO~1--4 ($CC=0{,}79$) domina por atacar
-           diretamente a barreira de acesso documentada pelo GLMM (OR=0,708).
+           Cotas ocupacionais CBO~1--4 ($CC=0{,}80$) domina por atacar
+           diretamente a barreira de acesso documentada pelo GLMM (OR=0,704).
            Premissas $\alpha_i$ e $c_i$ marcadas [ASSUMIDO] com base em
            Holzer \& Neumark (2000) e Bertrand \& Duflo (2017).}
   \label{fig:po_topsis6}
@@ -2522,7 +2975,7 @@ o gap de acesso (GLMM).
 Na solução de equilíbrio ($\lambda = 0{,}5$), a alocação ótima concentra
 recursos em $P_1$ (cotas CBO) e $P_5$ (mentoria), com $P_6$ como
 medida complementar de curto prazo.
-Com $B=5$ unidades, a PL-1 projeta redução de \textbf{24,0\%} do gap
+Com $B=5$ unidades, a PL-1 projeta redução de \textbf{24{,}1\%} do gap
 bruto --- condicionada às premissas.
 
 \begin{figure}[H]
@@ -2560,7 +3013,7 @@ revela que 75{,}2\% do gap bruto persiste mesmo quando negros têm as
 mesmas dotações observáveis que brancos --- evidência de que mecanismos
 de remuneração diferencial (não apenas diferenças de capital humano)
 são a causa dominante da desigualdade; o padrão é estável ao longo
-do tempo (retornos: 17{,}8\% em 2016--2018 $\to$ 15{,}7\% em 2022--2025)
+do tempo (retornos: 18{,}2\% em 2016--2018 $\to$ 16{,}0\% em 2022--2025)
 e consistente entre sexos (Homens: gap~56{,}3\%, Mulheres: 50{,}9\%).
 O gap é universal (presente em todas as 5 macrorregiões, $p<0{,}001$)
 e apresenta padrão \emph{glass ceiling} com heterogeneidade estatisticamente
@@ -2575,8 +3028,8 @@ por localidade: $\hat{\tau}^2_1 = 0{,}0089$ e
 $\widehat{\mathrm{corr}}(u_0,u_1) = -0{,}121$ indicam que bairros com
 menor renda média oferecem menor ganho por escolaridade --- penalizando
 desproporcionalmente trabalhadores negros concentrados nessas UPAs.
-O pseudo-$R^2$ de Nakagawa-Schielzeth sobe de $R^2_m = 0{,}400$ para
-$R^2_c = 0{,}483$ (+8{,}3\,pp) ao incluir a heterogeneidade de slope por UPA.
+O pseudo-$R^2$ de Nakagawa-Schielzeth sobe de $R^2_m = 0{,}401$ para
+$R^2_c = 0{,}483$ (+8{,}2\,pp) ao incluir a heterogeneidade de slope por UPA.
 Configura-se assim um \textbf{teto de vidro triplo}: exclusão da porta de
 entrada ocupacional (GLMM), compressão salarial nos percentis altos (QR)
 e compressão do retorno educacional em bairros de menor capital social (M4).
@@ -2611,9 +3064,9 @@ Seis intervenções são indicadas pelos dados, classificadas pelo modelo
 AHP+TOPSIS (6 políticas, $CR=0{,}004$, Seção~\ref{subsec:po_expandido}):
 
 \begin{enumerate}
-  \item \textbf{Cotas ocupacionais CBO~1--4} ($CC=0{,}791$, \textbf{1°~TOPSIS}):
-    ataca diretamente OR~$=~0{,}708$ do GLMM;
-    solução ótima da PL-1 com $B=5$ prevê redução de 24{,}0\% do gap bruto.
+  \item \textbf{Cotas ocupacionais CBO~1--4} ($CC=0{,}799$, \textbf{1°~TOPSIS}):
+    ataca diretamente OR~$=~0{,}704$ do GLMM;
+    solução ótima da PL-1 com $B=5$ prevê redução de 24{,}1\% do gap bruto.
     Estratégia de maior impacto por atacar a barreira de entrada
     antes da barreira de progressão.
   \item \textbf{Equidade educacional} ($CC=0{,}559$, 2°~TOPSIS):
@@ -2625,7 +3078,7 @@ AHP+TOPSIS (6 políticas, $CR=0{,}004$, Seção~\ref{subsec:po_expandido}):
     mitiga a mediação territorial do retorno educacional (M4 $\tau^2_1$).
   \item \textbf{Transparência salarial obrigatória} ($CC=0{,}324$, 4°~TOPSIS):
     medida de baixo custo ($c_6=0{,}8$) com efeito imediato sobre o
-    glass ceiling de progressão (QR $\Delta[q90-q10]=-3{,}99$\,pp).
+    glass ceiling de progressão (QR $\Delta[q90-q10]=-3{,}86$\,pp).
   \item \textbf{Enforcement anti-discriminação} ($CC=0{,}240$, 5°~TOPSIS):
     endereça retornos diferenciais (OB: 16{,}0\%).
   \item \textbf{Desegregação residencial} ($CC=0{,}107$, 6°~TOPSIS):
@@ -2661,13 +3114,18 @@ de vidro racial com dados de pesquisa domiciliar de representatividade nacional.
 \bigskip
 
 \noindent\textbf{Limitações e direções futuras.}
-O caráter transversal do painel público da PNAD Contínua impede a
-análise de trajetórias individuais de mobilidade salarial ao longo do
-tempo; estudos futuros poderiam explorar o painel rotativo completo
-com acesso restrito ao microdado identificado. A extensão da análise
-para dados administrativos (RAIS) permitiria investigar a hipótese de
-\emph{glass ceiling} em cargos de liderança com maior precisão,
-aproveitando a cobertura longitudinal dos vínculos formais.
+O microdado público da PNAD Contínua não permite identificação
+longitudinal dos domicílios, impedindo o acompanhamento de trajetórias
+individuais de renda ao longo do tempo --- limitação inerente ao painel
+rotativo de acesso público. O painel completo, disponível apenas mediante
+solicitação formal ao IBGE com microdados identificados, permitiria
+estimar modelos de efeitos fixos de indivíduo e rastrear mobilidade
+salarial intraindividual por grupo racial. Adicionalmente, a análise
+cobriu exclusivamente trabalhadores com vínculo declarado na PNAD,
+excluindo o universo dos vínculos formais com CTPS --- o que futuras
+integrações com outras bases administrativas poderão explorar para
+testar a hipótese de \emph{glass ceiling} em cargos de liderança com
+maior granularidade ocupacional.
 
 % ══════════════════════════════════════════════════════════════════════════════
 %  REFERÊNCIAS

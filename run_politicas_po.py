@@ -15,13 +15,13 @@ Parâmetros confirmados pelos modelos (não assumidos):
     gap_bruto         = 0.4229   (OB global, 52.6%)
     dotacoes_pct      = 84.0%    (OB: segregação ocupacional/educacional)
     retornos_pct      = 16.0%    (OB: discriminação de remuneração)
-    or_cbo14_m1       = 0.708    (GLMM Python logit, ocp_qualif, N=2.395.285)
+    or_cbo14_m1       = 0.704    (GLMM lme4 R, ocp_qualif M1, N=2.395.285 — canônico)
     ame_cbo14_m1      = -1.30pp  (GLMM M1)
     or_top20_m1       = 0.726    (GLMM)
     or_top10_m1       = 0.671    (GLMM — gradiente glass ceiling)
-    qr_q10            = -8.21%   (QR M3)
-    qr_q90            = -11.80%  (QR M3)
-    delta_kb          = -3.59pp  (KB test: β_q90 - β_q10)
+    qr_q10            = -8.29%   (QR M3, qr_kb_test.csv)
+    qr_q90            = -11.77%  (QR M3, qr_kb_test.csv)
+    delta_kb          = -3.86pp  (KB test: β_q90 - β_q10, qr_kb_test.csv)
     icc_upa_acesso    = 26.2%    (GLMM lme4 R, random intercept UPA)
     icc_uf_salario    = 9.83%    (HLM)
     eb_temporal_ini   = 17.8%    (OB Retornos 2016-2018)
@@ -77,14 +77,14 @@ DOTACOES    = 0.3550   # efeito dotações (84.0%)
 RETORNOS    = 0.0679   # efeito retornos (16.0%)
 
 # GLMM logístico (log-odds gap = -ln(OR))
-LOG_ODDS_CBO14 = -np.log(0.708)   # = 0.3455  barreira de acesso CBO 1-4
+LOG_ODDS_CBO14 = -np.log(0.704)   # = 0.3512  barreira de acesso CBO 1-4 (OR canônico lme4 R)
 LOG_ODDS_TOP20 = -np.log(0.726)   # = 0.3199  barreira top 20%
 LOG_ODDS_TOP10 = -np.log(0.671)   # = 0.3991  barreira top 10%
 
-# QR: gap q10 e q90 em log-renda (M3)
-QR_Q10 = 0.0857   # |β_q10|
-QR_Q90 = 0.1256   # |β_q90|
-DELTA_KB = QR_Q90 - QR_Q10  # 0.0399 = glass ceiling de progressão
+# QR: gap q10 e q90 em log-renda (M3, qr_kb_test.csv)
+QR_Q10 = 0.08653  # |β_q10|
+QR_Q90 = 0.12518  # |β_q90|
+DELTA_KB = QR_Q90 - QR_Q10  # 0.03865 = glass ceiling de progressão
 
 # ICC mediation
 ICC_UPA = 0.262   # acesso ocupacional
@@ -94,7 +94,7 @@ ICC_UF  = 0.098   # salários
 #
 #  Canal  | Nome curto         | Ataca                       | Mecanismo
 #  -------|--------------------|-----------------------------|-------------------
-#  P1     | Cotas CBO 1-4      | OR=0.708 (GLMM)            | Acesso qualificado
+#  P1     | Cotas CBO 1-4      | OR=0.704 (GLMM lme4 R)     | Acesso qualificado
 #  P2     | Enforcement        | Retornos=16% (OB)          | Discriminação direta
 #  P3     | Equidade Educac.   | Dotações=84% (OB)          | Capital humano
 #  P4     | Desegregação Resid | ICC_UPA=26.2% (GLMM)       | Territorial
@@ -545,7 +545,7 @@ def gerar_latex(df_topsis, df_pl1, pesos_ahp, cr_ahp):
 if __name__ == "__main__":
     log.info("=" * 60)
     log.info("POLÍTICAS PÚBLICAS ANTI-DISCRIMINAÇÃO — PESQUISA OPERACIONAL")
-    log.info("Parâmetros: gap=0.4229 | GLMM OR_cbo14=0.708 | QR Δ_KB=-3.6pp")
+    log.info("Parâmetros: gap=0.4229 | GLMM OR_cbo14=0.704 | QR Δ_KB=-3.86pp")
     log.info("=" * 60)
 
     df_pl1  = pl1_alocacao_orcamento()

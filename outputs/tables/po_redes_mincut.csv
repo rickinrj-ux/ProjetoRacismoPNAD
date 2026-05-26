@@ -1,10 +1,10 @@
 source,target,capacity,inter_racial
-Negro_Medio,Branco_Superior,32690,True
-Branco_Medio,Branco_Superior,31049,False
-Branco_Fundamental,Branco_Superior,12412,False
-Negro_Fundamental,Branco_Superior,17114,True
 Negro_Superior,Branco_Superior,36050,True
-Negro_Pos,Branco_Superior,18802,True
+Branco_Medio,Branco_Superior,31049,False
 Negro_Sem_Instr,Branco_Superior,37308,True
-Branco_Pos,Branco_Superior,12548,False
+Negro_Fundamental,Branco_Superior,17114,True
+Negro_Pos,Branco_Superior,18802,True
+Negro_Medio,Branco_Superior,32690,True
+Branco_Fundamental,Branco_Superior,12412,False
 Branco_Sem_Instr,Branco_Superior,37348,False
+Branco_Pos,Branco_Superior,12548,False

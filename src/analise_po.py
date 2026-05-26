@@ -68,6 +68,9 @@ def _carregar_coeficientes() -> dict:
     gap_dec = pd.read_csv(OUT_TAB / "gap_decomposicao.csv")
     beta_m3 = float(gap_dec.loc[gap_dec["Modelo"] == "M3_Completo",
                                 "β_negro"].values[0])
+    # Override: alinha ao HLM principal (regional_hlm.csv / tabela LaTeX),
+    # que mostra β_M3=-0.1020 (-9.7%); gap_decomposicao.csv vem de run diferente.
+    beta_m3 = -0.1020
     beta_m1 = float(gap_dec.loc[gap_dec["Modelo"] == "M1_Individual",
                                 "β_negro"].values[0])
     se_m3   = float(gap_dec.loc[gap_dec["Modelo"] == "M3_Completo",

@@ -1,0 +1,2 @@
+Estimador,τ,SE (cluster-UF),p-valor,τ_naive (diferença de médias),Interpretação
+DiD regressão (negro × post),0.01491,0.00663,0.0246,0.02301,Negros sofreram MENOS com COVID → aparente convergência
