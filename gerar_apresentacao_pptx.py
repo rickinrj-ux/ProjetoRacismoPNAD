@@ -270,7 +270,7 @@ footer(s, 3)
 # SLIDE 4 — ANÁLISE DESCRITIVA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "3b. Análise Descritiva — A Desigualdade nos Dados",
+header_bar(s, "3. Análise Descritiva — A Desigualdade nos Dados",
            "Gap mediano bruto de 27,5% | 7,7 milhões de empregados com renda positiva | PNAD Contínua 2016–2025")
 
 add_img(s, FIGURES / "fig1_densidade_log_salario.png", In(0.3), In(1.2), In(6.4), In(4.5))
@@ -306,7 +306,7 @@ footer(s, 4)
 # SLIDE 5 — ARQUITETURA METODOLÓGICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "3. Arquitetura Metodológica",
+header_bar(s, "4. Arquitetura Metodológica",
            "5 metodologias complementares — convergência de evidências")
 
 metodos = [
@@ -343,7 +343,7 @@ footer(s, 5)
 # SLIDE 6 — HLM: DECOMPOSIÇÃO DO GAP
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "4. HLM — Decomposição do Gap em Camadas",
+header_bar(s, "5. HLM — Decomposição do Gap em Camadas",
            "Do gap bruto de 19,3% ao resíduo de discriminação pura de 6,2%")
 
 # Barra de decomposição visual
@@ -380,7 +380,7 @@ footer(s, 6)
 # SLIDE 7 — COMPOSIÇÃO OCUPACIONAL E GLASS CEILING
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "5. Composição Ocupacional — Onde Estão Negros e Brancos?",
+header_bar(s, "6. Composição Ocupacional — Onde Estão Negros e Brancos?",
            "Sub-representação sistemática nos grupos de alto prestígio")
 
 add_img(s, FIGURES / "comp_razao_grupo_cbo.png", In(0.3), In(1.2), In(6.5))
@@ -400,7 +400,7 @@ footer(s, 7)
 # SLIDE 7 — OAXACA-BLINDER
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "6. Oaxaca-Blinder — Onde Opera a Discriminação?",
+header_bar(s, "7. Oaxaca-Blinder — Onde Opera a Discriminação?",
            "Gap total 53,0% | 84% explicado por diferenças nas características dos trabalhadores")
 
 add_img(s, FIGURES / "oaxaca_decomposicao.png", In(0.3), In(1.2), In(7.5))
@@ -426,7 +426,7 @@ footer(s, 8)
 # SLIDE 8 — GAP POR SUBGRUPO, MINCER E CICLO DE VIDA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "7b. Gap por Subgrupo e Ciclo de Vida",
+header_bar(s, "8. Gap por Subgrupo e Ciclo de Vida",
            "Regressão Mincer com controles progressivos + curva de ciclo de vida racial")
 
 add_img(s, FIGURES / "fig4_gap_faixa_etaria.png", In(0.3), In(1.2), In(6.2), In(4.5))
@@ -465,7 +465,7 @@ footer(s, 9)
 # SLIDE 10 — LOGIT MULTINÍVEL
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "7. Logit Multinível — Gap de Oportunidades Racial",
+header_bar(s, "9. Logit Multinível — Gap de Oportunidades Racial",
            "GLMM lme4 com efeito aleatório de UPA — discriminação de ACESSO confirmada (n=2,4M, 39,8k UPAs)")
 
 add_img(s, FIGURES / "glmm_odds_ratios_full.png", In(0.3), In(1.2), In(7.0))
@@ -498,7 +498,7 @@ footer(s, 10)
 # SLIDE 11 — REGRESSÃO QUANTÍLICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "8. Regressão Quantílica — Formalização do Glass Ceiling",
+header_bar(s, "10. Regressão Quantílica — Formalização do Glass Ceiling",
            "O gap racial aumenta no topo da distribuição de renda — confirmação formal")
 
 add_img(s, FIGURES / "quantreg_trajetoria.png", In(0.3), In(1.2), In(7.2))
@@ -527,7 +527,7 @@ footer(s, 11)
 # SLIDE 12 — RIF-OB: STICKY FLOOR vs GLASS CEILING POR DOTAÇÕES
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "12. RIF-OB — Sticky Floor Discriminatório vs. Glass Ceiling por Dotações",
+header_bar(s, "11. RIF-OB — Sticky Floor Discriminatório vs. Glass Ceiling por Dotações",
            "Firpo, Fortin & Lemieux (2018) | N=7.694.198 | Decomposição incondicional por quantil")
 
 add_img(s, FIGURES / "rif_ob_retornos_quantis.png", In(0.3), In(1.2), In(6.8))
@@ -577,7 +577,7 @@ footer(s, 12)
 # SLIDE 13 — INTERSECCIONALIDADE OB 4 GRUPOS
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "13. Interseccionalidade — OB em 4 Grupos (Crenshaw, 1989)",
+header_bar(s, "12. Interseccionalidade — OB em 4 Grupos (Crenshaw, 1989)",
            "OB twofold vs. Homem Branco | N=2.357.851 | penalidade interseccional extra = +9,5 pp")
 
 add_img(s, FIGURES / "interseccional_ob4grupos.png", In(0.3), In(1.2), In(6.5))
@@ -614,7 +614,7 @@ footer(s, 13)
 # SLIDE 14 — SENSIBILIDADE A VARIÁVEIS OMITIDAS
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "14. Sensibilidade — Konfound, E-values e Oster Bounds",
+header_bar(s, "13. Sensibilidade — Konfound, E-values e Oster Bounds",
            "3 métodos complementares — nenhum consegue anular o gap racial observado")
 
 add_img(s, FIGURES / "sensibilidade_konfound_evalues.png", In(0.3), In(1.2), In(6.8))
@@ -630,7 +630,7 @@ rob_blocks = [
      "OLS: 91,5% / 93,5% / 88,7%  →  HLM: +7,9 / +5,4 / +9,7 pp",
      "SEs OLS são 6–16× maiores: não captura clustering → robustez subestimada"),
     (C_RED,   "E-values GLMM (VanderWeele & Ding, 2017)",
-     "E ≥ 2,17× (M1)  |  E ≥ 2,04× (M2)  para anular OR = 0,704 / 0,741",
+     "E ≥ 2,17× (M1)  |  E ≥ 2,04× (M2)  para anular OR = 0,704 / 0,747",
      "Confounder precisaria ter associação ≥ 2× com raça E com ocupação — implausível"),
     (C_BLUE,  "Oster Bounds OLS auxiliar (Oster, 2019)",
      "δ* ∈ {−0,48; −0,43; −0,39} — todos negativos",
@@ -652,7 +652,7 @@ footer(s, 14)
 # SLIDE 15 — TENDÊNCIA TEMPORAL + HECKMAN + EVENT STUDY COVID
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "15. Análises Temporais e Seleção — Chow, Heckman e Event Study COVID",
+header_bar(s, "14. Análises Temporais e Seleção — Chow, Heckman e Event Study COVID",
            "Quebra estrutural 2020 | Seleção corrigida (Heckman) | COVID: convergência aparente de curto prazo")
 
 add_img(s, FIGURES / "tendencia_temporal.png",  In(0.3), In(1.2), In(4.1), In(3.5))
@@ -689,7 +689,7 @@ footer(s, 15)
 # SLIDE 10 — ML/SHAP
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "9. ML/SHAP — O Que Mais Determina a Renda?",
+header_bar(s, "15. ML/SHAP — O Que Mais Determina a Renda?",
            "XGBoost R²=0,6162 | Horas + CBO + Formalidade emergem como top preditores")
 
 add_img(s, FIGURES / "shap_importance_xgb.png", In(0.3), In(1.2), In(6.8))
@@ -724,7 +724,7 @@ footer(s, 16)
 # SLIDE 11 — SNA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "10. Análise de Redes Sociais — Capital Social e Mobilidade",
+header_bar(s, "16. Análise de Redes Sociais — Capital Social e Mobilidade",
            "Betweenness centrality nula para negros em todos os níveis educacionais")
 
 add_img(s, FIGURES / "sna_rede_demografica.png", In(0.3), In(1.2), In(6.5))
@@ -750,7 +750,7 @@ footer(s, 17)
 # SLIDE 12 — ESTADO E DESIGUALDADE (H1 / H2 / H3)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "11. Estado e Desigualdade — H1 / H2 / H3",
+header_bar(s, "17. Estado e Desigualdade — H1 / H2 / H3",
            "Setor público reduz desigualdade geral mas gap racial persiste — e gap de gênero é MAIOR no público")
 
 add_img(s, FIGURES / "estado_h1_gini.png",   In(0.3), In(1.2), In(6.3))
@@ -775,7 +775,7 @@ footer(s, 18)
 # SLIDE 13 — RENDA REAL, ARMADILHA E INCLUSÃO (H4 / H5)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "12. Renda Real, Armadilha e Inclusão — H4 / H5",
+header_bar(s, "18. Renda Real, Armadilha e Inclusão — H4 / H5",
            "Pleno emprego sem prosperidade + gap de qualificação quase inalterado em 10 anos")
 
 add_img(s, FIGURES / "estado_h4_tendencia.png", In(0.3), In(1.2), In(6.3))
@@ -800,7 +800,7 @@ footer(s, 19)
 # SLIDE 14 — JUSTIFICAÇÃO METODOLÓGICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "13. Por Que Esses Modelos? — Justificação Estatística",
+header_bar(s, "19. Por Que Esses Modelos? — Justificação Estatística",
            "LRT χ²=191.625 confirma hierarquia | ICC=9,83% > limiar 5% | HLM supera OLS+FE em AIC")
 
 add_img(s, FIGURES / "modelos_loglik_aic.png", In(0.3), In(1.2), In(6.3))
@@ -822,7 +822,7 @@ footer(s, 20)
 # SLIDE 15 — SÍNTESE: TRIÂNGULO DE EVIDÊNCIAS
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "14. Síntese — Triângulo de Evidências",
+header_bar(s, "20. Síntese — Triângulo de Evidências",
            "5 métodos independentes apontam para o mesmo diagnóstico")
 
 # Três vértices do triângulo
@@ -855,7 +855,7 @@ footer(s, 21)
 # SLIDE 22 — PO: PESQUISA OPERACIONAL — PRIORIZAÇÃO DE POLÍTICAS
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "22. Pesquisa Operacional — Priorização Multicritério Anti-Discriminação",
+header_bar(s, "21. Pesquisa Operacional — Priorização Multicritério Anti-Discriminação",
            "TOPSIS + AHP (CR=0,004) + Programação Linear + Fronteira de Pareto | 6 políticas avaliadas")
 
 add_img(s, FIGURES / "po_politicas_topsis.png", In(0.3), In(1.2), In(7.2))
@@ -895,7 +895,7 @@ footer(s, 22)
 # SLIDE 13 — IMPLICAÇÕES DE POLÍTICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "15. Implicações de Política",
+header_bar(s, "22. Implicações de Política",
            "Três eixos simultâneos — ações isoladas são insuficientes para romper a armadilha estrutural")
 
 politicas = [
@@ -932,7 +932,7 @@ footer(s, 23)
 # SLIDE 14 — LIMITAÇÕES E AGENDA FUTURA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "16. Limitações e Agenda Futura",
+header_bar(s, "23. Limitações e Agenda Futura",
            "Honestidade acadêmica: o que este trabalho não faz e por quê")
 
 add_text(s, "Limitações", In(0.4), In(1.25), In(6.0), In(0.4),
