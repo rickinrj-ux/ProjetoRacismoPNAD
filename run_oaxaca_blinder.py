@@ -42,12 +42,9 @@ BASE_VARS = ["log_renda", "negro",
 mask = (df["pea"] == 1) & (df["renda_bruta"] > 0) & (df["negro"].notna())
 df = df[mask].dropna(subset=BASE_VARS)
 
-rng = np.random.default_rng(42)
-idx = rng.choice(len(df), size=int(len(df) * 0.20), replace=False)
-df = df.iloc[idx].reset_index(drop=True)
 n_b = int((df["negro"] == 0).sum())
 n_n = int((df["negro"] == 1).sum())
-print(f"Amostra: {len(df):,}  (brancos={n_b:,}, negros={n_n:,})")
+print(f"População completa: {len(df):,}  (brancos={n_b:,}, negros={n_n:,})")
 
 _BASE_F = ("educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
            " + idade_c + idade_sq + sexo_fem"

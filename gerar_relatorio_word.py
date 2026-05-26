@@ -1765,9 +1765,9 @@ def build_doc(r, k):
     # ── 4.6 OAXACA-BLINDER ─────────────────────────────────────────────────────
     add_heading(doc, "4.6 Decomposição de Oaxaca-Blinder do Gap Salarial Racial", level=2)
     add_para(doc,
-        "A decomposição de Oaxaca-Blinder, estimada sobre amostra de 1,5 milhão de observações "
-        "da PEA com renda positiva, particionou o gap total de log-rendimento (0,4229, equivalente "
-        "a 52,6% de diferença geométrica) em seus componentes estruturais. O modelo inclui, além "
+        "A decomposição de Oaxaca-Blinder, estimada sobre a população completa de 7,7 milhões de observações "
+        "da PEA com renda positiva, particionou o gap total de log-rendimento (0,4291, equivalente "
+        "a 53,6% de diferença geométrica) em seus componentes estruturais. O modelo inclui, além "
         "das variáveis educacionais e demográficas, as novas variáveis de composição ocupacional "
         "(grupos CBO), vínculo empregatício, formalidade e horas trabalhadas."
     )
@@ -2625,8 +2625,8 @@ def build_doc(r, k):
     add_heading(doc, "5.1 Pesquisa Operacional: Priorização e Alocação de Políticas Anti-Discriminação", level=2)
     add_para(doc,
         "A Pesquisa Operacional (PO) transforma os coeficientes econométricos estimados — "
-        "gap salarial (HLM/OB: 52,6%), barreira de acesso (GLMM: OR=0,708 para CBO 1–4), "
-        "glass ceiling de progressão (QR: Δ[q90−q10]=−3,99pp, Z=−2,75**) — em problemas "
+        "gap salarial (HLM/OB: 53,6%), barreira de acesso (GLMM: OR=0,708 para CBO 1–4), "
+        "glass ceiling de progressão (QR: Δ[q90−q10]=−3,86pp, Z=−5,25***) — em problemas "
         "de decisão formais. Seis intervenções foram avaliadas: (P1) cotas ocupacionais CBO 1–4, "
         "(P2) enforcement anti-discriminação, (P3) equidade educacional, (P4) desegregação "
         "residencial, (P5) mentoria e redes profissionais, (P6) transparência salarial "
