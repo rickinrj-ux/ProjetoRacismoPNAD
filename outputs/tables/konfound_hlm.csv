@@ -1,6 +1,5 @@
 Modelo,Descrição,β_negro,SE,t,Gap (%),pkonfound (%),ITCV,n
-M1,Individual (dem. + educ. + horas),-0.2149,0.0013,-165.3,-19.3,98.8,0.01746,1537885
-M2,Localidade (+contexto UPA),-0.102,0.0013,-78.5,-9.7,97.5,0.00399,1537885
-M3,Completo (+contexto UF),-0.102,0.0013,-78.5,-9.7,97.5,0.00399,1537885
-M4,Ocupação (controles CBO),-0.0637,0.0012,-53.1,-6.2,96.3,0.00183,1537885
-M4 (pop. completa),"M4 — pop. completa (n=2,36M)",-0.0683,0.001,-70.4,-6.6,97.2,0.0021,2357851
+M1,Individual (dem. + educ. + horas),-0.2148,0.0006,-358.0,-19.3,99.5,0.01639,7689426
+M2,Localidade (+contexto UPA),-0.1021,0.0006,-170.2,-9.7,98.8,0.00375,7689426
+M3,Completo (+contexto UF),-0.1021,0.0006,-170.2,-9.7,98.8,0.00375,7689426
+M4,Ocupação (controles CBO),-0.0644,0.0005,-128.8,-6.2,98.5,0.00215,7689426

@@ -1845,23 +1845,23 @@ A Tabela~\ref{tab:konfound_hlm_vs_ols} documenta a diferença entre aplicar
 Konfound ao HLM (correto) versus ao OLS auxiliar (incorreto).
 O OLS tem SEs maiores do que o HLM porque não modela a estrutura de
 variância entre UPAs --- resultado: os $t$-estatísticos do OLS
-são $3{,}5\times$--$7\times$ menores do que os do HLM, gerando
+são $6\times$--$16\times$ menores do que os do HLM, gerando
 pkonfound sistematicamente \textbf{subestimado em 5--10 pontos percentuais}.
 
 \begin{table}[htbp]
 \centering
 \caption{Konfound (Frank et al., 2013) --- Comparação HLM vs.\ OLS por modelo.
   $\Delta$ pkonfound: subestimação da robustez ao usar OLS em dados com ICC $>$ 5\%.
-  PNAD Contínua 2016--2025, $n = 1{,}54$ mi.}
+  PNAD Contínua 2016--2025, população completa, $n = 7{,}69$ mi.}
 \label{tab:konfound_hlm_vs_ols}
 \input{../outputs/tables/konfound_hlm_vs_ols.tex}
 \end{table}
 
-Os valores de pkonfound para o HLM variam de $96{,}3\%$ (M4) a $98{,}8\%$ (M1),
-indicando que entre $96\%$ e $99\%$ do efeito estimado precisaria ser explicado
+Os valores de pkonfound para o HLM variam de $98{,}5\%$ (M4) a $99{,}5\%$ (M1),
+indicando que entre $98\%$ e $99{,}5\%$ do efeito estimado precisaria ser explicado
 por confundidores para invalidar a inferência.
 A referência habitual na literatura é pkonfound $> 80\%$ para robustez moderada;
-os resultados aqui estão todos acima de $96\%$.
+os resultados aqui estão todos acima de $98\%$.
 
 \begin{figure}[htbp]
 \centering
@@ -1945,15 +1945,15 @@ e evidencia o impacto da escolha metodológica sobre as conclusões de robustez.
 Método & Modelo & Estatística & Robustez & Aplica? & Limitação \\
 \midrule
 \multicolumn{6}{l}{\textit{Métodos corretos para os modelos primários}} \\[2pt]
-Konfound \citep{frank2013}  & HLM M1  & $t = -165{,}3$ & pkonfound $= 98{,}8\%$ & \checkmark & --- \\
-Konfound \citep{frank2013}  & HLM M4  & $t = -53{,}1$  & pkonfound $= 96{,}3\%$ & \checkmark & --- \\
+Konfound \citep{frank2013}  & HLM M1  & $t = -358{,}0$ & pkonfound $= 99{,}5\%$ & \checkmark & --- \\
+Konfound \citep{frank2013}  & HLM M4  & $t = -128{,}8$ & pkonfound $= 98{,}5\%$ & \checkmark & --- \\
 E-value \citep{vanderweele2017}  & GLMM M2 & OR $= 0{,}741$ & $E = 2{,}04$ & \checkmark & --- \\[4pt]
 \multicolumn{6}{l}{\textit{Método auxiliar válido apenas para OLS (decomposição OB)}} \\[2pt]
 Oster \citep{oster2019}  & OLS M3  & $R^2 = 0{,}504$ & $\delta^* = -0{,}39$; ``Não'' & $\times$ & Exige $R^2$ linear; \\
  &  &  & $\beta^*(\delta{=}1) = -0{,}211$ &  & inválido para HLM/GLMM \\[4pt]
 \multicolumn{6}{l}{\textit{Comparação antes $\times$ depois: Konfound aplicado a OLS vs.\ HLM}} \\[2pt]
-Konfound (incorreto) & OLS M4 & $t = -14{,}8$ & pkonfound $= 86{,}8\%$ & $\times$ & SE do OLS ignora ICC \\
-Konfound (correto)   & HLM M4 & $t = -53{,}1$ & pkonfound $= 96{,}3\%$ & \checkmark & $\Delta = +9{,}5\,\text{pp}$ \\
+Konfound (incorreto) & OLS M4 & $t = -17{,}4$ & pkonfound $= 88{,}7\%$ & $\times$ & SE do OLS ignora ICC \\
+Konfound (correto)   & HLM M4 & $t = -128{,}8$ & pkonfound $= 98{,}5\%$ & \checkmark & $\Delta = +9{,}7\,\text{pp}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1963,8 +1963,8 @@ Três conclusões emergem desta síntese:
 \begin{enumerate}
   \item \textbf{Escolha do método afeta a conclusão quantitativamente, não apenas qualitativamente.}
     Aplicar Konfound ao OLS auxiliar (método incorreto) em vez de ao HLM primário (método correto)
-    subestima o pkonfound em $5{,}0$--$9{,}5$ pontos percentuais. No M4, a diferença é de
-    $86{,}8\%$ (OLS) vs.\ $96{,}3\%$ (HLM) --- uma subestimação de $9{,}5\,\text{pp}$ que
+    subestima o pkonfound em $5{,}4$--$9{,}7$ pontos percentuais. No M4, a diferença é de
+    $88{,}7\%$ (OLS) vs.\ $98{,}5\%$ (HLM) --- uma subestimação de $9{,}7\,\text{pp}$ que
     poderia levar a conclusões equivocadas sobre a robustez do achado.
 
   \item \textbf{Oster bounds não é aplicável aos modelos primários.}
@@ -1986,7 +1986,7 @@ Três conclusões emergem desta síntese:
     direção --- o que reforça, e não enfraquece, a conclusão de robustez.
 \end{enumerate}
 
-Em conjunto, Konfound (pkonfound $\geq 96{,}3\%$ para o HLM) e E-values ($E \geq 2{,}04$ para
+Em conjunto, Konfound (pkonfound $\geq 98{,}5\%$ para o HLM) e E-values ($E \geq 2{,}04$ para
 o GLMM) estabelecem que a inferência central --- gap salarial racial condicionado e
 desvantagem ocupacional racial --- é altamente robusta à presença de variáveis omitidas
 não observadas, mesmo assumindo confundidores de magnitude comparável aos controles incluídos.

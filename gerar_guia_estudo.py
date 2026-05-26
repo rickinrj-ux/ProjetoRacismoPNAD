@@ -433,20 +433,20 @@ add_bullet(doc, "Barras horizontais: cada barra representa o gap racial estimado
                 "(M1 a M4). O comprimento da barra é o tamanho do gap.")
 add_bullet(doc, "A sequência de cima para baixo mostra como o gap 'encolhe' à medida que variáveis "
                 "de contexto e ocupação são adicionadas.")
-add_bullet(doc, "M1 (gap bruto) = 19,5%: sem nenhum controle.")
+add_bullet(doc, "M1 (gap bruto) = 19,3%: sem nenhum controle.")
 add_bullet(doc, "M2 (+ UPA): renda média da UPA absorve ~9 p.p. — o lugar onde se mora explica metade do gap.")
 add_bullet(doc, "M3 (+ UF): redução marginal adicional pelas diferenças entre estados.")
-add_bullet(doc, "M4 (+ CBO + formalidade + horas): o gap cai para 5,4% — este é o resíduo que não tem "
+add_bullet(doc, "M4 (+ CBO + formalidade + horas): o gap cai para 6,2% — este é o resíduo que não tem "
                 "explicação por características observáveis. É a discriminação de remuneração pura.")
 add_para(doc, "O que o padrão mostra:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
 add_bullet(doc, "A maior redução ocorre entre M1 e M2 (adição da UPA): confirma Wilson (1987) — "
                 "o local de moradia é o principal mediador do gap.")
-add_bullet(doc, "O gap residual de 5,4% em M4 não tem explicação por nenhuma variável observável: "
+add_bullet(doc, "O gap residual de 6,2% em M4 não tem explicação por nenhuma variável observável: "
                 "é o lower bound da discriminação de remuneração.")
 add_colored_box(doc, "O que dizer se perguntarem:",
     ["'A sequência dos modelos não é arbitrária — cada passo adiciona um nível da hierarquia social. "
      "Primeiro o contexto de moradia (UPA), depois o contexto institucional (UF), depois a posição "
-     "no mercado de trabalho (CBO + formalidade). O gap de 5,4% que sobra é robusto a todos os "
+     "no mercado de trabalho (CBO + formalidade). O gap de 6,2% que sobra é robusto a todos os "
      "controles observáveis disponíveis na PNAD.'"],
     title_color=(0x1F,0x38,0x64))
 doc.add_paragraph()
@@ -470,7 +470,7 @@ add_bullet(doc, "Isso inverte a intuição comum: combater apenas o gap salarial
 add_colored_box(doc, "O que dizer se perguntarem:",
     ["'O Oaxaca une os três vértices do triângulo de evidências. Os 84% de dotações são explicados "
      "pelo logit (acesso a ocupações) e pela SNA (exclusão das redes). Os 16% de retornos são "
-     "explicados pelo HLM M4 (5,4% de discriminação pura de remuneração). Os métodos são "
+     "explicados pelo HLM M4 (6,2% de discriminação pura de remuneração). Os métodos são "
      "consistentes entre si.'",
      "Se perguntarem sobre three-fold: 'A decomposição three-fold adiciona um componente de "
      "interação entre dotações e retornos que não tem interpretação causal clara em contexto "
@@ -582,7 +582,7 @@ add_colored_box(doc, "O que dizer se perguntarem:",
     ["'A SNA adiciona uma dimensão que o HLM e o logit não capturam: o capital social estrutural. "
      "Mesmo que um negro consiga entrar em uma ocupação qualificada, sua betweenness=0 significa "
      "que ele não tem acesso às redes informais que geram promoção, mentoria e informação "
-     "antecipada sobre vagas. Isso explica parte do gap residual de 5,4% do HLM M4.'"],
+     "antecipada sobre vagas. Isso explica parte do gap residual de 6,2% do HLM M4.'"],
     title_color=(0x1F,0x38,0x64))
 doc.add_paragraph()
 
@@ -749,8 +749,8 @@ add_para(doc, "β₀j = γ₀₀ + γ₀₁(renda_media_upa_j) + γ₀₂(edu_me
          size=10.5, italic=True, color=(0x22,0x22,0x22))
 add_para(doc, "Onde u₀j ~ N(0, τ₀₀) é o efeito aleatório da UPA — fonte do ICC.",
          size=10.5, italic=True, color=(0x66,0x66,0x66))
-add_para(doc, "O interesse é em β₁: o gap racial líquido após todos os controles. Em M4, β₁ ≈ −0,054 "
-              "(−5,4%). O sinal negativo confirma que negros ganham menos, tudo o mais constante.",
+add_para(doc, "O interesse é em β₁: o gap racial líquido após todos os controles. Em M4, β₁ ≈ −0,0644 "
+              "(−6,2%). O sinal negativo confirma que negros ganham menos, tudo o mais constante.",
          size=11, space_before=6)
 
 add_heading(doc, "3.2  Decomposição de Oaxaca-Blinder (two-fold)", level=2)

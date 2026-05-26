@@ -344,15 +344,15 @@ footer(s, 5)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
 header_bar(s, "4. HLM — Decomposição do Gap em Camadas",
-           "Do gap bruto de 19,5% ao resíduo de discriminação pura de 5,4%")
+           "Do gap bruto de 19,3% ao resíduo de discriminação pura de 6,2%")
 
 # Barra de decomposição visual
 levels = [
-    ("Gap BRUTO\n(M1)", 19.5, C_RED,   "Sem controles contextuais\nnem ocupacionais"),
-    ("Mediação UPA\n(M2)", 10.5, C_BLUE,  "Local de moradia explica\n54% do gap bruto"),
-    ("Gap LÍQUIDO\n(M3)", 9.5, C_AMBER, "Após contexto UPA + UF FE\n(discriminação residual)"),
-    ("Mediação Ocp.\n(M4)", 4.1, C_GREEN, "CBO + formalidade + horas\nexplicam mais 20,5%"),
-    ("Gap PURO\n(M4)", 5.4, C_RED,   "Discriminação residual\npós-ocupação"),
+    ("Gap BRUTO\n(M1)", 19.3, C_RED,   "Sem controles contextuais\nnem ocupacionais"),
+    ("Mediação UPA\n(M2)", 9.6, C_BLUE,  "Local de moradia explica\n52% do gap bruto"),
+    ("Gap LÍQUIDO\n(M3)", 9.7, C_AMBER, "Após contexto UPA + UF FE\n(discriminação residual)"),
+    ("Mediação Ocp.\n(M4)", 3.5, C_GREEN, "CBO + formalidade + horas\nexplicam mais 18,1%"),
+    ("Gap PURO\n(M4)", 6.2, C_RED,   "Discriminação residual\npós-ocupação"),
 ]
 bar_top = In(1.3)
 bar_left = In(0.4)
@@ -371,7 +371,7 @@ for i, (label, val, color, note) in enumerate(levels):
 
 add_rect(s, In(0.4), In(6.35), In(12.0), In(0.5),
          fill_rgb=RGBColor(0xFF,0xF9,0xE7), line_rgb=C_AMBER, line_pt=1)
-add_text(s, "Achado central: 74,5% do gap é explicado por mediação contextual (UPA) e ocupacional — mas 5,4% persiste como discriminação de remuneração pura.",
+add_text(s, "Achado central: 70,0% do gap é explicado por mediação contextual (UPA) e ocupacional — mas 6,2% persiste como discriminação de remuneração pura.",
          In(0.6), In(6.4), In(11.7), In(0.45),
          font_size=12.5, bold=True, color=C_DARK)
 footer(s, 6)
@@ -401,7 +401,7 @@ footer(s, 6)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
 header_bar(s, "6. Oaxaca-Blinder — Onde Opera a Discriminação?",
-           "Gap total 52,6% | 84% explicado por diferenças nas características dos trabalhadores")
+           "Gap total 53,0% | 84% explicado por diferenças nas características dos trabalhadores")
 
 add_img(s, FIGURES / "oaxaca_decomposicao.png", In(0.3), In(1.2), In(7.5))
 
@@ -474,7 +474,7 @@ add_text(s, "Resultados-chave (GLMM)", In(7.6), In(1.2), In(5.5), In(0.4),
          font_size=16, bold=True, color=C_DARK)
 
 kpis_logit = [
-    ("OR = 0,705", "Ocupação qualificada\n(M1 — só ind. + UPA RE)", C_RED),
+    ("OR = 0,704", "Ocupação qualificada\n(M1 — só ind. + UPA RE)", C_RED),
     ("OR = 0,747", "Ocupação qualificada\n(M2 — +contexto UPA)", C_AMBER),
     ("AME = −1,30 p.p.", "Gap pós-controles individuais\n(M1 — sem contexto UPA)", C_RED),
     ("AME = −1,07 p.p.", "Gap residual c/ contexto UPA\n(M2 — discriminação líquida)", C_RED),
@@ -668,7 +668,7 @@ vertices = [
     (In(0.3),  In(1.3),  C_RED,   "DISCRIMINAÇÃO\nDE ACESSO",
      ["GLMM: OR=0,747 para ocp. qualificada", "AME=−1,07 p.p. residual (M2)", "Persiste após todos os controles observáveis"]),
     (In(6.9),  In(1.3),  C_BLUE,  "DISCRIMINAÇÃO\nDE REMUNERAÇÃO",
-     ["HLM M4: gap residual 5,4%", "Quantile Reg.: cresce no topo (glass ceiling)", "SHAP: −2,5% efeito racial residual"]),
+     ["HLM M4: gap residual 6,2%", "Quantile Reg.: cresce no topo (glass ceiling)", "SHAP: −2,5% efeito racial residual"]),
     (In(3.6),  In(4.3),  C_DARK,  "EXCLUSÃO\nDAS REDES",
      ["SNA: betweenness=0 para negros", "Diplomas valem menos sem acesso às redes", "Cluster: dupla desvantagem mulher negra"]),
 ]
@@ -704,7 +704,7 @@ politicas = [
     (C_BLUE,  "Eixo 2 — Remuneração",
      ["Transparência salarial por raça/gênero\nobrigatória (empresas > 100 funcionários)",
       "Auditoria de igual pagamento por trabalho igual\ncom penalidades progressivas (gap HLM M4)",
-      "Piso salarial indexado nas categorias com\nmaior gap racial residual (5,4% HLM M4)"]),
+      "Piso salarial indexado nas categorias com\nmaior gap racial residual (6,2% HLM M4)"]),
     (C_GREEN, "Eixo 3 — Inclusão Produtiva",
      ["Mentoria estruturada para elevar betweenness\nde negros nas redes profissionais (SNA: =0)",
       "30% dos cargos DAS e liderança corporativa\npara negros até 2030 (inclusão nas redes)",
@@ -764,8 +764,8 @@ add_text(s, "18. Conclusão", In(0.4), In(0.1), In(12), In(0.65),
          font_size=26, bold=True, color=C_WHITE, font_name="Calibri")
 
 numeros = [
-    ("19,5%",    "Gap racial bruto\n(M1 HLM)"),
-    ("5,4%",     "Discriminação pura\n(M4 HLM)"),
+    ("19,3%",    "Gap racial bruto\n(M1 HLM)"),
+    ("6,2%",     "Discriminação pura\n(M4 HLM)"),
     ("OR=0,747", "Acesso qualificado\n(GLMM M2, lme4)"),
     ("χ²=191k",  "LRT confirma\nhierarquia UPA"),
 ]
@@ -780,7 +780,7 @@ for i, (val, lbl) in enumerate(numeros):
 
 conclusoes = [
     "A desigualdade racial no mercado de trabalho brasileiro é estrutural, multicausal e resistente à convergência espontânea.",
-    "A discriminação opera em dois estágios independentes: barreiras de ACESSO a ocupações qualificadas (GLMM: OR=0,747, AME=−1,07 p.p.) e discriminação de REMUNERAÇÃO dentro das mesmas funções (HLM M4: 5,4%).",
+    "A discriminação opera em dois estágios independentes: barreiras de ACESSO a ocupações qualificadas (GLMM: OR=0,747, AME=−1,07 p.p.) e discriminação de REMUNERAÇÃO dentro das mesmas funções (HLM M4: 6,2%).",
     "O glass ceiling racial é real e crescente no topo da distribuição — confirmado formalmente pela regressão quantílica e consistente com o IR=0,47 nas capitais.",
     "Políticas que atuam apenas no gap salarial direto atacam 16% do problema. Os 84% restantes requerem ação nas portas de entrada das ocupações de alto prestígio.",
 ]
