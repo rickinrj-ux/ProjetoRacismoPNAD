@@ -145,7 +145,7 @@ def kpi_box(slide, label, value, unit, l, t, w=In(2.8), h=In(1.3),
     add_text(slide, unit, l+In(0.1), t+In(0.92), w-In(0.2), In(0.35),
              font_size=10, color=C_GRAY, italic=True, font_name="Calibri")
 
-def footer(slide, slide_num, total=20):
+def footer(slide, slide_num, total=25):
     add_rect(slide, 0, H-In(0.28), W, In(0.28), fill_rgb=C_DARK)
     add_text(slide,
              "Ricardo Calheiros  |  MBA USP/ESALQ  |  Racismo Estrutural e Mercado de Trabalho",
@@ -394,7 +394,7 @@ add_text(s,
     "Elementares: 2,12× mais negros que brancos",
     In(0.5), In(5.85), In(12.3), In(0.55),
     font_size=12, bold=True, color=C_RED, align=PP_ALIGN.CENTER)
-footer(s, 6)
+footer(s, 7)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 7 — OAXACA-BLINDER
@@ -420,7 +420,7 @@ add_text(s, "Implicação de política:", In(8.25), In(5.45), In(4.7), In(0.3),
 add_text(s, "Combater APENAS desigualdade salarial é insuficiente. É preciso atacar as barreiras de ACESSO a ocupações qualificadas.",
          In(8.25), In(5.77), In(4.7), In(0.6),
          font_size=12, color=C_BLACK)
-footer(s, 9)
+footer(s, 8)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 8 — GAP POR SUBGRUPO, MINCER E CICLO DE VIDA
@@ -459,7 +459,7 @@ add_text(s,
     "o retorno à senioridade é menor para negros — glass ceiling de progressão longitudinal confirmado.",
     In(0.5), In(5.9), In(12.3), In(0.8),
     font_size=11.5, bold=True, color=C_DARK)
-footer(s, 8)
+footer(s, 9)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 10 — LOGIT MULTINÍVEL
@@ -492,7 +492,7 @@ add_rect(s, In(7.6), In(6.15), In(5.4), In(0.6),
 add_text(s, "Mesmo com educação, sexo, idade e local de moradia IDÊNTICOS, negros têm 25,3% menor odds de estar em ocupação qualificada (OR=0,747 GLMM M2).",
          In(7.75), In(6.2), In(5.1), In(0.55),
          font_size=12, bold=True, color=C_RED)
-footer(s, 18)
+footer(s, 10)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 11 — REGRESSÃO QUANTÍLICA
@@ -521,7 +521,169 @@ add_text(s, "Glass Ceiling Racial: confirmado",
 add_text(s, "O gap não é uniforme — cresce sistematicamente quanto maior a remuneração. Isso significa que a barreira racial é mais intensa exatamente onde os prêmios de progressão são maiores.",
          In(8.0), In(5.5), In(4.9), In(1.1),
          font_size=12, color=C_BLACK)
-footer(s, 9)
+footer(s, 11)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SLIDE 12 — RIF-OB: STICKY FLOOR vs GLASS CEILING POR DOTAÇÕES
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header_bar(s, "12. RIF-OB — Sticky Floor Discriminatório vs. Glass Ceiling por Dotações",
+           "Firpo, Fortin & Lemieux (2018) | N=7.694.198 | Decomposição incondicional por quantil")
+
+add_img(s, FIGURES / "rif_ob_retornos_quantis.png", In(0.3), In(1.2), In(6.8))
+
+add_text(s, "O que a RIF-OB revela além da QR?", In(7.5), In(1.2), In(5.6), In(0.4),
+         font_size=15, bold=True, color=C_DARK)
+
+for j, (hdr, xh, wc) in enumerate(zip(
+        ["Quantil", "Dotações", "Retornos"],
+        [In(7.5), In(9.9), In(11.45)],
+        [In(2.38), In(1.53), In(1.53)])):
+    add_rect(s, xh, In(1.72), wc, In(0.42), fill_rgb=C_DARK)
+    add_text(s, hdr, xh+In(0.05), In(1.73), wc-In(0.1), In(0.38),
+             font_size=11, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
+
+rif_table = [
+    ("q10  (base)",    "61,3%", "33,1%", RGBColor(0xFF,0xEB,0xEE), C_RED),
+    ("q50  (mediana)", "57,4%", "21,5%", C_LGRAY,                  C_GRAY),
+    ("q90  (topo)",    "75,8%", "11,2%", RGBColor(0xE3,0xF2,0xFD), C_BLUE),
+]
+for i, (ql, d, r, bg, clr) in enumerate(rif_table):
+    add_rect(s, In(7.5), In(2.18)+i*In(0.65), In(5.5), In(0.6),
+             fill_rgb=bg, line_rgb=clr, line_pt=0.6)
+    add_text(s, ql, In(7.55), In(2.22)+i*In(0.65), In(2.3), In(0.5),
+             font_size=12, color=C_BLACK)
+    add_text(s, d,  In(9.9),  In(2.22)+i*In(0.65), In(1.53), In(0.5),
+             font_size=13, bold=True, color=C_BLUE, align=PP_ALIGN.CENTER)
+    add_text(s, r,  In(11.45),In(2.22)+i*In(0.65), In(1.53), In(0.5),
+             font_size=13, bold=True, color=C_RED,  align=PP_ALIGN.CENTER)
+
+bullet_box(s, [
+    "Retornos DECLINAM: q10=33,1% → q90=11,2%  (Δ = −21,9 pp)",
+    "Dotações CRESCEM: q10=61,3% → q90=75,8%  (Δ = +14,4 pp)",
+    "Glass ceiling salarial causado por desvantagens PRÉ-MERCADO\n(educação, redes, segregação residencial)",
+    "Não por discriminação crescente no topo da hierarquia salarial",
+], In(7.5), In(4.18), In(5.6), In(2.0), font_size=13, dot_color=C_RED)
+
+add_rect(s, In(0.3), In(6.3), In(12.7), In(0.55),
+         fill_rgb=RGBColor(0xFF,0xEB,0xEE), line_rgb=C_RED, line_pt=1)
+add_text(s, "Sticky Floor: discriminação de mercado é 3× mais intensa na base (q10=33,1%) do que no topo (q90=11,2%). "
+            "Enforcement antidiscriminação ataca o q10; reformar dotações (acesso, redes) erode o glass ceiling no topo.",
+         In(0.5), In(6.35), In(12.3), In(0.45),
+         font_size=12, bold=True, color=C_DARK)
+footer(s, 12)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SLIDE 13 — INTERSECCIONALIDADE OB 4 GRUPOS
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header_bar(s, "13. Interseccionalidade — OB em 4 Grupos (Crenshaw, 1989)",
+           "OB twofold vs. Homem Branco | N=2.357.851 | penalidade interseccional extra = +9,5 pp")
+
+add_img(s, FIGURES / "interseccional_ob4grupos.png", In(0.3), In(1.2), In(6.5))
+
+add_text(s, "Resultados OB 4 Grupos", In(7.1), In(1.2), In(5.9), In(0.4),
+         font_size=15, bold=True, color=C_DARK)
+
+grupos_int = [
+    (C_BLUE,                       "Mulher Branca — gap 46,6%",
+     "Retornos dominam: 109%\nDiscriminação de gênero pura\n(dotações ligeiramente negativas: −8,9%)"),
+    (C_RED,                        "Homem Negro — gap 40,3%",
+     "Dotações dominam: 71%\nGap majoritariamente estrutural\n(capital humano acumulado inferior)"),
+    (RGBColor(0x6A, 0x00, 0x8A),   "Mulher Negra — gap 96,4%",
+     "Penalidade interseccional extra: +9,5 pp\nacima da soma Mulher Branca + Homem Negro\n(Crenshaw, 1989 — confirmado empiricamente)"),
+]
+for i, (color, titulo, desc) in enumerate(grupos_int):
+    add_rect(s, In(7.1), In(1.72)+i*In(1.68), In(5.9), In(1.52),
+             fill_rgb=C_LGRAY, line_rgb=color, line_pt=1.5)
+    add_rect(s, In(7.1), In(1.72)+i*In(1.68), In(5.9), In(0.48), fill_rgb=color)
+    add_text(s, titulo, In(7.22), In(1.75)+i*In(1.68), In(5.65), In(0.45),
+             font_size=13, bold=True, color=C_WHITE)
+    add_text(s, desc, In(7.22), In(2.28)+i*In(1.68), In(5.65), In(0.92),
+             font_size=12, color=C_BLACK)
+
+add_rect(s, In(0.3), In(6.78), In(12.7), In(0.56),
+         fill_rgb=RGBColor(0xE3,0xF2,0xFD), line_rgb=C_DARK, line_pt=0.8)
+add_text(s, "HLM interseccional: β_neg×fem = +0,069 (p<0,001) → penalidade combinada (−40,5%) < soma isolada (−44,5%): "
+            "as duas desvantagens competem pelo mesmo mecanismo de exclusão — efeito de compressão.",
+         In(0.5), In(6.83), In(12.3), In(0.45),
+         font_size=12, color=C_DARK)
+footer(s, 13)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SLIDE 14 — SENSIBILIDADE A VARIÁVEIS OMITIDAS
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header_bar(s, "14. Sensibilidade — Konfound, E-values e Oster Bounds",
+           "3 métodos complementares — nenhum consegue anular o gap racial observado")
+
+add_img(s, FIGURES / "sensibilidade_konfound_evalues.png", In(0.3), In(1.2), In(6.8))
+
+add_text(s, "Resultados de robustez", In(7.5), In(1.2), In(5.6), In(0.4),
+         font_size=15, bold=True, color=C_DARK)
+
+rob_blocks = [
+    (C_DARK,  "Konfound HLM (Frank et al., 2013)",
+     "pkonfound: 99,5% (M1)  |  98,8% (M2/M3)  |  98,5% (M4)",
+     "99,5% dos casos precisariam ser removidos para anular M1"),
+    (C_AMBER, "OLS subestima robustez — Δ = 5,4–9,7 pp",
+     "OLS: 91,5% / 93,5% / 88,7%  →  HLM: +7,9 / +5,4 / +9,7 pp",
+     "SEs OLS são 6–16× maiores: não captura clustering → robustez subestimada"),
+    (C_RED,   "E-values GLMM (VanderWeele & Ding, 2017)",
+     "E ≥ 2,17× (M1)  |  E ≥ 2,04× (M2)  para anular OR = 0,704 / 0,741",
+     "Confounder precisaria ter associação ≥ 2× com raça E com ocupação — implausível"),
+    (C_BLUE,  "Oster Bounds OLS auxiliar (Oster, 2019)",
+     "δ* ∈ {−0,48; −0,43; −0,39} — todos negativos",
+     "Omitidas precisariam agir na direção OPOSTA aos observáveis — impossível"),
+]
+for i, (color, titulo, resultado, interp) in enumerate(rob_blocks):
+    add_rect(s, In(7.5), In(1.72)+i*In(1.25), In(5.6), In(1.15),
+             fill_rgb=C_LGRAY, line_rgb=color, line_pt=1.2)
+    add_text(s, titulo, In(7.65), In(1.76)+i*In(1.25), In(5.3), In(0.35),
+             font_size=11.5, bold=True, color=color)
+    add_text(s, resultado, In(7.65), In(2.12)+i*In(1.25), In(5.3), In(0.38),
+             font_size=12.5, bold=True, color=C_BLACK)
+    add_text(s, interp, In(7.65), In(2.5)+i*In(1.25), In(5.3), In(0.3),
+             font_size=10.5, italic=True, color=C_GRAY)
+
+footer(s, 14)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SLIDE 15 — TENDÊNCIA TEMPORAL + HECKMAN + EVENT STUDY COVID
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header_bar(s, "15. Análises Temporais e Seleção — Chow, Heckman e Event Study COVID",
+           "Quebra estrutural 2020 | Seleção corrigida (Heckman) | COVID: convergência aparente de curto prazo")
+
+add_img(s, FIGURES / "tendencia_temporal.png",  In(0.3), In(1.2), In(4.1), In(3.5))
+add_img(s, FIGURES / "heckman_selecao.png",     In(4.6), In(1.2), In(4.1), In(3.5))
+add_img(s, FIGURES / "event_study_covid.png",   In(9.1), In(1.2), In(4.0), In(3.5))
+
+cap_blocks = [
+    (C_AMBER, "Chow test — Quebra 2020",
+     "F(2,6) = 7,012   p = 0,027\nQuebra estrutural detectada em 2020\n"
+     "Tendência geral: δ = 0,0008 log-pt/ano (estável, p=0,077)\n"
+     "Gap racial não convergiu espontaneamente em 10 anos"),
+    (C_RED,   "Heckman — Correção de Seleção",
+     "OLS: gap = −9,71%\nHeckman (com IMR): gap = −7,41%\n"
+     "Δ = +2,3 pp  |  λ = −1,985  (p < 0,001)\n"
+     "OLS superestima gap: negros empregados aceitam\nsalários inferiores (seleção por tolerância)"),
+    (C_BLUE,  "Event Study COVID (DiD)",
+     "τ = +0,015  (SE = 0,007,  p = 0,025)\nNegros sofreram MENOS com COVID\n"
+     "no curto prazo — convergência aparente\n"
+     "DiD corrigido: 0,015 vs. ingênuo: 0,023"),
+]
+for i, (color, titulo, corpo) in enumerate(cap_blocks):
+    x = In(0.3) + i * In(4.35)
+    add_rect(s, x, In(4.85), In(4.1), In(2.3),
+             fill_rgb=C_LGRAY, line_rgb=color, line_pt=1.5)
+    add_rect(s, x, In(4.85), In(4.1), In(0.48), fill_rgb=color)
+    add_text(s, titulo, x+In(0.12), In(4.88), In(3.86), In(0.45),
+             font_size=12, bold=True, color=C_WHITE)
+    add_text(s, corpo, x+In(0.12), In(5.42), In(3.86), In(1.65),
+             font_size=11, color=C_BLACK)
+
+footer(s, 15)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 10 — ML/SHAP
@@ -556,7 +718,7 @@ for i, (rank, feat, shap, note) in enumerate(ranking):
     add_text(s, note, In(8.05), In(2.1)+i*In(0.88), In(4.9), In(0.3),
              font_size=9.5, color=C_GRAY, italic=True)
 
-footer(s, 18)
+footer(s, 16)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 11 — SNA
@@ -582,7 +744,7 @@ add_rect(s, In(7.2), In(5.45), In(5.9), In(0.85),
 add_text(s, '"Negros enfrentam um duplo obstáculo ao retorno educacional: o gap direto mensurado pelo HLM e a exclusão das redes que convertem diplomas em empregos."',
          In(7.35), In(5.5), In(5.6), In(0.8),
          font_size=12, italic=True, color=C_DARK)
-footer(s, 19)
+footer(s, 17)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 12 — ESTADO E DESIGUALDADE (H1 / H2 / H3)
@@ -654,7 +816,7 @@ bullet_box(s, [
     "HLM 3 níveis (indivíduo > UPA > UF) é o único estimador com estrutura compatível com os dados e inferência válida",
 ], In(0.3), In(5.95), In(12.7), In(1.15), font_size=13, dot_color=C_DARK)
 
-footer(s, 18)
+footer(s, 20)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 15 — SÍNTESE: TRIÂNGULO DE EVIDÊNCIAS
@@ -687,7 +849,47 @@ add_rect(s, In(0.3), In(6.4), In(12.7), In(0.5),
 add_text(s, "Oaxaca-Blinder une os três vértices: 84% do gap é de ACESSO (dotações) | 16% de REMUNERAÇÃO (retornos) | SNA explica por que o acesso é estruturalmente negado  |  GLMM: OR=0,747",
          In(0.5), In(6.45), In(12.3), In(0.45),
          font_size=12, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
-footer(s, 19)
+footer(s, 21)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SLIDE 22 — PO: PESQUISA OPERACIONAL — PRIORIZAÇÃO DE POLÍTICAS
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header_bar(s, "22. Pesquisa Operacional — Priorização Multicritério Anti-Discriminação",
+           "TOPSIS + AHP (CR=0,004) + Programação Linear + Fronteira de Pareto | 6 políticas avaliadas")
+
+add_img(s, FIGURES / "po_politicas_topsis.png", In(0.3), In(1.2), In(7.2))
+
+add_text(s, "Ranking TOPSIS (6 intervenções)", In(8.0), In(1.2), In(5.1), In(0.4),
+         font_size=14, bold=True, color=C_DARK)
+
+topsis_rows = [
+    (1, "Cotas ocupacionais CBO 1–4",        "CC = 0,799", C_RED),
+    (2, "Equidade educacional",               "CC = 0,558", C_BLUE),
+    (3, "Mentoria e redes profissionais",     "CC = 0,388", C_GREEN),
+    (4, "Transparência salarial obrigatória", "CC = 0,324", C_AMBER),
+    (5, "Enforcement anti-discriminação",     "CC = 0,241", C_GRAY),
+    (6, "Desegregação residencial",           "CC = 0,109", C_GRAY),
+]
+for i, (rank, nome, cc, color) in enumerate(topsis_rows):
+    bg = RGBColor(0xFF,0xEB,0xEE) if rank == 1 else (RGBColor(0xE3,0xF2,0xFD) if rank == 2 else C_LGRAY)
+    add_rect(s, In(8.0), In(1.72)+i*In(0.8), In(5.1), In(0.74),
+             fill_rgb=bg, line_rgb=color, line_pt=0.8)
+    add_text(s, f"#{rank}", In(8.1), In(1.77)+i*In(0.8), In(0.4), In(0.6),
+             font_size=13, bold=True, color=color)
+    add_text(s, nome, In(8.55), In(1.77)+i*In(0.8), In(3.2), In(0.6),
+             font_size=12, bold=(rank <= 3), color=C_BLACK)
+    add_text(s, cc, In(11.8), In(1.77)+i*In(0.8), In(1.25), In(0.6),
+             font_size=12, bold=True, color=color, align=PP_ALIGN.RIGHT)
+
+add_rect(s, In(0.3), In(6.6), In(12.7), In(0.65),
+         fill_rgb=RGBColor(0x1F,0x38,0x64), line_rgb=C_AMBER, line_pt=0)
+add_text(s, "84% do gap é de ACESSO → P1 (Cotas CBO) lidera com CC=0,799 — 2× superior ao 2º colocado.  "
+            "Pareto (λ=0,5): alocação ótima = P1+P5 (cotas + mentoria).  "
+            "PL-1 (orçamento B=5): redução projetada de 24% do gap bruto.",
+         In(0.5), In(6.65), In(12.3), In(0.55),
+         font_size=12, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
+footer(s, 22)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 13 — IMPLICAÇÕES DE POLÍTICA
@@ -724,7 +926,7 @@ for i, (color, title, items) in enumerate(politicas):
 add_text(s, "⚠  Ao ritmo atual de convergência (~0,02 log-pontos/ano), eliminar o gap levaria mais de 100 anos.",
          In(0.3), In(6.8), In(12.7), In(0.45),
          font_size=13, bold=True, color=C_RED, align=PP_ALIGN.CENTER)
-footer(s, 18)
+footer(s, 23)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 14 — LIMITAÇÕES E AGENDA FUTURA
@@ -752,7 +954,7 @@ bullet_box(s, [
     "Modelo longitudinal com painéis rotativos da PNAD (2T seguidos) para efeitos fixos de indivíduo",
 ], In(7.0), In(1.75), In(6.2), In(3.8), font_size=13, dot_color=C_BLUE)
 
-footer(s, 19)
+footer(s, 24)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 18 — CONCLUSÃO
