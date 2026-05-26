@@ -1,10 +1,7 @@
 Desfecho,Modelo,OR,IC 95% lo,IC 95% hi,E-value (OR),E-value (CI),Interpretação
-ocp_qualif,M1,0.7084,0.6981,0.7189,2.174,2.129,Confounder precisaria ter ≥2.17× associação com raça E com ocp_qualif para zerar o efeito
-ocp_qualif,M2,0.7405,0.7293,0.7519,2.038,1.992,Confounder precisaria ter ≥2.04× associação com raça E com ocp_qualif para zerar o efeito
-ocp_qualif,M3,0.7399,0.7286,0.7513,2.041,1.995,Confounder precisaria ter ≥2.04× associação com raça E com ocp_qualif para zerar o efeito
-y_top20,M1,0.7259,0.7206,0.7313,2.099,2.076,Confounder precisaria ter ≥2.10× associação com raça E com y_top20 para zerar o efeito
-y_top20,M2,0.7433,0.7374,0.7492,2.027,2.003,Confounder precisaria ter ≥2.03× associação com raça E com y_top20 para zerar o efeito
-y_top20,M3,0.7429,0.7371,0.7488,2.029,2.005,Confounder precisaria ter ≥2.03× associação com raça E com y_top20 para zerar o efeito
-y_top10,M1,0.6709,0.6643,0.6775,2.346,2.314,Confounder precisaria ter ≥2.35× associação com raça E com y_top10 para zerar o efeito
-y_top10,M2,0.6977,0.6905,0.705,2.221,2.189,Confounder precisaria ter ≥2.22× associação com raça E com y_top10 para zerar o efeito
-y_top10,M3,0.6969,0.6897,0.7042,2.225,2.192,Confounder precisaria ter ≥2.22× associação com raça E com y_top10 para zerar o efeito
+ocp_qualif,M1,0.5508,0.5485,0.5531,3.032,3.017,Confounder precisaria ter ≥3.03× associação com raça E com ocp_qualif para zerar o efeito
+ocp_qualif,M2,0.7023,0.6991,0.7054,2.201,2.187,Confounder precisaria ter ≥2.20× associação com raça E com ocp_qualif para zerar o efeito
+y_top20,M1,0.5360,0.5337,0.5382,3.137,3.121,Confounder precisaria ter ≥3.14× associação com raça E com y_top20 para zerar o efeito
+y_top20,M2,0.6891,0.6859,0.6923,2.260,2.246,Confounder precisaria ter ≥2.26× associação com raça E com y_top20 para zerar o efeito
+y_top10,M1,0.4533,0.4507,0.4558,3.837,3.812,Confounder precisaria ter ≥3.84× associação com raça E com y_top10 para zerar o efeito
+y_top10,M2,0.6539,0.6498,0.6581,2.429,2.408,Confounder precisaria ter ≥2.43× associação com raça E com y_top10 para zerar o efeito

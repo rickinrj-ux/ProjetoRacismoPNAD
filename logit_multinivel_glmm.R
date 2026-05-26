@@ -33,27 +33,45 @@ df_raw <- read_parquet(file.path(ROOT, "data", "processed", "features.parquet"))
 
 cat(sprintf("  Total bruto: %s obs.\n", format(nrow(df_raw), big.mark=",")))
 
+# ── Resultados anteriores para comparação ────────────────────────────────────
+# Modelo empregado==1 (educ_ord, N=2.395.285): M1 OR=0.7045, M2 OR=0.7467
+# Modelo pea==1 + conta_propria (educ_ord, N=2.395.285): M1 OR=0.7131, M2 OR=0.7587
+old_resumo_path <- file.path(TABLES, "glmm_resumo_full.csv")
+if (file.exists(old_resumo_path)) {
+  old_res <- read.csv(old_resumo_path)
+  cat("\n[REFERÊNCIA] Resultados anteriores (educ_ord, N=2.395.285):\n")
+  cat(sprintf("  M1: OR=%.4f  ICC=%.4f (%.1f%%)\n",
+              old_res$OR_negro[1], old_res$ICC_UPA[1], 100*old_res$ICC_UPA[1]))
+  cat(sprintf("  M2: OR=%.4f  ICC=%.4f (%.1f%%)\n",
+              old_res$OR_negro[2], old_res$ICC_UPA[2], 100*old_res$ICC_UPA[2]))
+}
+
+# ── EXTENSÃO PARA PEA COMPLETA: usa dummies de educação (100% cobertura) ─────
+# educ_ord (contínuo) só cobre 31% da PEA → substitui por dummies binárias
+# (mesma especificação do HLM/OB/QR, alinhando todos os modelos do TCC)
 df <- df_raw |>
   filter(
-    empregado    == 1,
+    pea          == 1,
     !is.na(renda_bruta),
     renda_bruta   > 0,
     !is.na(negro),
     !is.na(sexo_fem),
-    !is.na(educ_ord),
     !is.na(UPA),
     !is.na(media_renda_upa_z),           # garante mesmo dataset para M1 e M2
-    !is.na(media_educ_upa_z),
-    !is.na(ocp_grupo_cbo)
+    !is.na(media_educ_upa_z)
+    # educ_ord REMOVIDO — substitui por dummies com cobertura total
   ) |>
   mutate(
-    negro          = as.integer(negro),
-    sexo_fem       = as.integer(sexo_fem),
+    negro                  = as.integer(negro),
+    sexo_fem               = as.integer(sexo_fem),
+    educ_medio_completo    = as.integer(!is.na(educ_medio_completo) & educ_medio_completo == 1),
+    educ_superior_completo = as.integer(!is.na(educ_superior_completo) & educ_superior_completo == 1),
+    educ_pos_graduacao     = as.integer(!is.na(educ_pos_graduacao) & educ_pos_graduacao == 1),
     emprego_formal = as.integer(!is.na(emprego_formal) & emprego_formal == 1),
     setor_publico  = as.integer(!is.na(setor_publico) & setor_publico == 1),
-    edu_anos_c     = educ_ord - mean(educ_ord, na.rm = TRUE),
+    conta_propria  = as.integer(!is.na(conta_propria) & conta_propria == 1),
+    trab_domestico = as.integer(!is.na(trab_domestico) & trab_domestico == 1),
     horas_c        = ifelse(!is.na(horas_c), horas_c, 0),
-    # idade_c já centralizada no parquet; garantir sem NA
     idade_c        = ifelse(!is.na(idade_c), idade_c, 0),
     # Variável dependente: CBO grupos 1-4 (consistente com análise Python)
     ocp_qualif     = as.integer(!is.na(ocp_grupo_cbo) &
@@ -62,18 +80,25 @@ df <- df_raw |>
     top20_renda    = as.integer(renda_bruta >= quantile(renda_bruta, 0.80, na.rm = TRUE)),
     UPA            = as.character(UPA),
     UF             = as.character(UF),
-    # Variáveis contextuais L2 (z-score já no parquet)
     renda_media_upa_c = media_renda_upa_z,
     edu_media_upa_c   = media_educ_upa_z
   )
 
-cat(sprintf("  Populacao de trabalho (completa): %s obs.\n", format(nrow(df), big.mark=",")))
+cat(sprintf("  PEA COMPLETA (dummies educação, pea==1): %s obs.\n", format(nrow(df), big.mark=",")))
 cat(sprintf("  UPAs unicas: %s\n", format(n_distinct(df$UPA), big.mark=",")))
 cat(sprintf("  ocp_qualif = 1: %.1f%%\n", 100 * mean(df$ocp_qualif, na.rm=TRUE)))
+cat(sprintf("  negro: %.1f%%  |  branco: %.1f%%\n",
+            100*mean(df$negro), 100*(1-mean(df$negro))))
+cat(sprintf("  educ_superior: %.1f%%  |  conta_propria: %.1f%%  |  trab_domestico: %.1f%%\n",
+            100*mean(df$educ_superior_completo),
+            100*mean(df$conta_propria), 100*mean(df$trab_domestico)))
 
 # ── 2. Fórmulas dos modelos ───────────────────────────────────────────────────
-# Controles individuais comuns a todos os modelos
-CTRL <- "sexo_fem + edu_anos_c + idade_c + I(idade_c^2) + horas_c + emprego_formal + setor_publico"
+# Dummies de educação (alinhado com HLM/OB/QR) + tipo de vínculo empregatício
+CTRL <- paste("sexo_fem",
+              "+ educ_medio_completo + educ_superior_completo + educ_pos_graduacao",
+              "+ idade_c + I(idade_c^2) + horas_c",
+              "+ emprego_formal + setor_publico + conta_propria + trab_domestico")
 
 f_m1 <- as.formula(paste(
   "ocp_qualif ~ negro +", CTRL, "+ (1 | UPA)"
@@ -181,9 +206,11 @@ write.csv(or_table,
           row.names = FALSE)
 cat("\nglmm_odds_ratios_full.csv salvo.\n")
 
-# Resumo executivo
+# Resumo executivo — população completa PEA
 resumo <- data.frame(
   modelo     = c("M1_GLMM_full", "M2_GLMM_full"),
+  populacao  = c("pea==1", "pea==1"),
+  N          = c(nrow(df), nrow(df)),
   OR_negro   = c(or_negro_m1$OR, or_negro_m2$OR),
   CI_low     = c(or_negro_m1$ci_low, or_negro_m2$ci_low),
   CI_high    = c(or_negro_m1$ci_high, or_negro_m2$ci_high),
@@ -205,12 +232,15 @@ or_plot_data <- or_table |>
                     labels = c("M1 — Sem contexto UPA",
                                "M2 — Com contexto UPA")),
     term   = recode(term,
-      negro         = "Raça (negro)",
-      sexo_fem      = "Sexo (feminino)",
-      edu_anos_c    = "Anos de educação",
-      idade_c       = "Idade",
-      horas_c       = "Horas trabalhadas",
-      emprego_formal = "Emprego formal",
+      negro          = "Raça (negro)",
+      sexo_fem       = "Sexo (feminino)",
+      edu_anos_c     = "Anos de educação",
+      idade_c        = "Idade",
+      horas_c        = "Horas trabalhadas",
+      emprego_formal  = "Emprego formal",
+      setor_publico   = "Setor público",
+      conta_propria   = "Conta própria",
+      trab_domestico  = "Trab. doméstico",
       renda_media_upa_c = "Renda média da UPA (log)",
       edu_media_upa_c   = "Educação média da UPA"
     ),
@@ -251,15 +281,23 @@ cat("glmm_odds_ratios_full.png salvo.\n")
 # ── 10. Sumário final ─────────────────────────────────────────────────────────
 cat("\n")
 cat("=======================================================\n")
-cat("  SUMÁRIO — GLMM LOGÍSTICO (populacao completa)\n")
+cat("  SUMÁRIO — GLMM LOGÍSTICO (PEA completa, pea==1)\n")
 cat("=======================================================\n")
+cat(sprintf("  N (PEA completa)           : %s\n", format(nrow(df), big.mark=",")))
 cat(sprintf("  OR negro M1 (sem contexto) : %.4f  [%.4f, %.4f]\n",
             or_negro_m1$OR, or_negro_m1$ci_low, or_negro_m1$ci_high))
 cat(sprintf("  OR negro M2 (+ UPA ctx)    : %.4f  [%.4f, %.4f]\n",
             or_negro_m2$OR, or_negro_m2$ci_low, or_negro_m2$ci_high))
+cat(sprintf("  AME negro M1               : %.4f p.p.\n", ame_m1$estimate * 100))
 cat(sprintf("  AME negro M2               : %.4f p.p.\n", ame_m2$estimate * 100))
 cat(sprintf("  ICC UPA (M1)               : %.4f (%.1f%%)\n", icc_m1, 100 * icc_m1))
 cat(sprintf("  ICC UPA (M2)               : %.4f (%.1f%%)\n", icc_m2, 100 * icc_m2))
+cat("-------------------------------------------------------\n")
+cat("  COMPARAÇÃO COM MODELOS ANTERIORES:\n")
+cat("  Orig  (empregado==1, educ_ord):      OR M1=0.7045  OR M2=0.7467  N=2.395.285\n")
+cat("  Interm (pea==1, educ_ord+ctrl):      OR M1=0.7131  OR M2=0.7587  N=2.395.285\n")
+cat(sprintf("  ATUAL (pea==1, dummies, PEA total):  OR M1=%.4f  OR M2=%.4f  N=%s\n",
+            or_negro_m1$OR, or_negro_m2$OR, format(nrow(df), big.mark=",")))
 cat("=======================================================\n")
 cat("  Arquivos salvos:\n")
 cat("    outputs/tables/glmm_odds_ratios_full.csv\n")

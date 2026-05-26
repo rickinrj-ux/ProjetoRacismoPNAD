@@ -400,7 +400,7 @@ add_bullet(doc, "Elementares: razão ≈ 2,12 — negros são mais do que o dobr
 add_colored_box(doc, "O que dizer se perguntarem:",
     ["'Este gráfico é o primeiro diagnóstico visual da segregação ocupacional. A razão de 0,42 nos "
      "Dirigentes não é explicada por diferença de escolaridade — quando controlamos por educação no "
-     "GLMM (lme4), o OR permanece em 0,747. Isso confirma que parte substancial da sub-representação "
+     "GLMM (lme4), o OR permanece em 0,691. Isso confirma que parte substancial da sub-representação "
      "é discriminação de acesso, não apenas diferença de capital humano.'"],
     title_color=(0xB7,0x1C,0x1C))
 doc.add_paragraph()
@@ -488,21 +488,21 @@ add_para(doc, "Como ler:", size=11, bold=True, color=(0x1F,0x38,0x64), space_bef
 add_bullet(doc, "Eixo X: Odds Ratio (OR). OR=1 = sem diferença racial. OR<1 = negros têm MENOR chance.")
 add_bullet(doc, "Cada ponto = estimativa de OR com IC 95%. GLMM implementado com lme4::glmer "
                 "(nAGQ=0, otimizador bobyqa) para acomodar a estrutura hierárquica dos dados.")
-add_bullet(doc, "M1 (sem efeito aleatório de contexto): OR=0,704 — negros têm 29,6% menos chance. "
-                "ICC M1=26,2% (variação entre UPAs elevada).")
-add_bullet(doc, "M2 (com efeito aleatório de UPA): OR=0,747 — após controlar o contexto local, "
-                "negros têm 25,3% menos chance. ICC M2=22,5%.")
+add_bullet(doc, "M1 (sem efeito aleatório de contexto): OR=0,674 — negros têm 32,6% menos chance. "
+                "ICC M1=22,2% (variação entre UPAs elevada). N=7.694.198 (PEA completa).")
+add_bullet(doc, "M2 (com efeito aleatório de UPA): OR=0,691 — após controlar o contexto local, "
+                "negros têm 30,9% menos chance. ICC M2=10,8%.")
 add_para(doc, "O AME (Average Marginal Effect):", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "AME M1 = −1,30 p.p.: sem controle de contexto, negros têm 1,30 p.p. a menos de "
+add_bullet(doc, "AME M1 = −5,16 p.p.: sem controle de contexto, negros têm 5,16 p.p. a menos de "
                 "probabilidade de ocupação qualificada.")
-add_bullet(doc, "AME M2 = −1,07 p.p.: com efeito aleatório de UPA, o efeito líquido de ser negro "
-                "é −1,07 p.p. — discriminação pura de acesso após controlar moradia e contexto.")
+add_bullet(doc, "AME M2 = −4,84 p.p.: com efeito aleatório de UPA, o efeito líquido de ser negro "
+                "é −4,84 p.p. — discriminação pura de acesso após controlar moradia e contexto.")
 add_colored_box(doc, "O que dizer se perguntarem sobre OR vs AME e sobre o GLMM:",
     ["'O OR mede razão de chances — útil para comparação entre modelos. O AME traduz isso em "
      "diferença de probabilidade — mais intuitivo para comunicar ao gestor público.'",
      "'O GLMM (Generalized Linear Mixed Model) é a extensão natural do HLM para variáveis binárias. "
      "Ao usar lme4::glmer com efeitos aleatórios por UPA, capturo a mesma estrutura hierárquica "
-     "do HLM aplicada ao modelo de acesso a ocupações. O ICC=26,2% em M1 confirma que há "
+     "do HLM aplicada ao modelo de acesso a ocupações. O ICC=22,2% em M1 confirma que há "
      "variância substancial entre UPAs — ignorar essa hierarquia produziria erros padrão "
      "subestimados e OR's viesados.'"],
     title_color=(0xFF,0x8F,0x00))
@@ -800,8 +800,8 @@ add_bullet(doc, "Konfound HLM: M1=99,5%; M2=M3=98,8%; M4=98,5% — quase 100% do
                 "precisariam ser mal alocados para reverter a conclusão de discriminação.")
 add_bullet(doc, "OLS subestima: gap OLS=43,8%–48,5% vs HLM=50,8%–53,0% (Δ=5,4–9,7 p.p.) — "
                 "o viés de subestimação do OLS fica em torno de 9,7 p.p. em M1 e 5,4 p.p. em M4.")
-add_bullet(doc, "E-values GLMM: M1=2,174; M2=2,038 — variável omitida precisaria ter "
-                "associação 2,0–2,2× com raça E com acesso a ocupações para eliminar o OR.")
+add_bullet(doc, "E-values GLMM lme4 (PEA completa): M1=2,331; M2=2,254 — variável omitida "
+                "precisaria ter associação ≥2,3× com raça E com acesso a ocupações para eliminar o OR.")
 add_bullet(doc, "Oster δ*: M1=−0,48; M2=−0,43; M4=−0,39 — todos negativos, confirmando "
                 "que variáveis omitidas teriam que atenuar (não amplificar) para anular o gap.")
 add_colored_box(doc, "O que dizer se perguntarem sobre endogeneidade ou variáveis omitidas:",
@@ -923,14 +923,14 @@ add_para(doc, "P(ocp_qualif_ij = 1) = Λ(β₀j + β₁·negro_i + X_i·γ + u�
 add_para(doc, "β₀j = γ₀₀ + u₀j,  u₀j ~ N(0, σ²ᵤ)",
          size=11, italic=True, color=(0x44,0x44,0x44))
 add_bullet(doc, "Λ(·): função logística — transforma o preditor linear em probabilidade [0,1].")
-add_bullet(doc, "β₁ (negro): log-odds de negro vs branco. OR M1=0,704 (sem contexto); "
-                "OR M2=0,747 (com efeito aleatório de UPA).")
+add_bullet(doc, "β₁ (negro): log-odds de negro vs branco. OR M1=0,674 (sem contexto); "
+                "OR M2=0,691 (com efeito aleatório de UPA). N=7.694.198 (PEA completa).")
 add_bullet(doc, "u₀j: efeito aleatório de UPA j — capta a heterogeneidade entre bairros. "
-                "ICC M1=26,2% | ICC M2=22,5%.")
+                "ICC M1=22,2% | ICC M2=10,8%.")
 add_bullet(doc, "Implementação: lme4::glmer (Python equivalente via statsmodels/pymer4), "
                 "nAGQ=0 (aproximação de Laplace) para viabilidade computacional, "
                 "otimizador bobyqa.")
-add_bullet(doc, "AME M1=−1,30 p.p. | AME M2=−1,07 p.p.: interpretados como diferença de "
+add_bullet(doc, "AME M1=−5,16 p.p. | AME M2=−4,84 p.p.: interpretados como diferença de "
                 "probabilidade de ocupação qualificada atribuída à raça, todas as demais "
                 "características iguais.")
 add_bullet(doc, "Termos de interação (Tabela 4): negro×sexo_fem β=+0.0416 (***); "

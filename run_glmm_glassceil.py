@@ -11,7 +11,7 @@ Desfechos analisados:
 Modelos estimados para cada desfecho:
   M1 — controles individuais + UF efeito fixo
   M2 — M1 + contexto UPA (renda média, educação média)
-  M3 — M2 + interação negro × edu_anos_c  (teto de credencial)
+  M3 — M2 + interações negro × educ_superior_completo + negro × educ_pos_graduacao  (teto de credencial)
 
 Estimação: logit statsmodels com SE robusto (HC1).
 Nota: efeito aleatório de UPA via lme4 (R) estimado em logit_multinivel_glmm.R.
@@ -38,13 +38,13 @@ SEED = 42
 
 # ── Colunas necessárias ──────────────────────────────────────────────────────
 COLS = [
-    "negro", "sexo_fem", "idade_c", "idade_sq", "educ_ord",
+    "negro", "sexo_fem", "idade_c", "idade_sq",
     "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z", "media_renda_upa_z",
-    "emprego_formal", "setor_publico",
+    "emprego_formal", "setor_publico", "conta_propria", "trab_domestico",
     "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
     "ocp_grupo_cbo",
-    "log_renda", "renda_bruta", "empregado",
+    "log_renda", "renda_bruta", "pea",
     "UF", "UPA",
 ]
 
@@ -54,16 +54,16 @@ print(f"  Bruto: {len(df):,} obs.")
 
 # ── Filtros (mesmos do script R: empregado + renda + controles) ───────────────
 mask = (
-    (df["empregado"] == 1)
+    (df["pea"] == 1)
     & df["renda_bruta"].notna() & (df["renda_bruta"] > 0)
     & df["negro"].notna()
     & df["sexo_fem"].notna()
-    & df["educ_ord"].notna()
+    # educ_ord REMOVIDO — substitui por dummies com cobertura 100% da PEA
     & df["media_renda_upa_z"].notna()
     & df["media_educ_upa_z"].notna()
 )
 df = df[mask].copy()
-print(f"  Filtrado (empregado + renda): {len(df):,} obs.")
+print(f"  Filtrado (pea==1 + renda>0): {len(df):,} obs.")
 
 # ── Construir variáveis ───────────────────────────────────────────────────────
 df["UF_str"] = df["UF"].astype(str)
@@ -81,12 +81,15 @@ q90 = df["renda_bruta"].quantile(0.90)
 df["y_top20"] = (df["renda_bruta"] >= q80).astype(int)
 df["y_top10"] = (df["renda_bruta"] >= q90).astype(int)
 
-# edu_anos_c = educ_ord centralizado
-df["edu_anos_c"] = df["educ_ord"] - df["educ_ord"].mean()
-
-# Emprego formal como int (some NaNs)
+# Dummies de educação (100% cobertura PEA — substitui educ_ord ordinal)
+df["educ_medio_completo"]    = df["educ_medio_completo"].fillna(0).astype(int)
+df["educ_superior_completo"] = df["educ_superior_completo"].fillna(0).astype(int)
+df["educ_pos_graduacao"]     = df["educ_pos_graduacao"].fillna(0).astype(int)
+# Variáveis de vínculo empregatício — NA → 0
 df["emprego_formal"] = df["emprego_formal"].fillna(0).astype(int)
-df["setor_publico"] = df["setor_publico"].fillna(0).astype(int)
+df["setor_publico"]  = df["setor_publico"].fillna(0).astype(int)
+df["conta_propria"]  = df["conta_propria"].fillna(0).astype(int)
+df["trab_domestico"] = df["trab_domestico"].fillna(0).astype(int)
 
 print(f"  ocp_qualif  = 1: {df['ocp_qualif'].mean()*100:.1f}%")
 print(f"  y_top20     = 1: {df['y_top20'].mean()*100:.1f}%")
@@ -94,10 +97,11 @@ print(f"  y_top10     = 1: {df['y_top10'].mean()*100:.1f}%")
 print(f"  Brancos: {(df['negro']==0).sum():,}  |  Negros: {(df['negro']==1).sum():,}")
 
 # ── Fórmulas ──────────────────────────────────────────────────────────────────
-_IND   = ("negro + edu_anos_c + sexo_fem + idade_c + idade_sq"
-          " + emprego_formal + setor_publico")
+_IND   = ("negro + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
+          " + sexo_fem + idade_c + idade_sq"
+          " + emprego_formal + setor_publico + conta_propria + trab_domestico")
 _UPA   = "media_renda_upa_z + media_educ_upa_z + tx_desemprego_upa_z + pct_negro_upa_z"
-_INTER = "negro:edu_anos_c"
+_INTER = "negro:educ_superior_completo + negro:educ_pos_graduacao"
 
 FORMULAS = {
     "M1": f"{{y}} ~ {_IND} + C(UF_str)",
@@ -186,7 +190,7 @@ for y_col, y_label in OUTCOMES:
         p   = m.pvalues.get("negro", np.nan) if m is not None else np.nan
         inter_or = np.nan
         if m_name == "M3" and m is not None:
-            nm = "negro:edu_anos_c"
+            nm = "negro:educ_superior_completo"
             if nm in m.params:
                 inter_or = np.exp(m.params[nm])
         rows.append({
@@ -199,21 +203,21 @@ tbl = pd.DataFrame(rows)
 tbl.to_csv(TABLES / "glmm_glassceil_full.csv", index=False, encoding="utf-8")
 print("\nglmm_glassceil_full.csv salvo.")
 
-# ── Interação negro × edu: variação do gap por nível de escolaridade ──────────
+# ── Interação negro × educação: variação do gap por nível de credencial ───────
 print("\n--- Efeito moderador de educação no gap (M3) ---")
 for y_col, y_label in OUTCOMES:
     m = results[y_col].get("M3")
     if m is None:
         continue
     print(f"\n  {y_col}:")
-    for educ_sd in [-2, -1, 0, 1, 2]:
-        nm = "negro:edu_anos_c"
+    for educ_label, nm in [("Superior completo", "negro:educ_superior_completo"),
+                            ("Pós-graduação",    "negro:educ_pos_graduacao")]:
         if "negro" not in m.params or nm not in m.params:
-            break
+            continue
         b_negro = m.params["negro"]
         b_inter = m.params.get(nm, 0)
-        beta_at_educ = b_negro + b_inter * educ_sd * df["edu_anos_c"].std()
-        print(f"    edu_sd={educ_sd:+d}: β_negro={beta_at_educ:.4f} → OR={np.exp(beta_at_educ):.4f}")
+        or_comb = np.exp(b_negro + b_inter)
+        print(f"    {educ_label}: β_negro+inter={b_negro+b_inter:.4f} → OR={or_comb:.4f}")
 
 # ── Figura: Forest plot OR por desfecho e modelo ─────────────────────────────
 COLORS_M = {"M1": "#1565C0", "M2": "#B71C1C", "M3": "#2E7D32"}
@@ -257,37 +261,47 @@ plt.savefig(FIGURES / "glmm_glassceil_forest.png", dpi=150, bbox_inches="tight")
 plt.close()
 print("glmm_glassceil_forest.png salvo.")
 
-# ── Figura: Probabilidade predita por raça × escolaridade ─────────────────────
+# ── Figura: Probabilidade predita por raça × nível de escolaridade ────────────
 fig, axes = plt.subplots(1, n_out, figsize=(5 * n_out, 6), sharey=False)
 if n_out == 1:
     axes = [axes]
 
-educ_range = np.linspace(df["edu_anos_c"].quantile(0.05),
-                         df["edu_anos_c"].quantile(0.95), 50)
 most_common_uf = df["UF_str"].mode().iloc[0]
 mean_vals = {c: float(df[c].mean()) for c in
              ["idade_c", "idade_sq", "media_renda_upa_z", "media_educ_upa_z",
               "tx_desemprego_upa_z", "pct_negro_upa_z"]}
 emp_mean = float(df["emprego_formal"].mean())
-pub_mean = float(df["setor_publico"].mean())
+pub_mean  = float(df["setor_publico"].mean())
+cp_mean   = float(df["conta_propria"].mean())
+td_mean   = float(df["trab_domestico"].mean())
+
+# 4 education categories: none / secondary / superior / pos-grad
+EDUC_CATS = [
+    ("Sem superior", dict(educ_medio_completo=1, educ_superior_completo=0, educ_pos_graduacao=0)),
+    ("Superior",     dict(educ_medio_completo=0, educ_superior_completo=1, educ_pos_graduacao=0)),
+    ("Pós-grad",     dict(educ_medio_completo=0, educ_superior_completo=0, educ_pos_graduacao=1)),
+]
+x_pos = np.arange(len(EDUC_CATS))
+width = 0.35
 
 for ax, (y_col, y_label) in zip(axes, OUTCOMES):
     m = results[y_col].get("M3") or results[y_col].get("M2")
     if m is None:
         continue
     probs_b, probs_n = [], []
-    for edu in educ_range:
+    for _, educ_vals in EDUC_CATS:
         base = {
             "sexo_fem": 0, "idade_c": mean_vals["idade_c"],
             "idade_sq": mean_vals["idade_sq"],
             "emprego_formal": emp_mean, "setor_publico": pub_mean,
+            "conta_propria": cp_mean, "trab_domestico": td_mean,
             "media_renda_upa_z": mean_vals["media_renda_upa_z"],
             "media_educ_upa_z": mean_vals["media_educ_upa_z"],
             "tx_desemprego_upa_z": mean_vals["tx_desemprego_upa_z"],
             "pct_negro_upa_z": mean_vals["pct_negro_upa_z"],
             "UF_str": most_common_uf,
+            **educ_vals,
         }
-        base["edu_anos_c"] = edu
         try:
             pb = float(m.predict(pd.DataFrame([{**base, "negro": 0}])).iloc[0]) * 100
             pn = float(m.predict(pd.DataFrame([{**base, "negro": 1}])).iloc[0]) * 100
@@ -296,19 +310,18 @@ for ax, (y_col, y_label) in zip(axes, OUTCOMES):
         probs_b.append(pb)
         probs_n.append(pn)
 
-    ax.plot(educ_range, probs_b, color="#1565C0", lw=2, label="Branco")
-    ax.plot(educ_range, probs_n, color="#B71C1C", lw=2, label="Negro")
-    ax.fill_between(educ_range, probs_n, probs_b, alpha=0.15, color="#E65100",
-                    label="Gap racial")
-    ax.set_xlabel("Educação (desvios da média)", fontsize=9)
+    bars_b = ax.bar(x_pos - width/2, probs_b, width, color="#1565C0", alpha=0.85, label="Branco")
+    bars_n = ax.bar(x_pos + width/2, probs_n, width, color="#B71C1C", alpha=0.85, label="Negro")
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels([c for c, _ in EDUC_CATS], fontsize=9)
     ax.set_ylabel("Probabilidade predita (%)" if ax == axes[0] else "")
     ax.set_title(y_label.replace("\n", " "), fontsize=10, fontweight="bold")
     ax.legend(fontsize=8)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
-fig.suptitle("Teto de Vidro Racial — Probabilidade Predita por Nível de Educação\n"
-             "Logit M3 com interação negro × educação (população completa)",
+fig.suptitle("Teto de Vidro Racial — Probabilidade Predita por Nível de Escolaridade\n"
+             "Logit M3 com interação negro × credencial (população completa)",
              fontsize=12, fontweight="bold")
 plt.tight_layout()
 plt.savefig(FIGURES / "glmm_glassceil_probpredita.png", dpi=150, bbox_inches="tight")
