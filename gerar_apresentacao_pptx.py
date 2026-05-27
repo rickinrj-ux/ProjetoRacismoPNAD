@@ -722,10 +722,55 @@ for i, (rank, feat, shap, note) in enumerate(ranking):
 footer(s, 16)
 
 # ══════════════════════════════════════════════════════════════════════════════
+# SLIDE — CLUSTERING SOCIOECONÔMICO
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header_bar(s, "16. Clustering Socioeconômico — K-Means (k=3) | N=7.694.198",
+           "MiniBatchKMeans | 12 dimensões | k=3 adotado por interpretabilidade (k=2 trivialmente binário)")
+
+add_img(s, FIGURES / "kmeans_perfis_k3.png",    In(0.3),  In(1.2), In(6.2))
+add_img(s, FIGURES / "kmeans_gap_racial_k3.png", In(6.65), In(1.2), In(6.4))
+
+# Cluster profile table
+cluster_rows = [
+    ("C0", "2.110.270", "27,4%", "76,2%", "100%", "6,961", "Mulheres negras — vulnerabilidade dupla", C_RED),
+    ("C1", "2.705.788", "35,2%", "18,0%", "40,1%","7,895", "Brancos alta renda — menor escolaridade",  C_BLUE),
+    ("C2", "2.878.140", "37,4%", "81,3%",  "0,0%", "7,074", "Homens negros — 36,5% superior, renda 58% < C1", C_DARK),
+]
+col_labels = ["Cluster","N","% total","% Negro","% Mulher","log_Renda","Perfil"]
+col_x      = [In(0.3), In(1.2), In(2.45), In(3.4), In(4.35), In(5.35), In(6.35)]
+col_w      = [In(0.85), In(1.15), In(0.9), In(0.85), In(0.85), In(0.9), In(6.6)]
+
+row_y0 = In(4.6)
+row_h  = In(0.42)
+# header
+for j, (lbl, x, w) in enumerate(zip(col_labels, col_x, col_w)):
+    add_rect(s, x, row_y0, w, row_h, fill_rgb=RGBColor(0x1F,0x38,0x64))
+    add_text(s, lbl, x+In(0.04), row_y0+In(0.04), w-In(0.08), row_h-In(0.08),
+             font_size=10, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
+for i, (c, n, pct, neg, fem, lr, desc, color) in enumerate(cluster_rows):
+    y = row_y0 + row_h + i * row_h
+    bg = RGBColor(0xFF,0xF5,0xF5) if i == 0 else (RGBColor(0xE3,0xF2,0xFD) if i == 1 else RGBColor(0xF5,0xF5,0xF5))
+    for j, (val, x, w) in enumerate(zip([c, n, pct, neg, fem, lr, desc], col_x, col_w)):
+        add_rect(s, x, y, w, row_h, fill_rgb=bg, line_rgb=C_GRAY, line_pt=0.3)
+        add_text(s, val, x+In(0.04), y+In(0.04), w-In(0.08), row_h-In(0.06),
+                 font_size=9.5, bold=(j == 0), color=color if j == 0 else C_BLACK,
+                 align=PP_ALIGN.CENTER if j < 6 else PP_ALIGN.LEFT)
+
+add_rect(s, In(0.3), In(6.22), In(12.7), In(0.55),
+         fill_rgb=RGBColor(0xFF,0xF9,0xE7), line_rgb=C_AMBER, line_pt=1)
+add_text(s, "Paradoxo de Simpson: dentro de cada cluster negros ganham mais que brancos — pois brancos nos "
+            "clusters negros são os piores-off de seu grupo.  "
+            "H5 confirmado: C2 tem 36,5% de superior vs 13,7% em C1, mas renda 58% inferior.",
+         In(0.5), In(6.27), In(12.3), In(0.45),
+         font_size=11.5, color=C_DARK)
+footer(s, 17)
+
+# ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 11 — SNA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "16. Análise de Redes Sociais — Capital Social e Mobilidade",
+header_bar(s, "17. Análise de Redes Sociais — Capital Social e Mobilidade",
            "Betweenness centrality nula para negros em todos os níveis educacionais")
 
 add_img(s, FIGURES / "sna_rede_demografica.png", In(0.3), In(1.2), In(6.5))
@@ -745,13 +790,13 @@ add_rect(s, In(7.2), In(5.45), In(5.9), In(0.85),
 add_text(s, '"Negros enfrentam um duplo obstáculo ao retorno educacional: o gap direto mensurado pelo HLM e a exclusão das redes que convertem diplomas em empregos."',
          In(7.35), In(5.5), In(5.6), In(0.8),
          font_size=12, italic=True, color=C_DARK)
-footer(s, 17)
+footer(s, 18)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 12 — ESTADO E DESIGUALDADE (H1 / H2 / H3)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "17. Estado e Desigualdade — H1 / H2 / H3",
+header_bar(s, "18. Estado e Desigualdade — H1 / H2 / H3",
            "Setor público reduz desigualdade geral mas gap racial persiste — e gap de gênero é MAIOR no público")
 
 add_img(s, FIGURES / "estado_h1_gini.png",   In(0.3), In(1.2), In(6.3))
@@ -770,13 +815,13 @@ add_text(s, "H1: Estado reduz levemente o Gini (0,466 vs 0,472) mas prêmio de +
          In(0.5), In(6.10), In(12.3), In(0.45),
          font_size=11.5, color=C_DARK)
 
-footer(s, 18)
+footer(s, 19)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 13 — RENDA REAL, ARMADILHA E INCLUSÃO (H4 / H5)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "18. Renda Real, Armadilha e Inclusão — H4 / H5",
+header_bar(s, "19. Renda Real, Armadilha e Inclusão — H4 / H5",
            "Pleno emprego sem prosperidade + gap de qualificação quase inalterado em 10 anos")
 
 add_img(s, FIGURES / "estado_h4_tendencia.png", In(0.3), In(1.2), In(6.3))
@@ -795,13 +840,13 @@ add_text(s, "H4: Contradição do mercado atual — emprego em máxima históric
          In(0.5), In(6.10), In(12.3), In(0.45),
          font_size=11.5, color=C_DARK)
 
-footer(s, 19)
+footer(s, 20)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 14 — JUSTIFICAÇÃO METODOLÓGICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "19. Por Que Esses Modelos? — Justificação Estatística",
+header_bar(s, "20. Por Que Esses Modelos? — Justificação Estatística",
            "LRT χ²=191.625 confirma hierarquia | ICC=9,83% > limiar 5% | HLM supera OLS+FE em AIC")
 
 add_img(s, FIGURES / "modelos_loglik_aic.png", In(0.3), In(1.2), In(6.3))
@@ -817,13 +862,13 @@ bullet_box(s, [
     "HLM 3 níveis (indivíduo > UPA > UF) é o único estimador com estrutura compatível com os dados e inferência válida",
 ], In(0.3), In(5.95), In(12.7), In(1.15), font_size=13, dot_color=C_DARK)
 
-footer(s, 20)
+footer(s, 21)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 15 — SÍNTESE: TRIÂNGULO DE EVIDÊNCIAS
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "20. Síntese — Triângulo de Evidências",
+header_bar(s, "21. Síntese — Triângulo de Evidências",
            "5 métodos independentes apontam para o mesmo diagnóstico")
 
 # Três vértices do triângulo
@@ -833,7 +878,7 @@ vertices = [
     (In(6.9),  In(1.3),  C_BLUE,  "DISCRIMINAÇÃO\nDE REMUNERAÇÃO",
      ["HLM M4: gap residual 6,2%", "Quantile Reg.: cresce no topo (glass ceiling)", "SHAP: −2,5% efeito racial residual"]),
     (In(3.6),  In(4.3),  C_DARK,  "EXCLUSÃO\nDAS REDES",
-     ["SNA: betweenness=0 para negros", "Diplomas valem menos sem acesso às redes", "Cluster: dupla desvantagem mulher negra"]),
+     ["SNA: betweenness=0 para negros", "Diplomas valem menos sem acesso às redes", "K-Means: C2 homens negros — 36,5% superior mas 58% < renda C1"]),
 ]
 for l, t, color, title, items in vertices:
     add_rect(s, l, t, In(5.8), In(2.6),
@@ -850,13 +895,13 @@ add_rect(s, In(0.3), In(6.4), In(12.7), In(0.5),
 add_text(s, "Oaxaca-Blinder une os três vértices: 84% do gap é de ACESSO (dotações) | 16% de REMUNERAÇÃO (retornos) | SNA explica por que o acesso é estruturalmente negado  |  GLMM: OR=0,691",
          In(0.5), In(6.45), In(12.3), In(0.45),
          font_size=12, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
-footer(s, 21)
+footer(s, 22)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 22 — PO: PESQUISA OPERACIONAL — PRIORIZAÇÃO DE POLÍTICAS
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "21. Pesquisa Operacional — Priorização Multicritério Anti-Discriminação",
+header_bar(s, "22. Pesquisa Operacional — Priorização Multicritério Anti-Discriminação",
            "TOPSIS + AHP (CR=0,004) + Programação Linear + Fronteira de Pareto | 6 políticas avaliadas")
 
 add_img(s, FIGURES / "po_politicas_topsis.png", In(0.3), In(1.2), In(7.2))
@@ -890,13 +935,13 @@ add_text(s, f"84% do gap é de ACESSO → P1 (Cotas CBO) lidera com CC={fmt(P['T
             f"PL-1 (orçamento B=5): redução projetada de {fmt(P['PL1_B5_PCT'],1)}% do gap bruto.",
          In(0.5), In(6.65), In(12.3), In(0.55),
          font_size=12, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
-footer(s, 22)
+footer(s, 23)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 13 — IMPLICAÇÕES DE POLÍTICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "22. Implicações de Política",
+header_bar(s, "23. Implicações de Política",
            "Três eixos simultâneos — ações isoladas são insuficientes para romper a armadilha estrutural")
 
 politicas = [
@@ -927,13 +972,13 @@ for i, (color, title, items) in enumerate(politicas):
 add_text(s, "⚠  Ao ritmo atual de convergência (~0,02 log-pontos/ano), eliminar o gap levaria mais de 100 anos.",
          In(0.3), In(6.8), In(12.7), In(0.45),
          font_size=13, bold=True, color=C_RED, align=PP_ALIGN.CENTER)
-footer(s, 23)
+footer(s, 24)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 14 — LIMITAÇÕES E AGENDA FUTURA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "23. Limitações e Agenda Futura",
+header_bar(s, "24. Limitações e Agenda Futura",
            "Honestidade acadêmica: o que este trabalho não faz e por quê")
 
 add_text(s, "Limitações", In(0.4), In(1.25), In(6.0), In(0.4),
@@ -955,7 +1000,7 @@ bullet_box(s, [
     "Modelo longitudinal com painéis rotativos da PNAD (2T seguidos) para efeitos fixos de indivíduo",
 ], In(7.0), In(1.75), In(6.2), In(3.8), font_size=13, dot_color=C_BLUE)
 
-footer(s, 24)
+footer(s, 25)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 18 — CONCLUSÃO
@@ -963,7 +1008,7 @@ footer(s, 24)
 s = prs.slides.add_slide(BLANK)
 add_rect(s, 0, 0, W, H, fill_rgb=C_DARK)
 add_rect(s, 0, 0, W, In(0.8), fill_rgb=RGBColor(0x0D,0x1F,0x3C))
-add_text(s, "18. Conclusão", In(0.4), In(0.1), In(12), In(0.65),
+add_text(s, "25. Conclusão", In(0.4), In(0.1), In(12), In(0.65),
          font_size=26, bold=True, color=C_WHITE, font_name="Calibri")
 
 numeros = [
