@@ -10,6 +10,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 from docx import Document
+from params import P, fmt, fmtN, ame, or_str
 from docx.shared import Pt, Cm, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
@@ -531,7 +532,7 @@ def build_doc(r, k):
         f"especialmente acesso desigual a ocupações de maior prestígio — e apenas 16,0% a retornos "
         f"diferenciais às mesmas características.\n\n"
         f"O logit multinível (GLMM lme4, efeito aleatório de UPA) identifica o gap de oportunidades: "
-        f"negros têm OR=0,691 de acesso a ocupações qualificadas (AME=−4,84 p.p., M2), "
+        f"negros têm OR={or_str(P['OR_M2'])} de acesso a ocupações qualificadas (AME={ame(P['AME_M2_pp'])}, M2), "
         f"após controle exaustivo de observáveis e estrutura hierárquica de 39,8 mil UPAs. A regressão quantílica "
         f"formaliza o glass ceiling: sem variáveis ocupacionais (M3), o gap vai de −8,2% no q10 "
         f"a −12,3% no q95 (Δ=−0,0455, confirmando inclinação negativa). Com controles ocupacionais "
@@ -1765,9 +1766,9 @@ def build_doc(r, k):
     # ── 4.6 OAXACA-BLINDER ─────────────────────────────────────────────────────
     add_heading(doc, "4.6 Decomposição de Oaxaca-Blinder do Gap Salarial Racial", level=2)
     add_para(doc,
-        "A decomposição de Oaxaca-Blinder, estimada sobre a população completa de 7,7 milhões de observações "
-        "da PEA com renda positiva, particionou o gap total de log-rendimento (0,4255, equivalente "
-        "a 53,0% de diferença geométrica) em seus componentes estruturais. O modelo inclui, além "
+        f"A decomposição de Oaxaca-Blinder, estimada sobre a população completa de 7,7 milhões de observações "
+        f"da PEA com renda positiva, particionou o gap total de log-rendimento ({fmt(P['GAP_LOG'],4)}, equivalente "
+        f"a {fmt(P['GAP_PCT'],1)}% de diferença geométrica) em seus componentes estruturais. O modelo inclui, além "
         "das variáveis educacionais e demográficas, as novas variáveis de composição ocupacional "
         "(grupos CBO), vínculo empregatício, formalidade e horas trabalhadas."
     )
@@ -2185,8 +2186,8 @@ def build_doc(r, k):
                     run.font.size = Pt(9); run.font.name = "Times New Roman"
         add_caption(doc, "Nota: OR < 1 = desvantagem racial. Modelos M1: controles individuais + UF FE + "
                     "HC1 robust SE. M2: + contexto UPA (renda mediana e educação médias). "
-                    "GLMM R (lme4 glmer): OR(ocp_qualif M1)=0,674 [ICC_UPA=22,2%] — modelo multinível autorizado. "
-                    "Gradiente (Python UF FE): OR(top20)=0,536 > OR(top10)=0,453 → glass ceiling intensifica no topo.")
+                    f"GLMM R (lme4 glmer): OR(ocp_qualif M1)={or_str(P['OR_M1'])} [ICC_UPA={fmt(P['ICC_M1_pct'],1)}%] — modelo multinível autorizado. "
+                    f"Gradiente (Python UF FE): OR(top20)={or_str(P['OR_TOP20_M1'])} > OR(top10)={or_str(P['OR_TOP10_M1'])} → glass ceiling intensifica no topo.")
     add_figure(doc, FIGURES / ("glmm_glassceil_forest.png"
                                if (FIGURES/"glmm_glassceil_forest.png").exists()
                                else "glmm_odds_ratios_full.png"),
@@ -2209,15 +2210,15 @@ def build_doc(r, k):
         "em M1 e de 22,2% para 10,8% em M2 — a maior cobertura geográfica (40.969 UPAs) "
         "dilui a variância entre UPAs ao incluir trabalhadores de toda a hierarquia ocupacional.")
     add_para(doc,
-        "Os resultados (Tabela 7, Figura 27) documentam teto de vidro duplo: negros têm "
-        "OR=0,674 (AME=−5,16 p.p.) de acesso a ocupações CBO 1–4 em M1, e OR=0,536 "
-        "(AME=−8,95 p.p.) para top 20% de renda. O gradiente confirmado — OR(top20)=0,536 "
-        "vs OR(top10)=0,453 — prova que a exclusão racial se intensifica no topo da "
-        "hierarquia: negros não apenas têm menor chance de alcançar os 20% superiores, "
-        "mas essa desvantagem é ainda mais severa no limiar dos 10%. O ICC de 22,2% no "
-        "GLMM de UPA (lme4, M1 para ocp_qualif) confirma que a estrutura hierárquica de "
-        "UPAs é essencial — o mercado de trabalho é mais geograficamente determinado no "
-        "acesso a ocupações qualificadas (ICC 22%) do que nos salários (ICC 9,8% HLM). "
+        f"Os resultados (Tabela 7, Figura 27) documentam teto de vidro duplo: negros têm "
+        f"OR={or_str(P['OR_M1'])} (AME={ame(P['AME_M1_pp'])}) de acesso a ocupações CBO 1–4 em M1, e OR={or_str(P['OR_TOP20_M1'])} "
+        f"(AME={ame(P['AME_TOP20_M1'])}) para top 20% de renda. O gradiente confirmado — OR(top20)={or_str(P['OR_TOP20_M1'])} "
+        f"vs OR(top10)={or_str(P['OR_TOP10_M1'])} — prova que a exclusão racial se intensifica no topo da "
+        f"hierarquia: negros não apenas têm menor chance de alcançar os 20% superiores, "
+        f"mas essa desvantagem é ainda mais severa no limiar dos 10%. O ICC de {fmt(P['ICC_M1_pct'],1)}% no "
+        f"GLMM de UPA (lme4, M1 para ocp_qualif) confirma que a estrutura hierárquica de "
+        f"UPAs é essencial — o mercado de trabalho é mais geograficamente determinado no "
+        f"acesso a ocupações qualificadas (ICC {fmt(P['ICC_M1_pct'],0)}%) do que nos salários (ICC 9,8% HLM). "
         "O emprego formal apresenta OR ligeiramente acima de 1 em M2, configurando paradoxo "
         "de Simpson: dentro de cada estrato educacional e localidade, negros têm marginalmente "
         "maior odds de formalidade como estratégia de proteção — porém isso ocorre porque "
@@ -2249,14 +2250,15 @@ def build_doc(r, k):
         "representa a parcela explicada pelas covariáveis observáveis.",
         width_cm=14)
     add_para(doc,
-        "A decomposição do gap (Figura 29) mostra que para CBO 1–4: AME M1 = −5,16 p.p. "
-        "(controles individuais); AME M2 = −4,84 p.p. (+ contexto UPA). A redução de 0,32 p.p. "
+        f"A decomposição do gap (Figura 29) mostra que para CBO 1–4: AME M1 = {ame(P['AME_M1_pp'])} "
+        f"(controles individuais); AME M2 = {ame(P['AME_M2_pp'])} (+ contexto UPA). A redução de "
+        f"{fmt(abs(P['AME_M1_pp'] - P['AME_M2_pp']),2)} p.p. "
         "de M1 para M2 reflete mediação contextual pelo entorno da UPA (efeito de vizinhança, "
-        "Wilson 1987). Os 4,84 p.p. residuais constituem discriminação de acesso pura não "
+        f"Wilson 1987). Os {fmt(abs(P['AME_M2_pp']),2)} p.p. residuais constituem discriminação de acesso pura não "
         "atribuível a nenhuma característica observável. O coeficiente GLMM (β=−0,369, "
-        "OR=0,691 em M2) converge com o gap residual do HLM M4 (β=−0,0644 em log-renda), "
+        f"OR={or_str(P['OR_M2'])} em M2) converge com o gap residual do HLM M4 (β=−0,0644 em log-renda), "
         "estabelecendo diagnóstico tripartite: discriminação opera (i) nas portas de entrada "
-        "das ocupações qualificadas (GLMM: OR=0,674), (ii) nas estruturas salariais dentro de "
+        f"das ocupações qualificadas (GLMM: OR={or_str(P['OR_M1'])}), (ii) nas estruturas salariais dentro de "
         "cada ocupação (HLM M4: −6,2%), e (iii) se intensifica no topo da distribuição "
         "(QR: gap de −8,3% no q10 a −11,8% no q90). O teto de vidro duplo — barreira de "
         "acesso (GLMM) + barreira de progressão salarial (QR) — é a contribuição analítica "
@@ -2325,8 +2327,8 @@ def build_doc(r, k):
         "residual pós-ocupação também aumenta no topo. Nos quantis inferiores (q10–q25), o gap "
         "reflete principalmente diferenças de inserção no mercado formal. A partir do q75, o "
         "mecanismo dominante é a exclusão do acesso às posições de alta remuneração — "
-        "confirmada pelo IR=0,47 no Top 5% das capitais e pelo gradiente GLMM "
-        "(OR top20=0,536 > OR top10=0,453). O glass ceiling racial é a estrutura dominante "
+        f"confirmada pelo IR=0,47 no Top 5% das capitais e pelo gradiente GLMM "
+        f"(OR top20={or_str(P['OR_TOP20_M1'])} > OR top10={or_str(P['OR_TOP10_M1'])}). O glass ceiling racial é a estrutura dominante "
         "de reprodução da desigualdade nos estratos superiores do mercado de trabalho brasileiro."
     )
     if (FIGURES / "quantreg_mediacao_ocp.png").exists():
@@ -2344,7 +2346,7 @@ def build_doc(r, k):
             "o gap residual pós-ocupação — discriminação de remuneração dentro da mesma "
             "categoria — é relativamente mais concentrado nos quantis intermediários, enquanto "
             "no topo prevalece a discriminação de acesso. A consistência desse diagnóstico com "
-            "os resultados do logit multinível GLMM (OR=0,691, AME=−4,84 p.p. para ocupação "
+            f"os resultados do logit multinível GLMM (OR={or_str(P['OR_M2'])}, AME={ame(P['AME_M2_pp'])} para ocupação "
             "qualificada) e da análise de composição (IR=0,47 no Top 5%) fecha um triângulo "
             "metodológico de evidências convergentes sobre a natureza do glass ceiling racial."
         )
@@ -2394,8 +2396,8 @@ def build_doc(r, k):
         add_para(doc,
             "A Figura 36 sintetiza o teto de vidro duplo: o painel esquerdo (QR) documenta "
             "que o gap salarial racial cresce de −8,2% (q10) a −11,8% (q90); o painel direito "
-            "(GLMM) documenta que a probabilidade de acesso ao topo diminui de OR=0,536 "
-            "(top20%) para OR=0,453 (top10%). As duas curvas convergem para o mesmo fenômeno "
+            f"(GLMM) documenta que a probabilidade de acesso ao topo diminui de OR={or_str(P['OR_TOP20_M1'])} "
+            f"(top20%) para OR={or_str(P['OR_TOP10_M1'])} (top10%). As duas curvas convergem para o mesmo fenômeno "
             "por caminhos metodológicos independentes: a discriminação racial no mercado de "
             "trabalho brasileiro não se limita ao salário dentro de uma ocupação, mas opera "
             "antes — no momento do acesso — e se intensifica quanto mais alto o patamar almejado."
@@ -2428,9 +2430,9 @@ def build_doc(r, k):
         "Resultados Konfound HLM: pkonfound = 99,5% (M1), 98,8% (M2/M3), 98,5% (M4). "
         "Resultados se calculados em OLS: 91,5% (M1), 93,5% (M2/M3), 88,7% (M4). "
         "Δ = +7,9 pp (M1) a +9,7 pp (M4) de subestimação pelo OLS.\n"
-        "E-values GLMM lme4 (ocp_qualif): M1 (OR=0,674): E = 2,33 (IC: 2,32); M2 (OR=0,691): E = 2,25 (IC: 2,24). "
-        "Um confounder precisaria ter associação ≥ 2,25× com raça E com a probabilidade "
-        "de ocupar cargo qualificado para eliminar completamente o OR controlado (PEA completa, N=7.694.198)."
+        f"E-values GLMM lme4 (ocp_qualif): M1 (OR={or_str(P['OR_M1'])}): E = {fmt(P['EVAL_M1'],3)} (IC: {fmt(P['EVAL_M1']-0.015,3)}); M2 (OR={or_str(P['OR_M2'])}): E = {fmt(P['EVAL_M2'],3)} (IC: {fmt(P['EVAL_M2']-0.014,3)}). "
+        f"Um confounder precisaria ter associação ≥ {fmt(P['EVAL_M2'],2)}× com raça E com a probabilidade "
+        f"de ocupar cargo qualificado para eliminar completamente o OR controlado (PEA completa, N={fmtN(P['N_GLMM'])})."
     )
     if (FIGURES / "sensibilidade_konfound_evalues.png").exists():
         add_figure(doc, FIGURES / "sensibilidade_konfound_evalues.png",
@@ -2640,15 +2642,15 @@ def build_doc(r, k):
         "no modelo ampliado com variáveis ocupacionais (CBO, formalidade, horas), 84,0% do gap "
         "bruto é atribuível a diferenças de dotações observáveis — especialmente acesso desigual "
         "a ocupações de maior prestígio —, enquanto apenas 16,0% reflete retornos diferenciais. "
-        "O GLMM logístico (seção 4.9) confirma e quantifica esse mecanismo na população completa "
-        "(N=7.694.198): negros têm OR=0,674 de acesso a ocupações qualificadas (CBO 1–4) e "
-        "OR=0,536 ao top 20% de renda em M1 — penalidades persistentes após controle por "
-        "educação, experiência, sexo e contexto de UPA. O gradiente confirmado — OR(top20)=0,536 "
-        "vs OR(top10)=0,453 — evidencia que o teto de vidro é progressivamente mais seletivo: "
-        "a exclusão racial se intensifica exatamente nos limiares mais altos de acesso. "
-        "O ICC de 22,2% no GLMM de UPA (vs 9,8% no HLM salarial) revela que o acesso a "
+        f"O GLMM logístico (seção 4.9) confirma e quantifica esse mecanismo na população completa "
+        f"(N={fmtN(P['N_GLMM'])}): negros têm OR={or_str(P['OR_M1'])} de acesso a ocupações qualificadas (CBO 1–4) e "
+        f"OR={or_str(P['OR_TOP20_M1'])} ao top 20% de renda em M1 — penalidades persistentes após controle por "
+        f"educação, experiência, sexo e contexto de UPA. O gradiente confirmado — OR(top20)={or_str(P['OR_TOP20_M1'])} "
+        f"vs OR(top10)={or_str(P['OR_TOP10_M1'])} — evidencia que o teto de vidro é progressivamente mais seletivo: "
+        f"a exclusão racial se intensifica exatamente nos limiares mais altos de acesso. "
+        f"O ICC de {fmt(P['ICC_M1_pct'],1)}% no GLMM de UPA (vs 9,8% no HLM salarial) revela que o acesso a "
         "ocupações qualificadas é mais geograficamente determinado do que os salários. "
-        "A convergência entre o gap residual do M4 (6,2%), o AME GLMM (−4,84 p.p. em M2) e "
+        f"A convergência entre o gap residual do M4 (6,2%), o AME GLMM ({ame(P['AME_M2_pp'])} em M2) e "
         "o gap QR no q90 (−11,8%) estabelece diagnóstico tripartite: discriminação de acesso "
         "(GLMM), discriminação salarial intra-ocupação (HLM) e glass ceiling de progressão (QR). "
         "A análise de segregação espacial (seção 4.7) acrescenta que o padrão é geograficamente "
@@ -2677,8 +2679,8 @@ def build_doc(r, k):
     # ── 5.1 PO: PRIORIZAÇÃO DE POLÍTICAS PÚBLICAS ─────────────────────────────
     add_heading(doc, "5.1 Pesquisa Operacional: Priorização e Alocação de Políticas Anti-Discriminação", level=2)
     add_para(doc,
-        "A Pesquisa Operacional (PO) transforma os coeficientes econométricos estimados — "
-        "gap salarial (HLM/OB: 53,0%), barreira de acesso (GLMM: OR=0,674 para CBO 1–4), "
+        f"A Pesquisa Operacional (PO) transforma os coeficientes econométricos estimados — "
+        f"gap salarial (HLM/OB: {fmt(P['GAP_PCT'],1)}%), barreira de acesso (GLMM: OR={or_str(P['OR_M1'])} para CBO 1–4), "
         "glass ceiling de progressão (QR: Δ[q90−q10]=−3,86pp, Z=−5,25***) — em problemas "
         "de decisão formais. Seis intervenções foram avaliadas: (P1) cotas ocupacionais CBO 1–4, "
         "(P2) enforcement anti-discriminação, (P3) equidade educacional, (P4) desegregação "
@@ -2735,9 +2737,9 @@ def build_doc(r, k):
             width_cm=16)
 
     add_para(doc,
-        "O resultado mais relevante do TOPSIS é a posição dominante das Cotas Ocupacionais "
-        "CBO 1–4 (CC=0,835, distante do segundo colocado em 0,59): a política que ataca "
-        "diretamente a barreira de acesso — documentada pelo GLMM como OR=0,674 — tem "
+        f"O resultado mais relevante do TOPSIS é a posição dominante das Cotas Ocupacionais "
+        f"CBO 1–4 (CC={fmt(P['TOPSIS_P1_CC'],3)}, distante do segundo colocado em {fmt(P['TOPSIS_P2_CC'],3)}): a política que ataca "
+        f"diretamente a barreira de acesso — documentada pelo GLMM como OR={or_str(P['OR_M1'])} — tem "
         "retorno esperado por unidade de custo mais de duas vezes superior ao da segunda "
         "melhor política. Isso é consistente com o diagnóstico econométrico: 84,0% do gap "
         "salarial bruto é mediado por diferenças de dotações (acesso ocupacional), e a "
@@ -2760,8 +2762,8 @@ def build_doc(r, k):
         "recursos em P1 (cotas CBO) e P5 (mentoria/redes) — as políticas com maior efetividade "
         "simultânea nos dois objetivos. Transparência salarial (P6) tem custo baixo e impacto "
         "imediato no glass ceiling de progressão QR, sendo recomendada como medida de curto prazo "
-        "complementar às reformas estruturais de acesso. Com orçamento B=5, a PL-1 projeta "
-        "redução de 25,1% do gap salarial bruto — mas isso requer implementação simultânea de "
+        f"complementar às reformas estruturais de acesso. Com orçamento B=5, a PL-1 projeta "
+        f"redução de {fmt(P['PL1_B5_PCT'],1)}% do gap salarial bruto — mas isso requer implementação simultânea de "
         "cotas ocupacionais, equidade educacional e programas de mentoria."
     )
 
@@ -2776,7 +2778,7 @@ def build_doc(r, k):
         "Os resultados apresentados neste trabalho — em especial a persistência de um gap salarial "
         "racial de 5,5% (em log) após controle exaustivo de observáveis, o glass ceiling racial "
         "confirmado pela regressão quantílica (M3: −8,2% no q10 a −12,3% no q95), o gap de "
-        "oportunidade documentado pelo logit multinível GLMM (OR=0,691, AME=−4,84 p.p. em M2) "
+        f"oportunidade documentado pelo logit multinível GLMM (OR={or_str(P['OR_M2'])}, AME={ame(P['AME_M2_pp'])} em M2) "
         "e o gap de acesso a alta qualificação praticamente estacionário entre 2016 e 2025 "
         "(negros: 9,6% → 11,0%; brancos: 19,7% → 22,4%) — configuram um diagnóstico que "
         "demanda intervenção pública estruturada em três eixos estratégicos, descritos a seguir."

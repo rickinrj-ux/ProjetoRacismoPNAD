@@ -11,6 +11,7 @@ from docx.enum.style import WD_STYLE_TYPE
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 import copy
+from params import P, fmt, fmtN, ame, or_str
 
 ROOT   = Path(r"C:\Users\user\Documents\ProjetoRacismoPNAD")
 FIGS   = ROOT / "outputs" / "figures"
@@ -398,10 +399,10 @@ add_bullet(doc, "Grupos de prestígio (Dirigentes, Profissionais) ficam à esque
 add_bullet(doc, "Dirigentes: razão ≈ 0,42 — para cada 100 brancos na função, há apenas 42 negros.")
 add_bullet(doc, "Elementares: razão ≈ 2,12 — negros são mais do que o dobro do esperado pela paridade.")
 add_colored_box(doc, "O que dizer se perguntarem:",
-    ["'Este gráfico é o primeiro diagnóstico visual da segregação ocupacional. A razão de 0,42 nos "
-     "Dirigentes não é explicada por diferença de escolaridade — quando controlamos por educação no "
-     "GLMM (lme4), o OR permanece em 0,691. Isso confirma que parte substancial da sub-representação "
-     "é discriminação de acesso, não apenas diferença de capital humano.'"],
+    [f"'Este gráfico é o primeiro diagnóstico visual da segregação ocupacional. A razão de 0,42 nos "
+     f"Dirigentes não é explicada por diferença de escolaridade — quando controlamos por educação no "
+     f"GLMM (lme4), o OR permanece em {or_str(P['OR_M2'])}. Isso confirma que parte substancial da sub-representação "
+     f"é discriminação de acesso, não apenas diferença de capital humano.'"],
     title_color=(0xB7,0x1C,0x1C))
 doc.add_paragraph()
 
@@ -456,7 +457,7 @@ add_heading(doc, "Figura 7 — Decomposição de Oaxaca-Blinder", level=2)
 add_figure(doc, FIGS / "oaxaca_decomposicao.png", width_cm=14,
            caption="Decomposição two-fold: gap total em Dotações (84%) e Retornos (16%).")
 add_para(doc, "Como ler:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "O gráfico divide o gap total (≈53,0% em log-renda) em duas partes:")
+add_bullet(doc, f"O gráfico divide o gap total (≈{fmt(P['GAP_PCT'],1)}% em log-renda) em duas partes:")
 add_bullet(doc, "Barra/segmento DOTAÇÕES (84%): diferença explicada por negros terem, em média, "
                 "menos anos de escolaridade, menos acesso a emprego formal, ocupações menos "
                 "qualificadas e mais horas em subemprego.", level=1)
@@ -488,23 +489,23 @@ add_para(doc, "Como ler:", size=11, bold=True, color=(0x1F,0x38,0x64), space_bef
 add_bullet(doc, "Eixo X: Odds Ratio (OR). OR=1 = sem diferença racial. OR<1 = negros têm MENOR chance.")
 add_bullet(doc, "Cada ponto = estimativa de OR com IC 95%. GLMM implementado com lme4::glmer "
                 "(nAGQ=0, otimizador bobyqa) para acomodar a estrutura hierárquica dos dados.")
-add_bullet(doc, "M1 (sem efeito aleatório de contexto): OR=0,674 — negros têm 32,6% menos chance. "
-                "ICC M1=22,2% (variação entre UPAs elevada). N=7.694.198 (PEA completa).")
-add_bullet(doc, "M2 (com efeito aleatório de UPA): OR=0,691 — após controlar o contexto local, "
-                "negros têm 30,9% menos chance. ICC M2=10,8%.")
+add_bullet(doc, f"M1 (sem efeito aleatório de contexto): OR={or_str(P['OR_M1'])} — negros têm {fmt(P['OR_M1_menor_pct'],1)}% menos chance. "
+                f"ICC M1={fmt(P['ICC_M1_pct'],1)}% (variação entre UPAs elevada). N={fmtN(P['N_GLMM'])} (PEA completa).")
+add_bullet(doc, f"M2 (com efeito aleatório de UPA): OR={or_str(P['OR_M2'])} — após controlar o contexto local, "
+                f"negros têm {fmt(P['OR_M2_menor_pct'],1)}% menos chance. ICC M2={fmt(P['ICC_M2_pct'],1)}%.")
 add_para(doc, "O AME (Average Marginal Effect):", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "AME M1 = −5,16 p.p.: sem controle de contexto, negros têm 5,16 p.p. a menos de "
+add_bullet(doc, f"AME M1 = {ame(P['AME_M1_pp'])}: sem controle de contexto, negros têm {fmt(abs(P['AME_M1_pp']),2)} p.p. a menos de "
                 "probabilidade de ocupação qualificada.")
-add_bullet(doc, "AME M2 = −4,84 p.p.: com efeito aleatório de UPA, o efeito líquido de ser negro "
-                "é −4,84 p.p. — discriminação pura de acesso após controlar moradia e contexto.")
+add_bullet(doc, f"AME M2 = {ame(P['AME_M2_pp'])}: com efeito aleatório de UPA, o efeito líquido de ser negro "
+                f"é {ame(P['AME_M2_pp'])} — discriminação pura de acesso após controlar moradia e contexto.")
 add_colored_box(doc, "O que dizer se perguntarem sobre OR vs AME e sobre o GLMM:",
     ["'O OR mede razão de chances — útil para comparação entre modelos. O AME traduz isso em "
      "diferença de probabilidade — mais intuitivo para comunicar ao gestor público.'",
-     "'O GLMM (Generalized Linear Mixed Model) é a extensão natural do HLM para variáveis binárias. "
-     "Ao usar lme4::glmer com efeitos aleatórios por UPA, capturo a mesma estrutura hierárquica "
-     "do HLM aplicada ao modelo de acesso a ocupações. O ICC=22,2% em M1 confirma que há "
-     "variância substancial entre UPAs — ignorar essa hierarquia produziria erros padrão "
-     "subestimados e OR's viesados.'"],
+     f"'O GLMM (Generalized Linear Mixed Model) é a extensão natural do HLM para variáveis binárias. "
+     f"Ao usar lme4::glmer com efeitos aleatórios por UPA, capturo a mesma estrutura hierárquica "
+     f"do HLM aplicada ao modelo de acesso a ocupações. O ICC={fmt(P['ICC_M1_pct'],1)}% em M1 confirma que há "
+     f"variância substancial entre UPAs — ignorar essa hierarquia produziria erros padrão "
+     f"subestimados e OR's viesados.'"],
     title_color=(0xFF,0x8F,0x00))
 doc.add_paragraph()
 
@@ -801,8 +802,8 @@ add_bullet(doc, "Konfound HLM: M1=99,5%; M2=M3=98,8%; M4=98,5% — quase 100% do
                 "precisariam ser mal alocados para reverter a conclusão de discriminação.")
 add_bullet(doc, "OLS subestima: gap OLS=43,8%–48,5% vs HLM=50,8%–53,0% (Δ=5,4–9,7 p.p.) — "
                 "o viés de subestimação do OLS fica em torno de 9,7 p.p. em M1 e 5,4 p.p. em M4.")
-add_bullet(doc, "E-values GLMM lme4 (PEA completa): M1=2,331; M2=2,254 — variável omitida "
-                "precisaria ter associação ≥2,3× com raça E com acesso a ocupações para eliminar o OR.")
+add_bullet(doc, f"E-values GLMM lme4 (PEA completa): M1={fmt(P['EVAL_M1'],3)}; M2={fmt(P['EVAL_M2'],3)} — variável omitida "
+                f"precisaria ter associação ≥2,3× com raça E com acesso a ocupações para eliminar o OR.")
 add_bullet(doc, "Oster δ*: M1=−0,48; M2=−0,43; M4=−0,39 — todos negativos, confirmando "
                 "que variáveis omitidas teriam que atenuar (não amplificar) para anular o gap.")
 add_colored_box(doc, "O que dizer se perguntarem sobre endogeneidade ou variáveis omitidas:",
@@ -861,15 +862,15 @@ add_bullet(doc, "Métodos: TOPSIS (ranking multicritério), AHP (pesos dos crit�
                 "Pareto frontier (eficiência custo × impacto).")
 add_para(doc, "TOPSIS — Ranking de Políticas (critérios: impacto no gap, custo, viabilidade, prazo):",
          size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "#1 Cotas em CBO 1–4 (P1): CC=0,835 — política mais próxima da 'solução ideal'. "
+add_bullet(doc, f"#1 Cotas em CBO 1–4 (P1): CC={fmt(P['TOPSIS_P1_CC'],3)} — política mais próxima da 'solução ideal'. "
                 "Ataca diretamente o mecanismo de exclusão de acesso a ocupações qualificadas "
                 "que explica 84% do gap via dotações.")
-add_bullet(doc, "#2 Equidade Educacional (P2): CC=0,588 — segunda mais eficiente. "
+add_bullet(doc, f"#2 Equidade Educacional (P2): CC={fmt(P['TOPSIS_P2_CC'],3)} — segunda mais eficiente. "
                 "Reduz o componente de dotações educacionais.")
-add_bullet(doc, "#3 Mentoria e Redes (P3): CC=0,396 — responde diretamente ao achado da "
+add_bullet(doc, f"#3 Mentoria e Redes (P3): CC={fmt(P['TOPSIS_P3_CC'],3)} — responde diretamente ao achado da "
                 "SNA (betweenness=0 para negros = sem capital social estrutural).")
-add_bullet(doc, "#4 Transparência Salarial (P4): CC=0,342 — ataca os retornos diferenciais (16%).")
-add_bullet(doc, "PL-1 (Cotas CBO): projeta redução de 25% do gap bruto em simulações de LP.")
+add_bullet(doc, f"#4 Transparência Salarial (P4): CC={fmt(P['TOPSIS_P4_CC'],3)} — ataca os retornos diferenciais (16%).")
+add_bullet(doc, f"PL-1 (Cotas CBO): projeta redução de {fmt(P['PL1_B5_PCT'],1)}% do gap bruto em simulações de LP.")
 add_para(doc, "AHP — Consistência dos Pesos:", size=11, bold=True,
          color=(0x1F,0x38,0x64), space_before=4)
 add_bullet(doc, "CR=0,004 (< 0,10 = aceitável). A matriz de comparação por pares de critérios "
@@ -925,14 +926,14 @@ add_para(doc, "P(ocp_qualif_ij = 1) = Λ(β₀j + β₁·negro_i + X_i·γ + u�
 add_para(doc, "β₀j = γ₀₀ + u₀j,  u₀j ~ N(0, σ²ᵤ)",
          size=11, italic=True, color=(0x44,0x44,0x44))
 add_bullet(doc, "Λ(·): função logística — transforma o preditor linear em probabilidade [0,1].")
-add_bullet(doc, "β₁ (negro): log-odds de negro vs branco. OR M1=0,674 (sem contexto); "
-                "OR M2=0,691 (com efeito aleatório de UPA). N=7.694.198 (PEA completa).")
-add_bullet(doc, "u₀j: efeito aleatório de UPA j — capta a heterogeneidade entre bairros. "
-                "ICC M1=22,2% | ICC M2=10,8%.")
+add_bullet(doc, f"β₁ (negro): log-odds de negro vs branco. OR M1={or_str(P['OR_M1'])} (sem contexto); "
+                f"OR M2={or_str(P['OR_M2'])} (com efeito aleatório de UPA). N={fmtN(P['N_GLMM'])} (PEA completa).")
+add_bullet(doc, f"u₀j: efeito aleatório de UPA j — capta a heterogeneidade entre bairros. "
+                f"ICC M1={fmt(P['ICC_M1_pct'],1)}% | ICC M2={fmt(P['ICC_M2_pct'],1)}%.")
 add_bullet(doc, "Implementação: lme4::glmer (Python equivalente via statsmodels/pymer4), "
                 "nAGQ=0 (aproximação de Laplace) para viabilidade computacional, "
                 "otimizador bobyqa.")
-add_bullet(doc, "AME M1=−5,16 p.p. | AME M2=−4,84 p.p.: interpretados como diferença de "
+add_bullet(doc, f"AME M1={ame(P['AME_M1_pp'])} | AME M2={ame(P['AME_M2_pp'])}: interpretados como diferença de "
                 "probabilidade de ocupação qualificada atribuída à raça, todas as demais "
                 "características iguais.")
 add_bullet(doc, "Termos de interação (Tabela 4): negro×sexo_fem β=+0.0416 (***); "

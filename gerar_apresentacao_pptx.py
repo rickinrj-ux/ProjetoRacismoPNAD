@@ -12,6 +12,7 @@ from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches as In, Pt
 import pandas as pd
 import numpy as np
+from params import P, fmt, fmtN, ame, or_str
 
 ROOT    = Path(r"C:\Users\user\Documents\ProjetoRacismoPNAD")
 FIGURES = ROOT / "outputs" / "figures"
@@ -474,10 +475,10 @@ add_text(s, "Resultados-chave (GLMM)", In(7.6), In(1.2), In(5.5), In(0.4),
          font_size=16, bold=True, color=C_DARK)
 
 kpis_logit = [
-    ("OR = 0,674", "Ocupação qualificada\n(M1 — só ind. + UPA RE)", C_RED),
-    ("OR = 0,691", "Ocupação qualificada\n(M2 — +contexto UPA)", C_AMBER),
-    ("AME = −5,16 p.p.", "Gap pós-controles individuais\n(M1 — sem contexto UPA)", C_RED),
-    ("AME = −4,84 p.p.", "Gap residual c/ contexto UPA\n(M2 — discriminação líquida)", C_RED),
+    (f"OR = {or_str(P['OR_M1'])}", "Ocupação qualificada\n(M1 — só ind. + UPA RE)", C_RED),
+    (f"OR = {or_str(P['OR_M2'])}", "Ocupação qualificada\n(M2 — +contexto UPA)", C_AMBER),
+    (f"AME = {ame(P['AME_M1_pp'])}", "Gap pós-controles individuais\n(M1 — sem contexto UPA)", C_RED),
+    (f"AME = {ame(P['AME_M2_pp'])}", "Gap residual c/ contexto UPA\n(M2 — discriminação líquida)", C_RED),
 ]
 for i, (val, lbl, color) in enumerate(kpis_logit):
     add_rect(s, In(7.6), In(1.7)+i*In(1.1), In(5.4), In(0.9),
@@ -489,7 +490,7 @@ for i, (val, lbl, color) in enumerate(kpis_logit):
 
 add_rect(s, In(7.6), In(6.15), In(5.4), In(0.6),
          fill_rgb=RGBColor(0xFF,0xEB,0xEE), line_rgb=C_RED, line_pt=0.8)
-add_text(s, "Mesmo com educação, sexo, idade e local de moradia IDÊNTICOS, negros têm 30,9% menor odds de estar em ocupação qualificada (OR=0,691 GLMM M2).",
+add_text(s, f"Mesmo com educação, sexo, idade e local de moradia IDÊNTICOS, negros têm {fmt(P['OR_M2_menor_pct'],1)}% menor odds de estar em ocupação qualificada (OR={or_str(P['OR_M2'])} GLMM M2).",
          In(7.75), In(6.2), In(5.1), In(0.55),
          font_size=12, bold=True, color=C_RED)
 footer(s, 10)
@@ -630,7 +631,7 @@ rob_blocks = [
      "OLS: 91,5% / 93,5% / 88,7%  →  HLM: +7,9 / +5,4 / +9,7 pp",
      "SEs OLS são 6–16× maiores: não captura clustering → robustez subestimada"),
     (C_RED,   "E-values GLMM lme4 (VanderWeele & Ding, 2017)",
-     "E ≥ 2,33× (M1)  |  E ≥ 2,25× (M2)  para anular OR = 0,674 / 0,691",
+     f"E ≥ {fmt(P['EVAL_M1'],3)}× (M1)  |  E ≥ {fmt(P['EVAL_M2'],3)}× (M2)  para anular OR = {or_str(P['OR_M1'])} / {or_str(P['OR_M2'])}",
      "Confounder precisaria ter associação ≥ 2,3× com raça E com ocupação — implausível"),
     (C_BLUE,  "Oster Bounds OLS auxiliar (Oster, 2019)",
      "δ* ∈ {−0,48; −0,43; −0,39} — todos negativos",
@@ -828,7 +829,7 @@ header_bar(s, "20. Síntese — Triângulo de Evidências",
 # Três vértices do triângulo
 vertices = [
     (In(0.3),  In(1.3),  C_RED,   "DISCRIMINAÇÃO\nDE ACESSO",
-     ["GLMM: OR=0,691 para ocp. qualificada", "AME=−4,84 p.p. residual (M2)", "Persiste após todos os controles observáveis"]),
+     [f"GLMM: OR={or_str(P['OR_M2'])} para ocp. qualificada", f"AME={ame(P['AME_M2_pp'])} residual (M2)", "Persiste após todos os controles observáveis"]),
     (In(6.9),  In(1.3),  C_BLUE,  "DISCRIMINAÇÃO\nDE REMUNERAÇÃO",
      ["HLM M4: gap residual 6,2%", "Quantile Reg.: cresce no topo (glass ceiling)", "SHAP: −2,5% efeito racial residual"]),
     (In(3.6),  In(4.3),  C_DARK,  "EXCLUSÃO\nDAS REDES",
@@ -864,12 +865,12 @@ add_text(s, "Ranking TOPSIS (6 intervenções)", In(8.0), In(1.2), In(5.1), In(0
          font_size=14, bold=True, color=C_DARK)
 
 topsis_rows = [
-    (1, "Cotas ocupacionais CBO 1–4",        "CC = 0,835", C_RED),
-    (2, "Equidade educacional",               "CC = 0,588", C_BLUE),
-    (3, "Mentoria e redes profissionais",     "CC = 0,396", C_GREEN),
-    (4, "Transparência salarial obrigatória", "CC = 0,342", C_AMBER),
-    (5, "Enforcement anti-discriminação",     "CC = 0,270", C_GRAY),
-    (6, "Desegregação residencial",           "CC = 0,081", C_GRAY),
+    (1, "Cotas ocupacionais CBO 1–4",        f"CC = {fmt(P['TOPSIS_P1_CC'],3)}", C_RED),
+    (2, "Equidade educacional",               f"CC = {fmt(P['TOPSIS_P2_CC'],3)}", C_BLUE),
+    (3, "Mentoria e redes profissionais",     f"CC = {fmt(P['TOPSIS_P3_CC'],3)}", C_GREEN),
+    (4, "Transparência salarial obrigatória", f"CC = {fmt(P['TOPSIS_P4_CC'],3)}", C_AMBER),
+    (5, "Enforcement anti-discriminação",     f"CC = {fmt(P['TOPSIS_P5_CC'],3)}", C_GRAY),
+    (6, "Desegregação residencial",           f"CC = {fmt(P['TOPSIS_P6_CC'],3)}", C_GRAY),
 ]
 for i, (rank, nome, cc, color) in enumerate(topsis_rows):
     bg = RGBColor(0xFF,0xEB,0xEE) if rank == 1 else (RGBColor(0xE3,0xF2,0xFD) if rank == 2 else C_LGRAY)
@@ -884,9 +885,9 @@ for i, (rank, nome, cc, color) in enumerate(topsis_rows):
 
 add_rect(s, In(0.3), In(6.6), In(12.7), In(0.65),
          fill_rgb=RGBColor(0x1F,0x38,0x64), line_rgb=C_AMBER, line_pt=0)
-add_text(s, "84% do gap é de ACESSO → P1 (Cotas CBO) lidera com CC=0,835 — 2,1× superior ao 2º colocado.  "
-            "Pareto (λ=0,5): alocação ótima = P1+P5 (cotas + mentoria).  "
-            "PL-1 (orçamento B=5): redução projetada de 25% do gap bruto.",
+add_text(s, f"84% do gap é de ACESSO → P1 (Cotas CBO) lidera com CC={fmt(P['TOPSIS_P1_CC'],3)} — 2,1× superior ao 2º colocado.  "
+            f"Pareto (λ=0,5): alocação ótima = P1+P5 (cotas + mentoria).  "
+            f"PL-1 (orçamento B=5): redução projetada de {fmt(P['PL1_B5_PCT'],1)}% do gap bruto.",
          In(0.5), In(6.65), In(12.3), In(0.55),
          font_size=12, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
 footer(s, 22)
@@ -968,7 +969,7 @@ add_text(s, "18. Conclusão", In(0.4), In(0.1), In(12), In(0.65),
 numeros = [
     ("19,3%",    "Gap racial bruto\n(M1 HLM)"),
     ("6,2%",     "Discriminação pura\n(M4 HLM)"),
-    ("OR=0,691", "Acesso qualificado\n(GLMM M2, lme4)"),
+    (f"OR={or_str(P['OR_M2'])}", "Acesso qualificado\n(GLMM M2, lme4)"),
     ("χ²=191k",  "LRT confirma\nhierarquia UPA"),
 ]
 for i, (val, lbl) in enumerate(numeros):
@@ -982,7 +983,7 @@ for i, (val, lbl) in enumerate(numeros):
 
 conclusoes = [
     "A desigualdade racial no mercado de trabalho brasileiro é estrutural, multicausal e resistente à convergência espontânea.",
-    "A discriminação opera em dois estágios independentes: barreiras de ACESSO a ocupações qualificadas (GLMM: OR=0,691, AME=−4,84 p.p.) e discriminação de REMUNERAÇÃO dentro das mesmas funções (HLM M4: 6,2%).",
+    f"A discriminação opera em dois estágios independentes: barreiras de ACESSO a ocupações qualificadas (GLMM: OR={or_str(P['OR_M2'])}, AME={ame(P['AME_M2_pp'])}) e discriminação de REMUNERAÇÃO dentro das mesmas funções (HLM M4: 6,2%).",
     "O glass ceiling racial é real e crescente no topo da distribuição — confirmado formalmente pela regressão quantílica e consistente com o IR=0,47 nas capitais.",
     "Políticas que atuam apenas no gap salarial direto atacam 16% do problema. Os 84% restantes requerem ação nas portas de entrada das ocupações de alto prestígio.",
 ]

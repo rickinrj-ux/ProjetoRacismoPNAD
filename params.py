@@ -106,6 +106,31 @@ def _load() -> dict:
 P: dict = _load()
 
 
+# ── Helpers de formatação para uso nos geradores ─────────────────────────────
+
+def fmt(val: float, dec: int = 3) -> str:
+    """Número em locale pt-BR: ponto como separador de milhar não se aplica aqui,
+    vírgula como separador decimal. Usa U+2212 (−) para negativos."""
+    if val < 0:
+        return f"−{abs(val):.{dec}f}".replace(".", ",")
+    return f"{val:.{dec}f}".replace(".", ",")
+
+
+def fmtN(n: int) -> str:
+    """Inteiro grande com ponto como separador de milhar (pt-BR): 7694198 → '7.694.198'."""
+    return f"{n:,}".replace(",", ".")
+
+
+def ame(val: float, dec: int = 2) -> str:
+    """AME em p.p.: −5,16 p.p."""
+    return fmt(val, dec) + " p.p."
+
+
+def or_str(val: float, dec: int = 3) -> str:
+    """OR em pt-BR sem sinal: 0,674."""
+    return fmt(val, dec)
+
+
 if __name__ == "__main__":
     print("params.py — valores carregados dos CSVs\n")
     for k, v in sorted(P.items()):
