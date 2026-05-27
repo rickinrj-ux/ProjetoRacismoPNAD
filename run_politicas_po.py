@@ -12,17 +12,17 @@ modelos de decisão para priorização e alocação ótima de intervenções:
     AHP+TOPSIS  Ranking multicritério de 6 políticas
 
 Parâmetros confirmados pelos modelos (não assumidos):
-    gap_bruto         = 0.4229   (OB global, 52.6%)
+    gap_bruto         = 0.4255   (OB global, 53.0%, N=7.694.198 ob_melhorias.csv)
     dotacoes_pct      = 84.0%    (OB: segregação ocupacional/educacional)
     retornos_pct      = 16.0%    (OB: discriminação de remuneração)
-    or_cbo14_m1       = 0.704    (GLMM lme4 R, ocp_qualif M1, N=2.395.285 — canônico)
-    ame_cbo14_m1      = -1.30pp  (GLMM M1)
-    or_top20_m1       = 0.726    (GLMM)
-    or_top10_m1       = 0.671    (GLMM — gradiente glass ceiling)
+    or_cbo14_m1       = 0.674    (GLMM lme4 R, ocp_qualif M1, N=7.694.198 — canônico, dummies educ)
+    ame_cbo14_m1      = -5.16pp  (GLMM M1, PEA completa)
+    or_top20_m1       = 0.536    (glassceil Python UF FE, y_top20 M1)
+    or_top10_m1       = 0.453    (glassceil Python UF FE, y_top10 M1 — gradiente glass ceiling)
     qr_q10            = -8.29%   (QR M3, qr_kb_test.csv)
     qr_q90            = -11.77%  (QR M3, qr_kb_test.csv)
     delta_kb          = -3.86pp  (KB test: β_q90 - β_q10, qr_kb_test.csv)
-    icc_upa_acesso    = 26.2%    (GLMM lme4 R, random intercept UPA)
+    icc_upa_acesso    = 22.2%    (GLMM lme4 R, random intercept UPA, PEA completa)
     icc_uf_salario    = 9.83%    (HLM)
     eb_temporal_ini   = 17.8%    (OB Retornos 2016-2018)
     eb_temporal_rec   = 15.7%    (OB Retornos 2022-2025)
@@ -72,14 +72,14 @@ Path("logs").mkdir(exist_ok=True)
 # ── Parâmetros confirmados pelos modelos ──────────────────────────────────────
 
 # Gap salarial (log-rendimento, OB)
-GAP_BRUTO   = 0.4229   # gap total bruto
+GAP_BRUTO   = 0.4255   # gap total bruto (ob_melhorias.csv, N=7.694.198)
 DOTACOES    = 0.3550   # efeito dotações (84.0%)
 RETORNOS    = 0.0679   # efeito retornos (16.0%)
 
 # GLMM logístico (log-odds gap = -ln(OR))
-LOG_ODDS_CBO14 = -np.log(0.704)   # = 0.3512  barreira de acesso CBO 1-4 (OR canônico lme4 R)
-LOG_ODDS_TOP20 = -np.log(0.726)   # = 0.3199  barreira top 20%
-LOG_ODDS_TOP10 = -np.log(0.671)   # = 0.3991  barreira top 10%
+LOG_ODDS_CBO14 = -np.log(0.674)   # = 0.3940  barreira de acesso CBO 1-4 (OR lme4 R, N=7.694.198)
+LOG_ODDS_TOP20 = -np.log(0.536)   # = 0.6233  barreira top 20% (glassceil Python UF FE)
+LOG_ODDS_TOP10 = -np.log(0.453)   # = 0.7930  barreira top 10% (glassceil Python UF FE)
 
 # QR: gap q10 e q90 em log-renda (M3, qr_kb_test.csv)
 QR_Q10 = 0.08653  # |β_q10|
@@ -87,17 +87,17 @@ QR_Q90 = 0.12518  # |β_q90|
 DELTA_KB = QR_Q90 - QR_Q10  # 0.03865 = glass ceiling de progressão
 
 # ICC mediation
-ICC_UPA = 0.262   # acesso ocupacional
+ICC_UPA = 0.222   # acesso ocupacional (GLMM lme4 R M1, PEA completa)
 ICC_UF  = 0.098   # salários
 
 # ── Definição das 6 políticas ─────────────────────────────────────────────────
 #
 #  Canal  | Nome curto         | Ataca                       | Mecanismo
 #  -------|--------------------|-----------------------------|-------------------
-#  P1     | Cotas CBO 1-4      | OR=0.704 (GLMM lme4 R)     | Acesso qualificado
+#  P1     | Cotas CBO 1-4      | OR=0.674 (GLMM lme4 R)     | Acesso qualificado
 #  P2     | Enforcement        | Retornos=16% (OB)          | Discriminação direta
 #  P3     | Equidade Educac.   | Dotações=84% (OB)          | Capital humano
-#  P4     | Desegregação Resid | ICC_UPA=26.2% (GLMM)       | Territorial
+#  P4     | Desegregação Resid | ICC_UPA=22.2% (GLMM)       | Territorial
 #  P5     | Mentoria/Redes     | SNA brokerage              | Redes profissionais
 #  P6     | Transparência Sal. | Remuneração intra-ocupação | Glass ceiling QR
 #

@@ -569,8 +569,9 @@ add_bullet(doc, "HLM M4: coeficiente da interação negro×sexo_fem = β=+0,069 
                 "do gap racial para mulheres (raça e gênero interagem, não se somam linearmente).")
 add_para(doc, "Resultados por grupo (referência: Homem Branco):", size=11, bold=True,
          color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "Mulher Branca: gap=46,6% — 79% dotações / 109% retornos (retornos negativos, "
-                "indicando discriminação de gênero pura). Sem penalidade de raça.")
+add_bullet(doc, "Mulher Branca: gap=46,6% — dotações negativas (−8,9%) / retornos 109% "
+                "(retornos amplificam o gap: discriminação de gênero pura explica mais de 100%). "
+                "Sem penalidade de raça.")
 add_bullet(doc, "Homem Negro: gap=40,3% — 71% dotações / 29% retornos. Discriminação racial "
                 "direta explica ~29% do gap do homem negro.")
 add_bullet(doc, "Mulher Negra: gap=96,4% — maior gap de todos os grupos. Penalidade adicional "
@@ -834,15 +835,16 @@ add_bullet(doc, "Teste de Chow (2020): F(2,6)=7,012; p=0,027 — quebra estrutur
                 "em 2020 (pandemia). O gap racial NÃO teve convergência pré-COVID.")
 add_para(doc, "Event Study COVID (DiD):", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
 add_bullet(doc, "Tratamento: pós-2020 (COVID). Estimativa: τ=+0,015; SE=0,007; p=0,025.")
-add_bullet(doc, "Interpretação: a pandemia AMPLIOU o gap racial em 1,5 p.p. de log-renda — "
-                "negros foram desproporcionalmente afetados pelo choque COVID.")
+add_bullet(doc, "Interpretação: τ=+0,015 indica **convergência aparente** de curto prazo — "
+                "o gap reduziu-se 1,5 p.p. após 2020. Provável seleção de saída: negros de "
+                "menor renda saíram do mercado formal, elevando a renda relativa dos que ficaram.")
 add_colored_box(doc, "O que dizer se perguntarem sobre essas análises:",
     ["'O Heckman resolve a crítica de que estamos vendo apenas os 'bem-sucedidos'. O resultado "
      "(λ negativo e gap que cresce com a correção) indica que a exclusão racial do mercado "
      "de trabalho é real e que os excluídos estariam em situação ainda pior.'",
-     "'O Chow e o DiD mostram que o gap não convergiu com o tempo — ao contrário, a pandemia "
-     "o ampliou. Isso afasta a hipótese de convergência gradual pela educação e reforça a "
-     "necessidade de intervenção estrutural.'"],
+     "'O Chow mostra quebra estrutural em 2020. O DiD mostra convergência aparente de curto "
+     "prazo (τ=+0.015): negros sofreram menos no diferencial salarial, mas provavelmente por "
+     "seleção de saída — não por melhora real. O gap de longo prazo permanece estável.'"],
     title_color=(0x1F,0x38,0x64))
 doc.add_paragraph()
 
@@ -859,15 +861,15 @@ add_bullet(doc, "Métodos: TOPSIS (ranking multicritério), AHP (pesos dos crit�
                 "Pareto frontier (eficiência custo × impacto).")
 add_para(doc, "TOPSIS — Ranking de Políticas (critérios: impacto no gap, custo, viabilidade, prazo):",
          size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "#1 Cotas em CBO 1–4 (P1): CC=0,799 — política mais próxima da 'solução ideal'. "
+add_bullet(doc, "#1 Cotas em CBO 1–4 (P1): CC=0,835 — política mais próxima da 'solução ideal'. "
                 "Ataca diretamente o mecanismo de exclusão de acesso a ocupações qualificadas "
                 "que explica 84% do gap via dotações.")
-add_bullet(doc, "#2 Equidade Educacional (P2): CC=0,558 — segunda mais eficiente. "
+add_bullet(doc, "#2 Equidade Educacional (P2): CC=0,588 — segunda mais eficiente. "
                 "Reduz o componente de dotações educacionais.")
-add_bullet(doc, "#3 Mentoria e Redes (P3): CC=0,388 — responde diretamente ao achado da "
+add_bullet(doc, "#3 Mentoria e Redes (P3): CC=0,396 — responde diretamente ao achado da "
                 "SNA (betweenness=0 para negros = sem capital social estrutural).")
-add_bullet(doc, "#4 Transparência Salarial (P4): CC=0,324 — ataca os retornos diferenciais (16%).")
-add_bullet(doc, "PL-1 (Cotas CBO): projeta redução de 24% do gap bruto em simulações de LP.")
+add_bullet(doc, "#4 Transparência Salarial (P4): CC=0,342 — ataca os retornos diferenciais (16%).")
+add_bullet(doc, "PL-1 (Cotas CBO): projeta redução de 25% do gap bruto em simulações de LP.")
 add_para(doc, "AHP — Consistência dos Pesos:", size=11, bold=True,
          color=(0x1F,0x38,0x64), space_before=4)
 add_bullet(doc, "CR=0,004 (< 0,10 = aceitável). A matriz de comparação por pares de critérios "

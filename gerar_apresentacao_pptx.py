@@ -864,12 +864,12 @@ add_text(s, "Ranking TOPSIS (6 intervenções)", In(8.0), In(1.2), In(5.1), In(0
          font_size=14, bold=True, color=C_DARK)
 
 topsis_rows = [
-    (1, "Cotas ocupacionais CBO 1–4",        "CC = 0,799", C_RED),
-    (2, "Equidade educacional",               "CC = 0,558", C_BLUE),
-    (3, "Mentoria e redes profissionais",     "CC = 0,388", C_GREEN),
-    (4, "Transparência salarial obrigatória", "CC = 0,324", C_AMBER),
-    (5, "Enforcement anti-discriminação",     "CC = 0,241", C_GRAY),
-    (6, "Desegregação residencial",           "CC = 0,109", C_GRAY),
+    (1, "Cotas ocupacionais CBO 1–4",        "CC = 0,835", C_RED),
+    (2, "Equidade educacional",               "CC = 0,588", C_BLUE),
+    (3, "Mentoria e redes profissionais",     "CC = 0,396", C_GREEN),
+    (4, "Transparência salarial obrigatória", "CC = 0,342", C_AMBER),
+    (5, "Enforcement anti-discriminação",     "CC = 0,270", C_GRAY),
+    (6, "Desegregação residencial",           "CC = 0,081", C_GRAY),
 ]
 for i, (rank, nome, cc, color) in enumerate(topsis_rows):
     bg = RGBColor(0xFF,0xEB,0xEE) if rank == 1 else (RGBColor(0xE3,0xF2,0xFD) if rank == 2 else C_LGRAY)
@@ -884,9 +884,9 @@ for i, (rank, nome, cc, color) in enumerate(topsis_rows):
 
 add_rect(s, In(0.3), In(6.6), In(12.7), In(0.65),
          fill_rgb=RGBColor(0x1F,0x38,0x64), line_rgb=C_AMBER, line_pt=0)
-add_text(s, "84% do gap é de ACESSO → P1 (Cotas CBO) lidera com CC=0,799 — 2× superior ao 2º colocado.  "
+add_text(s, "84% do gap é de ACESSO → P1 (Cotas CBO) lidera com CC=0,835 — 2,1× superior ao 2º colocado.  "
             "Pareto (λ=0,5): alocação ótima = P1+P5 (cotas + mentoria).  "
-            "PL-1 (orçamento B=5): redução projetada de 24% do gap bruto.",
+            "PL-1 (orçamento B=5): redução projetada de 25% do gap bruto.",
          In(0.5), In(6.65), In(12.3), In(0.55),
          font_size=12, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
 footer(s, 22)

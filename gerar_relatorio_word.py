@@ -525,7 +525,7 @@ def build_doc(r, k):
         f"trabalhadas (VD4031) extraídas dos microdados originais do IBGE.\n\n"
         f"O HLM de três níveis estima que profissionais negros recebem, em média, {k['gb']:.1f}% a "
         f"menos que brancos comparáveis. Desse diferencial bruto, {k['med']:.1f}% é mediado pelo "
-        f"contexto de moradia (duplo disadvantage) e 20,5% adicional pela composição ocupacional, "
+        f"contexto de moradia (duplo disadvantage) e {k['med_occ']:.1f}% adicional pela composição ocupacional, "
         f"reduzindo o gap residual de discriminação pura a {k['gap_m4']:.1f}% (M4). A decomposição "
         f"de Oaxaca-Blinder indica que 84,0% do gap é atribuível a diferenças de dotações — "
         f"especialmente acesso desigual a ocupações de maior prestígio — e apenas 16,0% a retornos "
@@ -2583,11 +2583,13 @@ def build_doc(r, k):
         "Event study COVID-19 (Diferenças-em-Diferenças). O choque pandêmico é tratado como "
         "experimento natural: pré-período = 2016–2019; pós-período = 2020–2025; grupo tratado = "
         "negros (diferencialmente afetados). A estimativa DiD é τ = +0,015 (SE = 0,007; "
-        "p = 0,025), indicando que a pandemia ampliou o gap racial em 1,5 p.p. de log-renda. "
-        "Esse resultado é consistente com a literatura internacional sobre choques assimétricos "
-        "por raça (Cajner et al., 2020): trabalhadores negros concentrados em setores "
-        "de maior exposição presencial e menor cobertura de trabalho remoto absorveram "
-        "desproporcionalmente os custos econômicos do COVID-19.")
+        "p = 0,025), indicando convergência aparente de curto prazo: o gap racial reduziu-se "
+        "em 1,5 p.p. de log-renda após 2020 — negros sofreram relativamente menos que brancos "
+        "no diferencial salarial observado. Esse resultado, contrastante com a hipótese de "
+        "choques assimétricos por raça (Cajner et al., 2020), pode refletir seleção de saída: "
+        "trabalhadores negros de menor renda que saíram desproporcionalmente do mercado formal "
+        "durante a pandemia elevaram a renda média relativa dos negros que permaneceram, gerando "
+        "convergência espúria no diferencial salarial condicional.")
 
     doc.add_page_break()
 
@@ -2734,7 +2736,7 @@ def build_doc(r, k):
 
     add_para(doc,
         "O resultado mais relevante do TOPSIS é a posição dominante das Cotas Ocupacionais "
-        "CBO 1–4 (CC=0,799, distante do segundo colocado em 0,56): a política que ataca "
+        "CBO 1–4 (CC=0,835, distante do segundo colocado em 0,59): a política que ataca "
         "diretamente a barreira de acesso — documentada pelo GLMM como OR=0,674 — tem "
         "retorno esperado por unidade de custo mais de duas vezes superior ao da segunda "
         "melhor política. Isso é consistente com o diagnóstico econométrico: 84,0% do gap "
@@ -2759,7 +2761,7 @@ def build_doc(r, k):
         "simultânea nos dois objetivos. Transparência salarial (P6) tem custo baixo e impacto "
         "imediato no glass ceiling de progressão QR, sendo recomendada como medida de curto prazo "
         "complementar às reformas estruturais de acesso. Com orçamento B=5, a PL-1 projeta "
-        "redução de 24,0% do gap salarial bruto — mas isso requer implementação simultânea de "
+        "redução de 25,1% do gap salarial bruto — mas isso requer implementação simultânea de "
         "cotas ocupacionais, equidade educacional e programas de mentoria."
     )
 
