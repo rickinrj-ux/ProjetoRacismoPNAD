@@ -255,7 +255,7 @@ def extract_kpis(r):
     k["shap_negro_rank"] = int(feats[mask].index[0]) + 1 if mask.any() else 6
     k["shap_negro_val"]  = float(r["shap_imp"].iloc[k["shap_negro_rank"]-1]["SHAP_mean_abs_XGB"])
 
-    k["sna_h"]    = 0.4382
+    k["sna_h"]    = P["SNA_H"]
     k["gap_2016"] = float(r["sna_temporal"].loc[r["sna_temporal"]["Ano"]==2016,"gap_log"].values[0])
     k["gap_2025"] = float(r["sna_temporal"].loc[r["sna_temporal"]["Ano"]==2025,"gap_log"].values[0])
     k["pct_mista"]= float(r["sna_temporal"].loc[r["sna_temporal"]["Ano"]==2025,"pct_upa_mista"].values[0])*100

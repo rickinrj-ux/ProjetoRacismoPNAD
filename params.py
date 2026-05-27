@@ -89,6 +89,16 @@ def _load() -> dict:
     p["RET_LOG"]     = round(float(_ob_g["ret_log"]),  4)   # 0.0702
     p["RET_PCT"]     = round(float(_ob_g["ret_pct"]),  1)   # 16.5
 
+    # ── HLM — ICC contextual (20% sample, M0 nulo, hlm_serie_s20pct.csv) ────
+    _hlm = pd.read_csv(_TAB / "hlm_serie_s20pct.csv", index_col=0)
+    p["ICC_HLM_M0_pct"] = round(float(_hlm.loc["ICC_UF", "M0_Nulo"]) * 100, 2)  # 9.83
+
+    # ── SNA — homofilia racial (derivado de sna_arestas.csv) ─────────────────
+    _ar = pd.read_csv(_TAB / "sna_arestas.csv")
+    _intra = _ar.loc[~_ar["inter_racial"], "weight_jaccard"].sum()
+    _inter = _ar.loc[ _ar["inter_racial"], "weight_jaccard"].sum()
+    p["SNA_H"] = round(_intra / (_intra + _inter), 4)   # 0.4382
+
     # ── TOPSIS ────────────────────────────────────────────────────────────────
     _tp = pd.read_csv(_TAB / "po_politicas_topsis.csv")
     for _, row in _tp.iterrows():

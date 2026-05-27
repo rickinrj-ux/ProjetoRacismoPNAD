@@ -847,13 +847,13 @@ footer(s, 20)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
 header_bar(s, "20. Por Que Esses Modelos? — Justificação Estatística",
-           "LRT χ²=191.625 confirma hierarquia | ICC=9,83% > limiar 5% | HLM supera OLS+FE em AIC")
+           f"LRT χ²=191.625 confirma hierarquia | ICC={fmt(P['ICC_HLM_M0_pct'],2)}% > limiar 5% | HLM supera OLS+FE em AIC")
 
 add_img(s, FIGURES / "modelos_loglik_aic.png", In(0.3), In(1.2), In(6.3))
 add_img(s, FIGURES / "modelos_lrt_icc.png",   In(6.8), In(1.2), In(6.2))
 
 kpi_box(s, "LRT HLM vs OLS (nulo)", "191.625",   "χ² Δk=1 — hierarquia confirmada",     In(0.3),  In(4.55), w=In(3.9), val_color=C_DARK)
-kpi_box(s, "ICC por UPA",           "9,83%",     "> 5% — Raudenbush & Bryk (2002)",     In(4.4),  In(4.55), w=In(3.5), val_color=C_BLUE)
+kpi_box(s, "ICC por UPA",           f"{fmt(P['ICC_HLM_M0_pct'],2)}%", "> 5% — Raudenbush & Bryk (2002)",     In(4.4),  In(4.55), w=In(3.5), val_color=C_BLUE)
 kpi_box(s, "AIC HLM Contextual",    "3.588.684", "OLS+FE(UF): 3.684.833 (+96k pior)",   In(8.1),  In(4.55), w=In(5.0), val_color=C_GREEN)
 
 bullet_box(s, [

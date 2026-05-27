@@ -72,9 +72,9 @@ Path("logs").mkdir(exist_ok=True)
 # ── Parâmetros confirmados pelos modelos ──────────────────────────────────────
 
 # Gap salarial (log-rendimento, OB)
-GAP_BRUTO   = 0.4255   # gap total bruto (ob_melhorias.csv, N=7.694.198)
-DOTACOES    = 0.3550   # efeito dotações (84.0%)
-RETORNOS    = 0.0679   # efeito retornos (16.0%)
+GAP_BRUTO   = 0.4255   # gap total bruto (ob_melhorias.csv, Global/Total, N=7.694.198)
+DOTACOES    = 0.3552   # efeito dotações 83.5% (ob_melhorias.csv, Global/Total)
+RETORNOS    = 0.0702   # efeito retornos 16.5% (ob_melhorias.csv, Global/Total)
 
 # GLMM logístico (log-odds gap = -ln(OR))
 LOG_ODDS_CBO14 = -np.log(0.674)   # = 0.3940  barreira de acesso CBO 1-4 (OR lme4 R, N=7.694.198)
@@ -95,8 +95,8 @@ ICC_UF  = 0.098   # salários
 #  Canal  | Nome curto         | Ataca                       | Mecanismo
 #  -------|--------------------|-----------------------------|-------------------
 #  P1     | Cotas CBO 1-4      | OR=0.674 (GLMM lme4 R)     | Acesso qualificado
-#  P2     | Enforcement        | Retornos=16% (OB)          | Discriminação direta
-#  P3     | Equidade Educac.   | Dotações=84% (OB)          | Capital humano
+#  P2     | Enforcement        | Retornos=16.5% (OB)        | Discriminação direta
+#  P3     | Equidade Educac.   | Dotações=83.5% (OB)        | Capital humano
 #  P4     | Desegregação Resid | ICC_UPA=22.2% (GLMM)       | Territorial
 #  P5     | Mentoria/Redes     | SNA brokerage              | Redes profissionais
 #  P6     | Transparência Sal. | Remuneração intra-ocupação | Glass ceiling QR
