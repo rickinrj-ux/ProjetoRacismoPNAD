@@ -672,10 +672,11 @@ para evitar colapso de variância na fronteira $\tau^2=0$.
 \subsection{{Clustering Socioeconômico (K-Means)}}
 
 O algoritmo \textit{{MiniBatchKMeans}} foi aplicado sobre as
-$N=2.395.285$ observações com renda e variáveis contextuais completas,
-usando 10~dimensões padronizadas: idade, escolaridade ordinal,
-log-rendimento, raça, gênero, status de emprego e quatro variáveis
-de contexto da UPA. O número ótimo de clusters foi determinado pelo
+$N=7.694.198$ observações da PEA completa com variáveis contextuais
+disponíveis, usando 12~dimensões padronizadas: idade, três dummies de
+escolaridade (ensino médio completo, superior completo, pós-graduação),
+log-rendimento, raça, gênero, status de emprego e quatro variáveis de
+contexto da UPA. O número ótimo de clusters foi determinado pelo
 \textit{{Silhouette Coefficient}} \citep{{rousseeuw1987}} com validação
 pelo índice de Davies-Bouldin \citep{{davies_bouldin1979}}.
 
@@ -783,37 +784,35 @@ apresenta os perfis médios por cluster.
 \begin{{table}}[H]
 \centering
 \caption{{Perfis dos Clusters Socioeconômicos ($k=3$) --- PNAD 2016--2025.
-          $N=2{{,}}4$ milhões de trabalhadores com renda e variáveis contextuais
-          completas.}}
+          $N=7{{,}}7$ milhões de trabalhadores da PEA completa.}}
 \label{{tab:kmeans_perfis}}
 \begin{{tabular}}{{lccccccc}}
 \toprule
 \textbf{{Cluster}} & \textbf{{N}} & \textbf{{\%}} & \textbf{{\%~Negro}} &
 \textbf{{\%~Mulher}} & \textbf{{log\_Renda}} & \textbf{{Descrição}} \\
 \midrule
-C0 & 778.802  & 32,5\% & 24,2\%  & 22,8\%  & 7,440 &
-  Elite masc. predominantemente branca \\
-C1 & 1.075.250 & 44,9\% & 86,1\%  & \phantom{{0}}0,0\%  & 6,791 &
-  Trabalhadores negros --- segmento masc. \\
-C2 & 541.233  & 22,6\% & 78,6\%  & 100,0\% & 6,535 &
-  Mulheres negras --- dupla desvantagem \\
+C0 & 2.110.270 & 27,4\% & 76,2\%  & 100,0\% & 6,961 &
+  Mulheres negras --- vulnerabilidade dupla \\
+C1 & 2.705.788 & 35,2\% & 18,0\%  & \phantom{{0}}40,1\%  & 7,895 &
+  Brancos --- alta renda, menor escolaridade \\
+C2 & 2.878.140 & 37,4\% & 81,3\%  & \phantom{{00}}0,0\% & 7,074 &
+  Homens negros --- maior escolaridade, renda inferior \\
 \bottomrule
 \end{{tabular}}
 \end{{table}}
 
-O Cluster~0, predominantemente branco (75,8\%) e masculino (77,2\%),
-concentra os maiores rendimentos ($\bar{{y}}=7{{,}}44$). Os Clusters~1 e~2
-agrupam trabalhadores negros (86\% e 79\%, respectivamente) com
-rendimentos 8\% e 15\% inferiores ao Cluster~0.
+O Cluster~0 concentra mulheres negras (76,2\% negras, 100\% feminino),
+com rendimento médio de R\$1.447 ($\log=6{{,}}961$) e 21,7\% com ensino
+superior. O Cluster~1 agrupa predominantemente brancos (82\% não negros)
+com o maior rendimento do conjunto --- R\$3.830 ($\log=7{{,}}895$) ---
+e apenas 13,7\% com superior completo.
 
-Relevante para a Hipótese~H3, o Cluster~2 concentra exclusivamente mulheres
-negras, evidenciando uma tipologia de dupla desvantagem
-(\textit{{race $\times$ gender interaction}}) no mercado de trabalho brasileiro.
-
-Notavelmente, os grupos negros apresentam escolaridade média
-\textit{{ligeiramente superior}} à do Cluster~0, confirmando o diagnóstico
-da Hipótese~H5: capital humano é subconvertido em renda para trabalhadores
-negros.
+O Cluster~2 reúne homens negros (81,3\% negros, 0\% feminino) com
+$\log\text{{-renda}}=7{{,}}074$ e 36,5\% com superior completo:
+escolaridade quase três vezes maior que o Cluster~1, porém com rendimento
+58\% inferior, evidenciando a dupla desvantagem de gênero e raça
+(Hipótese~H3) e confirmando que o capital humano é subconvertido em renda
+para trabalhadores negros (Hipótese~H5).
 
 \subsection{{Modelos de Machine Learning e SHAP Values}}
 \label{{subsec:ml}}

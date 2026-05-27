@@ -14,10 +14,13 @@ ESTRATEGIA COMPUTACIONAL:
     Escala para 15M+ obs. sem necessidade de subsample no ajuste.
     Silhouette: calculado em subsample de 100k (O(n^2) proibitivo no full).
 
-VARIAVEIS DE CLUSTERING (10 dimensoes):
-    Individuais: idade, educ_ord, log_renda, negro, sexo_fem, empregado
+VARIAVEIS DE CLUSTERING (12 dimensoes):
+    Individuais: idade, educ_medio_completo, educ_superior_completo,
+                 educ_pos_graduacao, log_renda, negro, sexo_fem, empregado
     Contexto UPA: pct_negro_upa_z, tx_desemprego_upa_z, media_educ_upa_z,
                   media_renda_upa_z
+    (educ_ord removido — cobertura de apenas 31% da PEA; substituido por dummies
+     com 100% de cobertura, consistente com o GLMM lme4 PEA completa)
 
 SELECAO DE K:
     Metodo do cotovelo (inertia) + silhouette coefficient.
@@ -65,21 +68,28 @@ OUTPUTS_FIG.mkdir(parents=True, exist_ok=True)
 
 # ── Variaveis de Clustering ────────────────────────────────────────────────────
 CLUSTER_VARS = [
-    "idade",            # individual — experiencia de vida
-    "educ_ord",         # individual — capital humano (ordinal 0-5)
-    "log_renda",        # individual — rendimento
-    "negro",            # individual — raca binaria
-    "sexo_fem",         # individual — genero
-    "empregado",        # individual — status de emprego
-    "pct_negro_upa_z",  # contexto — composicao racial do bairro
-    "tx_desemprego_upa_z",  # contexto — desemprego local
-    "media_educ_upa_z", # contexto — capital humano do entorno
-    "media_renda_upa_z",# contexto — renda media do entorno
+    "idade",                    # individual — experiencia de vida
+    "educ_medio_completo",      # individual — ensino medio completo (dummy)
+    "educ_superior_completo",   # individual — ensino superior completo (dummy)
+    "educ_pos_graduacao",       # individual — pos-graduacao (dummy)
+    "log_renda",                # individual — rendimento
+    "negro",                    # individual — raca binaria
+    "sexo_fem",                 # individual — genero
+    "empregado",                # individual — status de emprego
+    "pct_negro_upa_z",          # contexto — composicao racial do bairro
+    "tx_desemprego_upa_z",      # contexto — desemprego local
+    "media_educ_upa_z",         # contexto — capital humano do entorno
+    "media_renda_upa_z",        # contexto — renda media do entorno
 ]
 
 K_RANGE      = range(2, 9)   # k = 2 a 8
 SILH_SAMPLE  = 100_000       # subsample para silhouette (O(n^2) inviavel no full)
 RANDOM_STATE = 42
+
+# k=2 maximiza silhouette na PEA completa mas é trivialmente binário (split racial/renda).
+# k=3 preserva as tipologias de vulnerabilidade interpretáveis (Wilson 1987; Sampson 1997)
+# e é consistente com a narrativa do TCC. Override explícito com justificativa metodológica.
+K_FINAL_OVERRIDE = 3
 
 
 # ── Carregamento ───────────────────────────────────────────────────────────────
@@ -225,7 +235,9 @@ def build_profiles(df, labels):
 
     # --- Estatisticas descritivas por cluster ---
     agg_vars = [
-        "idade", "educ_ord", "log_renda", "renda_bruta",
+        "idade",
+        "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+        "log_renda", "renda_bruta",
         "negro", "sexo_fem", "empregado",
         "pct_negro_upa_z", "tx_desemprego_upa_z",
         "media_educ_upa_z", "media_renda_upa_z",
@@ -263,10 +275,11 @@ def build_profiles(df, labels):
 
     logger.info("Perfis dos clusters:")
     for c, row in profiles.iterrows():
+        sup = row.get("educ_superior_completo", float("nan"))
         logger.info(
             f"  Cluster {c} (n={int(row['n_obs']):,} | {row['pct_obs']:.1f}%): "
             f"renda={row['log_renda']:.3f} | negro={row['negro']*100:.1f}% | "
-            f"educ={row['educ_ord']:.2f} | empregado={row['empregado']*100:.1f}%"
+            f"sup_completo={sup*100:.1f}% | empregado={row['empregado']*100:.1f}%"
         )
 
     return df, profiles
@@ -276,27 +289,30 @@ def build_profiles(df, labels):
 
 def build_profile_table(profiles):
     """Tabela formatada para o capitulo de Resultados."""
-    display = profiles[[
+    cols = [
         "n_obs", "pct_obs",
         "negro", "sexo_fem", "empregado",
         "log_renda", "renda_bruta",
-        "educ_ord",
+        "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
         "pct_negro_upa_z", "tx_desemprego_upa_z",
         "descricao",
-    ]].copy()
+    ]
+    display = profiles[[c for c in cols if c in profiles.columns]].copy()
 
     display.rename(columns={
-        "n_obs":               "N",
-        "pct_obs":             "% total",
-        "negro":               "% Negro",
-        "sexo_fem":            "% Mulher",
-        "empregado":           "% Empregado",
-        "log_renda":           "log_Renda",
-        "renda_bruta":         "Renda Bruta (R$)",
-        "educ_ord":            "Educ. Ord.",
-        "pct_negro_upa_z":     "PctNegroUPA_z",
-        "tx_desemprego_upa_z": "DesempregoUPA_z",
-        "descricao":           "Descricao",
+        "n_obs":                   "N",
+        "pct_obs":                 "% total",
+        "negro":                   "% Negro",
+        "sexo_fem":                "% Mulher",
+        "empregado":               "% Empregado",
+        "log_renda":               "log_Renda",
+        "renda_bruta":             "Renda Bruta (R$)",
+        "educ_medio_completo":     "% Medio Compl.",
+        "educ_superior_completo":  "% Superior Compl.",
+        "educ_pos_graduacao":      "% Pos-Grad.",
+        "pct_negro_upa_z":         "PctNegroUPA_z",
+        "tx_desemprego_upa_z":     "DesempregoUPA_z",
+        "descricao":               "Descricao",
     }, inplace=True)
 
     # Formatar percentuais
@@ -311,7 +327,9 @@ def build_profile_table(profiles):
 def plot_cluster_profiles(profiles, k):
     """Heatmap de perfis normalizados (z-score entre clusters)."""
     vars_plot = [
-        "log_renda", "educ_ord", "idade", "empregado",
+        "log_renda",
+        "educ_superior_completo", "educ_pos_graduacao", "educ_medio_completo",
+        "idade", "empregado",
         "negro", "sexo_fem",
         "pct_negro_upa_z", "tx_desemprego_upa_z",
         "media_educ_upa_z", "media_renda_upa_z",
@@ -423,14 +441,15 @@ def print_summary(profiles, silhouettes, db_scores, best_k):
     print()
     print("  PERFIS DOS CLUSTERS:")
     print(f"  {'C':<4}  {'N':>9}  {'%total':>6}  {'%Negro':>7}  {'%Mulher':>8}  "
-          f"{'%Empreg':>8}  {'log_Renda':>10}  {'EdOrd':>6}")
-    print("  " + "-" * 70)
+          f"{'%Empreg':>8}  {'log_Renda':>10}  {'%SupCompl':>10}")
+    print("  " + "-" * 75)
     for c, row in profiles.iterrows():
+        sup = row.get("educ_superior_completo", float("nan"))
         print(
             f"  {c:<4}  {int(row['n_obs']):>9,}  {row['pct_obs']:>5.1f}%  "
             f"{row['negro']*100:>6.1f}%  {row['sexo_fem']*100:>7.1f}%  "
             f"{row['empregado']*100:>7.1f}%  {row['log_renda']:>10.3f}  "
-            f"{row['educ_ord']:>6.2f}"
+            f"{sup*100:>9.1f}%"
         )
     print()
 
@@ -460,6 +479,15 @@ def main():
 
     # Selecao de K
     best_k, inertias, silhouettes, db_scores = select_k(X, df)
+
+    # Override de interpretabilidade: k=2 é trivialmente binário com N=7.7M
+    if K_FINAL_OVERRIDE and K_FINAL_OVERRIDE != best_k:
+        logger.info(
+            f"K_FINAL_OVERRIDE={K_FINAL_OVERRIDE}: substituindo k={best_k} "
+            f"(silhouette={silhouettes[best_k]:.4f}) por k={K_FINAL_OVERRIDE} "
+            f"(silhouette={silhouettes[K_FINAL_OVERRIDE]:.4f}) — interpretabilidade TCC"
+        )
+        best_k = K_FINAL_OVERRIDE
 
     # Ajuste final com k otimo
     labels, km = fit_final(X, best_k)

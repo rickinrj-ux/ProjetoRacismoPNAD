@@ -1081,11 +1081,12 @@ def build_doc(r, k):
 
     add_heading(doc, "3.4 Clustering Socioeconômico (K-Means)", level=2)
     add_para(doc,
-        "O algoritmo MiniBatchKMeans foi aplicado sobre as 2.395.285 observações com renda e "
-        "variáveis contextuais completas, usando 10 dimensões padronizadas: idade, escolaridade "
-        "ordinal, log-rendimento, raça, gênero, status de emprego e quatro variáveis de contexto "
-        "da UPA. O número ótimo de clusters foi determinado pelo Silhouette Coefficient "
-        "(ROUSSEEUW, 1987) com validação pelo índice de Davies-Bouldin (DAVIES; BOULDIN, 1979)."
+        "O algoritmo MiniBatchKMeans foi aplicado sobre as 7.694.198 observações da PEA completa "
+        "com variáveis contextuais disponíveis, usando 12 dimensões padronizadas: idade, três "
+        "dummies de escolaridade (ensino médio completo, superior completo, pós-graduação), "
+        "log-rendimento, raça, gênero, status de emprego e quatro variáveis de contexto da UPA. "
+        "O número ótimo de clusters foi determinado pelo Silhouette Coefficient (ROUSSEEUW, 1987) "
+        "com validação pelo índice de Davies-Bouldin (DAVIES; BOULDIN, 1979)."
     )
 
     add_heading(doc, "3.5 Random Forest, XGBoost e SHAP Values", level=2)
@@ -1545,8 +1546,10 @@ def build_doc(r, k):
     doc.add_page_break()
     add_heading(doc, "4.2 Clustering Socioeconômico", level=2)
     add_para(doc,
-        f"O Silhouette Coefficient máximo em k=3 (S={k['silh']:.4f}) determinou a solução de três "
-        f"clusters. A Tabela 2 apresenta os perfis médios."
+        f"O Silhouette Coefficient apontou k=2 como ótimo automático (S=0,1736); k=3 "
+        f"(S={k['silh']:.4f}) foi adotado por oferecer maior interpretabilidade substantiva para "
+        f"os objetivos do TCC — a solução binária reproduzia trivialmente a divisão racial sem "
+        f"discriminar segmentos internos. A Tabela 2 apresenta os perfis médios."
     )
 
     # Cluster summary table (hardcoded from known results)
@@ -1569,9 +1572,9 @@ def build_doc(r, k):
                 run.bold = True; run.font.color.rgb = RGBColor(255,255,255)
                 run.font.size = Pt(9); run.font.name = "Arial"
     cluster_data = [
-        ("C0","778.802","24,2%","22,8%","7,440","Elite masc. predominantemente branca"),
-        ("C1","1.075.250","86,1%","0,0%","6,791","Trabalhadores negros – segmento masculino"),
-        ("C2","541.233","78,6%","100,0%","6,535","Mulheres negras – dupla desvantagem"),
+        ("C0","2.110.270","76,2%","100,0%","6,961","Mulheres negras – vulnerabilidade dupla"),
+        ("C1","2.705.788","18,0%","40,1%","7,895","Brancos – alta renda, menor escolaridade"),
+        ("C2","2.878.140","81,3%","0,0%","7,074","Homens negros – maior escolaridade, renda inferior"),
     ]
     for i, row_data in enumerate(cluster_data):
         tr = km_tbl.add_row()
@@ -1584,11 +1587,14 @@ def build_doc(r, k):
                     run.font.size = Pt(9); run.font.name = "Arial"
 
     add_para(doc,
-        "O Cluster 0, predominantemente branco (75,8%) e masculino (77,2%), concentra os maiores "
-        "rendimentos. Os Clusters 1 e 2 agrupam trabalhadores negros (86% e 79%, respectivamente) "
-        "com rendimentos 8% e 15% inferiores ao Cluster 0. Notavelmente, os grupos negros apresentam "
-        "escolaridade média ligeiramente superior à do Cluster 0, confirmando a subconversão do "
-        "capital humano em renda (H5)."
+        "O Cluster 0 concentra mulheres negras (76,2% negras, 100% feminino), com rendimento médio "
+        "de R$1.447 (log=6,961) e 21,7% com ensino superior completo. O Cluster 1 agrupa "
+        "predominantemente brancos (82,0% não negros) de ambos os sexos, com o maior rendimento "
+        "médio do conjunto — R$3.830 (log=7,895) — e apenas 13,7% com superior. O Cluster 2 reúne "
+        "homens negros (81,3% negros, 0% feminino) com rendimento de R$1.610 (log=7,074) e 36,5% "
+        "com superior completo: escolaridade quase três vezes maior que o Cluster 1, porém com "
+        "rendimento 58% inferior, confirmando a subconversão do capital humano em renda para "
+        "trabalhadores negros (H5)."
     )
 
     add_figure(doc, FIGURES / "kmeans_perfis_k3.png",
@@ -2613,11 +2619,12 @@ def build_doc(r, k):
         f"sobre o gap racial."
     )
     add_para(doc,
-        "O Cluster 1 (trabalhadores negros de escolaridade superior à do Cluster 0) aufere "
-        "rendimentos 8% inferiores, e a SNA demonstra que grupos negros com pós-graduação têm "
-        "betweenness nulo. Juntas, essas evidências indicam que negros enfrentam um duplo obstáculo "
-        "ao retorno educacional: além do gap direto mensurado pelo HLM, perdem acesso às redes de "
-        "indicação que convertem credenciais formais em mobilidade profissional (GRANOVETTER, 1973)."
+        "O Cluster 2 (homens negros com 36,5% de ensino superior) aufere rendimento 58% inferior "
+        "ao do Cluster 1 (brancos com apenas 13,7% de superior), e a SNA demonstra que grupos negros "
+        "com pós-graduação têm betweenness nulo. Juntas, essas evidências indicam que negros "
+        "enfrentam um duplo obstáculo ao retorno educacional: além do gap direto mensurado pelo HLM, "
+        "perdem acesso às redes de indicação que convertem credenciais formais em mobilidade "
+        "profissional (GRANOVETTER, 1973)."
     )
     add_para(doc,
         f"O modelo M4 decompõe o gap em três camadas: (i) gap bruto de {k['gb']:.1f}% (M1); "
