@@ -2428,9 +2428,9 @@ def build_doc(r, k):
         "Resultados Konfound HLM: pkonfound = 99,5% (M1), 98,8% (M2/M3), 98,5% (M4). "
         "Resultados se calculados em OLS: 91,5% (M1), 93,5% (M2/M3), 88,7% (M4). "
         "Δ = +7,9 pp (M1) a +9,7 pp (M4) de subestimação pelo OLS.\n"
-        "E-values GLMM lme4 (ocp_qualif, modelo controlado M2): E = 2,25 (IC conservador: 2,24). "
+        "E-values GLMM lme4 (ocp_qualif): M1 (OR=0,674): E = 2,33 (IC: 2,32); M2 (OR=0,691): E = 2,25 (IC: 2,24). "
         "Um confounder precisaria ter associação ≥ 2,25× com raça E com a probabilidade "
-        "de ocupar cargo qualificado para eliminar completamente o OR = 0,691 observado (PEA completa, N=7.694.198)."
+        "de ocupar cargo qualificado para eliminar completamente o OR controlado (PEA completa, N=7.694.198)."
     )
     if (FIGURES / "sensibilidade_konfound_evalues.png").exists():
         add_figure(doc, FIGURES / "sensibilidade_konfound_evalues.png",
