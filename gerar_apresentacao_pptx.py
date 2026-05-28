@@ -529,7 +529,7 @@ footer(s, 11)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
 header_bar(s, "11. RIF-OB — Sticky Floor Discriminatório vs. Glass Ceiling por Dotações",
-           "Firpo, Fortin & Lemieux (2018) | N=7.694.198 | Decomposição incondicional por quantil")
+           f"Firpo, Fortin & Lemieux (2018) | N={fmtN(P['N_GLMM'])} | Decomposição incondicional por quantil")
 
 add_img(s, FIGURES / "rif_ob_retornos_quantis.png", In(0.3), In(1.2), In(6.8))
 
@@ -725,17 +725,18 @@ footer(s, 16)
 # SLIDE — CLUSTERING SOCIOECONÔMICO
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "16. Clustering Socioeconômico — K-Means (k=3) | N=7.694.198",
+header_bar(s, f"16. Clustering Socioeconômico — K-Means (k=3) | N={fmtN(P['N_GLMM'])}",
            "MiniBatchKMeans | 12 dimensões | k=3 adotado por interpretabilidade (k=2 trivialmente binário)")
 
 add_img(s, FIGURES / "kmeans_perfis_k3.png",    In(0.3),  In(1.2), In(6.2))
 add_img(s, FIGURES / "kmeans_gap_racial_k3.png", In(6.65), In(1.2), In(6.4))
 
 # Cluster profile table
+_rr = round((P["KM_C1_RENDA_BRL"] - P["KM_C2_RENDA_BRL"]) / P["KM_C1_RENDA_BRL"] * 100)
 cluster_rows = [
-    ("C0", "2.110.270", "27,4%", "76,2%", "100%", "6,961", "Mulheres negras — vulnerabilidade dupla", C_RED),
-    ("C1", "2.705.788", "35,2%", "18,0%", "40,1%","7,895", "Brancos alta renda — menor escolaridade",  C_BLUE),
-    ("C2", "2.878.140", "37,4%", "81,3%",  "0,0%", "7,074", "Homens negros — 36,5% superior, renda 58% < C1", C_DARK),
+    ("C0", fmtN(P["KM_C0_N"]), f"{fmt(P['KM_C0_PCT_TOTAL'],1)}%", f"{fmt(P['KM_C0_PCT_NEGRO'],1)}%", f"{fmt(P['KM_C0_PCT_MULHER'],0)}%", fmt(P["KM_C0_LOG_RENDA"],3), "Mulheres negras — vulnerabilidade dupla", C_RED),
+    ("C1", fmtN(P["KM_C1_N"]), f"{fmt(P['KM_C1_PCT_TOTAL'],1)}%", f"{fmt(P['KM_C1_PCT_NEGRO'],1)}%", f"{fmt(P['KM_C1_PCT_MULHER'],1)}%", fmt(P["KM_C1_LOG_RENDA"],3), "Brancos alta renda — menor escolaridade",  C_BLUE),
+    ("C2", fmtN(P["KM_C2_N"]), f"{fmt(P['KM_C2_PCT_TOTAL'],1)}%", f"{fmt(P['KM_C2_PCT_NEGRO'],1)}%", f"{fmt(P['KM_C2_PCT_MULHER'],0)}%", fmt(P["KM_C2_LOG_RENDA"],3), f"Homens negros — {fmt(P['KM_C2_PCT_SUP'],1)}% superior, renda {_rr}% < C1", C_DARK),
 ]
 col_labels = ["Cluster","N","% total","% Negro","% Mulher","log_Renda","Perfil"]
 col_x      = [In(0.3), In(1.2), In(2.45), In(3.4), In(4.35), In(5.35), In(6.35)]
@@ -892,7 +893,7 @@ for l, t, color, title, items in vertices:
 
 add_rect(s, In(0.3), In(6.4), In(12.7), In(0.5),
          fill_rgb=RGBColor(0x1F,0x38,0x64), line_rgb=C_AMBER, line_pt=0)
-add_text(s, "Oaxaca-Blinder une os três vértices: 84% do gap é de ACESSO (dotações) | 16% de REMUNERAÇÃO (retornos) | SNA explica por que o acesso é estruturalmente negado  |  GLMM: OR=0,691",
+add_text(s, f"Oaxaca-Blinder une os três vértices: 84% do gap é de ACESSO (dotações) | 16% de REMUNERAÇÃO (retornos) | SNA explica por que o acesso é estruturalmente negado  |  GLMM: OR={fmt(P['OR_M2'],3)}",
          In(0.5), In(6.45), In(12.3), In(0.45),
          font_size=12, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
 footer(s, 22)

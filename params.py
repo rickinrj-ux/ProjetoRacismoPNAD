@@ -89,9 +89,47 @@ def _load() -> dict:
     p["RET_LOG"]     = round(float(_ob_g["ret_log"]),  4)   # 0.0702
     p["RET_PCT"]     = round(float(_ob_g["ret_pct"]),  1)   # 16.5
 
-    # ── HLM — ICC contextual (20% sample, M0 nulo, hlm_serie_s20pct.csv) ────
+    # ── HLM — componentes de variância e ICC (hlm_serie_s20pct.csv) ─────────
     _hlm = pd.read_csv(_TAB / "hlm_serie_s20pct.csv", index_col=0)
-    p["ICC_HLM_M0_pct"] = round(float(_hlm.loc["ICC_UF", "M0_Nulo"]) * 100, 2)  # 9.83
+    def _hlm_val(row, col):
+        v = _hlm.loc[row, col]
+        return float(v) if v not in ("FE", "-", "") else None
+
+    p["HLM_SIGMA2_M0"]    = round(_hlm_val("sigma2 (Nivel 1)", "M0_Nulo"), 4)    # 0.7653
+    p["HLM_TAU2_M0"]      = round(_hlm_val("tau2_UF (Nivel 3)", "M0_Nulo"), 5)   # 0.08342
+    p["HLM_TAU2_M1"]      = round(_hlm_val("tau2_UF (Nivel 3)", "M1_Individual"), 5)  # 0.03993
+    p["HLM_TAU2_M2"]      = round(_hlm_val("tau2_UF (Nivel 3)", "M2_Localidade"), 5)  # 0.03002
+    p["HLM_TAU2_M3"]      = round(_hlm_val("tau2_UF (Nivel 3)", "M3_Completo"), 5)    # 0.01520
+    p["HLM_SIGMA2_M1"]    = round(_hlm_val("sigma2 (Nivel 1)", "M1_Individual"), 4)   # 0.5126
+    p["HLM_SIGMA2_M2"]    = round(_hlm_val("sigma2 (Nivel 1)", "M2_Localidade"), 4)   # 0.4864
+    p["HLM_SIGMA2_M3"]    = round(_hlm_val("sigma2 (Nivel 1)", "M3_Completo"), 4)     # 0.4864
+    p["ICC_HLM_M0_pct"]   = round(_hlm_val("ICC_UF", "M0_Nulo") * 100, 2)        # 9.83
+    p["ICC_HLM_M1_pct"]   = round(_hlm_val("ICC_UF", "M1_Individual") * 100, 2)  # 7.23
+    p["ICC_HLM_M2_pct"]   = round(_hlm_val("ICC_UF", "M2_Localidade") * 100, 2)  # 5.81
+    p["ICC_HLM_M3_pct"]   = round(_hlm_val("ICC_UF", "M3_Completo") * 100, 2)    # 3.03
+
+    # ── KMeans k=3 — perfis e gap racial (kmeans_perfis_k3.csv, kmeans_gap_racial_k3.csv) ──
+    _km = pd.read_csv(_TAB / "kmeans_perfis_k3.csv")
+    for i in range(3):
+        row = _km.loc[_km["cluster"] == i].iloc[0]
+        p[f"KM_C{i}_N"]        = int(row["N"])
+        p[f"KM_C{i}_PCT_TOTAL"] = round(float(row["% total"]), 1)
+        p[f"KM_C{i}_PCT_NEGRO"] = round(float(row["% Negro"]), 1)
+        p[f"KM_C{i}_PCT_MULHER"]= round(float(row["% Mulher"]), 1)
+        p[f"KM_C{i}_LOG_RENDA"] = round(float(row["log_Renda"]), 3)
+        p[f"KM_C{i}_RENDA_BRL"] = round(float(row["Renda Bruta (R$)"]))
+        p[f"KM_C{i}_PCT_SUP"]   = round(float(row["% Superior Compl."]) * 100, 1)
+    p["KM_N_TOTAL"] = sum(p[f"KM_C{i}_N"] for i in range(3))
+
+    _kmg = pd.read_csv(_TAB / "kmeans_gap_racial_k3.csv")
+    for i in range(3):
+        row = _kmg.loc[_kmg["cluster"] == i].iloc[0]
+        p[f"KM_C{i}_GAP_LOG"]   = round(float(row["gap_log"]), 4)
+        p[f"KM_C{i}_GAP_PCT"]   = round(float(row["gap_%"]),   2)
+
+    _kmet = pd.read_csv(_TAB / "kmeans_metricas.csv")
+    p["KM_SILH_K2"] = round(float(_kmet.loc[_kmet["k"]==2, "silhouette"].values[0]), 4)
+    p["KM_SILH_K3"] = round(float(_kmet.loc[_kmet["k"]==3, "silhouette"].values[0]), 4)
 
     # ── SNA — homofilia racial (derivado de sna_arestas.csv) ─────────────────
     _ar = pd.read_csv(_TAB / "sna_arestas.csv")

@@ -180,8 +180,9 @@ _EQ_ICC = _mwrap(
 
 _EQ_ICC_NUM = _mwrap(
     _msub(_mi('ρ'), _mu('UF')) + _mu(' = ') +
-    _mfrac(_mu('0,0834'), _mu('0,0834 + 0,7653')) +
-    _mu(' = 0,0983   (9,83%)')
+    _mfrac(_mu(fmt(P["HLM_TAU2_M0"], 4)),
+           _mu(f'{fmt(P["HLM_TAU2_M0"], 4)} + {fmt(P["HLM_SIGMA2_M0"], 4)}')) +
+    _mu(f' = {fmt(P["ICC_HLM_M0_pct"]/100, 4)}   ({fmt(P["ICC_HLM_M0_pct"], 2)}%)')
 )
 
 # ── Carrega resultados ────────────────────────────────────────────────────────
@@ -923,17 +924,17 @@ def build_doc(r, k):
     add_para(doc, "Modelo Nulo HLM — decomposição de variância (Eq. 2):", bold=True, first_line=0)
     add_equation(doc, _EQ_NULL)
     add_para(doc,
-        "A estimação REML do modelo nulo fornece: σ̂² = 0,7653 (variância individual) e "
-        "τ̂²_UF = 0,0834 (variância entre estados). O Coeficiente de Correlação Intraclasse (ICC) é:"
+        f"A estimação REML do modelo nulo fornece: σ̂² = {fmt(P['HLM_SIGMA2_M0'],4)} (variância individual) e "
+        f"τ̂²_UF = {fmt(P['HLM_TAU2_M0'],4)} (variância entre estados). O Coeficiente de Correlação Intraclasse (ICC) é:"
     )
     add_equation(doc, _EQ_ICC)
     add_equation(doc, _EQ_ICC_NUM)
     add_para(doc,
-        "Valores de ICC superiores a 5% justificam a inclusão do nível hierárquico superior "
-        "(RAUDENBUSH; BRYK, 2002). O ICC de 9,83% indica que aproximadamente 10% da variância "
-        "total do log-rendimento é explicada pelo estado de residência — antes de qualquer controle "
-        "individual. Mesmo após a inclusão de todas as variáveis individuais e contextuais (M3), "
-        "o ICC permanece em 3,98%, acima do limiar de 5% que se mantém em M0, M1 e M2."
+        f"Valores de ICC superiores a 5% justificam a inclusão do nível hierárquico superior "
+        f"(RAUDENBUSH; BRYK, 2002). O ICC de {fmt(P['ICC_HLM_M0_pct'],2)}% indica que aproximadamente 10% da variância "
+        f"total do log-rendimento é explicada pelo estado de residência — antes de qualquer controle "
+        f"individual. Mesmo após a inclusão de todas as variáveis individuais e contextuais (M3), "
+        f"o ICC reduz para {fmt(P['ICC_HLM_M3_pct'],2)}%, abaixo do limiar de 5% — enquanto M0, M1 e M2 se mantêm acima."
     )
 
     add_figure(doc, FIGURES / "hlm_justif_variancia.png",
@@ -994,10 +995,10 @@ def build_doc(r, k):
                 run.font.size = Pt(9); run.font.name = "Arial"
 
     var_data = [
-        ("M0 (Nulo)",       "0,7653", "0,08342", "0,02314", "3,61", "9,83% ***"),
-        ("M1 (Individual)", "0,6329", "0,06109", "0,01694", "3,61", "8,80% ***"),
-        ("M2 (+ UPA)",      "0,6037", "0,03365", "0,00933", "3,61", "5,28% ***"),
-        ("M3 (Completo)",   "0,6037", "0,02504", "0,00694", "3,61", "3,98% ***"),
+        ("M0 (Nulo)",       fmt(P["HLM_SIGMA2_M0"],4), fmt(P["HLM_TAU2_M0"],5), "0,02314", "3,61", f"{fmt(P['ICC_HLM_M0_pct'],2)}% ***"),
+        ("M1 (Individual)", fmt(P["HLM_SIGMA2_M1"],4), fmt(P["HLM_TAU2_M1"],5), "0,01694", "3,61", f"{fmt(P['ICC_HLM_M1_pct'],2)}% ***"),
+        ("M2 (+ UPA)",      fmt(P["HLM_SIGMA2_M2"],4), fmt(P["HLM_TAU2_M2"],5), "0,00933", "3,61", f"{fmt(P['ICC_HLM_M2_pct'],2)}% ***"),
+        ("M3 (Completo)",   fmt(P["HLM_SIGMA2_M3"],4), fmt(P["HLM_TAU2_M3"],5), "0,00694", "3,61", f"{fmt(P['ICC_HLM_M3_pct'],2)}% ***"),
     ]
     for i, row_data in enumerate(var_data):
         tr = var_tbl.add_row()
@@ -1068,24 +1069,24 @@ def build_doc(r, k):
         width_cm=15)
 
     add_para(doc,
-        "Em síntese, as evidências são conclusivas: o HLM de três níveis é o modelo estatisticamente "
-        "correto para esses dados. O ICC de 9,83% supera o limiar de 5%, τ²_UF é significativamente "
-        "diferente de zero em todos os modelos (p < 0,001), 26 dos 27 estados possuem interceptos "
-        "distintos da média nacional, e o LRT confirma que cada nível hierárquico adiciona poder "
-        "explicativo substancial. O OLS, mesmo com correção de cluster, não oferece decomposição "
-        "de variância entre níveis, estimativas eficientes dos efeitos contextuais, nem o "
-        "tratamento correto da dependência estrutural dos dados."
+        f"Em síntese, as evidências são conclusivas: o HLM de três níveis é o modelo estatisticamente "
+        f"correto para esses dados. O ICC de {fmt(P['ICC_HLM_M0_pct'],2)}% supera o limiar de 5%, τ²_UF é significativamente "
+        f"diferente de zero em todos os modelos (p < 0,001), 26 dos 27 estados possuem interceptos "
+        f"distintos da média nacional, e o LRT confirma que cada nível hierárquico adiciona poder "
+        f"explicativo substancial. O OLS, mesmo com correção de cluster, não oferece decomposição "
+        f"de variância entre níveis, estimativas eficientes dos efeitos contextuais, nem o "
+        f"tratamento correto da dependência estrutural dos dados."
     )
 
     doc.add_page_break()
 
     add_heading(doc, "3.4 Clustering Socioeconômico (K-Means)", level=2)
     add_para(doc,
-        "O algoritmo MiniBatchKMeans foi aplicado sobre as 7.694.198 observações da PEA completa "
-        "com variáveis contextuais disponíveis, usando 12 dimensões padronizadas: idade, três "
-        "dummies de escolaridade (ensino médio completo, superior completo, pós-graduação), "
-        "log-rendimento, raça, gênero, status de emprego e quatro variáveis de contexto da UPA. "
-        "O número ótimo de clusters foi determinado pelo Silhouette Coefficient (ROUSSEEUW, 1987) "
+        f"O algoritmo MiniBatchKMeans foi aplicado sobre as {fmtN(P['N_GLMM'])} observações da PEA completa "
+        f"com variáveis contextuais disponíveis, usando 12 dimensões padronizadas: idade, três "
+        f"dummies de escolaridade (ensino médio completo, superior completo, pós-graduação), "
+        f"log-rendimento, raça, gênero, status de emprego e quatro variáveis de contexto da UPA. "
+        f"O número ótimo de clusters foi determinado pelo Silhouette Coefficient (ROUSSEEUW, 1987) "
         "com validação pelo índice de Davies-Bouldin (DAVIES; BOULDIN, 1979)."
     )
 
@@ -1192,8 +1193,8 @@ def build_doc(r, k):
         "detrimento do OLS reside na estrutura de dados aninhados. Os 1,5 milhão de indivíduos da "
         "amostra estão distribuídos em aproximadamente 15 mil UPAs e 27 estados, criando dependência "
         "intra-cluster que viola o pressuposto de independência do OLS. O modelo nulo HLM estimou "
-        "ICC_UF=9,83%, acima do limiar de 5% sugerido por Raudenbush e Bryk (2002), confirmando que "
-        "a estrutura hierárquica é estatisticamente relevante. O Teste de Razão de Verossimilhança "
+        f"ICC_UF={fmt(P['ICC_HLM_M0_pct'],2)}%, acima do limiar de 5% sugerido por Raudenbush e Bryk (2002), confirmando que "
+        f"a estrutura hierárquica é estatisticamente relevante. O Teste de Razão de Verossimilhança "
         "entre HLM Nulo e OLS Nulo gera estatística χ²=191.625 (Δk=1), refutando o modelo plano "
         "com probabilidade virtualmente nula. Adicionalmente, o uso de OLS com dummies de UF "
         "(efeitos fixos) mostrou AIC=3.684.832 — pior que o OLS com variáveis contextuais "
@@ -1546,7 +1547,7 @@ def build_doc(r, k):
     doc.add_page_break()
     add_heading(doc, "4.2 Clustering Socioeconômico", level=2)
     add_para(doc,
-        f"O Silhouette Coefficient apontou k=2 como ótimo automático (S=0,1736); k=3 "
+        f"O Silhouette Coefficient apontou k=2 como ótimo automático (S={fmt(P['KM_SILH_K2'],4)}); k=3 "
         f"(S={k['silh']:.4f}) foi adotado por oferecer maior interpretabilidade substantiva para "
         f"os objetivos do TCC — a solução binária reproduzia trivialmente a divisão racial sem "
         f"discriminar segmentos internos. A Tabela 2 apresenta os perfis médios."
@@ -1572,9 +1573,9 @@ def build_doc(r, k):
                 run.bold = True; run.font.color.rgb = RGBColor(255,255,255)
                 run.font.size = Pt(9); run.font.name = "Arial"
     cluster_data = [
-        ("C0","2.110.270","76,2%","100,0%","6,961","Mulheres negras – vulnerabilidade dupla"),
-        ("C1","2.705.788","18,0%","40,1%","7,895","Brancos – alta renda, menor escolaridade"),
-        ("C2","2.878.140","81,3%","0,0%","7,074","Homens negros – maior escolaridade, renda inferior"),
+        (f"C0", fmtN(P["KM_C0_N"]), f"{fmt(P['KM_C0_PCT_NEGRO'],1)}%", f"{fmt(P['KM_C0_PCT_MULHER'],1)}%", fmt(P["KM_C0_LOG_RENDA"],3), "Mulheres negras – vulnerabilidade dupla"),
+        (f"C1", fmtN(P["KM_C1_N"]), f"{fmt(P['KM_C1_PCT_NEGRO'],1)}%", f"{fmt(P['KM_C1_PCT_MULHER'],1)}%", fmt(P["KM_C1_LOG_RENDA"],3), "Brancos – alta renda, menor escolaridade"),
+        (f"C2", fmtN(P["KM_C2_N"]), f"{fmt(P['KM_C2_PCT_NEGRO'],1)}%", f"{fmt(P['KM_C2_PCT_MULHER'],1)}%", fmt(P["KM_C2_LOG_RENDA"],3), "Homens negros – maior escolaridade, renda inferior"),
     ]
     for i, row_data in enumerate(cluster_data):
         tr = km_tbl.add_row()
@@ -1586,15 +1587,21 @@ def build_doc(r, k):
                 for run in para.runs:
                     run.font.size = Pt(9); run.font.name = "Arial"
 
+    _pct_branco_c1 = round(100 - P["KM_C1_PCT_NEGRO"], 1)
+    _renda_ratio   = round((P["KM_C1_RENDA_BRL"] - P["KM_C2_RENDA_BRL"]) / P["KM_C1_RENDA_BRL"] * 100)
     add_para(doc,
-        "O Cluster 0 concentra mulheres negras (76,2% negras, 100% feminino), com rendimento médio "
-        "de R$1.447 (log=6,961) e 21,7% com ensino superior completo. O Cluster 1 agrupa "
-        "predominantemente brancos (82,0% não negros) de ambos os sexos, com o maior rendimento "
-        "médio do conjunto — R$3.830 (log=7,895) — e apenas 13,7% com superior. O Cluster 2 reúne "
-        "homens negros (81,3% negros, 0% feminino) com rendimento de R$1.610 (log=7,074) e 36,5% "
-        "com superior completo: escolaridade quase três vezes maior que o Cluster 1, porém com "
-        "rendimento 58% inferior, confirmando a subconversão do capital humano em renda para "
-        "trabalhadores negros (H5)."
+        f"O Cluster 0 concentra mulheres negras ({fmt(P['KM_C0_PCT_NEGRO'],1)}% negras, "
+        f"{fmt(P['KM_C0_PCT_MULHER'],0)}% feminino), com rendimento médio de "
+        f"R${fmtN(P['KM_C0_RENDA_BRL'])} (log={fmt(P['KM_C0_LOG_RENDA'],3)}) e "
+        f"{fmt(P['KM_C0_PCT_SUP'],1)}% com ensino superior completo. O Cluster 1 agrupa "
+        f"predominantemente brancos ({fmt(_pct_branco_c1,1)}% não negros) de ambos os sexos, com o "
+        f"maior rendimento médio do conjunto — R${fmtN(P['KM_C1_RENDA_BRL'])} "
+        f"(log={fmt(P['KM_C1_LOG_RENDA'],3)}) — e apenas {fmt(P['KM_C1_PCT_SUP'],1)}% com superior. "
+        f"O Cluster 2 reúne homens negros ({fmt(P['KM_C2_PCT_NEGRO'],1)}% negros, "
+        f"{fmt(P['KM_C2_PCT_MULHER'],0)}% feminino) com rendimento de R${fmtN(P['KM_C2_RENDA_BRL'])} "
+        f"(log={fmt(P['KM_C2_LOG_RENDA'],3)}) e {fmt(P['KM_C2_PCT_SUP'],1)}% com superior completo: "
+        f"escolaridade quase três vezes maior que o Cluster 1, porém com rendimento {_renda_ratio}% "
+        f"inferior, confirmando a subconversão do capital humano em renda para trabalhadores negros (H5)."
     )
 
     add_figure(doc, FIGURES / "kmeans_perfis_k3.png",
@@ -1926,7 +1933,7 @@ def build_doc(r, k):
         "o componente não explicado do gap, atribuível à discriminação direta, persiste em todas "
         "as especificações a p<0,001. A inclusão de efeitos fixos de UF (M3) reduz o gap de "
         "22,3% para 7,9%, indicando que parte substancial da desigualdade é geograficamente "
-        "mediada — convergindo com o ICC de 9,83% estimado pelo HLM."
+        f"mediada — convergindo com o ICC de {fmt(P['ICC_HLM_M0_pct'],2)}% estimado pelo HLM."
     )
 
     add_para(doc,
@@ -2127,7 +2134,7 @@ def build_doc(r, k):
         "qualificadas como desfecho binário, quantificando a barreira de entrada racial que "
         "antecede o gap salarial documentado pelo HLM. Três desfechos complementares são "
         "estimados sobre a população completa de trabalhadores com renda positiva "
-        "(N=7.694.198): (i) ocupação qualificada — grupos CBO 1–4: Dirigentes, Profissionais "
+        f"(N={fmtN(P['N_GLMM'])}): (i) ocupação qualificada — grupos CBO 1–4: Dirigentes, Profissionais "
         "das Ciências, Técnicos de Nível Médio e Trabalhadores Administrativos; (ii) top 20% de "
         "renda (y_top20); e (iii) top 10% de renda (y_top10). O gradiente entre os dois "
         "últimos limiares constitui teste direto de glass ceiling de acesso: se OR(top10) < "
@@ -2138,7 +2145,7 @@ def build_doc(r, k):
     add_figure(doc, FIGURES / "logit_gap_bruto.png",
         "Figura 26 – Gap de oportunidades racial bruto: proporção de brancos e negros na PEA "
         "em emprego formal, ocupação qualificada e top 20% de renda "
-        "(PNAD Contínua 2016–2025, PEA com renda positiva, N=7.694.198).",
+        f"(PNAD Contínua 2016–2025, PEA com renda positiva, N={fmtN(P['N_GLMM'])}).",
         width_cm=14)
     add_para(doc,
         "A Figura 26 revela gaps brutos substanciais: brancos superam negros em 5,4 p.p. no "
@@ -2151,7 +2158,7 @@ def build_doc(r, k):
     # Tabela GLMM Glass Ceiling — gradiente top20 → top10
     gc = r.get("glmm_gc")
     if gc is not None:
-        add_para(doc, "Tabela 7. GLMM Logístico — Teto de Vidro Duplo (população completa, N=7.694.198)",
+        add_para(doc, f"Tabela 7. GLMM Logístico — Teto de Vidro Duplo (população completa, N={fmtN(P['N_GLMM'])})",
                  bold=True, first_line=0, align=WD_ALIGN_PARAGRAPH.CENTER)
         gc_rows = [
             ("CBO 1–4 M1",  "ocp_qualif", "M1"),
@@ -2197,7 +2204,7 @@ def build_doc(r, k):
     add_figure(doc, FIGURES / ("glmm_glassceil_forest.png"
                                if (FIGURES/"glmm_glassceil_forest.png").exists()
                                else "glmm_odds_ratios_full.png"),
-        "Figura 27 – Forest plot dos Odds Ratios do GLMM logístico (população completa, N=7.694.198). "
+        f"Figura 27 – Forest plot dos Odds Ratios do GLMM logístico (população completa, N={fmtN(P['N_GLMM'])}). "
         "Três desfechos × dois modelos. OR < 1 indica desvantagem de negros em todos os limiares. "
         "Gradiente ocp_qualif → top20% → top10% confirma intensificação do teto de vidro.",
         width_cm=15)
@@ -2208,9 +2215,9 @@ def build_doc(r, k):
         "trabalhadores excluídos (sem educ_ord) apresentavam 41,5% de taxa de ocupação "
         "qualificada vs. apenas 3,9% no subgrupo incluído. O modelo atual substitui educ_ord "
         "por dummies de escolaridade (educ_medio_completo, educ_superior_completo, "
-        "educ_pos_graduacao), com cobertura de 100% da PEA, elevando N=7.694.198 e tornando "
-        "a amostra representativa do mercado de trabalho real (ocp_qualif=29,8%). Os ORs do "
-        "modelo expandido (M1=0,674; M2=0,691) são menores que os anteriores (M1=0,704; "
+        f"educ_pos_graduacao), com cobertura de 100% da PEA, elevando N={fmtN(P['N_GLMM'])} e tornando "
+        f"a amostra representativa do mercado de trabalho real (ocp_qualif=29,8%). Os ORs do "
+        f"modelo expandido (M1={fmt(P['OR_M1'],3)}; M2={fmt(P['OR_M2'],3)}) são menores que os anteriores (M1=0,704; "
         "M2=0,747) — reflexo de que a amostra antiga sobrerrepresentava trabalhadores não "
         "qualificados, subestimando o gap racial de acesso. O ICC caiu de 26,2% para 22,2% "
         "em M1 e de 22,2% para 10,8% em M2 — a maior cobertura geográfica (40.969 UPAs) "
@@ -2418,7 +2425,7 @@ def build_doc(r, k):
         "A robustez do gap racial a variáveis não observadas foi avaliada com métodos "
         "distintos para cada tipo de modelo primário, em contraste explícito com o "
         "Oster bounds (2019), válido apenas para OLS linear. O modelo de inferência "
-        "salarial é o HLM (ICC=9,83%), escolhido porque o OLS é inconsistente com "
+        f"salarial é o HLM (ICC={fmt(P['ICC_HLM_M0_pct'],2)}%), escolhido porque o OLS é inconsistente com "
         "ICC > 5%; para o teto de vidro ocupacional, o modelo é GLMM logístico, "
         "cuja função de ligação invalida a decomposição de variância do Oster."
     )
@@ -2535,7 +2542,7 @@ def build_doc(r, k):
             delta_ret = q10['ret_pct'] - q90['ret_pct']
             delta_end = q90['end_pct'] - q10['end_pct']
             add_para(doc,
-                f"Os resultados (N = 7.694.198 obs.) revelam um padrão contrário à hipótese "
+                f"Os resultados (N = {fmtN(P['N_GLMM'])} obs.) revelam um padrão contrário à hipótese "
                 f"do glass ceiling discriminatório. O componente de retornos DECLINA de "
                 f"{q10['ret_pct']:.1f}% no q10 para "
                 f"{q50['ret_pct']:.1f}% no q50 e {q90['ret_pct']:.1f}% no q90 "
@@ -2738,7 +2745,7 @@ def build_doc(r, k):
         add_figure(doc, FIGURES / "po_politicas_topsis.png",
             "Figura PO-1 – Ranking TOPSIS (barras) e perfil radar das 6 políticas. "
             "P1 (Cotas CBO 1–4) domina por atacar diretamente a barreira de acesso documentada "
-            "pelo GLMM (OR=0,674). P3 (Equidade Educacional) e P5 (Mentoria/Redes) completam "
+            f"pelo GLMM (OR={fmt(P['OR_M1'],3)}). P3 (Equidade Educacional) e P5 (Mentoria/Redes) completam "
             "o top-3 — confirmando que a discriminação de acesso exige intervenção estrutural, "
             "não apenas medidas de remuneração.",
             width_cm=16)

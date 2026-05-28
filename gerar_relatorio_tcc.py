@@ -89,8 +89,9 @@ def extract_kpis(r):
     c0 = km.loc[0] if 0 in km.index else km.iloc[0]
     c1 = km.loc[1] if 1 in km.index else km.iloc[1]
     c2 = km.loc[2] if 2 in km.index else km.iloc[2]
-    k["km_k"]  = 3
-    k["km_silhouette"] = float(r["km_metricas"].loc[r["km_metricas"]["k"] == 3, "silhouette"].values[0])
+    k["km_k"]           = 3
+    k["km_silhouette"]    = float(r["km_metricas"].loc[r["km_metricas"]["k"] == 3, "silhouette"].values[0])
+    k["km_silhouette_k2"] = float(r["km_metricas"].loc[r["km_metricas"]["k"] == 2, "silhouette"].values[0])
 
     # ML
     xgb_row = r["ml_perf"][r["ml_perf"]["Modelo"] == "XGBoost"]
@@ -606,7 +607,7 @@ rotativo. O microdado contém informações sobre características demográficas
 escolaridade, inserção no mercado de trabalho e rendimentos para todos os
 moradores dos domicílios selecionados. Para este trabalho, foram processados
 todos os 40~trimestres disponíveis de 2016T1 a 2025T4, totalizando
-15.941.675~observações brutas, das quais 7.694.198 possuem renda positiva
+15.941.675~observações brutas, das quais {fmtN(P['N_GLMM'])} possuem renda positiva
 declarada e completude nas variáveis do modelo.
 
 A classificação racial segue o critério binário adotado pelos estudos
@@ -673,7 +674,7 @@ para evitar colapso de variância na fronteira $\tau^2=0$.
 \subsection{{Clustering Socioeconômico (K-Means)}}
 
 O algoritmo \textit{{MiniBatchKMeans}} foi aplicado sobre as
-$N=7.694.198$ observações da PEA completa com variáveis contextuais
+$N={fmtN(P['N_GLMM'])}$ observações da PEA completa com variáveis contextuais
 disponíveis, usando 12~dimensões padronizadas: idade, três dummies de
 escolaridade (ensino médio completo, superior completo, pós-graduação),
 log-rendimento, raça, gênero, status de emprego e quatro variáveis de
@@ -771,16 +772,17 @@ direta no mercado de trabalho.
     \label{{fig:kmeans_raca}}
   \end{{subfigure}}
   \caption{{Clustering socioeconômico --- PNAD 2016--2025
-            ($N=2{{,}}4$ milhões de trabalhadores).}}
+            ($N=7{{,}}7$ milhões de trabalhadores da PEA completa).}}
   \label{{fig:kmeans}}
 \end{{figure}}
 
 \subsection{{Clustering Socioeconômico}}
 \label{{subsec:clustering}}
 
-O Silhouette Coefficient máximo em $k=3$ ($S=0{{,}}1892$) determinou a
-solução de três clusters (Figura~\ref{{fig:kmeans}}). A Tabela~\ref{{tab:kmeans_perfis}}
-apresenta os perfis médios por cluster.
+O critério Silhouette em $k=2$ ($S={k['km_silhouette_k2']:.4f}$) apontou
+solução binária trivial; $k=3$ ($S={k['km_silhouette']:.4f}$) foi adotado
+por interpretabilidade substantiva (Figura~\ref{{fig:kmeans}}). A
+Tabela~\ref{{tab:kmeans_perfis}} apresenta os perfis médios por cluster.
 
 \begin{{table}}[H]
 \centering
@@ -792,26 +794,31 @@ apresenta os perfis médios por cluster.
 \textbf{{Cluster}} & \textbf{{N}} & \textbf{{\%}} & \textbf{{\%~Negro}} &
 \textbf{{\%~Mulher}} & \textbf{{log\_Renda}} & \textbf{{Descrição}} \\
 \midrule
-C0 & 2.110.270 & 27,4\% & 76,2\%  & 100,0\% & 6,961 &
+C0 & {fmtN(P['KM_C0_N'])} & {fmt(P['KM_C0_PCT_TOTAL'],1)}\% & {fmt(P['KM_C0_PCT_NEGRO'],1)}\%  & {fmt(P['KM_C0_PCT_MULHER'],0)}\% & {fmt(P['KM_C0_LOG_RENDA'],3)} &
   Mulheres negras --- vulnerabilidade dupla \\
-C1 & 2.705.788 & 35,2\% & 18,0\%  & \phantom{{0}}40,1\%  & 7,895 &
+C1 & {fmtN(P['KM_C1_N'])} & {fmt(P['KM_C1_PCT_TOTAL'],1)}\% & {fmt(P['KM_C1_PCT_NEGRO'],1)}\%  & \phantom{{0}}{fmt(P['KM_C1_PCT_MULHER'],1)}\%  & {fmt(P['KM_C1_LOG_RENDA'],3)} &
   Brancos --- alta renda, menor escolaridade \\
-C2 & 2.878.140 & 37,4\% & 81,3\%  & \phantom{{00}}0,0\% & 7,074 &
+C2 & {fmtN(P['KM_C2_N'])} & {fmt(P['KM_C2_PCT_TOTAL'],1)}\% & {fmt(P['KM_C2_PCT_NEGRO'],1)}\%  & \phantom{{00}}{fmt(P['KM_C2_PCT_MULHER'],0)}\% & {fmt(P['KM_C2_LOG_RENDA'],3)} &
   Homens negros --- maior escolaridade, renda inferior \\
 \bottomrule
 \end{{tabular}}
 \end{{table}}
 
-O Cluster~0 concentra mulheres negras (76,2\% negras, 100\% feminino),
-com rendimento médio de R\$1.447 ($\log=6{{,}}961$) e 21,7\% com ensino
-superior. O Cluster~1 agrupa predominantemente brancos (82\% não negros)
-com o maior rendimento do conjunto --- R\$3.830 ($\log=7{{,}}895$) ---
-e apenas 13,7\% com superior completo.
+O Cluster~0 concentra mulheres negras ({fmt(P['KM_C0_PCT_NEGRO'],1)}\% negras,
+{fmt(P['KM_C0_PCT_MULHER'],0)}\% feminino), com rendimento médio de
+R\${fmtN(P['KM_C0_RENDA_BRL'])} ($\log={fmt(P['KM_C0_LOG_RENDA'],3)}$) e
+{fmt(P['KM_C0_PCT_SUP'],1)}\% com ensino superior.
+O Cluster~1 agrupa predominantemente brancos ({round(100-P['KM_C1_PCT_NEGRO'])}\% não negros)
+com o maior rendimento do conjunto --- R\${fmtN(P['KM_C1_RENDA_BRL'])}
+($\log={fmt(P['KM_C1_LOG_RENDA'],3)}$) ---
+e apenas {fmt(P['KM_C1_PCT_SUP'],1)}\% com superior completo.
 
-O Cluster~2 reúne homens negros (81,3\% negros, 0\% feminino) com
-$\log\text{{-renda}}=7{{,}}074$ e 36,5\% com superior completo:
-escolaridade quase três vezes maior que o Cluster~1, porém com rendimento
-58\% inferior, evidenciando a dupla desvantagem de gênero e raça
+O Cluster~2 reúne homens negros ({fmt(P['KM_C2_PCT_NEGRO'],1)}\% negros,
+{fmt(P['KM_C2_PCT_MULHER'],0)}\% feminino) com
+$\log\text{{-renda}}={fmt(P['KM_C2_LOG_RENDA'],3)}$ e {fmt(P['KM_C2_PCT_SUP'],1)}\%
+com superior completo: escolaridade quase três vezes maior que o Cluster~1,
+porém com rendimento {round((P['KM_C1_RENDA_BRL']-P['KM_C2_RENDA_BRL'])/P['KM_C1_RENDA_BRL']*100)}\%
+inferior, evidenciando a dupla desvantagem de gênero e raça
 (Hipótese~H3) e confirmando que o capital humano é subconvertido em renda
 para trabalhadores negros (Hipótese~H5).
 

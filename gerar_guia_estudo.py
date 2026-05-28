@@ -142,7 +142,7 @@ add_bullet(doc, "Número específico a verificar: a regra prática de ICC > 0,05
                 "está no Capítulo 2, seção 'Intraclass Correlation'.")
 add_bullet(doc, "Pergunta provável da banca: 'Por que 5% é o limiar para o ICC?' — Resposta: convenção de "
                 "Raudenbush & Bryk (2002) amplamente adotada na literatura educacional e econômica; "
-                "no seu caso o ICC é 9,83%, bem acima do limiar.")
+                f"no seu caso o ICC é {fmt(P['ICC_HLM_M0_pct'],2)}%, bem acima do limiar.")
 doc.add_paragraph()
 
 add_para(doc, "HSIEH, C-T.; HURST, E.; JONES, C. I.; KLENOW, P. J. (2019). The Allocation of Talent and "
@@ -770,16 +770,16 @@ add_bullet(doc, "LRT HLM Nulo vs OLS Nulo: χ²=191.625 (Δk=1) — vastamente s
                 "Isso prova que existe estrutura hierárquica nos dados: as rendas dentro de "
                 "uma mesma UPA são mais parecidas entre si do que entre UPAs diferentes.")
 add_bullet(doc, "Painel direito (ICC): Intra-Class Correlation por modelo — % da variância total "
-                "que se deve às diferenças entre UPAs. ICC=9,83% em M0.")
+                f"que se deve às diferenças entre UPAs. ICC={fmt(P['ICC_HLM_M0_pct'],2)}% em M0.")
 add_para(doc, "Por que o ICC > 5% importa:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
 add_bullet(doc, "Se o ICC fosse < 5%, o OLS seria suficiente (Raudenbush & Bryk, 2002). "
-                "Com 9,83%, ignorar a hierarquia produz erros padrão subestimados — e "
+                f"Com {fmt(P['ICC_HLM_M0_pct'],2)}%, ignorar a hierarquia produz erros padrão subestimados — e "
                 "inferência estatística inválida.")
 add_bullet(doc, "O LRT χ²=191.625 com Δk=1 prova que o componente de variância aleatória "
                 "da UPA não é zero: hierarquia não é apenas conveniência, é estrutura real dos dados.")
 add_colored_box(doc, "O que dizer se perguntarem sobre a escolha do HLM:",
     ["'Não escolhi HLM por ser mais sofisticado — escolhi porque os dados me obrigaram. "
-     "O ICC=9,83% e o LRT χ²=191.625 mostram que a estrutura hierárquica é real e significativa. "
+     f"O ICC={fmt(P['ICC_HLM_M0_pct'],2)}% e o LRT χ²=191.625 mostram que a estrutura hierárquica é real e significativa. "
      "Ignorar isso com OLS produziria inferência inválida — erros padrão subestimados e "
      "p-valores inflados. A escolha foi ditada pelos dados, não pela preferência metodológica.'"],
     title_color=(0x2E,0x7D,0x32))
