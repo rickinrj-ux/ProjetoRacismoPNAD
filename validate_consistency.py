@@ -28,6 +28,7 @@ GENERATORS = [
     ROOT / "gerar_relatorio_tcc.py",
     ROOT / "gerar_apresentacao_pptx.py",
     ROOT / "gerar_guia_estudo.py",
+    ROOT / "run_politicas_po.py",   # upstream: lê OR/OB/ICC para gerar CSVs de TOPSIS/PL
 ]
 
 # ── 1. Carrega params.py ──────────────────────────────────────────────────────
@@ -160,11 +161,10 @@ def _all_reprs(key: str, val) -> list[str]:
     reprs = set()
     try:
         f = float(val)
-        # pt-BR 2-4 casas
-        for d in range(2, 5):
+        # pt-BR/en-US 1-4 casas decimais; 1 casa só para valores >= 1 (evita "0,7" ambíguo)
+        start_dec = 1 if abs(f) >= 1 else 2
+        for d in range(start_dec, 5):
             reprs.add(_pt_br(f, d))
-        # en-US 2-4 casas
-        for d in range(2, 5):
             reprs.add(f"{f:.{d}f}")
         # inteiro grande pt-BR (ponto milhar)
         if abs(f) > 999:
@@ -195,6 +195,15 @@ WHITELIST_PATTERNS = {
     r"0,43", r"0.43",
     # Razão de representação CBO (11,5%/25,6%) — contexto segregação, coincide com OR_TOP10_M1 2 dec
     r"0,45", r"0.45",
+    # Gap OB contrafactual em R$ (brancos R$1.273 vs negros R$927) — coincide com KM_C2_PCT_TOTAL
+    r"37,4", r"37.4",
+    # Gap de gênero bruto no setor público (análise setorial) — coincide com KM_C1_GAP_PCT
+    r"24,1", r"24.1",
+    # Faixa HLM 50,8%–53,0% (Konfound) — o 53,0 coincide com GAP_PCT, mas está em intervalo
+    r"50,8", r"50.8",
+    # Coeficientes de efetividade ASSUMIDOS em run_politicas_po.py (0.70, 0.20 etc.) —
+    # coincide com OR_OCP_M2=0.7023 e outros ORs em 2 casas, mas são premissas normativas
+    r"0,70", r"0.70",
 }
 
 # Mapeia chave → representações a checar nos geradores
@@ -207,6 +216,10 @@ SKIP_KEYS = {
     "HLM_TAU2_M3",
     # SNA_H = 0.4382 → "0,44" coincide com R² do Random Forest em prosa
     "SNA_H",
+    # KM_C2_PCT_TOTAL → "37,4" coincide com gap OB contrafactual em R$ (contexto diferente)
+    "KM_C2_PCT_TOTAL",
+    # KM_C1_GAP_PCT → "24,1" coincide com gap de gênero bruto no setor público (análise setorial)
+    "KM_C1_GAP_PCT",
 }
 
 for key, val in P.items():

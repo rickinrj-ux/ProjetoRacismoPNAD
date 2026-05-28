@@ -11,19 +11,18 @@ modelos de decisão para priorização e alocação ótima de intervenções:
     PMO   Fronteira de Pareto (impacto vs custo)
     AHP+TOPSIS  Ranking multicritério de 6 políticas
 
-Parâmetros confirmados pelos modelos (não assumidos):
-    gap_bruto         = 0.4255   (OB global, 53.0%, N=7.694.198 ob_melhorias.csv)
-    dotacoes_pct      = 84.0%    (OB: segregação ocupacional/educacional)
-    retornos_pct      = 16.0%    (OB: discriminação de remuneração)
-    or_cbo14_m1       = 0.674    (GLMM lme4 R, ocp_qualif M1, N=7.694.198 — canônico, dummies educ)
-    ame_cbo14_m1      = -5.16pp  (GLMM M1, PEA completa)
-    or_top20_m1       = 0.536    (glassceil Python UF FE, y_top20 M1)
-    or_top10_m1       = 0.453    (glassceil Python UF FE, y_top10 M1 — gradiente glass ceiling)
-    qr_q10            = -8.29%   (QR M3, qr_kb_test.csv)
-    qr_q90            = -11.77%  (QR M3, qr_kb_test.csv)
-    delta_kb          = -3.86pp  (KB test: β_q90 - β_q10, qr_kb_test.csv)
-    icc_upa_acesso    = 22.2%    (GLMM lme4 R, random intercept UPA, PEA completa)
-    icc_uf_salario    = 9.83%    (HLM)
+Parâmetros confirmados pelos modelos (lidos de params.py → CSVs):
+    gap_bruto    = P['GAP_LOG']          (OB global, ob_melhorias.csv)
+    dotacoes     = P['DOT_LOG']          (efeito dotações)
+    retornos     = P['RET_LOG']          (efeito retornos)
+    or_cbo14_m1  = P['OR_M1']            (GLMM lme4 R, ocp_qualif M1 — canônico)
+    ame_cbo14_m1 = P['AME_M1_pp']        (GLMM M1, PEA completa)
+    or_top20_m1  = P['OR_TOP20_M1']      (glassceil Python UF FE)
+    or_top10_m1  = P['OR_TOP10_M1']      (glassceil Python UF FE — gradiente)
+    qr_q10       = 0.08653               (QR M3, qr_kb_test.csv — sem chave em params)
+    qr_q90       = 0.12518               (QR M3, qr_kb_test.csv)
+    icc_upa      = P['ICC_M1_pct']/100   (GLMM lme4 R M1)
+    icc_uf       = P['ICC_HLM_M0_pct']/100 (HLM M0)
     eb_temporal_ini   = 17.8%    (OB Retornos 2016-2018)
     eb_temporal_rec   = 15.7%    (OB Retornos 2022-2025)
 
@@ -48,6 +47,7 @@ import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
 from scipy.optimize import linprog, minimize
+from params import P
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -69,26 +69,26 @@ log = logging.getLogger(__name__)
 
 Path("logs").mkdir(exist_ok=True)
 
-# ── Parâmetros confirmados pelos modelos ──────────────────────────────────────
+# ── Parâmetros confirmados pelos modelos (via params.py → CSVs) ──────────────
 
 # Gap salarial (log-rendimento, OB)
-GAP_BRUTO   = 0.4255   # gap total bruto (ob_melhorias.csv, Global/Total, N=7.694.198)
-DOTACOES    = 0.3552   # efeito dotações 83.5% (ob_melhorias.csv, Global/Total)
-RETORNOS    = 0.0702   # efeito retornos 16.5% (ob_melhorias.csv, Global/Total)
+GAP_BRUTO   = P['GAP_LOG']    # ob_melhorias.csv, Global/Total
+DOTACOES    = P['DOT_LOG']    # efeito dotações 83.5%
+RETORNOS    = P['RET_LOG']    # efeito retornos 16.5%
 
 # GLMM logístico (log-odds gap = -ln(OR))
-LOG_ODDS_CBO14 = -np.log(0.674)   # = 0.3940  barreira de acesso CBO 1-4 (OR lme4 R, N=7.694.198)
-LOG_ODDS_TOP20 = -np.log(0.536)   # = 0.6233  barreira top 20% (glassceil Python UF FE)
-LOG_ODDS_TOP10 = -np.log(0.453)   # = 0.7930  barreira top 10% (glassceil Python UF FE)
+LOG_ODDS_CBO14 = -np.log(P['OR_M1'])       # barreira CBO 1-4 (lme4 R)
+LOG_ODDS_TOP20 = -np.log(P['OR_TOP20_M1']) # barreira top 20% (glassceil UF FE)
+LOG_ODDS_TOP10 = -np.log(P['OR_TOP10_M1']) # barreira top 10%
 
-# QR: gap q10 e q90 em log-renda (M3, qr_kb_test.csv)
+# QR: gap q10 e q90 em log-renda (M3, qr_kb_test.csv) — sem CSV rastreável em params.py
 QR_Q10 = 0.08653  # |β_q10|
 QR_Q90 = 0.12518  # |β_q90|
 DELTA_KB = QR_Q90 - QR_Q10  # 0.03865 = glass ceiling de progressão
 
 # ICC mediation
-ICC_UPA = 0.222   # acesso ocupacional (GLMM lme4 R M1, PEA completa)
-ICC_UF  = 0.098   # salários
+ICC_UPA = P['ICC_M1_pct'] / 100    # acesso ocupacional (GLMM lme4 R M1)
+ICC_UF  = P['ICC_HLM_M0_pct'] / 100  # salários (HLM M0)
 
 # ── Definição das 6 políticas ─────────────────────────────────────────────────
 #

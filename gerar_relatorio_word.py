@@ -2218,10 +2218,10 @@ def build_doc(r, k):
         f"educ_pos_graduacao), com cobertura de 100% da PEA, elevando N={fmtN(P['N_GLMM'])} e tornando "
         f"a amostra representativa do mercado de trabalho real (ocp_qualif=29,8%). Os ORs do "
         f"modelo expandido (M1={fmt(P['OR_M1'],3)}; M2={fmt(P['OR_M2'],3)}) são menores que os anteriores (M1=0,704; "
-        "M2=0,747) — reflexo de que a amostra antiga sobrerrepresentava trabalhadores não "
-        "qualificados, subestimando o gap racial de acesso. O ICC caiu de 26,2% para 22,2% "
-        "em M1 e de 22,2% para 10,8% em M2 — a maior cobertura geográfica (40.969 UPAs) "
-        "dilui a variância entre UPAs ao incluir trabalhadores de toda a hierarquia ocupacional.")
+        f"M2=0,747) — reflexo de que a amostra antiga sobrerrepresentava trabalhadores não "
+        f"qualificados, subestimando o gap racial de acesso. O ICC caiu de 26,2% para {fmt(P['ICC_M1_pct'],1)}% "
+        f"em M1 e de 22,2% para {fmt(P['ICC_M2_pct'],1)}% em M2 — a maior cobertura geográfica (40.969 UPAs) "
+        f"dilui a variância entre UPAs ao incluir trabalhadores de toda a hierarquia ocupacional.")
     add_para(doc,
         f"Os resultados (Tabela 7, Figura 27) documentam teto de vidro duplo: negros têm "
         f"OR={or_str(P['OR_M1'])} (AME={ame(P['AME_M1_pp'])}) de acesso a ocupações CBO 1–4 em M1, e OR={or_str(P['OR_TOP20_M1'])} "
@@ -2626,8 +2626,8 @@ def build_doc(r, k):
         f"sobre o gap racial."
     )
     add_para(doc,
-        "O Cluster 2 (homens negros com 36,5% de ensino superior) aufere rendimento 58% inferior "
-        "ao do Cluster 1 (brancos com apenas 13,7% de superior), e a SNA demonstra que grupos negros "
+        f"O Cluster 2 (homens negros com {fmt(P['KM_C2_PCT_SUP'],1)}% de ensino superior) aufere rendimento 58% inferior "
+        f"ao do Cluster 1 (brancos com apenas {fmt(P['KM_C1_PCT_SUP'],1)}% de superior), e a SNA demonstra que grupos negros "
         "com pós-graduação têm betweenness nulo. Juntas, essas evidências indicam que negros "
         "enfrentam um duplo obstáculo ao retorno educacional: além do gap direto mensurado pelo HLM, "
         "perdem acesso às redes de indicação que convertem credenciais formais em mobilidade "

@@ -800,8 +800,8 @@ add_bullet(doc, "Oster δ*: qual proporção da variação total dos controles o
 add_para(doc, "Resultados:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
 add_bullet(doc, "Konfound HLM: M1=99,5%; M2=M3=98,8%; M4=98,5% — quase 100% dos casos "
                 "precisariam ser mal alocados para reverter a conclusão de discriminação.")
-add_bullet(doc, "OLS subestima: gap OLS=43,8%–48,5% vs HLM=50,8%–53,0% (Δ=5,4–9,7 p.p.) — "
-                "o viés de subestimação do OLS fica em torno de 9,7 p.p. em M1 e 5,4 p.p. em M4.")
+add_bullet(doc, f"OLS subestima: gap OLS=43,8%–48,5% vs HLM=50,8%–{fmt(P['GAP_PCT'],1)}% (Δ=5,4–9,7 p.p.) — "
+                f"o viés de subestimação do OLS fica em torno de 9,7 p.p. em M1 e 5,4 p.p. em M4.")
 add_bullet(doc, f"E-values GLMM lme4 (PEA completa): M1={fmt(P['EVAL_M1'],3)}; M2={fmt(P['EVAL_M2'],3)} — variável omitida "
                 f"precisaria ter associação ≥2,3× com raça E com acesso a ocupações para eliminar o OR.")
 add_bullet(doc, "Oster δ*: M1=−0,48; M2=−0,43; M4=−0,39 — todos negativos, confirmando "

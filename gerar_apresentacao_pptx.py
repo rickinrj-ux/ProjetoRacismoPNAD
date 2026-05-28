@@ -402,7 +402,7 @@ footer(s, 7)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
 header_bar(s, "7. Oaxaca-Blinder — Onde Opera a Discriminação?",
-           "Gap total 53,0% | 84% explicado por diferenças nas características dos trabalhadores")
+           f"Gap total {fmt(P['GAP_PCT'],1)}% | 84% explicado por diferenças nas características dos trabalhadores")
 
 add_img(s, FIGURES / "oaxaca_decomposicao.png", In(0.3), In(1.2), In(7.5))
 
@@ -762,7 +762,7 @@ add_rect(s, In(0.3), In(6.22), In(12.7), In(0.55),
          fill_rgb=RGBColor(0xFF,0xF9,0xE7), line_rgb=C_AMBER, line_pt=1)
 add_text(s, "Paradoxo de Simpson: dentro de cada cluster negros ganham mais que brancos — pois brancos nos "
             "clusters negros são os piores-off de seu grupo.  "
-            "H5 confirmado: C2 tem 36,5% de superior vs 13,7% em C1, mas renda 58% inferior.",
+            f"H5 confirmado: C2 tem {fmt(P['KM_C2_PCT_SUP'],1)}% de superior vs {fmt(P['KM_C1_PCT_SUP'],1)}% em C1, mas renda 58% inferior.",
          In(0.5), In(6.27), In(12.3), In(0.45),
          font_size=11.5, color=C_DARK)
 footer(s, 17)
@@ -879,7 +879,7 @@ vertices = [
     (In(6.9),  In(1.3),  C_BLUE,  "DISCRIMINAÇÃO\nDE REMUNERAÇÃO",
      ["HLM M4: gap residual 6,2%", "Quantile Reg.: cresce no topo (glass ceiling)", "SHAP: −2,5% efeito racial residual"]),
     (In(3.6),  In(4.3),  C_DARK,  "EXCLUSÃO\nDAS REDES",
-     ["SNA: betweenness=0 para negros", "Diplomas valem menos sem acesso às redes", "K-Means: C2 homens negros — 36,5% superior mas 58% < renda C1"]),
+     ["SNA: betweenness=0 para negros", "Diplomas valem menos sem acesso às redes", f"K-Means: C2 homens negros — {fmt(P['KM_C2_PCT_SUP'],1)}% superior mas 58% < renda C1"]),
 ]
 for l, t, color, title, items in vertices:
     add_rect(s, l, t, In(5.8), In(2.6),
