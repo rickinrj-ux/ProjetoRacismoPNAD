@@ -494,8 +494,8 @@ def build_doc(r, k):
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = p.add_run(
         "RACISMO ESTRUTURAL NO MERCADO DE TRABALHO BRASILEIRO:\n"
-        "UMA ABORDAGEM MULTINÍVEL, DE MACHINE LEARNING E DE REDES SOCIAIS\n"
-        "COM DADOS DA PNAD CONTÍNUA (2016–2025)"
+        "UMA ABORDAGEM MULTINÍVEL, DE MACHINE LEARNING, REDES SOCIAIS\n"
+        "E PESQUISA OPERACIONAL COM DADOS DA PNAD CONTÍNUA (2016–2025)"
     )
     run.bold = True; run.font.name = "Arial"; run.font.size = Pt(16)
 
@@ -544,7 +544,15 @@ def build_doc(r, k):
         f"de moradia, com a raça mantendo efeito residual de −2,5% mesmo após controle completo "
         f"das variáveis estruturais. A análise de redes sociais revela betweenness nula para negros "
         f"em todos os níveis educacionais, evidenciando exclusão das redes de conversão de capital "
-        f"humano em mobilidade profissional."
+        f"humano em mobilidade profissional.\n\n"
+        f"A pesquisa operacional traduz esses achados em recomendações concretas: o método TOPSIS "
+        f"multicritério ranqueia seis políticas públicas avaliadas simultaneamente por impacto sobre "
+        f"o gap salarial, acessibilidade a ocupações qualificadas, velocidade de implementação, "
+        f"custo-efetividade e viabilidade político-institucional. As Cotas Ocupacionais CBO 1–4 "
+        f"obtêm coeficiente de proximidade CC={fmt(P['TOPSIS_P1_CC'],4)}, dominante frente à "
+        f"segunda colocada (CC={fmt(P['TOPSIS_P2_CC'],4)}). A programação linear indica que uma "
+        f"alocação ótima de R$5 bilhões, priorizando os três canais de maior efetividade, reduziria "
+        f"o gap salarial racial em {fmt(P['PL1_B5_PCT'],1)}%."
     )
     for bloco in resumo.split("\n\n"):
         add_para(doc, bloco, first_line=0)
@@ -552,7 +560,7 @@ def build_doc(r, k):
     p = doc.add_paragraph()
     run = p.add_run("Palavras-chave: ")
     run.bold = True; run.font.name = "Times New Roman"; run.font.size = Pt(12)
-    run2 = p.add_run("gap salarial racial; discriminação estrutural; modelos hierárquicos lineares; logit multinível; regressão quantílica; glass ceiling racial; SHAP values; Oaxaca-Blinder; PNAD Contínua.")
+    run2 = p.add_run("gap salarial racial; discriminação estrutural; modelos hierárquicos lineares; logit multinível; regressão quantílica; glass ceiling racial; SHAP values; Oaxaca-Blinder; pesquisa operacional; TOPSIS; programação linear; políticas públicas; PNAD Contínua.")
     run2.font.name = "Times New Roman"; run2.font.size = Pt(12)
 
     doc.add_page_break()
@@ -578,7 +586,15 @@ def build_doc(r, k):
         f"Social network analysis shows that Black groups have zero betweenness centrality "
         f"regardless of education level, whereas White groups serve as brokers in the co-residence "
         f"network, suggesting that the conversion of human capital into earnings depends on social "
-        f"capital that is structurally denied to Black workers."
+        f"capital that is structurally denied to Black workers.\n\n"
+        f"An operations research module translates these empirical findings into concrete policy "
+        f"recommendations. A TOPSIS multicriteria ranking evaluates six public policies simultaneously "
+        f"on five criteria (wage gap impact, access to qualified occupations, implementation speed, "
+        f"cost-effectiveness, and political feasibility). Occupational quotas for CBO groups 1–4 "
+        f"score CC={fmt(P['TOPSIS_P1_CC'],4)}, dominant over the second-ranked policy "
+        f"(CC={fmt(P['TOPSIS_P2_CC'],4)}). Linear programming shows that an optimal allocation of "
+        f"R$5 billion across the three highest-effectiveness channels would reduce the racial wage "
+        f"gap by {fmt(P['PL1_B5_PCT'],1)}%."
     )
     for bloco in abstract.split("\n\n"):
         add_para(doc, bloco, first_line=0)
@@ -586,7 +602,7 @@ def build_doc(r, k):
     p = doc.add_paragraph()
     run = p.add_run("Keywords: ")
     run.bold = True; run.font.name = "Times New Roman"; run.font.size = Pt(12)
-    run2 = p.add_run("racial wage gap; structural discrimination; hierarchical linear models; SHAP values; social network analysis; PNAD Contínua.")
+    run2 = p.add_run("racial wage gap; structural discrimination; hierarchical linear models; SHAP values; social network analysis; operations research; TOPSIS; linear programming; public policy; PNAD Contínua.")
     run2.font.name = "Times New Roman"; run2.font.size = Pt(12)
 
     doc.add_page_break()
@@ -595,34 +611,38 @@ def build_doc(r, k):
     add_heading(doc, "Lista de Abreviaturas e Siglas", level=1)
 
     siglas = [
-        ("ABNT",  "Associação Brasileira de Normas Técnicas"),
-        ("BLUP",  "Best Linear Unbiased Predictor (Melhor Preditor Linear Não Viesado)"),
-        ("DEFF",  "Design Effect (Efeito de Delineamento Amostral)"),
-        ("DF",    "Distrito Federal"),
-        ("ESALQ", 'Escola Superior de Agricultura "Luiz de Queiroz"'),
-        ("HLM",   "Hierarchical Linear Model (Modelo Linear Hierárquico)"),
-        ("IBGE",  "Instituto Brasileiro de Geografia e Estatística"),
-        ("ICC",   "Intraclass Correlation Coefficient (Coeficiente de Correlação Intraclasse)"),
-        ("IPEA",  "Instituto de Pesquisa Econômica Aplicada"),
-        ("LRT",   "Likelihood Ratio Test (Teste de Razão de Verossimilhança)"),
-        ("ML",    "Maximum Likelihood (Máxima Verossimilhança)"),
-        ("OB",    "Oaxaca-Blinder (decomposição do gap salarial)"),
-        ("OLS",   "Ordinary Least Squares (Mínimos Quadrados Ordinários)"),
-        ("OR",    "Odds Ratio (razão de chances)"),
-        ("PEA",   "População Economicamente Ativa"),
-        ("PNAD",  "Pesquisa Nacional por Amostra de Domicílios"),
-        ("QR",    "Quantile Regression (Regressão Quantílica)"),
-        ("RAIS",  "Relação Anual de Informações Sociais"),
-        ("REML",  "Restricted Maximum Likelihood (Máxima Verossimilhança Restrita)"),
-        ("RF",    "Random Forest (Floresta Aleatória)"),
-        ("SE",    "Standard Error (Erro-Padrão)"),
-        ("SHAP",  "SHapley Additive exPlanations"),
-        ("SNA",   "Social Network Analysis (Análise de Redes Sociais)"),
-        ("TCC",   "Trabalho de Conclusão de Curso"),
-        ("UF",    "Unidade da Federação"),
-        ("UPA",   "Unidade Primária de Amostragem"),
-        ("USP",   "Universidade de São Paulo"),
-        ("XGB",   "XGBoost (Extreme Gradient Boosting)"),
+        ("ABNT",   "Associação Brasileira de Normas Técnicas"),
+        ("AHP",    "Analytic Hierarchy Process (Processo Analítico Hierárquico)"),
+        ("BLUP",   "Best Linear Unbiased Predictor (Melhor Preditor Linear Não Viesado)"),
+        ("DEFF",   "Design Effect (Efeito de Delineamento Amostral)"),
+        ("DF",     "Distrito Federal"),
+        ("ESALQ",  'Escola Superior de Agricultura "Luiz de Queiroz"'),
+        ("HLM",    "Hierarchical Linear Model (Modelo Linear Hierárquico)"),
+        ("IBGE",   "Instituto Brasileiro de Geografia e Estatística"),
+        ("ICC",    "Intraclass Correlation Coefficient (Coeficiente de Correlação Intraclasse)"),
+        ("IPEA",   "Instituto de Pesquisa Econômica Aplicada"),
+        ("LRT",    "Likelihood Ratio Test (Teste de Razão de Verossimilhança)"),
+        ("ML",     "Maximum Likelihood (Máxima Verossimilhança)"),
+        ("OB",     "Oaxaca-Blinder (decomposição do gap salarial)"),
+        ("OLS",    "Ordinary Least Squares (Mínimos Quadrados Ordinários)"),
+        ("OR",     "Odds Ratio (razão de chances)"),
+        ("PEA",    "População Economicamente Ativa"),
+        ("PL",     "Programação Linear"),
+        ("PNAD",   "Pesquisa Nacional por Amostra de Domicílios"),
+        ("PO",     "Pesquisa Operacional"),
+        ("QR",     "Quantile Regression (Regressão Quantílica)"),
+        ("RAIS",   "Relação Anual de Informações Sociais"),
+        ("REML",   "Restricted Maximum Likelihood (Máxima Verossimilhança Restrita)"),
+        ("RF",     "Random Forest (Floresta Aleatória)"),
+        ("SE",     "Standard Error (Erro-Padrão)"),
+        ("SHAP",   "SHapley Additive exPlanations"),
+        ("SNA",    "Social Network Analysis (Análise de Redes Sociais)"),
+        ("TCC",    "Trabalho de Conclusão de Curso"),
+        ("TOPSIS", "Technique for Order of Preference by Similarity to Ideal Solution"),
+        ("UF",     "Unidade da Federação"),
+        ("UPA",    "Unidade Primária de Amostragem"),
+        ("USP",    "Universidade de São Paulo"),
+        ("XGB",    "XGBoost (Extreme Gradient Boosting)"),
     ]
 
     sig_tbl = doc.add_table(rows=1, cols=2)
@@ -2952,14 +2972,27 @@ def build_doc(r, k):
         "estruturais da rede são suficientes para limitar o acesso de negros ao capital social que "
         "converte educação em mobilidade."
     )
+    add_para(doc,
+        f"A pesquisa operacional fecha o ciclo diagnóstico-prescritivo do trabalho. O ranqueamento "
+        f"TOPSIS de seis políticas públicas, avaliadas em cinco critérios simultâneos, aponta as "
+        f"Cotas Ocupacionais CBO 1–4 como política dominante (CC={fmt(P['TOPSIS_P1_CC'],4)}), "
+        f"seguida da Equidade Educacional (CC={fmt(P['TOPSIS_P2_CC'],4)}), Mentoria e Redes "
+        f"(CC={fmt(P['TOPSIS_P3_CC'],4)}), Transparência Salarial (CC={fmt(P['TOPSIS_P4_CC'],4)}), "
+        f"Enforcement (CC={fmt(P['TOPSIS_P5_CC'],4)}) e Desegregação Residencial "
+        f"(CC={fmt(P['TOPSIS_P6_CC'],4)}). A programação linear confirma que uma alocação ótima "
+        f"de R$5 bilhões priorizando os três canais de maior efetividade reduziria o gap salarial "
+        f"racial em {fmt(P['PL1_B5_PCT'],1)}%, demonstrando que a convergência racial é fiscalmente "
+        f"viável em um horizonte de médio prazo."
+    )
 
     p = doc.add_paragraph()
     run = p.add_run("Contribuição principal. ")
     run.bold = True; run.font.name = "Times New Roman"; run.font.size = Pt(12)
     run2 = p.add_run(
         "Este estudo oferece, ao nosso conhecimento, a primeira análise integrada de HLM multinível, "
-        "clustering, SHAP e SNA sobre a série completa da PNAD Contínua, estabelecendo uma "
-        "metodologia replicável para o monitoramento longitudinal da desigualdade racial no mercado "
+        "clustering, SHAP, SNA e pesquisa operacional (TOPSIS + programação linear) sobre a série "
+        "completa da PNAD Contínua, estabelecendo uma metodologia replicável para o monitoramento "
+        "longitudinal e a priorização de políticas de redução da desigualdade racial no mercado "
         "de trabalho brasileiro."
     )
     run2.font.name = "Times New Roman"; run2.font.size = Pt(12)

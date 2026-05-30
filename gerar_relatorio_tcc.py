@@ -362,8 +362,8 @@ UNIVERSIDADE DE SÃO PAULO}}}}
 \vspace{{3cm}}
 
 {{\LARGE \textbf{{RACISMO ESTRUTURAL NO MERCADO DE TRABALHO BRASILEIRO:
-UMA ABORDAGEM MULTINÍVEL, DE MACHINE LEARNING E DE REDES SOCIAIS
-COM DADOS DA PNAD CONTÍNUA (2016--2025)}}}}
+UMA ABORDAGEM MULTINÍVEL, DE MACHINE LEARNING, REDES SOCIAIS
+E PESQUISA OPERACIONAL COM DADOS DA PNAD CONTÍNUA (2016--2025)}}}}
 
 \vspace{{3cm}}
 
@@ -414,9 +414,19 @@ funcionam como \textit{{brokers}} da rede de co-residência --- evidência
 de que a conversão de capital humano em renda depende de capital social
 estruturalmente negado a trabalhadores negros.
 
+A pesquisa operacional traduz esses achados em recomendações concretas:
+o método TOPSIS ranqueia seis políticas públicas avaliadas em cinco
+critérios simultâneos, apontando as Cotas Ocupacionais CBO~1--4 como
+política dominante (CC~$={fmt(P["TOPSIS_P1_CC"],4)}$), seguida da
+Equidade Educacional (CC~$={fmt(P["TOPSIS_P2_CC"],4)}$).
+A programação linear indica que uma alocação ótima de R\$5~bilhões,
+priorizando os três canais de maior efetividade, reduziria o
+\textit{{gap}} salarial racial em {fmt(P["PL1_B5_PCT"],1)}\%.
+
 \bigskip
 \noindent\textbf{{Palavras-chave:}} gap salarial racial; discriminação estrutural; modelos
-hierárquicos lineares; SHAP values; análise de redes sociais; PNAD Contínua.
+hierárquicos lineares; SHAP values; análise de redes sociais; pesquisa
+operacional; TOPSIS; programação linear; políticas públicas; PNAD Contínua.
 \end{{abstract}}
 
 \newpage
@@ -456,9 +466,18 @@ brokers in the co-residence network, suggesting that the conversion of
 human capital into earnings depends on social capital that is structurally
 denied to Black workers.
 
+An operations research module translates these findings into policy
+recommendations. A TOPSIS multicriteria ranking of six public policies
+across five criteria identifies occupational quotas for CBO groups~1--4
+as the dominant policy (CC~$={fmt(P["TOPSIS_P1_CC"],4)}$), followed by
+educational equity (CC~$={fmt(P["TOPSIS_P2_CC"],4)}$). Linear programming
+shows that an optimal R\$5-billion allocation would reduce the racial
+wage gap by {fmt(P["PL1_B5_PCT"],1)}\%.
+
 \bigskip
 \noindent\textbf{{Keywords:}} racial wage gap; structural discrimination;
-hierarchical linear models; SHAP values; social network analysis; PNAD Contínua.
+hierarchical linear models; SHAP values; social network analysis;
+operations research; TOPSIS; linear programming; public policy; PNAD Contínua.
 \end{{abstract}}
 
 \newpage
@@ -1058,14 +1077,29 @@ geográfica é moderada em termos absolutos, as assimetrias nas
 posições estruturais da rede são suficientes para limitar o acesso
 de negros ao capital social que converte educação em mobilidade.
 
+A pesquisa operacional fecha o ciclo diagnóstico-prescritivo do trabalho.
+O ranqueamento TOPSIS de seis políticas públicas, avaliadas em cinco
+critérios simultâneos, aponta as Cotas Ocupacionais CBO~1--4 como
+política dominante (CC~$={fmt(P["TOPSIS_P1_CC"],4)}$), seguidas de
+Equidade Educacional (CC~$={fmt(P["TOPSIS_P2_CC"],4)}$), Mentoria e
+Redes (CC~$={fmt(P["TOPSIS_P3_CC"],4)}$), Transparência Salarial
+(CC~$={fmt(P["TOPSIS_P4_CC"],4)}$), Enforcement
+(CC~$={fmt(P["TOPSIS_P5_CC"],4)}$) e Desegregação Residencial
+(CC~$={fmt(P["TOPSIS_P6_CC"],4)}$). A programação linear confirma que
+uma alocação ótima de R\$5~bilhões priorizando os três canais de maior
+efetividade reduziria o \textit{{gap}} salarial racial em
+{fmt(P["PL1_B5_PCT"],1)}\%, demonstrando que a convergência racial é
+fiscalmente viável em um horizonte de médio prazo.
+
 \bigskip
 
 \noindent\textbf{{Contribuição principal.}}
 Este estudo oferece, ao nosso conhecimento, a primeira análise integrada
-de HLM multinível, clustering, SHAP e SNA sobre a série completa da
-PNAD Contínua, estabelecendo uma metodologia replicável para o
-monitoramento longitudinal da desigualdade racial no mercado de
-trabalho brasileiro.
+de HLM multinível, clustering, SHAP, SNA e pesquisa operacional
+(TOPSIS + programação linear) sobre a série completa da PNAD Contínua,
+estabelecendo uma metodologia replicável para o monitoramento
+longitudinal e a priorização de políticas de redução da desigualdade
+racial no mercado de trabalho brasileiro.
 
 \bigskip
 
