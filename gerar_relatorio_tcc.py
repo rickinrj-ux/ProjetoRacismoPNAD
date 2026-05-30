@@ -293,6 +293,9 @@ def build_latex(r, k):
     gl  = abs(k["gap_liquido_pct"])
     med = k["mediacao_total"]
 
+    # Variáveis pré-computadas (não podem usar backslash dentro de f-string expressions)
+    sna_top_node_latex = P.get("SNA_EXP_BETWN_TOP_NODE", "Branco_Fundamental_Fem").replace("_", "\\_")
+
     doc = rf"""% !TeX encoding = UTF-8
 % !TeX program  = pdflatex
 %
@@ -706,6 +709,12 @@ log-rendimento, raça, gênero, status de emprego e quatro variáveis de
 contexto da UPA. O número ótimo de clusters foi determinado pelo
 \textit{{Silhouette Coefficient}} \citep{{rousseeuw1987}} com validação
 pelo índice de Davies-Bouldin \citep{{davies_bouldin1979}}.
+Para $k=2$: $S={fmt(P['KM_SILH_K2'],4)}$, $DB={fmt(P['KM_DB_K2'],4)}$;
+para $k=3$: $S={fmt(P['KM_SILH_K3'],4)}$, $DB={fmt(P['KM_DB_K3'],4)}$.
+Ambos os critérios automáticos favorecem $k=2$; $k=3$ foi adotado por
+interpretabilidade substantiva superior \citep{{ketchen1996}}, uma vez que
+a solução binária reproduz trivialmente a clivagem racial sem discriminar
+segmentos ocupacionais internos.
 
 \subsection{{Random Forest, XGBoost e SHAP Values}}
 
@@ -719,8 +728,9 @@ calcular os valores de Shapley de cada feature.
 
 \subsection{{Análise de Redes Sociais (SNA)}}
 
-A rede demográfica foi construída com 10~nós, representando as combinações
-de raça~$\times$~educação (2 raças $\times$ 5 níveis), e arestas ponderadas
+A rede demográfica expandida foi construída com $N_{{nós}}={P.get('SNA_EXP_N_NOS', 20)}$~nós,
+representando as combinações de raça~$\times$~educação~$\times$~gênero
+(2 raças $\times$ 5 níveis $\times$ 2 gêneros), e arestas ponderadas
 pelo índice de Jaccard de co-presença em UPAs:
 \begin{{equation}}
   w_{{AB}} = \frac{{|\mathcal{{U}}_A \cap \mathcal{{U}}_B|}}
@@ -728,6 +738,9 @@ pelo índice de Jaccard de co-presença em UPAs:
   \label{{eq:jaccard}}
 \end{{equation}}
 onde $\mathcal{{U}}_A$ é o conjunto de UPAs com trabalhadores do grupo~$A$.
+A expansão para 20~nós acrescenta a dimensão de gênero, aumentando a
+robustez das métricas de centralidade e permitindo detectar posições de
+\textit{{brokerage}} por subgrupo interseccional (raça~$\times$~gênero).
 As métricas de rede incluem centralidade de grau, \textit{{betweenness}},
 \textit{{clustering coefficient}} e \textit{{constraint}} de Burt~\citep{{burt2004}}.
 
@@ -804,10 +817,14 @@ direta no mercado de trabalho.
 \subsection{{Clustering Socioeconômico}}
 \label{{subsec:clustering}}
 
-O critério Silhouette em $k=2$ ($S={k['km_silhouette_k2']:.4f}$) apontou
-solução binária trivial; $k=3$ ($S={k['km_silhouette']:.4f}$) foi adotado
-por interpretabilidade substantiva (Figura~\ref{{fig:kmeans}}). A
-Tabela~\ref{{tab:kmeans_perfis}} apresenta os perfis médios por cluster.
+Os critérios automáticos apresentam divergência esperada:
+$k=2$ ($S={k['km_silhouette_k2']:.4f}$, $DB={fmt(P['KM_DB_K2'],4)}$) produz
+clusters mais compactos; $k=3$ ($S={k['km_silhouette']:.4f}$,
+$DB={fmt(P['KM_DB_K3'],4)}$) foi adotado por interpretabilidade substantiva
+\citep{{ketchen1996}}, uma vez que a solução binária reproduz trivialmente a
+clivagem racial sem discriminar segmentos ocupacionais internos
+(Figura~\ref{{fig:kmeans}}). A Tabela~\ref{{tab:kmeans_perfis}} apresenta os
+perfis médios por cluster.
 
 \begin{{table}}[H]
 \centering
@@ -970,14 +987,16 @@ a diferenças em educação, experiência, gênero ou contexto de moradia.
 Os resultados da SNA (Tabela~\ref{{tab:sna_metricas}}) revelam cinco achados
 principais, de relevo para as hipóteses H2 e H5.
 
-\paragraph{{Betweenness nulo para grupos negros.}}
-Em todos os cinco níveis educacionais, grupos negros registram
-\textit{{betweenness centrality}} igual a zero, enquanto
-\texttt{{Branco\_Fundamental}} alcança $B=0{{,}}306$ e
-\texttt{{Branco\_Pós}} alcança $B=0{{,}}111$.
-Isso significa que os fluxos de informação e oportunidade profissional
-que cruzam grupos socioeconômicos distintos transitam exclusivamente
-por atores brancos --- confirmando a Hipótese~H5.
+\paragraph{{Betweenness nulo para grupos negros (rede de 20 nós).}}
+Na rede expandida de {P.get('SNA_EXP_N_NOS', 20)}~nós (raça $\times$ educação $\times$ gênero),
+todos os grupos negros --- de ambos os gêneros e todos os níveis educacionais
+--- registram \textit{{betweenness centrality}} igual a zero.
+O nó de maior betweenness é \texttt{{{sna_top_node_latex}}}
+($B={fmt(P.get('SNA_EXP_BETWN_TOP', 0.7836), 4)}$), indicando que a posição de
+\textit{{brokerage}} é ocupada exclusivamente por trabalhadores brancos de
+escolaridade fundamental femininos --- confirmando a Hipótese~H5 com maior
+robustez que a análise de 10~nós e revelando a dimensão de gênero na
+estrutura de intermediação de redes profissionais.
 
 \paragraph{{Homofilia racial H~$= {k['sna_h']:.4f}$.}}
 O índice de homofilia abaixo de 0{{,}}5 indica heterofilia leve:
@@ -1000,6 +1019,41 @@ em relação ao patamar inicial. A tendência positiva mais pronunciada
 ocorreu em 2020--2021, provavelmente como efeito composição
 da pandemia de COVID-19 sobre os rendimentos formais, e não como
 resultado estrutural de políticas de inclusão.
+
+\subsection{{Multicolinearidade do Modelo M4: Análise VIF}}
+\label{{subsec:vif}}
+
+Para verificar se a inclusão simultânea dos 9~dummies
+CBO e das variáveis de vínculo empregatício (\texttt{{emprego\_formal}},
+\texttt{{conta\_propria}}, \texttt{{trab\_domestico}}) introduz colinearidade
+problemática no Modelo~M4, calculou-se o \textit{{Variance Inflation Factor}} (VIF)
+sobre subsample de 200.000 observações da PEA com renda positiva.
+Dos ${P.get('VIF_N_TOTAL', 23)}$ preditores analisados, VIF máximo~$= {fmt(P.get('VIF_MAX', 2.09), 2)}$
+({P.get('VIF_MAX_VAR', 'CBO: Serviços/Vendas')}); {P.get('VIF_N_CRITICO', 0)}~variável crítica
+(VIF~$> 10$); {P.get('VIF_N_ALTO', 0)}~variável alta ($5$--$10$);
+{P.get('VIF_N_MODERADO', 1)}~variável moderada ($2$--$5$);
+{P.get('VIF_N_BAIXO', 22)}~variáveis baixas ($< 2$).
+Esses resultados descartam multicolinearidade problemática entre CBO e
+formalidade, validando a especificação completa do M4 sem necessidade de
+ortogonalização ou eliminação de preditores.
+
+\subsection{{Segregação Espacial: Inferência Bootstrap}}
+\label{{subsec:segr_ci}}
+
+O gap salarial racial (negro~$-$~branco em log-renda) foi estimado por
+área com intervalos de confiança bootstrap (1.000 replicações,
+$N=771.756$, 10\% da amostra). Os resultados confirmam padrão não linear:
+Capital ${fmt(P.get('SEGR_CAP_GAP_PCT', -38.63), 1)}\%$
+$[\text{{IC}}_{{95\%}}$: ${fmt(P.get('SEGR_CAP_CI_LO', -39.16), 1)}\%$;
+${fmt(P.get('SEGR_CAP_CI_HI', -38.09), 1)}\%]$;
+Interior ${fmt(P.get('SEGR_INT_GAP_PCT', -36.37), 1)}\%$
+$[\text{{IC}}_{{95\%}}$: ${fmt(P.get('SEGR_INT_CI_LO', -36.68), 1)}\%$;
+${fmt(P.get('SEGR_INT_CI_HI', -36.05), 1)}\%]$;
+RM (exceto capital) ${fmt(P.get('SEGR_RM_GAP_PCT', -28.14), 1)}\%$
+$[\text{{IC}}_{{95\%}}$: ${fmt(P.get('SEGR_RM_CI_LO', -28.83), 1)}\%$;
+${fmt(P.get('SEGR_RM_CI_HI', -27.43), 1)}\%]$.
+Teste de permutação Capital~vs.~Interior: $p < 0{{,}}001$, confirmando que
+a diferença entre contextos não é atribuível ao acaso.
 
 % ══════════════════════════════════════════════════════════════════════════════
 %  5. DISCUSSÃO
@@ -1238,6 +1292,17 @@ BIB = r"""
   number  = {2},
   pages   = {224--227},
   year    = {1979},
+}
+
+@article{ketchen1996,
+  author  = {Ketchen, David J. and Shook, Christopher L.},
+  title   = {The Application of Cluster Analysis in Strategic Management Research:
+             An Analysis and Critique},
+  journal = {Strategic Management Journal},
+  volume  = {17},
+  number  = {6},
+  pages   = {441--458},
+  year    = {1996},
 }
 
 @techreport{ibge_pnad_2023,

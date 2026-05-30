@@ -411,6 +411,12 @@ log-rendimento, raça, gênero, status de emprego e quatro variáveis de
 contexto da UPA. O número ótimo de clusters foi determinado pelo
 \textit{Silhouette Coefficient} \citep{rousseeuw1987} com validação
 pelo índice de Davies-Bouldin \citep{davies_bouldin1979}.
+Para $k=2$: $S=0,1736$, $DB=2,0140$;
+para $k=3$: $S=0,1401$, $DB=2,2814$.
+Ambos os critérios automáticos favorecem $k=2$; $k=3$ foi adotado por
+interpretabilidade substantiva superior \citep{ketchen1996}, uma vez que
+a solução binária reproduz trivialmente a clivagem racial sem discriminar
+segmentos ocupacionais internos.
 
 \subsection{Random Forest, XGBoost e SHAP Values}
 
@@ -424,8 +430,9 @@ calcular os valores de Shapley de cada feature.
 
 \subsection{Análise de Redes Sociais (SNA)}
 
-A rede demográfica foi construída com 10~nós, representando as combinações
-de raça~$\times$~educação (2 raças $\times$ 5 níveis), e arestas ponderadas
+A rede demográfica expandida foi construída com $N_{nós}=20$~nós,
+representando as combinações de raça~$\times$~educação~$\times$~gênero
+(2 raças $\times$ 5 níveis $\times$ 2 gêneros), e arestas ponderadas
 pelo índice de Jaccard de co-presença em UPAs:
 \begin{equation}
   w_{AB} = \frac{|\mathcal{U}_A \cap \mathcal{U}_B|}
@@ -433,6 +440,9 @@ pelo índice de Jaccard de co-presença em UPAs:
   \label{eq:jaccard}
 \end{equation}
 onde $\mathcal{U}_A$ é o conjunto de UPAs com trabalhadores do grupo~$A$.
+A expansão para 20~nós acrescenta a dimensão de gênero, aumentando a
+robustez das métricas de centralidade e permitindo detectar posições de
+\textit{brokerage} por subgrupo interseccional (raça~$\times$~gênero).
 As métricas de rede incluem centralidade de grau, \textit{betweenness},
 \textit{clustering coefficient} e \textit{constraint} de Burt~\citep{burt2004}.
 
@@ -548,10 +558,14 @@ AIC & N/D & N/D & N/D & N/D \\
 \subsection{Clustering Socioeconômico}
 \label{subsec:clustering}
 
-O critério Silhouette em $k=2$ ($S=0.1736$) apontou
-solução binária trivial; $k=3$ ($S=0.1401$) foi adotado
-por interpretabilidade substantiva (Figura~\ref{fig:kmeans}). A
-Tabela~\ref{tab:kmeans_perfis} apresenta os perfis médios por cluster.
+Os critérios automáticos apresentam divergência esperada:
+$k=2$ ($S=0.1736$, $DB=2,0140$) produz
+clusters mais compactos; $k=3$ ($S=0.1401$,
+$DB=2,2814$) foi adotado por interpretabilidade substantiva
+\citep{ketchen1996}, uma vez que a solução binária reproduz trivialmente a
+clivagem racial sem discriminar segmentos ocupacionais internos
+(Figura~\ref{fig:kmeans}). A Tabela~\ref{tab:kmeans_perfis} apresenta os
+perfis médios por cluster.
 
 \begin{table}[H]
 \centering
@@ -772,14 +786,16 @@ Negro\_Pos & Negro & Pos & 100,716 & 6.725 & 0.000 & 0.4152 \\
 Os resultados da SNA (Tabela~\ref{tab:sna_metricas}) revelam cinco achados
 principais, de relevo para as hipóteses H2 e H5.
 
-\paragraph{Betweenness nulo para grupos negros.}
-Em todos os cinco níveis educacionais, grupos negros registram
-\textit{betweenness centrality} igual a zero, enquanto
-\texttt{Branco\_Fundamental} alcança $B=0{,}306$ e
-\texttt{Branco\_Pós} alcança $B=0{,}111$.
-Isso significa que os fluxos de informação e oportunidade profissional
-que cruzam grupos socioeconômicos distintos transitam exclusivamente
-por atores brancos --- confirmando a Hipótese~H5.
+\paragraph{Betweenness nulo para grupos negros (rede de 20 nós).}
+Na rede expandida de 20~nós (raça $\times$ educação $\times$ gênero),
+todos os grupos negros --- de ambos os gêneros e todos os níveis educacionais
+--- registram \textit{betweenness centrality} igual a zero.
+O nó de maior betweenness é \texttt{Branco\_Fundamental\_Fem}
+($B=0,7836$), indicando que a posição de
+\textit{brokerage} é ocupada exclusivamente por trabalhadores brancos de
+escolaridade fundamental femininos --- confirmando a Hipótese~H5 com maior
+robustez que a análise de 10~nós e revelando a dimensão de gênero na
+estrutura de intermediação de redes profissionais.
 
 \paragraph{Homofilia racial H~$= 0.4382$.}
 O índice de homofilia abaixo de 0{,}5 indica heterofilia leve:
@@ -802,6 +818,41 @@ em relação ao patamar inicial. A tendência positiva mais pronunciada
 ocorreu em 2020--2021, provavelmente como efeito composição
 da pandemia de COVID-19 sobre os rendimentos formais, e não como
 resultado estrutural de políticas de inclusão.
+
+\subsection{Multicolinearidade do Modelo M4: Análise VIF}
+\label{subsec:vif}
+
+Para verificar se a inclusão simultânea dos 9~dummies
+CBO e das variáveis de vínculo empregatício (\texttt{emprego\_formal},
+\texttt{conta\_propria}, \texttt{trab\_domestico}) introduz colinearidade
+problemática no Modelo~M4, calculou-se o \textit{Variance Inflation Factor} (VIF)
+sobre subsample de 200.000 observações da PEA com renda positiva.
+Dos $23$ preditores analisados, VIF máximo~$= 2,09$
+(CBO: Serviços/Vendas); 0~variável crítica
+(VIF~$> 10$); 0~variável alta ($5$--$10$);
+1~variável moderada ($2$--$5$);
+22~variáveis baixas ($< 2$).
+Esses resultados descartam multicolinearidade problemática entre CBO e
+formalidade, validando a especificação completa do M4 sem necessidade de
+ortogonalização ou eliminação de preditores.
+
+\subsection{Segregação Espacial: Inferência Bootstrap}
+\label{subsec:segr_ci}
+
+O gap salarial racial (negro~$-$~branco em log-renda) foi estimado por
+área com intervalos de confiança bootstrap (1.000 replicações,
+$N=771.756$, 10\% da amostra). Os resultados confirmam padrão não linear:
+Capital $−38,6\%$
+$[\text{IC}_{95\%}$: $−39,2\%$;
+$−38,1\%]$;
+Interior $−36,4\%$
+$[\text{IC}_{95\%}$: $−36,7\%$;
+$−36,1\%]$;
+RM (exceto capital) $−28,1\%$
+$[\text{IC}_{95\%}$: $−28,8\%$;
+$−27,4\%]$.
+Teste de permutação Capital~vs.~Interior: $p < 0{,}001$, confirmando que
+a diferença entre contextos não é atribuível ao acaso.
 
 % ══════════════════════════════════════════════════════════════════════════════
 %  5. DISCUSSÃO
