@@ -146,6 +146,68 @@ def _load() -> dict:
     _pl1 = pd.read_csv(_TAB / "po_politicas_pl1.csv")
     p["PL1_B5_PCT"]  = float(_pl1.loc[_pl1["orcamento"] == 5.0, "reducao_pct"].values[0])
 
+    # ── VIF — multicolinearidade M4 (vif_m4_preditores.csv) ──────────────────
+    _vif_path = _TAB / "vif_m4_preditores.csv"
+    if _vif_path.exists():
+        _vif = pd.read_csv(_vif_path)
+        p["VIF_MAX"]        = round(float(_vif["VIF"].max()), 2)
+        p["VIF_MAX_VAR"]    = str(_vif.loc[_vif["VIF"].idxmax(), "label"])
+        p["VIF_N_CRITICO"]  = int((_vif["VIF"] > 10).sum())
+        p["VIF_N_ALTO"]     = int(((_vif["VIF"] > 5) & (_vif["VIF"] <= 10)).sum())
+        p["VIF_N_MODERADO"] = int(((_vif["VIF"] > 2) & (_vif["VIF"] <= 5)).sum())
+        p["VIF_N_BAIXO"]    = int((_vif["VIF"] <= 2).sum())
+        p["VIF_N_TOTAL"]    = len(_vif)
+
+    # ── SNA Expandida (20 nós: raça × educação × gênero) ─────────────────────
+    _sna_exp_path = _TAB / "sna_metricas_nos_expandida.csv"
+    _sna_rg_path  = _TAB / "sna_resumo_race_gender.csv"
+    if _sna_exp_path.exists():
+        _sna_exp = pd.read_csv(_sna_exp_path)
+        p["SNA_EXP_N_NOS"]         = len(_sna_exp)
+        _top_node = _sna_exp.loc[_sna_exp["betweenness"].idxmax()]
+        p["SNA_EXP_BETWN_TOP"]     = round(float(_top_node["betweenness"]), 4)
+        p["SNA_EXP_BETWN_TOP_NODE"]= str(_top_node["node"])
+        p["SNA_EXP_CONSTR_MAX"]    = round(float(_sna_exp["constraint"].max()), 4)
+        p["SNA_EXP_CONSTR_MIN"]    = round(float(_sna_exp["constraint"].min()), 4)
+        # Gap de renda por raça nos nós da rede
+        _br = _sna_exp[_sna_exp["race"] == "Branco"]["mean_renda"].mean()
+        _ng = _sna_exp[_sna_exp["race"] == "Negro"]["mean_renda"].mean()
+        p["SNA_EXP_GAP_RENDA_LOG"] = round(float(_ng - _br), 4)
+
+    if _sna_rg_path.exists():
+        _rg = pd.read_csv(_sna_rg_path)
+        def _rg_v(rg, col):
+            row = _rg.loc[_rg["race_gen"] == rg]
+            return round(float(row[col].values[0]), 4) if len(row) else None
+        p["SNA_EXP_BRANCO_FEM_BETWN"]  = _rg_v("Branco_Fem",  "betweenness_max")
+        p["SNA_EXP_NEGRO_FEM_RENDA"]   = _rg_v("Negro_Fem",   "mean_renda")
+        p["SNA_EXP_BRANCO_MASC_RENDA"] = _rg_v("Branco_Masc", "mean_renda")
+
+    # ── Segregação Espacial CI Bootstrap (segreg_gap_por_area_ci.csv) ─────────
+    _ci_path = _TAB / "segreg_gap_por_area_ci.csv"
+    if _ci_path.exists():
+        _ci = pd.read_csv(_ci_path)
+        def _ci_v(area, col):
+            row = _ci.loc[_ci["area_tipo"] == area]
+            return round(float(row[col].values[0]), 4) if len(row) else None
+        p["SEGR_CAP_GAP_PCT"]   = _ci_v("Capital",             "gap_pct")
+        p["SEGR_CAP_CI_LO"]     = _ci_v("Capital",             "ci_lo_pct")
+        p["SEGR_CAP_CI_HI"]     = _ci_v("Capital",             "ci_hi_pct")
+        p["SEGR_RM_GAP_PCT"]    = _ci_v("RM (exceto\ncapital)","gap_pct")
+        p["SEGR_RM_CI_LO"]      = _ci_v("RM (exceto\ncapital)","ci_lo_pct")
+        p["SEGR_RM_CI_HI"]      = _ci_v("RM (exceto\ncapital)","ci_hi_pct")
+        p["SEGR_INT_GAP_PCT"]   = _ci_v("Interior",            "gap_pct")
+        p["SEGR_INT_CI_LO"]     = _ci_v("Interior",            "ci_lo_pct")
+        p["SEGR_INT_CI_HI"]     = _ci_v("Interior",            "ci_hi_pct")
+        _p_perm = _ci.loc[_ci["area_tipo"] == "Capital", "p_permut_cap_int"]
+        p["SEGR_P_PERM"]        = round(float(_p_perm.values[0]), 4) if len(_p_perm) else None
+
+    # ── Davies-Bouldin — adicionado ao bloco KMeans ───────────────────────────
+    if "davies_bouldin" in _kmet.columns:
+        p["KM_DB_K2"] = round(float(_kmet.loc[_kmet["k"]==2, "davies_bouldin"].values[0]), 4)
+        p["KM_DB_K3"] = round(float(_kmet.loc[_kmet["k"]==3, "davies_bouldin"].values[0]), 4)
+        p["KM_DB_K5"] = round(float(_kmet.loc[_kmet["k"]==5, "davies_bouldin"].values[0]), 4) if 5 in _kmet["k"].values else None
+
     return p
 
 

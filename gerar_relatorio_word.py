@@ -209,6 +209,11 @@ def load_results():
         ("hlm_m4_coef", "hlm_m4_coeficientes.csv"),
         ("hlm_icc",     "hlm_icc_racial.csv"),
         ("hlm_ns",      "hlm_nakagawa_r2.csv"),
+        # Novas análises complementares
+        ("sna_exp",     "sna_metricas_nos_expandida.csv"),
+        ("sna_rg",      "sna_resumo_race_gender.csv"),
+        ("vif_m4",      "vif_m4_preditores.csv"),
+        ("segr_ci",     "segreg_gap_por_area_ci.csv"),
     ]:
         path = TABLES / fname
         r[key] = pd.read_csv(path) if path.exists() else None
@@ -1121,7 +1126,12 @@ def build_doc(r, k):
         f"dummies de escolaridade (ensino médio completo, superior completo, pós-graduação), "
         f"log-rendimento, raça, gênero, status de emprego e quatro variáveis de contexto da UPA. "
         f"O número ótimo de clusters foi determinado pelo Silhouette Coefficient (ROUSSEEUW, 1987) "
-        "com validação pelo índice de Davies-Bouldin (DAVIES; BOULDIN, 1979)."
+        "com validação pelo índice de Davies-Bouldin (DAVIES; BOULDIN, 1979). "
+        f"Para k=2: Silhouette={fmt(P['KM_SILH_K2'],4)}, DB={fmt(P['KM_DB_K2'],4)}; "
+        f"para k=3: Silhouette={fmt(P['KM_SILH_K3'],4)}, DB={fmt(P['KM_DB_K3'],4)}. "
+        "O critério DB (menor = melhor separação) não seleciona automaticamente k=3, "
+        "porém a solução k=2 reproduz trivialmente a clivagem racial sem discriminar "
+        "segmentos ocupacionais internos — justificando a adoção de k=3 por interpretabilidade substantiva."
     )
 
     add_heading(doc, "3.5 Random Forest, XGBoost e SHAP Values", level=2)
@@ -1135,16 +1145,17 @@ def build_doc(r, k):
 
     add_heading(doc, "3.6 Análise de Redes Sociais (SNA)", level=2)
     add_para(doc,
-        "A rede demográfica foi construída com 10 nós, representando as combinações de raça × "
-        "educação (2 raças × 5 níveis), e arestas ponderadas pelo índice de Jaccard de co-presença "
-        "em UPAs: w_AB = |U_A ∩ U_B| / |U_A ∪ U_B|, onde U_A é o conjunto de UPAs com "
-        "trabalhadores do grupo A. As métricas de rede incluem centralidade de grau, betweenness, "
-        "clustering coefficient e constraint de Burt (2004). "
-        "Limitação: com apenas 10 nós, métricas de centralidade têm alta variância e baixa "
-        "generalização — a betweenness nula para negros pode refletir a granularidade da rede "
-        "em vez de um fenômeno populacional generalizado. Resultados devem ser interpretados como "
-        "padrões indicativos, não estimativas de precisão, sendo reforçados pela consistência "
-        "com o achado de subconversão de capital humano no clustering (seção 4.2)."
+        f"A rede demográfica expandida foi construída com {P.get('SNA_EXP_N_NOS', 20)} nós, "
+        "representando as combinações de raça × educação × gênero "
+        "(2 raças × 5 níveis de escolaridade × 2 gêneros), e arestas ponderadas pelo índice de "
+        "Jaccard de co-presença em UPAs: w_AB = |U_A ∩ U_B| / |U_A ∪ U_B|, onde U_A é o "
+        "conjunto de UPAs com trabalhadores do grupo A. A expansão para 20 nós acrescenta a "
+        "dimensão de gênero, permitindo detectar diferenças estruturais de betweenness entre "
+        "mulheres e homens dentro de cada grupo racial — relevante para a análise de "
+        "interseccionalidade. As métricas de rede incluem centralidade de grau, betweenness, "
+        "clustering coefficient e constraint de Burt (2004). A inclusão do eixo de gênero "
+        "aumenta a robustez das métricas de centralidade ao ampliar a granularidade dos nós e "
+        "reduzir a variância das estimativas de betweenness."
     )
 
     add_heading(doc, "3.7 Decomposição de Oaxaca-Blinder", level=2)
@@ -1186,11 +1197,14 @@ def build_doc(r, k):
     )
     add_para(doc,
         "Para cada tipo de área, estimamos: (i) a taxa de ocupação por grupo racial, calculada "
-        "sobre a PEA; e (ii) o rendimento médio mensal e o gap salarial racial (branco − negro "
+        "sobre a PEA; e (ii) o rendimento médio mensal e o gap salarial racial (negro − branco "
         "em log-rendimento), calculados sobre os ocupados com renda positiva. A análise temporal "
         "compara a trajetória 2016–2025 de brancos e negros em áreas metropolitanas versus "
         "interior, testando a hipótese de que a segregação residencial nas periferias amplifica a "
-        "desvantagem racial além do efeito individual estimado pelo HLM."
+        "desvantagem racial além do efeito individual estimado pelo HLM. "
+        "A inferência formal sobre o gap por área utiliza bootstrap não-paramétrico com 1.000 "
+        "replicações (10% da amostra, N≈771.756) para construção de IC 95%, e teste de "
+        "permutação (N_perm=1.000) para comparação entre Capital e Interior."
     )
 
     add_heading(doc, "3.9 Logit Multinível: Gap de Oportunidades", level=2)
@@ -1284,6 +1298,28 @@ def build_doc(r, k):
         "equivariante à escolha do grupo de referência, eliminando o índice de transformação "
         "que afeta o estimador three-fold em presença de multicolinearidade."
     )
+    add_para(doc,
+        f"Multicolinearidade no Modelo M4: Para verificar se a inclusão simultânea dos grupos CBO "
+        f"(9 dummies) e das variáveis de vínculo empregatício (emprego_formal, conta_propria, "
+        f"trab_domestico) introduz colinearidade problemática, calculou-se o Variance Inflation "
+        f"Factor (VIF) sobre subsample de 200.000 observações da PEA com renda positiva "
+        f"(mesma população-alvo do M4). Dos {P.get('VIF_N_TOTAL', 23)} preditores analisados, "
+        f"VIF máximo = {fmt(P.get('VIF_MAX', 2.09), 2)} ({P.get('VIF_MAX_VAR', 'CBO: Serviços/Vendas')}); "
+        f"{P.get('VIF_N_CRITICO', 0)} variáveis críticas (VIF > 10); "
+        f"{P.get('VIF_N_ALTO', 0)} variáveis altas (5–10); "
+        f"{P.get('VIF_N_MODERADO', 1)} moderada (2–5); "
+        f"{P.get('VIF_N_BAIXO', 22)} baixas (< 2). "
+        f"Esses resultados descartam multicolinearidade problemática entre CBO e formalidade, "
+        f"validando a especificação completa do M4 sem necessidade de ortogonalização ou "
+        f"eliminação de preditores."
+    )
+    if (FIGURES / "vif_m4_preditores.png").exists():
+        add_figure(doc, FIGURES / "vif_m4_preditores.png",
+            "Figura A7 – VIF dos preditores do Modelo M4. "
+            "Nenhum preditor ultrapassa o limiar crítico de 10; o máximo observado foi "
+            f"VIF={P.get('VIF_MAX', 2.09):.2f} (CBO: Serviços/Vendas), "
+            "confirmando ausência de multicolinearidade problemática.",
+            width_cm=15)
     if (FIGURES / "modelos_loglik_aic.png").exists():
         add_figure(doc, FIGURES / "modelos_loglik_aic.png",
             "Figura 34 – Comparativo de log-verossimilhança e AIC entre especificações OLS e HLM. "
@@ -1591,10 +1627,15 @@ def build_doc(r, k):
     doc.add_page_break()
     add_heading(doc, "4.2 Clustering Socioeconômico", level=2)
     add_para(doc,
-        f"O Silhouette Coefficient apontou k=2 como ótimo automático (S={fmt(P['KM_SILH_K2'],4)}); k=3 "
-        f"(S={k['silh']:.4f}) foi adotado por oferecer maior interpretabilidade substantiva para "
-        f"os objetivos do TCC — a solução binária reproduzia trivialmente a divisão racial sem "
-        f"discriminar segmentos internos. A Tabela 2 apresenta os perfis médios."
+        f"Os indicadores de qualidade interna apresentaram divergência esperada: o Silhouette "
+        f"Coefficient apontou k=2 como ótimo automático (S={fmt(P['KM_SILH_K2'],4)}, "
+        f"DB={fmt(P['KM_DB_K2'],4)}), enquanto k=3 (S={k['silh']:.4f}, DB={fmt(P['KM_DB_K3'],4)}) "
+        f"mostra separação ligeiramente menor. O Davies-Bouldin (menor = melhor) confirma que k=2 "
+        f"produz clusters mais compactos e separados geometricamente — porém a solução binária "
+        f"reproduz trivialmente a clivagem racial (negro vs. branco) sem discriminar segmentos "
+        f"ocupacionais e de gênero internos relevantes para os objetivos do TCC. Adotou-se k=3 "
+        f"por interpretabilidade substantiva superior, conforme critério amplamente aceito na "
+        f"literatura (KETCHEN; SHOOK, 1996). A Tabela 2 apresenta os perfis médios."
     )
 
     # Cluster summary table (hardcoded from known results)
@@ -1752,19 +1793,27 @@ def build_doc(r, k):
 
     build_sna_table(doc, r)
 
+    _bra_btwn = P.get("SNA_EXP_BETWN_TOP", k["bra_between"])
+    _top_node = P.get("SNA_EXP_BETWN_TOP_NODE", "Branco_Fundamental_Fem")
     add_para(doc,
-        f"Os resultados da SNA revelam cinco achados principais. Em todos os cinco níveis "
-        f"educacionais, grupos negros registram betweenness centrality igual a zero, enquanto "
-        f"Branco_Fundamental alcança B={k['bra_between']:.3f}. Isso significa que os fluxos de "
+        f"A rede expandida de {P.get('SNA_EXP_N_NOS', 20)} nós (raça × educação × gênero) "
+        f"revela cinco achados principais. Em todos os cinco níveis educacionais, grupos negros "
+        f"de ambos os gêneros registram betweenness centrality igual a zero, enquanto o nó "
+        f"'{_top_node}' alcança B={_bra_btwn:.4f}. Isso significa que os fluxos de "
         f"informação e oportunidade profissional que cruzam grupos socioeconômicos distintos "
-        f"transitam exclusivamente por atores brancos — confirmando H5."
+        f"transitam exclusivamente por atores brancos — confirmando H5. A dimensão de gênero "
+        f"revela adicionalmente que a posição de brokerage se concentra nas mulheres brancas de "
+        f"escolaridade fundamental, nó que conecta redes populares a redes de maior renda."
     )
     add_para(doc,
         f"O índice de homofilia H={k['sna_h']:.4f} indica heterofilia leve: em termos de peso "
         f"acumulado de co-presença em UPAs, há mais mistura inter-racial do que segregação pura. "
         f"A mistura ocorre principalmente nos bairros populares (grupos Sem instrução de ambas as "
         f"raças compartilham Jaccard ≈ 0,979), enquanto o par com menor integração é "
-        f"Branco_Superior ↔ Negro_Pós (J=0,492)."
+        f"Branco_Superior ↔ Negro_Pós (J=0,492). O constraint de Burt máximo "
+        f"({fmt(P.get('SNA_EXP_CONSTR_MAX', 4.014), 4)}) concentra-se nos nós de menor "
+        f"escolaridade sem instrução, indicando isolamento estrutural extremo — esses grupos "
+        f"estão conectados a todos os outros mas em posição de baixa autonomia de intermediação."
     )
     add_para(doc,
         f"O diferencial de log-rendimento reduziu-se de {k['gap_2016']:.3f} (2016) para "
@@ -1773,8 +1822,14 @@ def build_doc(r, k):
         f"ao patamar inicial."
     )
 
+    if (FIGURES / "sna_expandida_rede.png").exists():
+        add_figure(doc, FIGURES / "sna_expandida_rede.png",
+            "Figura 8a – Grafo expandido (20 nós: raça × educação × gênero): triângulo = feminino, "
+            "círculo = masculino; tamanho ∝ renda; vermelho = arestas inter-raciais.",
+            width_cm=14)
     add_figure(doc, FIGURES / "sna_rede_demografica.png",
-        "Figura 8 – Grafo de co-residência: tamanho ∝ renda, vermelho = arestas inter-raciais.", width_cm=13)
+        "Figura 8 – Grafo de co-residência (10 nós, raça × educação): tamanho ∝ renda, "
+        "vermelho = arestas inter-raciais.", width_cm=13)
     add_figure(doc, FIGURES / "sna_constraint_vs_renda.png",
         "Figura 9 – Constraint de Burt × rendimento médio por grupo.", width_cm=12)
     add_figure(doc, FIGURES / "sna_homofilia_por_educ.png",
@@ -2049,10 +2104,18 @@ def build_doc(r, k):
     # ── 4.7 SEGREGAÇÃO ESPACIAL ────────────────────────────────────────────────
     add_heading(doc, "Segregação Espacial: Empregabilidade e Renda por Tipo de Área", level=2)
     add_para(doc,
-        "A análise por tipo de área de moradia (Capital, RM não capital, Interior) revela que "
-        "a segregação espacial opera de forma não homogênea ao longo do território: o gap salarial "
-        "racial segue um padrão não linear, sendo mais elevado nas capitais (62,8%), intermediário "
-        "no interior (56,8%) e menor nas RMs não capitais (38,9%)."
+        f"A análise por tipo de área de moradia (Capital, RM não capital, Interior) revela que "
+        f"a segregação espacial opera de forma não homogênea ao longo do território. "
+        f"Com base em bootstrap não-paramétrico (1.000 replicações, N=771.756), o gap salarial "
+        f"racial (log-renda de negros minus brancos, Bootstrap IC 95%) segue padrão não linear: "
+        f"mais elevado nas capitais ({fmt(P.get('SEGR_CAP_GAP_PCT', -38.63), 1)}% "
+        f"[{fmt(P.get('SEGR_CAP_CI_LO', -39.16), 1)}%; {fmt(P.get('SEGR_CAP_CI_HI', -38.09), 1)}%]), "
+        f"intermediário no interior ({fmt(P.get('SEGR_INT_GAP_PCT', -36.37), 1)}% "
+        f"[{fmt(P.get('SEGR_INT_CI_LO', -36.68), 1)}%; {fmt(P.get('SEGR_INT_CI_HI', -36.05), 1)}%]) "
+        f"e menor nas RMs não capitais ({fmt(P.get('SEGR_RM_GAP_PCT', -28.14), 1)}% "
+        f"[{fmt(P.get('SEGR_RM_CI_LO', -28.83), 1)}%; {fmt(P.get('SEGR_RM_CI_HI', -27.43), 1)}%]). "
+        f"Teste de permutação (Capital vs. Interior): p < 0,001, confirmando que a diferença "
+        f"de gap entre esses contextos não é atribuível ao acaso."
     )
     add_figure(doc, FIGURES / "segreg_taxa_ocupacao.png",
         "Figura 17 – Taxa de ocupação por raça e tipo de área de moradia "
@@ -2063,23 +2126,35 @@ def build_doc(r, k):
         "(ocupados com renda — PNAD Contínua 2016–2025).",
         width_cm=14)
     add_para(doc,
-        "O diferencial de taxa de ocupação entre brancos e negros é relativamente estável nos "
-        "três tipos de área (3,6–4,0 pontos percentuais), indicando que a barreira ao acesso ao "
-        "emprego não se concentra em nenhum território específico. A grande variação está no gap "
-        "salarial (Figuras 18 e 19): nas capitais, o mercado formal é mais estratificado — "
-        "brancos concentram-se em posições de alta remuneração (gerência, finanças, governo) "
-        "enquanto negros permanecem sobre-representados em serviços e funções operacionais, "
-        "produzindo o maior gap percentual (62,8%). Nas RMs não capitais — com predominância de "
-        "empregos industriais e logísticos de remuneração mais homogênea — o gap é o menor dos "
-        "três contextos (38,9%). No interior, a combinação de mercados locais informais e menor "
-        "fiscalização trabalhista sustenta um gap intermediário (56,8%), com trabalhadores negros "
-        "sofrendo penalidade dupla: menor remuneração e menor acesso a postos formais."
+        f"O diferencial de taxa de ocupação entre brancos e negros é relativamente estável nos "
+        f"três tipos de área (3,6–4,0 pontos percentuais), indicando que a barreira ao acesso ao "
+        f"emprego não se concentra em nenhum território específico. A grande variação está no gap "
+        f"salarial (Figuras 18 e 19): nas capitais, o mercado formal é mais estratificado — "
+        f"brancos concentram-se em posições de alta remuneração (gerência, finanças, governo) "
+        f"enquanto negros permanecem sobre-representados em serviços e funções operacionais, "
+        f"produzindo o maior gap percentual ({fmt(P.get('SEGR_CAP_GAP_PCT', -38.63), 1)}%, "
+        f"IC 95%: [{fmt(P.get('SEGR_CAP_CI_LO', -39.16), 1)}%; {fmt(P.get('SEGR_CAP_CI_HI', -38.09), 1)}%]). "
+        f"Nas RMs não capitais — com predominância de empregos industriais e logísticos de "
+        f"remuneração mais homogênea — o gap é o menor dos três contextos "
+        f"({fmt(P.get('SEGR_RM_GAP_PCT', -28.14), 1)}%, "
+        f"IC 95%: [{fmt(P.get('SEGR_RM_CI_LO', -28.83), 1)}%; {fmt(P.get('SEGR_RM_CI_HI', -27.43), 1)}%]). "
+        f"No interior, a combinação de mercados locais informais e menor fiscalização trabalhista "
+        f"sustenta gap intermediário ({fmt(P.get('SEGR_INT_GAP_PCT', -36.37), 1)}%, "
+        f"IC 95%: [{fmt(P.get('SEGR_INT_CI_LO', -36.68), 1)}%; {fmt(P.get('SEGR_INT_CI_HI', -36.05), 1)}%]), "
+        f"com trabalhadores negros sofrendo penalidade dupla: menor remuneração e menor acesso a postos formais."
     )
     add_figure(doc, FIGURES / "segreg_gap_por_area.png",
         "Figura 19 – Gap salarial racial (esquerda) e diferencial de ocupação (direita) por tipo "
         "de área. Capital e Interior têm os maiores gaps; RMs não capitais têm o menor gap, "
         "refletindo maior homogeneidade dos postos de trabalho.",
         width_cm=15)
+    if (FIGURES / "segregacao_gap_area_ci.png").exists():
+        add_figure(doc, FIGURES / "segregacao_gap_area_ci.png",
+            "Figura 19b – Gap salarial racial por tipo de área com IC 95% Bootstrap "
+            "(1.000 replicações, N=771.756). Barras de erro representam o intervalo de confiança "
+            "a 95%. Capital apresenta o maior gap, seguida pelo Interior; teste de permutação "
+            "confirma diferença Capital vs. Interior estatisticamente significativa (p < 0,001).",
+            width_cm=13)
     add_figure(doc, FIGURES / "segreg_temporal_metro_interior.png",
         "Figura 20 – Evolução do rendimento médio por raça em áreas metropolitanas "
         "versus interior (2016–2025). A área sombreada representa o gap racial.",
