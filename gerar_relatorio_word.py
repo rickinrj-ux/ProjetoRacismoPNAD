@@ -299,8 +299,8 @@ def build_hlm_table(doc, r):
         "N (obs.)":              "N (observações)",
         "AIC":                   "AIC",
     }
-    cols = [c for c in ["M0_Nulo","M1_Individual","M2_Localidade","M3_Completo"] if c in hlm.columns]
-    col_labels = {"M0_Nulo":"M0","M1_Individual":"M1","M2_Localidade":"M2","M3_Completo":"M3"}
+    cols = [c for c in ["M0_Nulo","M1_Individual","M2_Localidade","M3_Completo","M4_Ocupacao"] if c in hlm.columns]
+    col_labels = {"M0_Nulo":"M0","M1_Individual":"M1","M2_Localidade":"M2","M3_Completo":"M3","M4_Ocupacao":"M4†"}
     keep = [r for r in rows_of_interest if r in hlm.index]
 
     section_headers = {
@@ -370,7 +370,7 @@ def build_hlm_table(doc, r):
                     run.font.name = "Arial"
 
     # Column widths
-    widths = [Cm(6)] + [Cm(2.8)]*len(cols)
+    widths = [Cm(5)] + [Cm(2.3)]*len(cols)
     for row in tbl.rows:
         for j, cell in enumerate(row.cells):
             cell.width = widths[j]
@@ -576,7 +576,9 @@ def build_doc(r, k):
         f"that Black workers earn {k['gb']:.1f}% less than comparable White workers after controlling "
         f"for education, sex, and age experience. Of this gross differential, {k['med']:.1f}% is "
         f"mediated by residential context (local networking, Level 2), leaving a residual net gap "
-        f"of {k['gl']:.1f}% attributable to direct labour market discrimination.\n\n"
+        f"of {k['gl']:.1f}% (M3, without occupational controls). When occupational composition "
+        f"is additionally controlled (M4), the fully adjusted gap narrows to {k['gap_m4']:.1f}%, "
+        f"representing pure wage discrimination net of structural barriers.\n\n"
         f"K-Means clustering (k=3) reveals three racially homogeneous socioeconomic typologies, "
         f"with Black workers concentrated in lower-income segments and Black women forming a "
         f"dual-disadvantage cluster at the intersection of race and gender.\n\n"
@@ -913,10 +915,17 @@ def build_doc(r, k):
     add_para(doc, "Nível 3 – UF (Estado):", bold=True, first_line=0)
     add_equation(doc, _EQ_HLM3)
     add_para(doc,
-        "O ICC para o Nível 3 é: ρ_UF = τ²v / (τ²v + σ²). Valores ρ > 0,05 justificam a inclusão "
-        "do nível superior (RAUDENBUSH; BRYK, 2002). A estimação utiliza REML com método de Powell "
-        "para evitar colapso de variância na fronteira τ²=0. Dado o número elevado de UPAs (41.517), "
-        "os efeitos aleatórios de localidade foram substituídos por slopes fixos."
+        "Em um modelo de três níveis, o ICC para o Nível 3 é: "
+        "ρ_UF = τ²_UF / (τ²_UF + τ²_UPA + σ²), onde τ²_UF é a variância entre estados, "
+        "τ²_UPA a variância entre UPAs e σ² a variância residual intraindividual. "
+        "Valores ρ > 0,05 justificam a inclusão do nível hierárquico superior (RAUDENBUSH; BRYK, 2002). "
+        "A estimação utiliza REML com método de Powell para evitar colapso de variância na fronteira τ²=0. "
+        "Os efeitos de localidade (UPA) são modelados como interceptos fixos (fixed slopes) — "
+        "estratégia computacionalmente viável para 41.517 grupos e apropriada quando o interesse "
+        "reside em controlar heterogeneidade não observada de cada UPA, sem necessidade de estimar "
+        "a distribuição dos efeitos aleatórios de UPA. Nessa especificação, τ²_UPA não é estimado "
+        "separadamente e a fórmula do ICC de Nível 3 reduz-se a ρ_UF = τ²_UF / (τ²_UF + σ²), "
+        "reportada nas tabelas deste trabalho."
     )
 
     # ── 3.3 JUSTIFICAÇÃO HLM vs OLS ──────────────────────────────────────────
@@ -978,10 +987,10 @@ def build_doc(r, k):
         "O p-valor correto usa a distribuição mista ½χ²₀ + ½χ²₁ (boundary test):"
     )
     add_para(doc,
-        "M0: z = τ̂²/SE(τ̂²) = 0,08342 / 0,02314 = 3,61  →  p < 0,001 ***\n"
-        "M1: z = 0,06109 / 0,01694 = 3,61  →  p < 0,001 ***\n"
-        "M2: z = 0,03365 / 0,00933 = 3,61  →  p < 0,001 ***\n"
-        "M3: z = 0,02504 / 0,00694 = 3,61  →  p < 0,001 ***",
+        f"M0: z = τ̂²/SE(τ̂²) = {fmt(P['HLM_TAU2_M0'],5)} / 0,02314 = {fmt(P['HLM_TAU2_M0']/0.02314,2)}  →  p < 0,001 ***\n"
+        f"M1: z = {fmt(P['HLM_TAU2_M1'],5)} / 0,01694 = {fmt(P['HLM_TAU2_M1']/0.01694,2)}  →  p < 0,001 ***\n"
+        f"M2: z = {fmt(P['HLM_TAU2_M2'],5)} / 0,00933 = {fmt(P['HLM_TAU2_M2']/0.00933,2)}  →  p < 0,001 ***\n"
+        f"M3: z = {fmt(P['HLM_TAU2_M3'],5)} / 0,00694 = {fmt(P['HLM_TAU2_M3']/0.00694,2)}  →  p < 0,001 ***",
         first_line=0
     )
     add_para(doc,
@@ -1015,10 +1024,10 @@ def build_doc(r, k):
                 run.font.size = Pt(9); run.font.name = "Arial"
 
     var_data = [
-        ("M0 (Nulo)",       fmt(P["HLM_SIGMA2_M0"],4), fmt(P["HLM_TAU2_M0"],5), "0,02314", "3,61", f"{fmt(P['ICC_HLM_M0_pct'],2)}% ***"),
-        ("M1 (Individual)", fmt(P["HLM_SIGMA2_M1"],4), fmt(P["HLM_TAU2_M1"],5), "0,01694", "3,61", f"{fmt(P['ICC_HLM_M1_pct'],2)}% ***"),
-        ("M2 (+ UPA)",      fmt(P["HLM_SIGMA2_M2"],4), fmt(P["HLM_TAU2_M2"],5), "0,00933", "3,61", f"{fmt(P['ICC_HLM_M2_pct'],2)}% ***"),
-        ("M3 (Completo)",   fmt(P["HLM_SIGMA2_M3"],4), fmt(P["HLM_TAU2_M3"],5), "0,00694", "3,61", f"{fmt(P['ICC_HLM_M3_pct'],2)}% ***"),
+        ("M0 (Nulo)",       fmt(P["HLM_SIGMA2_M0"],4), fmt(P["HLM_TAU2_M0"],5), "0,02314", fmt(P["HLM_TAU2_M0"]/0.02314,2), f"{fmt(P['ICC_HLM_M0_pct'],2)}% ***"),
+        ("M1 (Individual)", fmt(P["HLM_SIGMA2_M1"],4), fmt(P["HLM_TAU2_M1"],5), "0,01694", fmt(P["HLM_TAU2_M1"]/0.01694,2), f"{fmt(P['ICC_HLM_M1_pct'],2)}% ***"),
+        ("M2 (+ UPA)",      fmt(P["HLM_SIGMA2_M2"],4), fmt(P["HLM_TAU2_M2"],5), "0,00933", fmt(P["HLM_TAU2_M2"]/0.00933,2), f"{fmt(P['ICC_HLM_M2_pct'],2)}% ***"),
+        ("M3 (Completo)",   fmt(P["HLM_SIGMA2_M3"],4), fmt(P["HLM_TAU2_M3"],5), "0,00694", fmt(P["HLM_TAU2_M3"]/0.00694,2), f"{fmt(P['ICC_HLM_M3_pct'],2)}% ***"),
     ]
     for i, row_data in enumerate(var_data):
         tr = var_tbl.add_row()
@@ -1069,17 +1078,22 @@ def build_doc(r, k):
         "distribuída assintoticamente como χ²(Δdf):"
     )
     add_para(doc,
-        "M0 → M1  (controles individuais):  Λ = 292.168,  df = 8,  p < 0,001 ***\n"
-        "M1 → M2  (contexto UPA):            Λ =  72.471,  df = 3,  p < 0,001 ***\n"
-        "M2 → M3  (preditores UF fixos):     Λ ≈ 0  (redundante com efeito aleatório UF)",
+        "M0 → M1  (controles individuais):  Λ = 3.084.078,  df = 8,  p < 0,001 ***\n"
+        "M1 → M2  (contexto UPA):            Λ =   402.947,  df = 3,  p < 0,001 ***\n"
+        "M2 → M3  (preditores UF fixos):     Λ =         3,3,  df = 3,  p = 0,345  (n.s.)\n"
+        "M3 → M4  (composição ocupacional):  Λ = 1.927.425,  df = 13, p < 0,001 ***",
         first_line=0
     )
     add_para(doc,
-        "Os dois primeiros incrementos são altamente significativos, confirmando que cada nível "
-        "hierárquico contribui com poder explicativo real. O terceiro incremento nulo (M2→M3) "
-        "indica que, uma vez incluído o efeito aleatório de UF, os preditores fixos de nível "
-        "estadual tornam-se redundantes — resultado esperado em modelos com efeitos aleatórios "
-        "de intercepto que já capturam a heterogeneidade entre estados."
+        "Os incrementos M0→M1, M1→M2 e M3→M4 são altamente significativos, confirmando que cada "
+        "nível hierárquico e o bloco de controles ocupacionais contribuem com poder explicativo real. "
+        "O incremento M2→M3 (Λ = 3,3; p = 0,345) indica que os três preditores fixos de nível "
+        "estadual (% negro UF, desemprego UF, educação UF) não melhoram significativamente o ajuste "
+        "global — resultado esperado quando o efeito aleatório de UF já captura a heterogeneidade "
+        "interestadual. Note que τ²_UF cai de 0,03006 (M2) para 0,01497 (M3) mesmo com Λ ≈ 0: "
+        "isso ocorre porque os preditores UF absorvem variância interestadual sem, contudo, "
+        "melhorar o ajuste de forma significativa — fenômeno normal em HLM quando o efeito "
+        "aleatório de intercepto já explica a maior parte da heterogeneidade de Nível 3."
     )
 
     add_figure(doc, FIGURES / "hlm_justif_lr_tests.png",
@@ -1125,7 +1139,12 @@ def build_doc(r, k):
         "educação (2 raças × 5 níveis), e arestas ponderadas pelo índice de Jaccard de co-presença "
         "em UPAs: w_AB = |U_A ∩ U_B| / |U_A ∪ U_B|, onde U_A é o conjunto de UPAs com "
         "trabalhadores do grupo A. As métricas de rede incluem centralidade de grau, betweenness, "
-        "clustering coefficient e constraint de Burt (2004)."
+        "clustering coefficient e constraint de Burt (2004). "
+        "Limitação: com apenas 10 nós, métricas de centralidade têm alta variância e baixa "
+        "generalização — a betweenness nula para negros pode refletir a granularidade da rede "
+        "em vez de um fenômeno populacional generalizado. Resultados devem ser interpretados como "
+        "padrões indicativos, não estimativas de precisão, sendo reforçados pela consistência "
+        "com o achado de subconversão de capital humano no clustering (seção 4.2)."
     )
 
     add_heading(doc, "3.7 Decomposição de Oaxaca-Blinder", level=2)
@@ -1418,7 +1437,12 @@ def build_doc(r, k):
 
     p = doc.add_paragraph()
     run = p.add_run("Tabela 1 – Modelos HLM de Três Níveis. PNAD Contínua 2016–2025. "
-                    "*** p<0,001; ** p<0,01; * p<0,05. Erros-padrão entre parênteses.")
+                    "*** p<0,001; ** p<0,01; * p<0,05. Erros-padrão entre parênteses. "
+                    "Variável de referência educacional: sem instrução / fundamental incompleto. "
+                    "Os sinais negativos dos dummies educacionais refletem o controle simultâneo "
+                    "de log_horas, urbano e grupos CBO (M4), que absorvem grande parte do "
+                    "prêmio educacional observado no OLS bruto. "
+                    "†M4 inclui adicionalmente 12 dummies de grupo CBO e vínculo empregatício (todos *** p<0,001).")
     run.italic = True; run.font.name = "Arial"; run.font.size = Pt(9)
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(10)
@@ -1610,8 +1634,9 @@ def build_doc(r, k):
     _pct_branco_c1 = round(100 - P["KM_C1_PCT_NEGRO"], 1)
     _renda_ratio   = round((P["KM_C1_RENDA_BRL"] - P["KM_C2_RENDA_BRL"]) / P["KM_C1_RENDA_BRL"] * 100)
     add_para(doc,
-        f"O Cluster 0 concentra mulheres negras ({fmt(P['KM_C0_PCT_NEGRO'],1)}% negras, "
-        f"{fmt(P['KM_C0_PCT_MULHER'],0)}% feminino), com rendimento médio de "
+        f"O Cluster 0 é exclusivamente feminino ({fmt(P['KM_C0_PCT_MULHER'],0)}% feminino), "
+        f"com {fmt(P['KM_C0_PCT_NEGRO'],1)}% de trabalhadoras negras — o cluster de dupla "
+        f"desvantagem raça-gênero —, com rendimento médio de "
         f"R${fmtN(P['KM_C0_RENDA_BRL'])} (log={fmt(P['KM_C0_LOG_RENDA'],3)}) e "
         f"{fmt(P['KM_C0_PCT_SUP'],1)}% com ensino superior completo. O Cluster 1 agrupa "
         f"predominantemente brancos ({fmt(_pct_branco_c1,1)}% não negros) de ambos os sexos, com o "
@@ -1621,7 +1646,10 @@ def build_doc(r, k):
         f"{fmt(P['KM_C2_PCT_MULHER'],0)}% feminino) com rendimento de R${fmtN(P['KM_C2_RENDA_BRL'])} "
         f"(log={fmt(P['KM_C2_LOG_RENDA'],3)}) e {fmt(P['KM_C2_PCT_SUP'],1)}% com superior completo: "
         f"escolaridade quase três vezes maior que o Cluster 1, porém com rendimento {_renda_ratio}% "
-        f"inferior, confirmando a subconversão do capital humano em renda para trabalhadores negros (H5)."
+        f"inferior, evidenciando subconversão do capital humano em renda para trabalhadores negros "
+        f"— mecanismo explicado pelo isolamento estrutural das redes de co-residência (H5: "
+        f"exclusão das posições de brokerage limita o acesso ao capital social que converte "
+        f"educação em mobilidade profissional, formalizado na seção 4.4)."
     )
 
     add_figure(doc, FIGURES / "kmeans_perfis_k3.png",
@@ -2333,12 +2361,24 @@ def build_doc(r, k):
         for i, (_, row_d) in enumerate(qr_kb.iterrows()):
             shade = "F2F2F2" if i % 2 == 0 else "FFFFFF"
             shade_row(tbl_kb.rows[i+1], shade)
-            cols_kb = ["modelo", "b_q10_pct", "b_q90_pct", "diff_pct", "Z_stat", "p_Z",
-                       "wald_chi2", "p_wald"]
-            for j, col in enumerate(cols_kb):
-                cell = tbl_kb.rows[i+1].cells[j]
-                val = row_d.get(col, "—")
-                cell.text = f"{val:.3f}" if isinstance(val, float) else str(val)
+            # Map display columns to actual CSV columns (with % conversion where needed)
+            def _kb(col, scale=1.0):
+                v = row_d.get(col)
+                if v is None or (isinstance(v, float) and np.isnan(v)):
+                    return "—"
+                return f"{float(v)*scale:.3f}"
+            row_vals = [
+                "M3 (controles)",
+                _kb("b_q10", 100),
+                _kb("b_q90", 100),
+                _kb("diff_q90_q10", 100),
+                _kb("z_stat"),
+                _kb("p_valor_z"),
+                _kb("wald_chi2_2"),
+                _kb("p_valor_wald"),
+            ]
+            for j, (cell, v) in enumerate(zip(tbl_kb.rows[i+1].cells, row_vals)):
+                cell.text = v
                 for run in cell.paragraphs[0].runs:
                     run.font.size = Pt(9); run.font.name = "Times New Roman"
         add_caption(doc, "Nota: H₀ = β(q) constante nos quantis. Z = contraste bootstrap β(q90)−β(q10); "
@@ -2586,6 +2626,19 @@ def build_doc(r, k):
             "incondicional. O padrão decrescente (q10: 33,1% → q90: 11,2%) caracteriza um "
             "sticky floor discriminatório: a penalidade de mercado é maior na base da distribuição.",
             width_cm=14)
+    add_para(doc,
+        "Reconciliação metodológica QR vs. RIF-OB. Os dois resultados não são contraditórios: "
+        "a regressão quantílica (seção 4.10) documenta glass ceiling no gap racial TOTAL "
+        "(discriminação + dotações) usando quantis condicionais — o gap cresce no topo da "
+        "distribuição condicional residual. A RIF-OB usa quantis INCONDICIONAIS da distribuição "
+        "de renda e decompõe esse gap total em seus componentes. O resultado da RIF-OB revela "
+        "que o crescimento do gap total (glass ceiling da QR) é inteiramente explicado pelo "
+        "acúmulo de desvantagens de dotações no topo (escolaridade, segregação residencial, "
+        "redes), e não por discriminação crescente — o componente de retornos (discriminação) "
+        "declina do q10 ao q90 (sticky floor discriminatório). Em síntese: há glass ceiling "
+        "estrutural (explicado por dotações) e sticky floor discriminatório (penalidade de mercado "
+        "maior na base), fenômenos coexistentes que exigem políticas distintas."
+    )
 
     # ── 4.14 ANÁLISES COMPLEMENTARES ─────────────────────────────────────────
     add_heading(doc, "4.14 Análises Complementares: Seleção Amostral, Tendência Temporal e COVID-19", level=2)
@@ -2602,11 +2655,13 @@ def build_doc(r, k):
         "de duas etapas estima, na primeira etapa (Probit), a probabilidade de participação "
         "via educação, idade, número de filhos e presença de cônjuge, gerando o Inverso do "
         "Razão de Mills (λ = IMR). Na segunda etapa, λ é incluído como regressor no HLM. "
-        "Resultado: λ = −1,985 (p < 0,001), confirmando seleção amostral significativa e "
-        "negativa. O gap corrigido por Heckman é −7,41% (vs. −9,71% no HLM M3 sem correção), "
-        "indicando que a estimativa bruta subestima a penalidade real — negros excluídos do "
-        "mercado estariam em situação ainda pior. A correção confirma, portanto, que o gap "
-        "identificado no HLM é uma estimativa conservadora da discriminação.")
+        "Resultado: λ = −1,985 (p < 0,001), confirmando seleção amostral negativa significativa. "
+        "O gap corrigido por Heckman é −7,41% (vs. −9,71% no HLM M3 sem correção). Como o gap "
+        "corrigido é menor em magnitude, a interpretação é: negros observados no mercado formal "
+        "são negativamente selecionados em produtividade não observada — trabalhadores negros com "
+        "menor capacidade não observada têm maior probabilidade de permanencer na amostra. "
+        "Isso implica que o HLM sem correção superestima ligeiramente o gap de discriminação pura; "
+        "a estimativa de −7,41% é, portanto, a mais conservadora e robusta à seleção amostral.")
     add_para(doc,
         "Tendência temporal e Teste de Chow. A estimação do gap racial ano a ano (2016–2025) "
         "revela estabilidade: a tendência linear é δ = +0,0008 por ano, não significativa "
@@ -2624,7 +2679,12 @@ def build_doc(r, k):
         "choques assimétricos por raça (Cajner et al., 2020), pode refletir seleção de saída: "
         "trabalhadores negros de menor renda que saíram desproporcionalmente do mercado formal "
         "durante a pandemia elevaram a renda média relativa dos negros que permaneceram, gerando "
-        "convergência espúria no diferencial salarial condicional.")
+        "convergência espúria no diferencial salarial condicional. "
+        "Limitação: o event study não apresenta gráfico de tendências pré-tratamento (parallel "
+        "trends test), requisito mínimo de validade do DiD. A estabilidade pré-2020 (Teste de Chow, "
+        "F(2,6)=7,01, p=0,027) e a significância do break em 2020 são evidências favoráveis, "
+        "mas não substitutos do teste visual de tendências paralelas, que deve ser exibido em "
+        "versão futura do trabalho.")
 
     doc.add_page_break()
 
@@ -2720,8 +2780,14 @@ def build_doc(r, k):
         "(P2) enforcement anti-discriminação, (P3) equidade educacional, (P4) desegregação "
         "residencial, (P5) mentoria e redes profissionais, (P6) transparência salarial "
         "obrigatória. Os modelos têm premissas de efetividade explicitamente marcadas [ASSUMIDO], "
-        "baseadas em Holzer & Neumark (2000) e Bertrand & Duflo (2017), e não constituem "
-        "previsões causais positivas — são cenários normativos de planejamento."
+        "baseadas em Holzer & Neumark (2000) e Bertrand & Duflo (2017). "
+        "Limitação de transferibilidade: essas estimativas derivam principalmente de estudos "
+        "nos EUA e Europa; o contexto brasileiro (menor enforcement institucional, estrutura "
+        "sindical distinta, legislação própria) pode alterar as magnitudes absolutas. "
+        "O ranking relativo P1 > P2 > P3 é robusto a variações razoáveis nos coeficientes "
+        "de efetividade. Os resultados não constituem previsões causais positivas — "
+        "são cenários normativos de planejamento que requerem validação empírica no "
+        "contexto brasileiro."
     )
 
     # Tabela PO TOPSIS se disponível

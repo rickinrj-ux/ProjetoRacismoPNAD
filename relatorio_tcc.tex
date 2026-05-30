@@ -381,18 +381,24 @@ morar em bairros com maior concentração de negros reduz o rendimento
   \label{eq:nivel3}
 \end{equation}
 
-O coeficiente de correlação intraclasse (ICC) para o Nível~3 é dado por:
+Em um modelo de três níveis, o ICC completo é:
 \begin{equation}
-  \rho_{UF} = \frac{\tau^2_v}{\tau^2_v + \sigma^2}
+  \rho_{UF} = \frac{\tau^2_{UF}}{\tau^2_{UF} + \tau^2_{UPA} + \sigma^2}
   \label{eq:icc}
 \end{equation}
+onde $\tau^2_{UF}$ é a variância entre estados, $\tau^2_{UPA}$ a variância
+entre UPAs e $\sigma^2$ a variância residual intraindividual.
 Valores $\rho_{UF} > 0{,}05$ justificam a inclusão do nível~3 no modelo
 \citep{raudenbush2002}.
 
-Dado o número elevado de UPAs (41.517), os efeitos aleatórios de localidade
-foram substituídos por \textit{slopes fixos}, estratégia computacionalmente
-defensável que mantém a hipótese de \textit{networking} local testável
-\citep{raudenbush2002}. A estimação utiliza REML com método de Powell
+Os efeitos de localidade (UPA) são modelados como \textit{interceptos fixos}
+--- estratégia computacionalmente viável para 41.517 grupos e apropriada quando
+o interesse reside em controlar heterogeneidade não observada de cada UPA,
+sem necessidade de estimar a distribuição dos efeitos aleatórios de UPA.
+Nessa especificação, $\tau^2_{UPA}$ não é estimado separadamente e a
+fórmula do ICC de Nível~3 reduz-se a $\rho_{UF} = \tau^2_{UF} / (\tau^2_{UF} + \sigma^2)$,
+reportada nas tabelas deste trabalho.
+A estimação utiliza REML com método de Powell
 para evitar colapso de variância na fronteira $\tau^2=0$.
 
 \subsection{Clustering Socioeconômico (K-Means)}
