@@ -149,6 +149,36 @@ KM_DB_K2, KM_DB_K3, KM_DB_K5
 
 ---
 
+## v4.2 — Revisão editorial e narrativa (2026-05-30)
+
+### Prompt do usuário
+> "Avalie esses feedbacks, faça as alterações seguindo o pipeline e demonstre o que foi alterado: [revisão editorial completa com 🟢/🔴/🟡 — excesso de densidade, sem hierarquia narrativa, Discussão sem contraste com literatura, Conclusão sem impacto, Metodologia superengenheirada, risco na banca, melhorias prioritárias: enxugar Resultados, reescrever Conclusão, mover detalhes técnicos para apêndice, criar narrativa única 'sistema de barreiras em camadas']"
+
+### Mudanças editoriais implementadas
+
+#### gerar_relatorio_word.py
+1. **Tese Central (6 barreiras)** — adicionada antes da seção 4.0 Descritiva:
+   - Barreira de acesso (OR GLMM), salarial intra-ocupação (gap M4), progressão glass ceiling (KB-test),
+     contextual (mediação UPA), rede (betweenness nulo negros), persistência temporal (1 século)
+2. **Seção 3.3 nota executiva** — parágrafo apontando ao apêndice para leitores interessados apenas nos resultados substantivos
+3. **Síntese/Discussão** — novo parágrafo de contraste com literatura: Hasenbalg (1979), Henriques (2001), Soares (2009); contribuição: decomposição da "caixa preta" dos 50% inexplicados em mecanismos específicos
+4. **Conclusão reescrita** — 4 frases de abertura em negrito (teses centrais), síntese empírica, PO, Contribuição atualizada referenciando Hasenbalg (1979)
+
+#### gerar_relatorio_tcc.py
+1. **Tese central no Resultados** — parágrafo de 5 itens (barreiras i–v) antes dos resultados HLM
+2. **Discussão** — `\paragraph{O que este trabalho acrescenta ao debate.}` com citações Hasenbalg/Henriques/Soares; decomposição explícita dos 50% de Soares (2009)
+3. **Conclusão** — reescrita com `\begin{quote}\textit{...}\end{quote}` para 4 frases impactantes, síntese empírica, PO, Contribuição principal atualizada
+
+#### Bug fix
+- `extract_kpis()`: adicionadas chaves `gap_m4` (M4_Ocupacao, Gap%=-6.24%) e `med_occ` (Mediacao_occ%=17.55%) que estavam ausentes
+
+### Justificativa das mudanças narrativas
+- Banca cobra clareza: um mapa das conclusões antes dos resultados permite ao examinador acompanhar o argumento central
+- Literatura: comparação explícita com Hasenbalg/Soares posiciona contribuição vs. state-of-the-art
+- Conclusão com frases-tese em negrito facilita a síntese do trabalho em apresentação oral
+
+---
+
 ## Nota técnica sobre escolhas metodológicas
 
 ### Por que não usar Zero-Inflated Models?

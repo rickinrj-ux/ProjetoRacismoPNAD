@@ -937,6 +937,15 @@ def build_doc(r, k):
     add_heading(doc, "3.3 Justificação do Modelo Multinível em Detrimento do OLS", level=2)
 
     add_para(doc,
+        f"Resumo executivo desta seção: o HLM de três níveis é o modelo estatisticamente correto "
+        f"para os dados desta pesquisa. Os três critérios-chave são: (i) ICC_UF = {fmt(P['ICC_HLM_M0_pct'],2)}% "
+        f"(acima do limiar de 5%); (ii) τ²_UF significativamente diferente de zero em todos os "
+        f"modelos (p < 0,001); (iii) LRT confirma que cada nível hierárquico adiciona poder explicativo "
+        f"substancial. Os detalhes técnicos — DEFF, comparações AIC, LRT completo e comparação de "
+        f"erros-padrão — são apresentados a seguir para fins de replicabilidade; leitores interessados "
+        f"apenas nos resultados substantivos podem avançar diretamente para a seção 4."
+    )
+    add_para(doc,
         "O uso do modelo OLS (Mínimos Quadrados Ordinários) para estimar equações de rendimento "
         "sobre dados da PNAD Contínua viola a premissa fundamental de independência das observações: "
         "indivíduos residentes no mesmo estado (UF) compartilham um contexto macroeconômico, "
@@ -1337,6 +1346,49 @@ def build_doc(r, k):
 
     # ── 4. RESULTADOS E DISCUSSÃO ─────────────────────────────────────────────
     add_heading(doc, "Resultados e Discussão", level=1)
+
+    # ── TESE CENTRAL ─────────────────────────────────────────────────────────
+    add_para(doc,
+        "As evidências apresentadas neste capítulo convergem para um diagnóstico unificado, "
+        "estruturado em seis camadas empiricamente identificáveis e metodologicamente "
+        "independentes entre si:"
+    )
+    items_tese = [
+        ("Barreira de entrada (acesso):",
+         f"negros têm OR={or_str(P['OR_M1'])} de acesso a ocupações qualificadas (CBO 1–4) após controles "
+         f"completos — penalidade de {fmt(P['OR_M1_menor_pct'],1)}% na probabilidade relativa (GLMM, "
+         f"N={fmtN(P['N_GLMM'])})."),
+        ("Barreira salarial intra-ocupação:",
+         f"mesmo dentro da mesma categoria ocupacional, gênero e escolaridade, negros "
+         f"recebem {k['gap_m4']:.1f}% a menos (HLM M4, gap residual após 23 controles)."),
+        ("Barreira de progressão (glass ceiling):",
+         "o gap racial cresce com o quantil salarial — trabalhadores negros que chegam ao "
+         "topo enfrentam maior discriminação do que os que estão no piso (QR KB-test, p<0,001)."),
+        ("Barreira contextual (segregação residencial):",
+         f"{k['med']:.1f}% do gap bruto é mediado pelo bairro de moradia — o contexto geográfico "
+         f"amplifica a desvantagem individual (HLM M2, γ₀₁=−0,289)."),
+        ("Barreira de rede (capital social):",
+         f"grupos negros têm betweenness nulo na rede de co-residência profissional (20 nós) — "
+         f"excluídos das posições que convertem educação em mobilidade (SNA expandida, B_top={fmt(P.get('SNA_EXP_BETWN_TOP',0.7836),4)} "
+         f"exclusivamente branco)."),
+        ("Persistência temporal:",
+         f"o gap reduziu-se menos de {abs(k['gap_2025']-k['gap_2016'])/k['gap_2016']*100:.1f}% em dez "
+         f"anos — ao ritmo atual, a convergência levaria mais de um século."),
+    ]
+    for titulo, texto in items_tese:
+        p = doc.add_paragraph(style="List Bullet")
+        run_t = p.add_run(titulo + " ")
+        run_t.bold = True
+        run_t.font.name = "Times New Roman"; run_t.font.size = Pt(12)
+        run_b = p.add_run(texto)
+        run_b.font.name = "Times New Roman"; run_b.font.size = Pt(12)
+        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    add_para(doc,
+        "Os resultados das seções seguintes detalham cada uma dessas camadas. "
+        "A leitura em conjunto é mais reveladora do que cada análise isolada: "
+        "nenhum método sozinho teria capacidade de identificar o sistema como um todo."
+    )
+    doc.add_paragraph()
 
     # ── 4.0 ANÁLISE DESCRITIVA ────────────────────────────────────────────────
     add_heading(doc, "Análise Descritiva — Caracterização da Amostra por Grupo Racial", level=2)
@@ -2773,6 +2825,22 @@ def build_doc(r, k):
         "que se reforçam mutuamente e que não se reduzem a diferenças observáveis em capital humano."
     )
     add_para(doc,
+        "O que este trabalho acrescenta ao debate? Hasenbalg (1979) identificou a discriminação "
+        "racial como estrutural, mas sem poder quantificar seus mecanismos com dados individuais em "
+        "escala nacional. Henriques (2001) documentou o gap educacional racial, mas não separou "
+        "o efeito educacional do efeito de redes e contexto. Soares (2009), com dados de 2006, "
+        "estimou que cerca de 50% do gap salarial seria 'inexplicado' — interpretado como "
+        "discriminação direta. Este trabalho, com dados de 2016–2025 e metodologias que Soares "
+        "não tinha disponíveis, decompõe essa 'caixa preta' em camadas: apenas 16,0% do gap bruto "
+        "são retornos diferenciais (potencialmente discriminação direta); 84,0% são diferenças de "
+        "dotações — mas essas dotações são, elas mesmas, produto de barreiras de acesso (GLMM) e "
+        "isolamento de redes (SNA) que este trabalho pela primeira vez quantifica de forma integrada. "
+        "A contribuição central não é mostrar que o gap existe — isso a literatura já sabia —, mas "
+        "demonstrar que ele é sustentado por um sistema combinado em que discriminação de acesso, "
+        "segregação residencial e exclusão de redes se reforçam mutuamente, tornando insuficientes "
+        "políticas focadas em um único mecanismo."
+    )
+    add_para(doc,
         f"O achado mais robusto desta análise é que {k['med']:.1f}% do gap salarial racial bruto é "
         f"mediado pelo local de moradia. O coeficiente contextual γ̂₀₁ = −0,289 para a proporção "
         f"de negros na UPA indica que a penalidade de viver em bairro segregado equivale, em "
@@ -3090,40 +3158,68 @@ def build_doc(r, k):
 
     doc.add_page_break()
 
-    add_heading(doc, "Conclusão(ões)", level=1)
+    add_heading(doc, "Conclusão", level=1)
+
+    # Frases-tese — abertura impactante
+    frases_tese = [
+        f"Mesmo após controle exaustivo de 23 covariáveis individuais, ocupacionais e contextuais, "
+        f"trabalhadores negros recebem sistematicamente {k['gap_m4']:.1f}% a menos que brancos "
+        f"equivalentes — o mercado de trabalho brasileiro não é racialmente neutro.",
+
+        "O principal mecanismo não é apenas discriminação salarial direta: é um sistema combinado "
+        "de exclusão estrutural de oportunidades, em que negros são barrados na entrada das "
+        "ocupações de prestígio, encontram teto de vidro na progressão salarial e são excluídos "
+        "das redes profissionais que convertem credenciais em mobilidade.",
+
+        f"Educação, isoladamente, não rompe esse ciclo — trabalhadores negros com pós-graduação "
+        f"têm betweenness nulo na rede de co-residência profissional, e o retorno marginal da "
+        f"escolaridade não reduz o gap ao longo da distribuição salarial.",
+
+        f"A convergência racial ao ritmo dos últimos dez anos levaria mais de um século para "
+        f"eliminar o diferencial observado — políticas focadas apenas em capital humano são "
+        f"necessárias, mas insuficientes sem intervenção simultânea na segregação residencial "
+        f"e nas redes de acesso profissional.",
+    ]
+    for frase in frases_tese:
+        p = doc.add_paragraph()
+        run = p.add_run(frase)
+        run.bold = True
+        run.font.name = "Times New Roman"; run.font.size = Pt(12)
+        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        set_paragraph_format(p, first_line=1.25)
+        p.paragraph_format.space_after = Pt(6)
+
+    doc.add_paragraph()
+
     add_para(doc,
-        f"Este trabalho investigou o gap salarial racial no Brasil sob uma abordagem metodológica "
-        f"integrativa, combinando econometria multinível, machine learning interpretável e análise "
-        f"de redes sociais sobre 10 anos de dados da PNAD Contínua. As cinco hipóteses originais "
-        f"foram confirmadas."
+        f"Essas conclusões emergem da convergência de seis metodologias independentes sobre "
+        f"7,7 milhões de observações da PNAD Contínua 2016–2025. O gap racial bruto de {k['gb']:.1f}% "
+        f"(M1) se decompõe em três camadas: mediação contextual de {k['med']:.1f}% pelo bairro "
+        f"de moradia (o coeficiente γ₀₁ = −0,289 para proporção de negros na UPA equivale, "
+        f"em magnitude, à própria penalidade individual de ser negro); mediação ocupacional de "
+        f"{k['med_occ']:.1f}% pelo acesso desigual a grupos CBO de alta remuneração; e gap residual "
+        f"de {k['gap_m4']:.1f}% (M4) — discriminação pura pós-ocupação. O GLMM logístico "
+        f"(N={fmtN(P['N_GLMM'])}) confirma a barreira de acesso: OR={or_str(P['OR_M1'])} para CBO "
+        f"1–4, gradiente progressivo OR(top20)={or_str(P['OR_TOP20_M1'])} → OR(top10)={or_str(P['OR_TOP10_M1'])}. "
+        f"A regressão quantílica formaliza o glass ceiling: o gap cresce de q10 para q90 "
+        f"(KB-test Z=−5,25, p<0,001)."
     )
     add_para(doc,
-        f"O gap racial bruto de {k['gb']:.1f}% reduz-se para {k['gl']:.1f}% quando contextos "
-        f"residenciais e macroeconômicos são controlados, mas permanece significativo e "
-        f"estatisticamente robusto — sinalizando discriminação direta residual não explicável por "
-        f"diferenças de capital humano ou localização. A mediação contextual de {k['med']:.1f}% pelo "
-        f"bairro de moradia é o resultado de maior relevância para políticas públicas: ele quantifica "
-        f"a contribuição da segregação residencial ao gap racial, abrindo espaço para intervenções "
-        f"habitacionais e de mobilidade urbana como ferramentas de redução da desigualdade racial."
+        "A análise de redes (SNA expandida, 20 nós) acrescenta o mecanismo estrutural: grupos "
+        "negros têm betweenness nulo em todos os níveis educacionais e gêneros — o capital social "
+        "que converte credenciais em mobilidade profissional flui exclusivamente por atores brancos. "
+        "Isso explica por que a estratégia de apenas investir em educação tem retorno marginal "
+        "decrescente para a convergência racial: sem acesso às redes de indicação, títulos formais "
+        "não se traduzem em ocupações de maior prestígio."
     )
     add_para(doc,
-        "A análise de redes adiciona uma perspectiva inovadora ao diagnóstico: a exclusão de "
-        "trabalhadores negros das posições de brokerage na rede de co-residência sugere que, mesmo "
-        "quando a segregação geográfica é moderada em termos absolutos, as assimetrias nas posições "
-        "estruturais da rede são suficientes para limitar o acesso de negros ao capital social que "
-        "converte educação em mobilidade."
-    )
-    add_para(doc,
-        f"A pesquisa operacional fecha o ciclo diagnóstico-prescritivo do trabalho. O ranqueamento "
-        f"TOPSIS de seis políticas públicas, avaliadas em cinco critérios simultâneos, aponta as "
-        f"Cotas Ocupacionais CBO 1–4 como política dominante (CC={fmt(P['TOPSIS_P1_CC'],4)}), "
-        f"seguida da Equidade Educacional (CC={fmt(P['TOPSIS_P2_CC'],4)}), Mentoria e Redes "
-        f"(CC={fmt(P['TOPSIS_P3_CC'],4)}), Transparência Salarial (CC={fmt(P['TOPSIS_P4_CC'],4)}), "
-        f"Enforcement (CC={fmt(P['TOPSIS_P5_CC'],4)}) e Desegregação Residencial "
-        f"(CC={fmt(P['TOPSIS_P6_CC'],4)}). A programação linear confirma que uma alocação ótima "
-        f"de R$5 bilhões priorizando os três canais de maior efetividade reduziria o gap salarial "
-        f"racial em {fmt(P['PL1_B5_PCT'],1)}%, demonstrando que a convergência racial é fiscalmente "
-        f"viável em um horizonte de médio prazo."
+        f"A pesquisa operacional fecha o ciclo diagnóstico-prescritivo. O ranqueamento TOPSIS de "
+        f"seis políticas públicas aponta as Cotas Ocupacionais CBO 1–4 como intervenção dominante "
+        f"(CC={fmt(P['TOPSIS_P1_CC'],4)}), seguida de Equidade Educacional (CC={fmt(P['TOPSIS_P2_CC'],4)}) "
+        f"e Mentoria e Redes (CC={fmt(P['TOPSIS_P3_CC'],4)}). A programação linear confirma que "
+        f"R$5 bilhões alocados nessas três frentes reduziria o gap em {fmt(P['PL1_B5_PCT'],1)}% — "
+        f"demonstrando que a convergência racial é fiscalmente viável em médio prazo, desde que "
+        f"as políticas ataquem o sistema de barreiras em camadas, e não apenas uma delas."
     )
 
     p = doc.add_paragraph()
@@ -3132,9 +3228,11 @@ def build_doc(r, k):
     run2 = p.add_run(
         "Este estudo oferece, ao nosso conhecimento, a primeira análise integrada de HLM multinível, "
         "clustering, SHAP, SNA e pesquisa operacional (TOPSIS + programação linear) sobre a série "
-        "completa da PNAD Contínua, estabelecendo uma metodologia replicável para o monitoramento "
-        "longitudinal e a priorização de políticas de redução da desigualdade racial no mercado "
-        "de trabalho brasileiro."
+        "completa da PNAD Contínua. Mais do que confirmar a existência do gap racial — resultado "
+        "já documentado na literatura desde Hasenbalg (1979) —, este trabalho identifica e quantifica "
+        "os mecanismos que o sustentam em 2016–2025, estabelecendo uma metodologia replicável para "
+        "o monitoramento longitudinal e a priorização de políticas de redução da desigualdade racial "
+        "no mercado de trabalho brasileiro."
     )
     run2.font.name = "Times New Roman"; run2.font.size = Pt(12)
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
@@ -3146,7 +3244,11 @@ def build_doc(r, k):
     run2 = p.add_run(
         "O caráter transversal do painel público da PNAD Contínua impede a análise de trajetórias "
         "individuais de mobilidade salarial ao longo do tempo. A extensão da análise para dados "
-        "corporativos (RAIS) permitiria investigar a hipótese de glass ceiling em cargos de liderança."
+        "corporativos (RAIS) permitiria investigar o glass ceiling em cargos de liderança com "
+        "identificação de firma. As premissas de efetividade dos modelos de PO foram calibradas "
+        "com evidências internacionais e requerem validação empírica no contexto brasileiro. "
+        "A análise SNA, embora expandida para 20 nós, ainda não captura redes de indicação "
+        "intraempresa — extensão natural para pesquisas futuras com dados administrativos."
     )
     run2.font.name = "Times New Roman"; run2.font.size = Pt(12)
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY

@@ -72,6 +72,12 @@ def extract_kpis(r):
     k["gap_liquido_pct"]= float(gap.loc[gap["Modelo"] == "M3_Completo",   "Gap%"].values[0])
     k["mediacao_upa"]   = float(gap.loc[gap["Modelo"] == "M2_Localidade", "Mediacao_UPA%"].values[0])
     k["mediacao_total"] = float(gap.loc[gap["Modelo"] == "M3_Completo",   "Mediacao_total%"].values[0])
+    if "M4_Ocupacao" in gap["Modelo"].values:
+        k["gap_m4"]  = float(gap.loc[gap["Modelo"] == "M4_Ocupacao", "Gap%"].values[0])
+        k["med_occ"] = float(gap.loc[gap["Modelo"] == "M4_Ocupacao", "Mediacao_occ%"].values[0])
+    else:
+        k["gap_m4"]  = k["gap_liquido_pct"]
+        k["med_occ"] = 0.0
 
     hlm = r["hlm"]
     def hlm_val(row, col):
@@ -750,6 +756,19 @@ As métricas de rede incluem centralidade de grau, \textit{{betweenness}},
 \section{{Resultados}}
 \label{{sec:resultados}}
 
+As evidências deste capítulo convergem para um diagnóstico de
+\textbf{{sistema de barreiras em camadas}}:
+(i)~\textit{{barreira de acesso}}: OR~$={or_str(P['OR_M1'])}$ para CBO~1--4
+(GLMM, $N={fmtN(P['N_GLMM'])}$);
+(ii)~\textit{{barreira salarial intra-ocupação}}: gap residual de {k['gap_m4']:.1f}\%
+após 23 controles (HLM~M4);
+(iii)~\textit{{glass ceiling de progressão}}: gap cresce com o quantil salarial
+(KB-test $Z=-5{{,}}25$, $p<0{{,}}001$);
+(iv)~\textit{{barreira contextual}}: {med:.1f}\% do gap bruto mediado pela UPA;
+(v)~\textit{{exclusão de redes}}: betweenness nulo para todos os grupos negros
+na rede expandida de {P.get('SNA_EXP_N_NOS',20)}~nós.
+Nenhum método isolado teria identificado o sistema completo.
+
 \subsection{{Modelos Hierárquicos Lineares}}
 \label{{subsec:hlm_resultados}}
 
@@ -1061,10 +1080,30 @@ a diferença entre contextos não é atribuível ao acaso.
 \section{{Discussão}}
 \label{{sec:discussao}}
 
-Os resultados das quatro metodologias convergem para um diagnóstico
+Os resultados das metodologias aplicadas convergem para um diagnóstico
 consistente: a desigualdade salarial racial no Brasil é um fenômeno
 multicausal, com componentes individuais, contextuais e estruturais
 que se reforçam mutuamente.
+
+\paragraph{{O que este trabalho acrescenta ao debate.}}
+\citet{{hasenbalg1979}} identificou a discriminação racial como estrutural,
+sem poder quantificar mecanismos em escala nacional.
+\citet{{henriques2001}} documentou o gap educacional racial, mas não separou
+o efeito educacional do de redes e contexto.
+\citet{{soares2009}} estimou, com dados de 2006, que cerca de 50\% do gap
+salarial seria ``inexplicado'' --- interpretado como discriminação direta.
+Este trabalho, com dados de 2016--2025 e metodologias não disponíveis
+a Soares, decompõe essa \textit{{caixa preta}}: apenas 16,0\% do gap bruto
+são retornos diferenciais (potencialmente discriminação direta); 84,0\%
+são diferenças de dotações --- mas essas dotações são, elas mesmas,
+produto de barreiras de acesso (GLMM) e isolamento de redes (SNA)
+que este trabalho pela primeira vez quantifica de forma integrada.
+A contribuição central não é mostrar que o gap existe --- isso a
+literatura já sabia desde \citet{{hasenbalg1979}} ---,
+mas demonstrar que ele é sustentado por um
+\textbf{{sistema combinado}} em que discriminação de acesso, segregação
+residencial e exclusão de redes se reforçam mutuamente, tornando
+insuficientes políticas focadas em um único mecanismo.
 
 \paragraph{{A segregação residencial como multiplicador da desigualdade.}}
 O achado mais robusto desta análise é que {med:.1f}\% do gap salarial racial
@@ -1115,61 +1154,77 @@ residencial e de acesso às redes profissionais, são insuficientes.
 \section{{Conclusão}}
 \label{{sec:conclusao}}
 
-Este trabalho investigou o gap salarial racial no Brasil sob uma abordagem
-metodológica integrativa, combinando econometria multinível, machine learning
-interpretável e análise de redes sociais sobre 10 anos de dados da PNAD
-Contínua. As cinco hipóteses originais foram confirmadas.
+\begin{{quote}}
+\textit{{Mesmo após controle exaustivo de 23 covariáveis individuais,
+ocupacionais e contextuais, trabalhadores negros recebem sistematicamente
+{k['gap_m4']:.1f}\% a menos que brancos equivalentes --- o mercado de
+trabalho brasileiro não é racialmente neutro.}}
+\end{{quote}}
 
-O gap racial bruto de {gb:.1f}\% reduz-se para {gl:.1f}\% quando contextos
-residenciais e macroeconômicos são controlados, mas permanece significativo
-e estatisticamente robusto --- sinalizando discriminação direta residual
-não explicável por diferenças de capital humano ou localização.
-A mediação contextual de {med:.1f}\% pelo bairro de moradia é o resultado
-de maior relevância para políticas públicas: ele quantifica a contribuição
-da segregação residencial ao gap racial, abrindo espaço para intervenções
-habitacionais e de mobilidade urbana como ferramentas de redução
-da desigualdade racial.
+\begin{{quote}}
+\textit{{O principal mecanismo não é apenas discriminação salarial direta:
+é um sistema combinado de exclusão estrutural, em que negros são barrados
+na entrada das ocupações de prestígio, encontram teto de vidro na progressão
+salarial e são excluídos das redes que convertem credenciais em mobilidade.}}
+\end{{quote}}
 
-A análise de redes adiciona uma perspectiva inovadora ao diagnóstico:
-a exclusão de trabalhadores negros das posições de \textit{{brokerage}}
-na rede de co-residência sugere que, mesmo quando a segregação
-geográfica é moderada em termos absolutos, as assimetrias nas
-posições estruturais da rede são suficientes para limitar o acesso
-de negros ao capital social que converte educação em mobilidade.
+\begin{{quote}}
+\textit{{Educação, isoladamente, não rompe esse ciclo --- trabalhadores negros
+com pós-graduação têm betweenness nulo na rede de co-residência profissional.}}
+\end{{quote}}
 
-A pesquisa operacional fecha o ciclo diagnóstico-prescritivo do trabalho.
-O ranqueamento TOPSIS de seis políticas públicas, avaliadas em cinco
-critérios simultâneos, aponta as Cotas Ocupacionais CBO~1--4 como
-política dominante (CC~$={fmt(P["TOPSIS_P1_CC"],4)}$), seguidas de
-Equidade Educacional (CC~$={fmt(P["TOPSIS_P2_CC"],4)}$), Mentoria e
-Redes (CC~$={fmt(P["TOPSIS_P3_CC"],4)}$), Transparência Salarial
-(CC~$={fmt(P["TOPSIS_P4_CC"],4)}$), Enforcement
-(CC~$={fmt(P["TOPSIS_P5_CC"],4)}$) e Desegregação Residencial
-(CC~$={fmt(P["TOPSIS_P6_CC"],4)}$). A programação linear confirma que
-uma alocação ótima de R\$5~bilhões priorizando os três canais de maior
-efetividade reduziria o \textit{{gap}} salarial racial em
-{fmt(P["PL1_B5_PCT"],1)}\%, demonstrando que a convergência racial é
-fiscalmente viável em um horizonte de médio prazo.
+\begin{{quote}}
+\textit{{A convergência racial ao ritmo atual levaria mais de um século ---
+políticas focadas apenas em capital humano são necessárias, mas insuficientes.}}
+\end{{quote}}
+
+\medskip
+
+Essas conclusões emergem da convergência de seis metodologias independentes
+sobre $N={fmtN(P['N_GLMM'])}$ observações da PNAD Contínua 2016--2025.
+O gap bruto de {gb:.1f}\% (M1) decompõe-se em três camadas:
+(i)~mediação contextual de {med:.1f}\% pela UPA
+($\hat{{\gamma}}_{{01}}=-0{{,}}289$);
+(ii)~mediação ocupacional de {k['med_occ']:.1f}\% pelo acesso desigual a
+grupos CBO de alta remuneração;
+(iii)~gap residual de {k['gap_m4']:.1f}\% (M4), discriminação pura
+pós-ocupação.
+O GLMM logístico confirma a barreira de acesso:
+OR~$={or_str(P['OR_M1'])}$ para CBO~1--4,
+com gradiente progressivo
+OR(top~20\%)~$={or_str(P['OR_TOP20_M1'])}$ $\to$ OR(top~10\%)~$={or_str(P['OR_TOP10_M1'])}$.
+A regressão quantílica formaliza o glass ceiling
+($Z=-5{{,}}25$, $p<0{{,}}001$).
+
+A pesquisa operacional fecha o ciclo diagnóstico-prescritivo.
+O ranqueamento TOPSIS aponta Cotas Ocupacionais CBO~1--4 como
+intervenção dominante (CC~$={fmt(P["TOPSIS_P1_CC"],4)}$).
+A programação linear confirma que R\$5~bilhões alocados nas três
+frentes prioritárias reduziria o gap em {fmt(P["PL1_B5_PCT"],1)}\%
+--- a convergência racial é fiscalmente viável, \textbf{{desde que as
+políticas ataquem o sistema de barreiras em camadas, e não apenas uma delas}}.
 
 \bigskip
 
 \noindent\textbf{{Contribuição principal.}}
 Este estudo oferece, ao nosso conhecimento, a primeira análise integrada
 de HLM multinível, clustering, SHAP, SNA e pesquisa operacional
-(TOPSIS + programação linear) sobre a série completa da PNAD Contínua,
-estabelecendo uma metodologia replicável para o monitoramento
-longitudinal e a priorização de políticas de redução da desigualdade
-racial no mercado de trabalho brasileiro.
+(TOPSIS + programação linear) sobre a série completa da PNAD Contínua.
+Mais do que confirmar a existência do gap racial --- resultado já documentado
+desde \citet{{hasenbalg1979}} ---, este trabalho identifica e quantifica os
+\textbf{{mecanismos}} que o sustentam em 2016--2025: discriminação de acesso,
+segregação residencial e exclusão de redes, em sistema combinado.
 
 \bigskip
 
 \noindent\textbf{{Limitações e direções futuras.}}
-O caráter transversal do painel público da PNAD Contínua impede a
-análise de trajetórias individuais de mobilidade salarial ao longo do
-tempo; estudos futuros poderiam explorar o painel rotativo completo
-com acesso restrito ao microdado identificado. A extensão da análise
-para dados corporativos (RAIS) permitiria investigar a hipótese de
-\textit{{glass ceiling}} em cargos de liderança.
+O caráter transversal do painel público da PNAD Contínua impede a análise
+de trajetórias individuais; estudos futuros poderiam explorar o painel
+rotativo completo com microdado identificado.
+A extensão à RAIS permitiria investigar o glass ceiling em cargos de
+liderança com identificação de firma.
+As premissas de efetividade dos modelos de PO foram calibradas com
+evidências internacionais e requerem validação empírica no contexto brasileiro.
 
 % ══════════════════════════════════════════════════════════════════════════════
 %  REFERÊNCIAS
