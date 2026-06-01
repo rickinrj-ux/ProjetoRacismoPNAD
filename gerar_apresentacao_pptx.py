@@ -837,7 +837,7 @@ add_rect(s, In(0.3), In(6.05), In(12.7), In(0.50),
          fill_rgb=RGBColor(0xFF,0xF9,0xE7), line_rgb=C_AMBER, line_pt=1)
 add_text(s, "H4: Contradição do mercado atual — emprego em máxima histórica (94,4%) mas renda real recua em 2025 (−4,6% vs 2024).  "
             "H5: Armadilha da renda média — gap de qualificação (11,0% vs 22,4%) praticamente inalterado após 10 anos. "
-            "Inclusão produtiva plena = proxy +74,3 p.p. de PIB (Hsieh et al., 2019).",
+            "Inclusão produtiva plena = simulação CBO: +127,3% renda negra; proxy agregado +74,3 p.p. (127,3% × participação ~58% — conservador, ver nota metodológica).",
          In(0.5), In(6.10), In(12.3), In(0.45),
          font_size=11.5, color=C_DARK)
 
@@ -957,7 +957,7 @@ politicas = [
     (C_GREEN, "Eixo 3 — Inclusão Produtiva",
      ["Mentoria estruturada para elevar betweenness\nde negros nas redes profissionais (SNA: =0)",
       "30% dos cargos DAS e liderança corporativa\npara negros até 2030 (inclusão nas redes)",
-      "Equalizar CBO = +127,3% renda negra |\nproxy PIB +74,3 p.p. (Hsieh et al., 2019)"]),
+      "Equalizar CBO = +127,3% renda negra\n(proxy agregado: ~74 p.p.; ver nota metodológica)"]),
 ]
 for i, (color, title, items) in enumerate(politicas):
     x = In(0.3) + i * In(4.35)

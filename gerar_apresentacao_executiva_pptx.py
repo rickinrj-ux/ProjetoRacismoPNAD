@@ -175,12 +175,12 @@ add_text(s, "Por que isso importa para o pais?",
          font_size=20, bold=True, color=C_DARK)
 
 fatos = [
-    (C_RED,   "R$ 73 bilhoes",
-     "estimativa da perda de producao anual por sub-utilizacao de capital humano negro\n(proxy: equalizar CBO = +127,3% de renda para negros qualificados)"),
-    (C_AMBER, "+74,3 p.p. de PIB",
-     "ganho potencial de inclusao produtiva plena se negros tivessem mesma distribuicao\nocupacional que brancos (Hsieh et al., 2019 — metodologia adaptada)"),
+    (C_RED,   "+127,3%",
+     "ganho de renda para negros se tivessem a mesma distribuicao ocupacional (CBO) que brancos\n— simulacao com dados reais PNAD 2025 (run_hipoteses_estado.py)"),
+    (C_AMBER, "+74,3 p.p.",
+     "proxy de ganho produtivo agregado (127,3% x participacao negra na forca de trabalho ~58%)\n— proxy conservador, nao e estimativa de PIB formal (Hsieh et al., 2019 como referencia)"),
     (C_BLUE,  "+100 anos",
-     "tempo necessario para eliminar o gap racial ao ritmo atual de convergencia\nespontanea (~0,02 log-pontos por ano, sem intervencao de politica publica)"),
+     "tempo para eliminar o gap ao ritmo atual de convergencia espontanea\n— tendencia temporal: delta = 0,001 log-pt/ano (WLS 2016-2025, p=0,077 — nao significativo)"),
 ]
 for i, (color, val, desc) in enumerate(fatos):
     x = In(0.3) + i * In(4.35)
@@ -213,7 +213,7 @@ add_text(s, "A desigualdade racial no mercado de trabalho opera em tres estagios
 
 barreiras = [
     (C_RED,    "BARREIRA I",   "Acesso e Segregacao",
-     ["Negros tem 29,6% menos chance de obter\nocupacao qualificada (GLMM)",
+     [f"Negros tem {fmt(P['OR_M2_menor_pct'],1)}% menos chance de obter\nocupacao qualificada (GLMM M2)",
       "Mesmo com educacao, sexo e bairro IDENTICOS",
       "Causa: segregacao residencial e\nexclusao das redes profissionais"]),
     (C_AMBER,  "BARREIRA II",  "Penalidade Salarial",
@@ -317,7 +317,7 @@ big_kpi(s, "AME — efeito marginal medio (M2)",
 add_rect(s, In(0.4), In(5.35), In(6.1), In(1.1),
          fill_rgb=RGBColor(0xFF,0xEB,0xEE), line_rgb=C_RED, line_pt=1)
 add_text(s,
-    "Mesmo com EDUCACAO, SEXO, IDADE e BAIRRO\nIDENTICOS aos de um branco, um trabalhador\nnegro tem 29,6% MENOS chance de trabalho qualificado.",
+    f"Mesmo com EDUCACAO, SEXO, IDADE e BAIRRO\nIDENTICOS aos de um branco, um trabalhador\nnegro tem {fmt(P['OR_M2_menor_pct'],1)}% MENOS chance de trabalho qualificado.",
     In(0.55), In(5.4), In(5.8), In(1.0),
     font_size=13, bold=True, color=C_RED)
 
@@ -361,7 +361,7 @@ add_text(s, "O que os dados mostram:",
 
 insights = [
     (C_RED,   "Gap sobe no topo",
-     "Gap de 7,4% na mediana (q50)\npara 10,0% no topo (q90)\n— glass ceiling formal confirmado"),
+     "Gap de 8,0% na mediana (q50)\npara 11,8% no topo (q90)\n— glass ceiling formal confirmado\n(QR global sem controles ocupacionais)"),
     (C_AMBER, "Gap piora com a idade",
      "14-24 anos: gap = 9,1%\n35-44 anos: gap = 37,5%\nBarreira aprofunda-se na carreira"),
     (C_BLUE,  "Causa: dotacoes, nao retornos",
@@ -593,7 +593,7 @@ mensagens = [
     (C_AMBER, "Opera em duas etapas distintas",
      "84% na PORTA DE ENTRADA (acesso a funcoes qualificadas) + 16% no SALARIO dentro da funcao."),
     (C_BLUE,  "E geograficamente heterogenea",
-     "O gap varia de -20,9% a -2,0% entre estados (random slope HLM, N=7,7M). Estados pobres concentram mais discriminacao."),
+     f"O gap varia de {P.get('RS_GAP_LO_PCT',-19.8):.1f}% a {P.get('RS_GAP_HI_PCT',-2.2):.1f}% entre estados (random slope HLM, N={fmtN(P.get('RS_N_OBS',7689426))}). Estados pobres concentram mais discriminacao."),
     (C_GREEN, "Politicas precisam ser especificas",
      "Cotas ocupacionais (CBO) + mentoria de redes atacam 84% do problema. Transparencia salarial ataca o restante."),
 ]

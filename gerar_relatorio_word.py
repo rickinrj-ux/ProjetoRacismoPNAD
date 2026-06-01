@@ -3091,10 +3091,11 @@ def build_doc(r, k):
     )
     add_para(doc,
         f"A redução de apenas {abs(k['gap_2025']-k['gap_2016'])/k['gap_2016']*100:.1f}% do gap em "
-        f"dez anos — equivalente a 0,02 pontos de log-rendimento por ano — sugere que, ao ritmo "
-        f"atual, a convergência racial levaria mais de um século para eliminar o diferencial "
-        f"observado em 2016. Reformas no campo da educação, sem intervenção simultânea nos "
-        f"mecanismos de segregação residencial e de acesso às redes profissionais, são insuficientes."
+        f"dez anos — equivalente a 0,001 ponto de log-rendimento por ano (δ = 0,000847, p = 0,077, "
+        f"WLS 2016–2025) — sugere que, ao ritmo atual, a convergência racial levaria mais de um "
+        f"século para eliminar o diferencial observado em 2016. Reformas no campo da educação, sem "
+        f"intervenção simultânea nos mecanismos de segregação residencial e de acesso às redes "
+        f"profissionais, são insuficientes."
     )
     add_para(doc,
         "A decomposição de Oaxaca-Blinder (seção 4.6) acrescenta precisão a esse diagnóstico: "

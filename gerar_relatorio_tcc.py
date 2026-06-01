@@ -1264,7 +1264,8 @@ racial em processos seletivos.
 
 \paragraph{{Lenta convergência racial.}}
 A redução de apenas {abs(k['gap_2025']-k['gap_2016'])/k['gap_2016']*100:.1f}\%
-do gap em dez anos --- equivalente a 0,02 pontos de log-rendimento por ano
+do gap em dez anos --- equivalente a 0,001 ponto de log-rendimento por ano
+($\delta = 0{{,}}000847$, $p = 0{{,}}077$, WLS 2016--2025)
 --- sugere que, ao ritmo atual, a convergência racial levaria mais de um
 século para eliminar o diferencial observado em 2016.
 Essa constatação não trivializa avanços recentes em políticas de cotas
