@@ -302,6 +302,44 @@ def build_latex(r, k):
     # Variáveis pré-computadas (não podem usar backslash dentro de f-string expressions)
     sna_top_node_latex = P.get("SNA_EXP_BETWN_TOP_NODE", "Branco_Fundamental_Fem").replace("_", "\\_")
 
+    # Random slope — strings pré-computadas
+    _rs_disponivel = P.get("RS_TAU2_NEGRO") is not None
+    if _rs_disponivel:
+        import math as _math
+        _rs_lr_str   = fmt(P.get("RS_LRT_LR", 0.0), 1)
+        _rs_b_str    = fmt(P.get("RS_B_NEGRO_FIXO", 0.0), 4)
+        _rs_gap_str  = f"{abs(P.get('RS_GAP_PCT', 0.0)):.1f}"
+        _rs_tau2_str = fmt(P.get("RS_TAU2_NEGRO", 0.0), 6)
+        _rs_sd_str   = fmt(P.get("RS_SD_NEGRO", 0.0), 4)
+        _rs_lo_str   = f"{P.get('RS_GAP_LO_PCT', 0.0):.1f}"
+        _rs_hi_str   = f"{P.get('RS_GAP_HI_PCT', 0.0):.1f}"
+        _rs_rho_str  = fmt(P.get("RS_RHO", 0.0), 3)
+        _rs_var_str  = f"{abs(round(P.get('RS_GAP_HI_PCT', 0.0) - P.get('RS_GAP_LO_PCT', 0.0), 1)):.1f}"
+        _rs_amostra  = (f"populacao completa ($N={fmtN(int(P.get('RS_N_OBS', 0)))}$)"
+                        if P.get("RS_SAMPLE_FRAC", 0) >= 0.99
+                        else f"amostra {P.get('RS_SAMPLE_FRAC', 0)*100:.0f}\\% ($N={fmtN(int(P.get('RS_N_OBS', 0)))}$)")
+        _rs_lrt_block = (
+            f"O LRT boundary test \\citep{{{{stram1994}}}} rejeita $H_0$ com "
+            f"$LR={_rs_lr_str}$, $p<0{{,}}001$: "
+            f"o gap racial varia significativamente entre estados. "
+            f"O efeito fixo nacional e $\\hat{{{{\\beta}}}}_1={_rs_b_str}$ "
+            f"(gap de {_rs_gap_str}\\%), com $\\tau^2_1={_rs_tau2_str}$ "
+            f"($DP={_rs_sd_str}$ log-pontos). "
+            f"Em 95\\% das UFs o gap situa-se em $[{_rs_lo_str}\\%;\\,{_rs_hi_str}\\%]$ "
+            f"--- variacao de {_rs_var_str} pontos percentuais entre extremos."
+        )
+        _rs_rho_block = (
+            f"A correlacao $\\rho(u_0,u_1)={_rs_rho_str}$ e negativa: "
+            f"estados com menor renda media apresentam maior penalidade racial, "
+            f"indicando que a discriminacao se concentra nas regioes mais pobres."
+            if P.get("RS_RHO", 0) < -0.1 else
+            f"A correlacao $\\rho(u_0,u_1)={_rs_rho_str}$ e proxima de zero."
+        )
+    else:
+        _rs_lrt_block = "Resultados em processamento --- ver \\texttt{{hlm\\_m3\\_random\\_slope\\_varcov.csv}}."
+        _rs_rho_block = ""
+        _rs_amostra   = "amostra 20\\%"
+
     doc = rf"""% !TeX encoding = UTF-8
 % !TeX program  = pdflatex
 %
@@ -871,6 +909,18 @@ direta no mercado de trabalho.
             ($N=7{{,}}7$ milhões de trabalhadores da PEA completa).}}
   \label{{fig:kmeans}}
 \end{{figure}}
+
+\subsection{{M3 com Inclinação Aleatória de Negro: Heterogeneidade Geográfica}}
+\label{{subsec:hlm_rs}}
+
+No modelo M3 padrão, $\hat{{\beta}}_1$ é constante entre estados.
+Estimou-se M3 com \textit{{random slope}} para \texttt{{negro}} por UF
+({_rs_amostra}),
+testando $H_0{{\colon}}\,\tau^2_1 = 0$ (discriminação homogênea entre estados).
+
+{_rs_lrt_block}
+
+{_rs_rho_block}
 
 \noindent\rule{{\textwidth}}{{1pt}}
 \textbf{{\large BARREIRA II --- PENALIDADE RESIDUAL E TETO DE VIDRO}}

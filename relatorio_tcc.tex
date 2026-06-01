@@ -607,6 +607,18 @@ AIC & N/D & N/D & N/D & N/D \\
   \label{fig:kmeans}
 \end{figure}
 
+\subsection{M3 com Inclinação Aleatória de Negro: Heterogeneidade Geográfica}
+\label{subsec:hlm_rs}
+
+No modelo M3 padrão, $\hat{\beta}_1$ é constante entre estados.
+Estimou-se M3 com \textit{random slope} para \texttt{negro} por UF
+(amostra 20\% ($N=1.537.885$)),
+testando $H_0{\colon}\,\tau^2_1 = 0$ (discriminação homogênea entre estados).
+
+O LRT boundary test \citep{{stram1994}} rejeita $H_0$ com $LR=1448,9$, $p<0{,}001$: o gap racial varia significativamente entre estados. O efeito fixo nacional e $\hat{{\beta}}_1=−0,1210$ (gap de 11.4\%), com $\tau^2_1=0,003380$ ($DP=0,0581$ log-pontos). Em 95\% das UFs o gap situa-se em $[-20.9\%;\,-0.7\%]$ --- variacao de 20.2 pontos percentuais entre extremos.
+
+A correlacao $\rho(u_0,u_1)=−0,311$ e negativa: estados com menor renda media apresentam maior penalidade racial, indicando que a discriminacao se concentra nas regioes mais pobres.
+
 \noindent\rule{\textwidth}{1pt}
 \textbf{\large BARREIRA II --- PENALIDADE RESIDUAL E TETO DE VIDRO}
 \textit{O custo de ser negro, mesmo após superar a barreira de entrada}

@@ -208,6 +208,40 @@ def _load() -> dict:
         p["KM_DB_K3"] = round(float(_kmet.loc[_kmet["k"]==3, "davies_bouldin"].values[0]), 4)
         p["KM_DB_K5"] = round(float(_kmet.loc[_kmet["k"]==5, "davies_bouldin"].values[0]), 4) if 5 in _kmet["k"].values else None
 
+    # ── HLM M3 Random Slope para negro ───────────────────────────────────────
+    _rs_path  = _ROOT / "outputs" / "tables" / "hlm_m3_random_slope_varcov.csv"
+    _lrt_path = _ROOT / "outputs" / "tables" / "hlm_m3_random_slope_lrt.csv"
+    if _rs_path.exists():
+        _rs = pd.read_csv(_rs_path)
+        _reml = _rs[_rs["modelo"] == "M3_rs_uncorr_REML"]
+        _ml   = _rs[_rs["modelo"] == "M3_rs_uncorr_ML"]
+        _row  = _reml.iloc[0] if len(_reml) else (_ml.iloc[0] if len(_ml) else None)
+        if _row is not None:
+            import math
+            _tau2   = float(_row["tau2_negro_slope"])
+            _sd     = math.sqrt(_tau2)
+            _b      = float(_row["b_negro_fixo"])
+            _gap_pct = (math.exp(_b) - 1) * 100
+            _gap_lo  = (math.exp(_b - 1.96 * _sd) - 1) * 100
+            _gap_hi  = (math.exp(_b + 1.96 * _sd) - 1) * 100
+            p["RS_TAU2_NEGRO"]   = round(_tau2, 6)
+            p["RS_SD_NEGRO"]     = round(_sd, 4)
+            p["RS_RHO"]          = round(float(_row["rho_int_negro"]), 4)
+            p["RS_ICC_NEGRO"]    = round(float(_row["icc_negro"]), 4)
+            p["RS_B_NEGRO_FIXO"] = round(_b, 4)
+            p["RS_GAP_PCT"]      = round(_gap_pct, 1)
+            p["RS_GAP_LO_PCT"]   = round(_gap_lo, 1)
+            p["RS_GAP_HI_PCT"]   = round(_gap_hi, 1)
+            p["RS_N_OBS"]        = int(_row["n_obs"])
+            p["RS_SAMPLE_FRAC"]  = float(_row["sample_frac"])
+    if _lrt_path.exists():
+        _lrt = pd.read_csv(_lrt_path)
+        if len(_lrt):
+            p["RS_LRT_LR"]   = round(float(_lrt["LR"].iloc[0]), 3)
+            p["RS_LRT_P"]    = float(_lrt["p_boundary_mix"].iloc[0])
+            p["RS_LRT_SIG"]  = str(_lrt["sig"].iloc[0])
+            p["RS_LRT_SIGN"] = bool(_lrt["tau2_negro_significativo"].iloc[0])
+
     return p
 
 
