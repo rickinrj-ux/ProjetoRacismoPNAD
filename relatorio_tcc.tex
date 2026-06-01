@@ -195,6 +195,16 @@ operations research; TOPSIS; linear programming; public policy; PNAD Contínua.
 \section{Introdução}
 \label{sec:intro}
 
+\begin{quote}
+\textbf{Este trabalho comprova que o racismo no mercado de trabalho brasileiro
+não opera como um evento isolado de discriminação salarial --- opera como
+um sistema de barreiras em camadas que começa antes do primeiro salário,
+persiste ao longo de toda a trajetória profissional e se perpetua via
+exclusão das redes que convertem educação em mobilidade.
+Políticas baseadas apenas em aumento de escolaridade são, portanto,
+necessárias, mas estruturalmente insuficientes.}
+\end{quote}
+
 O Brasil é um dos países com maior desigualdade racial de renda no mundo.
 Segundo a PNAD Contínua, a razão entre o rendimento médio de trabalhadores
 brancos e negros permanece acima de 1{:}1,5 ao longo de toda a série
@@ -452,21 +462,50 @@ As métricas de rede incluem centralidade de grau, \textit{betweenness},
 \section{Resultados}
 \label{sec:resultados}
 
-As evidências deste capítulo convergem para um diagnóstico de
-\textbf{sistema de barreiras em camadas}:
-(i)~\textit{barreira de acesso}: OR~$=0,674$ para CBO~1--4
-(GLMM, $N=7.694.198$);
-(ii)~\textit{barreira salarial intra-ocupação}: gap residual de -6.2\%
-após 23 controles (HLM~M4);
-(iii)~\textit{glass ceiling de progressão}: gap cresce com o quantil salarial
-(KB-test $Z=-5{,}25$, $p<0{,}001$);
-(iv)~\textit{barreira contextual}: 52.5\% do gap bruto mediado pela UPA;
-(v)~\textit{exclusão de redes}: betweenness nulo para todos os grupos negros
-na rede expandida de 20~nós.
-Nenhum método isolado teria identificado o sistema completo.
+As evidências deste capítulo estão organizadas em três camadas de exclusão
+--- três barreiras que operam em sequência e se reforçam mutuamente.
+O leitor não encontrará aqui um catálogo de modelos estatísticos:
+encontrará a trajetória de um trabalhador negro no mercado de trabalho
+brasileiro, documentada com rigor empírico em cada etapa.
 
-\subsection{Modelos Hierárquicos Lineares}
+\begin{table}[ht]
+\centering
+\caption{Mapa das três camadas de exclusão racial --- guia de leitura}
+\label{tab:mapa_barreiras}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Camada} & \textbf{Pergunta central e evidência} \\
+\hline
+\textbf{BARREIRA I} & Por que negros raramente chegam às ocupações de \\
+\textbf{Acesso e Segregação} & prestígio? GLMM ($N=7.694.198$), HLM contextual e segregação \\
+ & espacial mostram que a exclusão começa antes do salário. \\
+\hline
+\textbf{BARREIRA II} & Para os que superam a barreira de entrada --- qual é o \\
+\textbf{Penalidade e Teto de Vidro} & custo de ser negro? Gap residual de -6.2\% após 23 controles, \\
+ & crescendo nos quantis mais altos (KB-test $p<0{,}001$). \\
+\hline
+\textbf{BARREIRA III} & Por que educação, sozinha, não quebra o ciclo? \\
+\textbf{Isolamento Estrutural} & Redes sociais com betweenness nulo para todos os grupos \\
+ & negros: capital social transita exclusivamente por atores brancos. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\medskip
+
+Cada seção a seguir prova empiricamente uma dessas camadas.
+Nenhum método isolado teria identificado o sistema como um todo.
+
+\noindent\rule{\textwidth}{1pt}
+\textbf{\large BARREIRA I --- ACESSO E SEGREGAÇÃO ESTRUTURAL}
+\textit{Como a exclusão começa antes do primeiro salário}
+\noindent\rule{\textwidth}{1pt}
+
+\subsection{Modelos Hierárquicos Lineares --- Mediação Contextual do Gap}
 \label{subsec:hlm_resultados}
+
+\textit{Esta seção documenta como o território amplifica o gap racial:
+o CEP de moradia não é apenas contexto --- é parte do mecanismo de exclusão.}
 
 A Tabela~\ref{tab:hlm_resultados} apresenta os quatro modelos HLM
 ajustados sequencialmente, do modelo nulo (M0) ao modelo completo de
@@ -567,6 +606,17 @@ AIC & N/D & N/D & N/D & N/D \\
             ($N=7{,}7$ milhões de trabalhadores da PEA completa).}
   \label{fig:kmeans}
 \end{figure}
+
+\noindent\rule{\textwidth}{1pt}
+\textbf{\large BARREIRA II --- PENALIDADE RESIDUAL E TETO DE VIDRO}
+\textit{O custo de ser negro, mesmo após superar a barreira de entrada}
+\noindent\rule{\textwidth}{1pt}
+
+\medskip
+
+\textit{Estabelecida a exclusão de acesso (Barreira I), a próxima questão é:
+para os trabalhadores negros que superam essa barreira --- qual é a penalidade
+salarial residual? E como esse custo evolui à medida que sobem na distribuição?}
 
 \subsection{Clustering Socioeconômico}
 \label{subsec:clustering}
@@ -735,7 +785,19 @@ a diferenças em educação, experiência, gênero ou contexto de moradia.
   \label{fig:shap_wf}
 \end{figure}
 
-\subsection{Análise de Redes Sociais}
+\noindent\rule{\textwidth}{1pt}
+\textbf{\large BARREIRA III --- ISOLAMENTO ESTRUTURAL E CAPITAL SOCIAL}
+\textit{Por que educação, sozinha, não quebra o ciclo}
+\noindent\rule{\textwidth}{1pt}
+
+\medskip
+
+\textit{As barreiras anteriores documentam exclusão mensurável por econometria.
+Esta seção documenta o mecanismo que as sustenta: o isolamento estrutural
+das redes de capital social, que explica por que trabalhadores negros com
+pós-graduação ainda não chegam ao topo.}
+
+\subsection{Análise de Redes Sociais --- Isolamento Estrutural}
 \label{subsec:sna}
 
 \begin{table}[H]
@@ -870,8 +932,20 @@ a diferença entre contextos não é atribuível ao acaso.
 % ══════════════════════════════════════════════════════════════════════════════
 %  5. DISCUSSÃO
 % ══════════════════════════════════════════════════════════════════════════════
-\section{Discussão}
+\section{Discussão e Prescrição}
 \label{sec:discussao}
+
+\paragraph{Da diagnose à prescrição.}
+O diagnóstico econométrico das três seções anteriores revela múltiplos
+gargalos simultâneos --- exclusão de acesso, penalidade salarial direta
+e isolamento de redes --- que se reforçam mutuamente.
+Essa estrutura multicausal implica uma consequência metodológica direta:
+nenhuma política pública unidimensional tem capacidade de romper um
+sistema de três barreiras interdependentes.
+A formulação de políticas eficazes exige priorização multi-critério
+e alocação ótima de recursos escassos --- exatamente o que a Pesquisa
+Operacional oferece: a tradução dos coeficientes de exclusão em uma
+função-objetivo de alocação ótima de recursos públicos.
 
 Os resultados das metodologias aplicadas convergem para um diagnóstico
 consistente: a desigualdade salarial racial no Brasil é um fenômeno
@@ -946,6 +1020,36 @@ residencial e de acesso às redes profissionais, são insuficientes.
 % ══════════════════════════════════════════════════════════════════════════════
 \section{Conclusão}
 \label{sec:conclusao}
+
+Este estudo comprova que a meritocracia baseada em capital humano falha
+sistematicamente em prever o sucesso profissional da população negra no Brasil.
+A exclusão não é um evento isolado na contratação, nem uma consequência automática
+de menor escolaridade --- é uma engrenagem de múltiplas camadas que opera ao longo
+de toda a trajetória do trabalhador: na porta de entrada das ocupações de prestígio,
+no salário dentro das mesmas ocupações, e nas redes invisíveis que determinam
+quem é indicado, promovido e reconhecido.
+Cada uma dessas camadas foi identificada, isolada e medida de forma independente;
+juntas, elas formam um sistema que nenhuma política unidimensional consegue desmontar.
+
+O achado mais desafiador para o debate de políticas públicas é o da terceira barreira:
+trabalhadores negros com alta escolaridade --- incluindo pós-graduados --- estão
+estruturalmente excluídos das posições de intermediação nas redes profissionais.
+Isso significa que aumentar a escolaridade da população negra, sem simultaneamente
+intervir nos mecanismos de segregação residencial e exclusão de redes, produz
+retorno marginal decrescente: os títulos existem, mas os canais que os convertem
+em mobilidade profissional permanecem bloqueados.
+Políticas baseadas apenas em educação são, portanto, necessárias, mas
+estruturalmente insuficientes.
+
+O ritmo de convergência observado na última década confirma a urgência.
+Ao passo atual, a eliminação do diferencial racial levaria mais de um século.
+Isso não é uma previsão pessimista --- é uma consequência aritmética da
+combinação entre a magnitude do gap e a velocidade atual de redução.
+Significa, concretamente, que reformas incrementais são insuficientes:
+é necessário atacar o sistema de barreiras de forma simultânea e com recursos
+proporcionais à magnitude do problema.
+
+\medskip
 
 \begin{quote}
 \textit{Mesmo após controle exaustivo de 23 covariáveis individuais,

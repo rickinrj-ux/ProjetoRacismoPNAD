@@ -179,6 +179,52 @@ KM_DB_K2, KM_DB_K3, KM_DB_K5
 
 ---
 
+## v4.3 — Narrativa de 3 Barreiras: reestruturação editorial completa (2026-05-31)
+
+### Prompt do usuário
+> "Avalie e implemente as sugestões: [6 pontos de feedback — overengineering acadêmico, tese diluída, storytelling mecanicista, macro-coesão deficiente, conclusão técnica, PO como anexo enxertado. Plano de ação: desidratação técnica, reestruturação por mecanismo, conclusão executiva, bridge narrativa PO]"
+
+### Mudanças implementadas
+
+#### gerar_relatorio_word.py — 6 mudanças estruturais
+1. **Tese agressiva na Introdução** — 2 parágrafos em bold ANTES do contexto histórico:
+   - "Este trabalho comprova que o racismo não opera como evento isolado — opera como sistema de barreiras em camadas..."
+   - "A evidência emerge de 15,9 milhões de observações com 4 paradigmas complementares..."
+2. **Roadmap de 3 Barreiras** (substitui lista de 6 bullets da Tese Central):
+   - Tabela 0 com 3 linhas: Barreira I/II/III, pergunta central e evidência
+   - Prose de orientação antes e depois da tabela
+3. **BARREIRA I** — header em bold antes da seção HLM + parágrafo de orientação: "Esta seção documenta como o território amplifica o gap racial"
+4. **BARREIRA II** — header em bold antes da seção OB + bridge da Barreira I: "Estabelecido como a exclusão se origina... qual é o preço residual?"
+5. **BARREIRA III** — header em bold antes da seção SNA + bridge: "Por que trabalhadores negros com pós-graduação ainda não chegam ao topo?"
+6. **Bridge da PO** — 2 parágrafos antes da seção PO: "diagnóstico multicausal implica política multi-dimensional... PO fecha o ciclo diagnóstico-prescritivo"
+7. **Conclusão Executive** — 3 parágrafos narrativos SEM números e SEM siglas de modelo:
+   - P1: meritocracia falha + engrenagem de múltiplas camadas
+   - P2: terceira barreira mais desafiadora (educação ≠ mobilidade)
+   - P3: urgência (> 1 século de convergência = reformas incrementais insuficientes)
+8. **GLMM** — parágrafo de orientação: "Barreira I em profundidade: quantifica o odds de um negro sequer chegar..."
+9. **OB** — parágrafo de orientação: "Esta análise responde: quanto do gap é discriminação pura?"
+
+#### gerar_relatorio_tcc.py — 6 mudanças LaTeX
+1. **Introdução** — \begin{quote}\textbf{...}\end{quote} com tese central declarada agressivamente
+2. **Resultados** — tabela \tabularx de 3 barreiras como guia de leitura
+3. **BARREIRA I** — \noindent\rule + bold header antes de HLM + \textit{orientação}
+4. **BARREIRA II** — \noindent\rule + bold header antes de Clustering + \textit{bridge da Barreira I}
+5. **BARREIRA III** — \noindent\rule + bold header antes de SNA + \textit{orientação}
+6. **Discussão → "Discussão e Prescrição"** — \paragraph{Da diagnose à prescrição.} bridge PO
+7. **Conclusão** — 3 parágrafos narrativos SEM números antes das frases-tese em \begin{quote}
+
+#### Bug fix adicional
+- extract_kpis(): adicionadas med_upa e med_occ como chaves explícitas (referenciadas no Discussão)
+
+### O que NÃO foi alterado (decisão deliberada)
+- Ordem das seções: mantida (risco alto de quebrar pipeline de 3500+ linhas)
+- Detalhamento técnico das seções: mantido (detalhe técnico necessário para banca especializada)
+- AIC/LRT tables: mantidas (já existem no Anexo B; remover do corpo criaria referências órfãs)
+- A "desidratação técnica" foi parcialmente endereçada: barriers headers + orientation paragraphs
+  criam hierarquia informacional que permite ao leitor navegar e pular detalhes técnicos
+
+---
+
 ## Nota técnica sobre escolhas metodológicas
 
 ### Por que não usar Zero-Inflated Models?

@@ -686,6 +686,34 @@ def build_doc(r, k):
 
     # ── 1. INTRODUÇÃO ─────────────────────────────────────────────────────────
     add_heading(doc, "Considerações Iniciais", level=1)
+
+    # Tese central — declaração agressiva na abertura
+    p_tese = doc.add_paragraph()
+    run_tese = p_tese.add_run(
+        "Este trabalho comprova que o racismo no mercado de trabalho brasileiro não opera "
+        "como um evento isolado de discriminação salarial — opera como um sistema de barreiras "
+        "em camadas que começa antes do primeiro salário, persiste ao longo de toda a trajetória "
+        "profissional e se perpetua via exclusão das redes que convertem educação em mobilidade. "
+        "Mesmo após controlar 23 covariáveis individuais, ocupacionais e contextuais, "
+        "trabalhadores negros recebem sistematicamente menos que brancos equivalentes. "
+        "Políticas baseadas apenas em aumento de escolaridade são, portanto, necessárias "
+        "mas estruturalmente insuficientes para eliminar esse diferencial."
+    )
+    run_tese.bold = True
+    run_tese.font.name = "Times New Roman"; run_tese.font.size = Pt(12)
+    p_tese.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    set_paragraph_format(p_tese, first_line=1.25)
+    p_tese.paragraph_format.space_after = Pt(6)
+
+    add_para(doc,
+        "A evidência que sustenta essa tese emerge de 15,9 milhões de observações da PNAD "
+        "Contínua (2016–2025), analisadas com quatro paradigmas metodológicos complementares: "
+        "econometria multinível (HLM, GLMM, Oaxaca-Blinder, Regressão Quantílica), machine "
+        "learning interpretável (XGBoost + SHAP), análise de redes sociais (SNA, 20 nós) e "
+        "pesquisa operacional (TOPSIS + Programação Linear). A convergência dessas abordagens "
+        "sobre o mesmo fenômeno é a principal garantia de robustez do diagnóstico."
+    )
+
     add_para(doc,
         "O Brasil é um dos países com maior desigualdade racial de renda no mundo. Segundo a PNAD "
         "Contínua, a razão entre o rendimento médio de trabalhadores brancos e negros permanece "
@@ -1347,46 +1375,59 @@ def build_doc(r, k):
     # ── 4. RESULTADOS E DISCUSSÃO ─────────────────────────────────────────────
     add_heading(doc, "Resultados e Discussão", level=1)
 
-    # ── TESE CENTRAL ─────────────────────────────────────────────────────────
+    # ── ROADMAP DE 3 BARREIRAS ────────────────────────────────────────────────
     add_para(doc,
-        "As evidências apresentadas neste capítulo convergem para um diagnóstico unificado, "
-        "estruturado em seis camadas empiricamente identificáveis e metodologicamente "
-        "independentes entre si:"
+        "As evidências deste capítulo estão organizadas em três camadas de exclusão — "
+        "três barreiras que operam em sequência e se reforçam mutuamente. "
+        "O leitor não encontrará aqui um catálogo de modelos estatísticos: encontrará "
+        "a trajetória de um trabalhador negro no mercado de trabalho brasileiro, "
+        "documentada com rigor empírico em cada etapa."
     )
-    items_tese = [
-        ("Barreira de entrada (acesso):",
-         f"negros têm OR={or_str(P['OR_M1'])} de acesso a ocupações qualificadas (CBO 1–4) após controles "
-         f"completos — penalidade de {fmt(P['OR_M1_menor_pct'],1)}% na probabilidade relativa (GLMM, "
-         f"N={fmtN(P['N_GLMM'])})."),
-        ("Barreira salarial intra-ocupação:",
-         f"mesmo dentro da mesma categoria ocupacional, gênero e escolaridade, negros "
-         f"recebem {k['gap_m4']:.1f}% a menos (HLM M4, gap residual após 23 controles)."),
-        ("Barreira de progressão (glass ceiling):",
-         "o gap racial cresce com o quantil salarial — trabalhadores negros que chegam ao "
-         "topo enfrentam maior discriminação do que os que estão no piso (QR KB-test, p<0,001)."),
-        ("Barreira contextual (segregação residencial):",
-         f"{k['med']:.1f}% do gap bruto é mediado pelo bairro de moradia — o contexto geográfico "
-         f"amplifica a desvantagem individual (HLM M2, γ₀₁=−0,289)."),
-        ("Barreira de rede (capital social):",
-         f"grupos negros têm betweenness nulo na rede de co-residência profissional (20 nós) — "
-         f"excluídos das posições que convertem educação em mobilidade (SNA expandida, B_top={fmt(P.get('SNA_EXP_BETWN_TOP',0.7836),4)} "
-         f"exclusivamente branco)."),
-        ("Persistência temporal:",
-         f"o gap reduziu-se menos de {abs(k['gap_2025']-k['gap_2016'])/k['gap_2016']*100:.1f}% em dez "
-         f"anos — ao ritmo atual, a convergência levaria mais de um século."),
+
+    # Tabela-mapa das 3 barreiras
+    tbl_map = doc.add_table(rows=4, cols=2)
+    tbl_map.style = "Table Grid"
+    tbl_map.alignment = WD_TABLE_ALIGNMENT.CENTER
+    hdr_map = tbl_map.rows[0].cells
+    hdr_map[0].text = "Camada"
+    hdr_map[1].text = "Pergunta central e evidência"
+    for cell in hdr_map:
+        for run in cell.paragraphs[0].runs:
+            run.bold = True; run.font.name = "Arial"; run.font.size = Pt(10)
+    shade_row(tbl_map.rows[0], "1F3864")
+    for _c in tbl_map.rows[0].cells:
+        for _r in _c.paragraphs[0].runs:
+            _r.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+    _barrier_rows = [
+        ("BARREIRA I\nAcesso e Segregação Estrutural",
+         f"Por que negros raramente chegam às ocupações de prestígio? "
+         f"GLMM (N={fmtN(P['N_GLMM'])}), HLM contextual e segregação espacial mostram "
+         f"que a exclusão começa antes do salário: na porta de entrada, no CEP de moradia "
+         f"e na estrutura ocupacional do mercado."),
+        ("BARREIRA II\nPenalidade Residual e Teto de Vidro",
+         f"Para os que superam a barreira de entrada — qual é o custo de ser negro? "
+         f"Oaxaca-Blinder, Regressão Quantílica e SHAP convergem: gap residual de "
+         f"{k['gap_m4']:.1f}% após 23 controles, crescendo nos quantis mais altos (KB-test p<0,001)."),
+        ("BARREIRA III\nIsolamento Estrutural e Capital Social",
+         "Por que educação, sozinha, não quebra o ciclo? "
+         "A Análise de Redes (20 nós) revela que grupos negros têm betweenness nulo "
+         "em todos os níveis educacionais: o capital social que converte credenciais "
+         "em mobilidade transita exclusivamente por atores brancos."),
     ]
-    for titulo, texto in items_tese:
-        p = doc.add_paragraph(style="List Bullet")
-        run_t = p.add_run(titulo + " ")
-        run_t.bold = True
-        run_t.font.name = "Times New Roman"; run_t.font.size = Pt(12)
-        run_b = p.add_run(texto)
-        run_b.font.name = "Times New Roman"; run_b.font.size = Pt(12)
-        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    for _i, (_cam, _desc) in enumerate(_barrier_rows, 1):
+        tbl_map.rows[_i].cells[0].text = _cam
+        tbl_map.rows[_i].cells[1].text = _desc
+        shade_row(tbl_map.rows[_i], "D9E1F2" if _i % 2 == 1 else "EBF0F9")
+        for _cell in tbl_map.rows[_i].cells:
+            for _run in _cell.paragraphs[0].runs:
+                _run.font.name = "Arial"; _run.font.size = Pt(10)
+        tbl_map.rows[_i].cells[0].paragraphs[0].runs[0].bold = True
+    add_caption(doc,
+        "Tabela 0. Mapa das três camadas de exclusão racial — guia de leitura dos resultados.")
     add_para(doc,
-        "Os resultados das seções seguintes detalham cada uma dessas camadas. "
+        "Cada seção que se segue prova empiricamente uma dessas camadas. "
         "A leitura em conjunto é mais reveladora do que cada análise isolada: "
-        "nenhum método sozinho teria capacidade de identificar o sistema como um todo."
+        "nenhum método sozinho seria capaz de identificar o sistema como um todo."
     )
     doc.add_paragraph()
 
@@ -1494,8 +1535,25 @@ def build_doc(r, k):
         "humano negro independentemente do nível de instrução."
     )
 
+    # ── BARREIRA I — ACESSO E SEGREGAÇÃO ESTRUTURAL ──────────────────────────
+    p_b1 = doc.add_paragraph()
+    run_b1 = p_b1.add_run(
+        "▌ BARREIRA I — ACESSO E SEGREGAÇÃO ESTRUTURAL: "
+        "como a exclusão começa antes do primeiro salário"
+    )
+    run_b1.bold = True; run_b1.font.name = "Times New Roman"; run_b1.font.size = Pt(13)
+    p_b1.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p_b1.paragraph_format.space_before = Pt(12)
+    p_b1.paragraph_format.space_after = Pt(6)
+
     # 4.1 HLM
-    add_heading(doc, "Modelos Hierárquicos Lineares (HLM)", level=2)
+    add_heading(doc, "Modelos Hierárquicos Lineares (HLM) — Mediação Contextual do Gap", level=2)
+    add_para(doc,
+        "Esta seção documenta como o território amplifica o gap racial: "
+        "o CEP de moradia não é apenas contexto — é parte do mecanismo de exclusão. "
+        "O HLM decompõe quanto do diferencial salarial é explicado pelo bairro de moradia, "
+        "separando a penalidade individual da penalidade contextual."
+    )
     add_para(doc,
         f"A Tabela 1 apresenta os cinco modelos HLM ajustados sequencialmente, do modelo nulo (M0) "
         f"ao modelo de composição ocupacional (M4). O modelo nulo estima ICC_UF = {k['icc_m0']}, "
@@ -1832,6 +1890,27 @@ def build_doc(r, k):
     add_figure(doc, FIGURES / "shap_waterfall_C_negro_baixa_renda_xgb.png",
         "Figura 7c – Waterfall SHAP: Caso C – negro de baixa renda.", width_cm=13)
 
+    # ── BARREIRA III — ISOLAMENTO ESTRUTURAL E CAPITAL SOCIAL ────────────────
+    p_b3 = doc.add_paragraph()
+    run_b3 = p_b3.add_run(
+        "▌ BARREIRA III — ISOLAMENTO ESTRUTURAL E CAPITAL SOCIAL: "
+        "por que educação, sozinha, não quebra o ciclo"
+    )
+    run_b3.bold = True; run_b3.font.name = "Times New Roman"; run_b3.font.size = Pt(13)
+    p_b3.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p_b3.paragraph_format.space_before = Pt(12)
+    p_b3.paragraph_format.space_after = Pt(6)
+
+    add_para(doc,
+        "As duas barreiras anteriores documentam exclusão mensurável por econometria. "
+        "Esta terceira barreira documenta o mecanismo que as sustenta: "
+        "o isolamento estrutural das redes de capital social. "
+        "Aqui reside a resposta à pergunta que nenhum modelo salarial responde sozinho: "
+        "por que trabalhadores negros com pós-graduação ainda não chegam ao topo? "
+        "Porque o canal que converte títulos em oportunidades — as redes de indicação — "
+        "está estruturalmente fechado para eles."
+    )
+
     # 4.4 SNA
     doc.add_page_break()
     add_heading(doc, "4.4 Análise de Redes Sociais", level=2)
@@ -1931,8 +2010,33 @@ def build_doc(r, k):
         "Linha tracejada: gap residual após equiparação de retornos.",
         width_cm=13)
 
+    # ── BARREIRA II — PENALIDADE RESIDUAL E TETO DE VIDRO ────────────────────
+    p_b2 = doc.add_paragraph()
+    run_b2 = p_b2.add_run(
+        "▌ BARREIRA II — PENALIDADE RESIDUAL E TETO DE VIDRO: "
+        "o custo de ser negro, mesmo após superar a barreira de entrada"
+    )
+    run_b2.bold = True; run_b2.font.name = "Times New Roman"; run_b2.font.size = Pt(13)
+    p_b2.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p_b2.paragraph_format.space_before = Pt(12)
+    p_b2.paragraph_format.space_after = Pt(6)
+
+    add_para(doc,
+        "Estabelecido como a exclusão se origina (Barreira I), a próxima questão é: "
+        "para os trabalhadores negros que superam a barreira de acesso e encontram "
+        "emprego na economia formal — qual é o preço residual de ser negro? "
+        "Esta seção documenta a penalidade salarial direta e o teto de vidro de progressão, "
+        "usando três metodologias convergentes."
+    )
+
     # ── 4.6 OAXACA-BLINDER ─────────────────────────────────────────────────────
     add_heading(doc, "4.6 Decomposição de Oaxaca-Blinder do Gap Salarial Racial", level=2)
+    add_para(doc,
+        "Esta análise responde: quanto do gap racial é explicado por diferenças de "
+        "características observáveis (dotações) versus discriminação pura (retornos diferenciais)? "
+        "A pergunta é crucial: se o gap é apenas dotações, políticas educacionais são suficientes. "
+        "Se é retornos, o mercado penaliza negros diretamente — e políticas de enforcement são necessárias."
+    )
     add_para(doc,
         f"A decomposição de Oaxaca-Blinder, estimada sobre a população completa de 7,7 milhões de observações "
         f"da PEA com renda positiva, particionou o gap total de log-rendimento ({fmt(P['GAP_LOG'],4)}, equivalente "
@@ -2303,7 +2407,13 @@ def build_doc(r, k):
     doc.add_page_break()
 
     # ── 4.9 LOGIT MULTINÍVEL ──────────────────────────────────────────────────
-    add_heading(doc, "4.9 GLMM Logístico: Teto de Vidro Ocupacional e Glass Ceiling de Acesso", level=2)
+    add_heading(doc, "4.9 GLMM Logístico: A Barreira de Acesso às Ocupações de Prestígio", level=2)
+    add_para(doc,
+        "Barreira I em profundidade: esta seção quantifica o odds de um trabalhador negro "
+        "sequer chegar a uma ocupação qualificada, comparado a um branco com as mesmas "
+        "características observadas. A pergunta central é: a exclusão racial opera como "
+        "filtro de acesso — antes do salário — ou apenas como penalidade dentro das ocupações?"
+    )
     add_para(doc,
         "O GLMM logístico (lme4 glmer, efeito aleatório de UPA) modela o acesso a posições "
         "qualificadas como desfecho binário, quantificando a barreira de entrada racial que "
@@ -2913,6 +3023,31 @@ def build_doc(r, k):
 
     doc.add_page_break()
 
+    # ── BRIDGE NARRATIVA PARA PO ──────────────────────────────────────────────
+    p_bridge = doc.add_paragraph()
+    run_bridge = p_bridge.add_run(
+        "Da diagnose à prescrição: o que fazer com esse diagnóstico?"
+    )
+    run_bridge.bold = True; run_bridge.font.name = "Times New Roman"; run_bridge.font.size = Pt(13)
+    p_bridge.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p_bridge.paragraph_format.space_before = Pt(12)
+
+    add_para(doc,
+        "O diagnóstico econométrico das três seções anteriores revela múltiplos gargalos "
+        "simultâneos — exclusão de acesso, penalidade salarial direta e isolamento de redes — "
+        "que se reforçam mutuamente. Esse diagnóstico implica uma consequência metodológica "
+        "direta: nenhuma política pública unidimensional — como apenas aumentar escolaridade "
+        "ou apenas fiscalizar salários — tem capacidade de romper um sistema de três barreiras "
+        "interdependentes. A formulação de políticas eficazes exige, portanto, priorização "
+        "multi-critério e alocação ótima de recursos escassos."
+    )
+    add_para(doc,
+        "É exatamente para essa lacuna que a Pesquisa Operacional contribui: ela traduz "
+        "os coeficientes de exclusão — obtidos empiricamente — em uma função-objetivo de "
+        "alocação ótima de recursos públicos. Não se trata de adicionar um método ao trabalho; "
+        "trata-se de fechar o ciclo diagnóstico-prescritivo que toda tese de impacto real exige."
+    )
+
     # ── 5.1 PO: PRIORIZAÇÃO DE POLÍTICAS PÚBLICAS ─────────────────────────────
     add_heading(doc, "5.1 Pesquisa Operacional: Priorização e Alocação de Políticas Anti-Discriminação", level=2)
     add_para(doc,
@@ -3160,35 +3295,37 @@ def build_doc(r, k):
 
     add_heading(doc, "Conclusão", level=1)
 
-    # Frases-tese — abertura impactante
-    frases_tese = [
-        f"Mesmo após controle exaustivo de 23 covariáveis individuais, ocupacionais e contextuais, "
-        f"trabalhadores negros recebem sistematicamente {k['gap_m4']:.1f}% a menos que brancos "
-        f"equivalentes — o mercado de trabalho brasileiro não é racialmente neutro.",
-
-        "O principal mecanismo não é apenas discriminação salarial direta: é um sistema combinado "
-        "de exclusão estrutural de oportunidades, em que negros são barrados na entrada das "
-        "ocupações de prestígio, encontram teto de vidro na progressão salarial e são excluídos "
-        "das redes profissionais que convertem credenciais em mobilidade.",
-
-        f"Educação, isoladamente, não rompe esse ciclo — trabalhadores negros com pós-graduação "
-        f"têm betweenness nulo na rede de co-residência profissional, e o retorno marginal da "
-        f"escolaridade não reduz o gap ao longo da distribuição salarial.",
-
-        f"A convergência racial ao ritmo dos últimos dez anos levaria mais de um século para "
-        f"eliminar o diferencial observado — políticas focadas apenas em capital humano são "
-        f"necessárias, mas insuficientes sem intervenção simultânea na segregação residencial "
-        f"e nas redes de acesso profissional.",
-    ]
-    for frase in frases_tese:
-        p = doc.add_paragraph()
-        run = p.add_run(frase)
-        run.bold = True
-        run.font.name = "Times New Roman"; run.font.size = Pt(12)
-        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-        set_paragraph_format(p, first_line=1.25)
-        p.paragraph_format.space_after = Pt(6)
-
+    # 3 parágrafos executivos SEM números e SEM siglas de modelo
+    add_para(doc,
+        "Este estudo comprova que a meritocracia baseada em capital humano falha sistematicamente "
+        "em prever o sucesso profissional da população negra no Brasil. A exclusão não é um evento "
+        "isolado na contratação, nem uma consequência automática de menor escolaridade — é uma "
+        "engrenagem de múltiplas camadas que opera ao longo de toda a trajetória do trabalhador: "
+        "na porta de entrada das ocupações de prestígio, no salário dentro das mesmas ocupações, "
+        "e nas redes invisíveis que determinam quem é indicado, promovido e reconhecido. "
+        "Cada uma dessas camadas foi identificada, isolada e medida de forma independente; "
+        "juntas, elas formam um sistema que nenhuma política unidimensional consegue desmontar."
+    )
+    add_para(doc,
+        "O achado mais desafiador para o debate de políticas públicas é o da terceira barreira: "
+        "trabalhadores negros com alta escolaridade — incluindo pós-graduados — estão estruturalmente "
+        "excluídos das posições de intermediação nas redes profissionais. Isso significa que "
+        "aumentar a escolaridade da população negra, sem simultaneamente intervir nos mecanismos "
+        "de segregação residencial e exclusão de redes, produz retorno marginal decrescente: "
+        "os títulos existem, mas os canais que os convertem em mobilidade profissional permanecem "
+        "bloqueados. Políticas baseadas apenas em educação são, portanto, necessárias mas "
+        "estruturalmente insuficientes."
+    )
+    add_para(doc,
+        "O ritmo de convergência observado na última década confirma a urgência: ao passo atual, "
+        "a eliminação do diferencial racial levaria mais de um século. Isso não é uma previsão "
+        "pessimista — é uma consequência aritmética da combinação entre a magnitude do gap "
+        "e a velocidade atual de redução. Significa, concretamente, que reformas incrementais "
+        "são insuficientes: é necessário atacar o sistema de barreiras de forma simultânea e "
+        "com recursos proporcionais à magnitude do problema. A pesquisa operacional apresentada "
+        "neste trabalho demonstra que essa mudança de escala é fiscalmente viável — o que falta "
+        "não é recurso, é prioridade."
+    )
     doc.add_paragraph()
 
     add_para(doc,
