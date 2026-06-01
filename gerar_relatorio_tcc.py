@@ -208,7 +208,11 @@ def hlm_table_latex(r):
         cells = [label]
         for col in cols_hlm:
             val = sub.loc[row_key, col] if col in sub.columns else "—"
-            val = str(val).replace("***", r"$^{***}$").replace("**", r"$^{**}$").replace("*", r"$^{*}$")
+            import re as _re
+            def _star(m):
+                n = len(m.group())
+                return r"$^{***}$" if n==3 else (r"$^{**}$" if n==2 else r"$^{*}$")
+            val = _re.sub(r"\*{1,3}", _star, str(val))
             cells.append(val)
         lines.append(" & ".join(cells) + r" \\")
 
