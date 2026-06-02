@@ -618,6 +618,42 @@ add_colored_box(doc, "O que dizer se perguntarem sobre interpretabilidade do XGB
 doc.add_paragraph()
 
 # ── Figura 11: SNA ─────────────────────────────────────────────────────────────
+add_heading(doc, "O Papel do Machine Learning no Trabalho (o que dizer na defesa)", level=2)
+add_para(doc, "O que o ML prediz e por que está no trabalho:", size=11, bold=True,
+         color=(0x1F,0x38,0x64), space_before=4)
+add_bullet(doc, "Prediz a RENDA (log_renda) a partir de 28 variáveis (individuais, ocupação/CBO e "
+                "contexto de UPA/UF). Desempenho: XGBoost R²=0,62; Random Forest R²=0,57.")
+add_bullet(doc, "NÃO é o motor causal (isso é HLM/GLMM/Oaxaca/Heckman/Oster). Cumpre TRÊS funções: "
+                "(1) triangulação/robustez — método não-paramétrico, sem supor linearidade, confirma "
+                "o sinal econométrico; (2) interpretabilidade via SHAP — quantifica a contribuição de "
+                "cada variável e suas interações; (3) mecanismo tangível — waterfalls de casos individuais.")
+add_para(doc, "Achado central do SHAP (forte para a defesa):", size=11, bold=True,
+         color=(0x1F,0x38,0x64), space_before=4)
+add_bullet(doc, "O preditor nº 1 é a RENDA MÉDIA DA UPA (bairro) — acima da escolaridade e de qualquer "
+                "traço individual. A variável 'negro' tem importância DIRETA modesta (abaixo do top-12).")
+add_bullet(doc, "Isso CONFIRMA a tese (não contradiz): a raça tem efeito direto pequeno porque opera POR "
+                "MEIO dos mediadores (onde mora, ocupação, formalidade), que são moldados pela barreira "
+                "racial — a tradução computacional do Oaxaca-Blinder (a maior parte do gap é 'dotações', "
+                "mas dotações são produto de segregação e exclusão de acesso).")
+add_para(doc, "Como conecta com o resto do trabalho:", size=11, bold=True,
+         color=(0x1F,0x38,0x64), space_before=4)
+add_bullet(doc, "HLM: o domínio do contexto no SHAP espelha a mediação contextual do HLM (~52% via UPA). "
+                "Oaxaca: importância direta pequena da raça ↔ gap majoritariamente de dotações. GLMM: o "
+                "ML modela RENDA, o GLMM modela ACESSO (faces complementares). SNA: a parcela residual da "
+                "raça + betweenness=0 explicam por que o diploma negro rende menos. PO: a importância SHAP "
+                "ajuda a calibrar as prioridades das políticas.")
+add_bullet(doc, "Explicar vs. prever: a heterogeneidade geográfica (random slope) é inferencialmente real, "
+                "mas adicionar UF ao ML não muda o R² (testado: ΔR²≈0) — o contexto já está nas features. "
+                "Use essa distinção se questionarem.")
+add_colored_box(doc, "Se perguntarem 'por que ML se já tem econometria?':",
+    ["'O ML não substitui a econometria — triangula. Se um modelo flexível, livre de supor linearidade e "
+     "capaz de captar qualquer interação, chega ao MESMO diagnóstico (o contexto domina, a raça opera via "
+     "mediadores), o achado deixa de ser artefato de especificação. E o SHAP mostra COMO a desigualdade "
+     "atua: o bairro prediz mais que o diploma — desigualdade estrutural e territorial.'"],
+    title_color=(0xFF,0x8F,0x00))
+doc.add_paragraph()
+doc.add_page_break()
+
 add_heading(doc, "Figura 11 — Rede Social Ocupacional: Betweenness por Raça e Escolaridade", level=2)
 add_figure(doc, FIGS / "sna_rede_demografica.png", width_cm=14,
            caption="Rede de co-ocupação. Nós = grupos de raça × educação. Tamanho do nó = betweenness centrality.")
@@ -944,6 +980,11 @@ if P.get("RPO_GANHO_B9") is not None:
                         f"com dispersão MAIOR que o racial (DP {fmt(P['HRS_GEN_SD_SEXO'],3)} vs "
                         f"{fmt(P['HRS_GEN_SD_NEGRO'],3)}); ρ negativo ({fmt(P['HRS_GEN_RHO'],2)}) — onde a "
                         f"penalidade racial é maior, a de gênero tende a ser menor.")
+    if P.get("GGE_OCP_OR") is not None:
+        add_bullet(doc, f"Gênero no GLMM (acesso): mulheres têm MAIS acesso a ocupações qualificadas "
+                        f"(OR={fmt(P['GGE_OCP_OR'],2)}>1, profissões feminizadas), mas MUITO MENOS ao topo "
+                        f"da renda (OR top10={fmt(P['GGE_TOP10_OR'],3)}). Frase: 'o teto de vidro de gênero "
+                        f"é de REMUNERAÇÃO, não de categoria' — e varia mais entre estados que o racial no topo (~10×).")
     doc.add_paragraph()
 
 doc.add_page_break()

@@ -481,6 +481,31 @@ def build_latex(r, k):
     else:
         _hgen_block = ""
 
+    # GLMM random slope de GÊNERO (lme4) — bloco LaTeX pré-computado
+    if P.get("GGE_OCP_OR") is not None:
+        _gge_ocp  = fmt(P.get("GGE_OCP_OR", 2.01), 2)
+        _gge_t20  = fmt(P.get("GGE_TOP20_OR", 0.567), 3)
+        _gge_t10  = fmt(P.get("GGE_TOP10_OR", 0.522), 3)
+        _gge_t20t = fmt(P.get("GGE_TOP20_TAU2", 0.0324), 4)
+        _gge_block = (
+            f"\\medskip\n\\noindent\\textbf{{Gênero no acesso.}} O mesmo \\textit{{random slope}} "
+            f"aplicado a \\texttt{{sexo\\_fem}} no GLMM confirma heterogeneidade geográfica em todos "
+            f"os desfechos ($p<0{{,}}001$), revelando uma divergência ausente no caso racial: mulheres "
+            f"têm \\emph{{mais}} acesso a ``ocupações qualificadas'' (OR$={_gge_ocp}>1$, por profissões "
+            f"credenciadas feminizadas), mas \\emph{{muito menos}} acesso ao topo da renda "
+            f"(OR$_{{\\text{{top20}}}}={_gge_t20}$; OR$_{{\\text{{top10}}}}={_gge_t10}$). O teto de vidro "
+            f"de gênero é de \\emph{{remuneração}}, não de categoria ocupacional --- e sua "
+            f"heterogeneidade geográfica supera a racial no topo ($\\tau^2_{{\\text{{sexo}}}}={_gge_t20t}$ "
+            f"no top20, contra $\\tau^2_{{\\text{{negro}}}}\\approx0{{,}}003$; cerca de 10$\\times$).\n\n"
+            f"\\begin{{figure}}[H]\n  \\centering\n"
+            f"  \\includegraphics[width=\\textwidth]{{outputs/figures/glmm_genero_real.png}}\n"
+            f"  \\caption{{Random slope GLMM de gênero (\\texttt{{lme4}}): OR de \\texttt{{sexo\\_fem}} "
+            f"por UF em cada desfecho. OR$>$1 = vantagem feminina na categoria; OR$<$1 = desvantagem "
+            f"na renda (teto de vidro de remuneração).}}\n  \\label{{fig:glmm_genero}}\n\\end{{figure}}\n"
+        )
+    else:
+        _gge_block = ""
+
     doc = rf"""% !TeX encoding = UTF-8
 % !TeX program  = pdflatex
 %
@@ -1081,6 +1106,8 @@ testando $H_0{{\colon}}\,\tau^2_1 = 0$ (discriminação homogênea entre estados
 {_grs_block}
 
 {_hrs_setor_block}
+
+{_gge_block}
 
 \noindent\rule{{\textwidth}}{{1pt}}
 \textbf{{\large BARREIRA II --- PENALIDADE RESIDUAL E TETO DE VIDRO}}

@@ -201,6 +201,17 @@ if _hrsg_path.exists():
     chk("HRS_GEN_B_SEXO", round(float(_hrsg["b_sexo_fem"]), 4),     label="hlm_rs gen b_sexo")
     chk("HRS_GEN_RHO",    round(float(_hrsg["rho_negro_sexo"]), 4), label="hlm_rs gen rho")
 
+# Random slope GLMM de gênero (lme4) — glmm_genero_varcomp.csv
+_ggev_path = TAB / "glmm_genero_varcomp.csv"
+if _ggev_path.exists():
+    _ggev = pd.read_csv(_ggev_path)
+    def _ggev_val(des, col):
+        row = _ggev.loc[_ggev["desfecho"] == des]
+        return float(row[col].values[0]) if len(row) else None
+    chk("GGE_OCP_OR",   round(_ggev_val("ocp_qualif", "OR_sexo"), 4), label="glmm_genero ocp OR")
+    chk("GGE_TOP20_OR", round(_ggev_val("y_top20", "OR_sexo"), 4),    label="glmm_genero top20 OR")
+    chk("GGE_TOP10_OR", round(_ggev_val("y_top10", "OR_sexo"), 4),    label="glmm_genero top10 OR")
+
 
 # ── 3. Verifica geradores: nenhum P-value crítico hardcoded ──────────────────
 
@@ -297,6 +308,11 @@ SKIP_KEYS = {
     "HRS_PRIV_TAU2","HRS_PUB_TAU2","HRS_PRIV_SD","HRS_PUB_SD","HRS_PRIV_GAP_PCT","HRS_PUB_GAP_PCT",
     "HRS_GEN_TAU2_NEGRO","HRS_GEN_TAU2_SEXO","HRS_GEN_SD_NEGRO","HRS_GEN_SD_SEXO",
     "HRS_GEN_B_NEGRO","HRS_GEN_LR",
+    # GLMM de gênero — variâncias/SD/ρ/LR colidíveis
+    "GGE_OCP_TAU2","GGE_TOP20_TAU2","GGE_TOP10_TAU2","GGE_OCP_SD","GGE_TOP20_SD","GGE_TOP10_SD",
+    "GGE_OCP_RHO","GGE_TOP20_RHO","GGE_TOP10_RHO","GGE_OCP_LR","GGE_TOP20_LR","GGE_TOP10_LR",
+    # ORs do GLMM gênero colidem com R² do ML no guia ("0,57"/"0,52") e outros (chk valida à parte)
+    "GGE_OCP_OR","GGE_TOP20_OR","GGE_TOP10_OR",
 }
 
 for key, val in P.items():

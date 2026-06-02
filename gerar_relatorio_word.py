@@ -1969,6 +1969,20 @@ def build_doc(r, k):
             "Figura – HLM por setor (gap salarial racial e sua heterogeneidade: público × privado) e "
             "heterogeneidade geográfica raça vs gênero (random slope conjunto).", width_cm=15)
 
+    if P.get("GGE_OCP_OR") is not None:
+        add_para(doc,
+            f"Gênero no acesso (GLMM, lme4): o random slope de sexo_fem confirma heterogeneidade "
+            f"geográfica em todos os desfechos (p<0,001), com uma divergência ausente no caso racial — "
+            f"mulheres têm MAIS acesso a ocupações qualificadas (OR={fmt(P['GGE_OCP_OR'],2)}>1, por "
+            f"profissões credenciadas feminizadas), mas MUITO MENOS acesso ao topo da renda "
+            f"(OR top20={fmt(P['GGE_TOP20_OR'],3)}; top10={fmt(P['GGE_TOP10_OR'],3)}). O teto de vidro "
+            f"de gênero é de REMUNERAÇÃO, não de categoria ocupacional — e sua heterogeneidade entre "
+            f"UFs supera a racial no topo (τ²={fmt(P['GGE_TOP20_TAU2'],4)} no top20 vs ~0,003 racial, ~10×).")
+        add_figure(doc, "outputs/figures/glmm_genero_real.png",
+            "Figura – Random slope GLMM de gênero (lme4): OR de sexo_fem por UF em cada desfecho. "
+            "OR>1 = vantagem na categoria; OR<1 = desvantagem na renda (teto de remuneração).",
+            width_cm=16)
+
     # 4.2 Clustering
     doc.add_page_break()
     add_heading(doc, "4.2 Clustering Socioeconômico", level=2)

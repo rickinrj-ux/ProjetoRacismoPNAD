@@ -651,6 +651,17 @@ Em contraste com o salário ($\rho=-0{,}37$), o acesso a cargos qualificados cor
 
 Já no \emph{salário}, o setor público \emph{atenua} o gap racial (7,8\% vs 11,2\% no privado) e o \emph{homogeneíza} entre UFs ($\tau^2_1=0,00140$ vs $0,00218$). O concurso equaliza a \emph{remuneração} de quem entra, mas não a \emph{entrada} --- precisando o diagnóstico ``o Estado ajuda, mas não resolve''.
 
+\medskip
+\noindent\textbf{Gênero no acesso.} O mesmo \textit{random slope} aplicado a \texttt{sexo\_fem} no GLMM confirma heterogeneidade geográfica em todos os desfechos ($p<0{,}001$), revelando uma divergência ausente no caso racial: mulheres têm \emph{mais} acesso a ``ocupações qualificadas'' (OR$=2,01>1$, por profissões credenciadas feminizadas), mas \emph{muito menos} acesso ao topo da renda (OR$_{\text{top20}}=0,567$; OR$_{\text{top10}}=0,522$). O teto de vidro de gênero é de \emph{remuneração}, não de categoria ocupacional --- e sua heterogeneidade geográfica supera a racial no topo ($\tau^2_{\text{sexo}}=0,0324$ no top20, contra $\tau^2_{\text{negro}}\approx0{,}003$; cerca de 10$\times$).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{outputs/figures/glmm_genero_real.png}
+  \caption{Random slope GLMM de gênero (\texttt{lme4}): OR de \texttt{sexo\_fem} por UF em cada desfecho. OR$>$1 = vantagem feminina na categoria; OR$<$1 = desvantagem na renda (teto de vidro de remuneração).}
+  \label{fig:glmm_genero}
+\end{figure}
+
+
 \noindent\rule{\textwidth}{1pt}
 \textbf{\large BARREIRA II --- PENALIDADE RESIDUAL E TETO DE VIDRO}
 \textit{O custo de ser negro, mesmo após superar a barreira de entrada}

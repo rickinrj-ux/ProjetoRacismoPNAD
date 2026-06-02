@@ -320,6 +320,22 @@ def _load() -> dict:
         p["HRS_GEN_RHO"]       = round(float(_hg["rho_negro_sexo"]), 4)
         p["HRS_GEN_LR"]        = round(float(_hg["LR_add_sexo"]), 1)
 
+    # ── Random slope GLMM de GÊNERO (lme4) — glmm_genero_varcomp.csv ──────────
+    _gge_path = _TAB / "glmm_genero_varcomp.csv"
+    if _gge_path.exists():
+        _gge = pd.read_csv(_gge_path)
+        def _gge_v(des, col):
+            row = _gge.loc[_gge["desfecho"] == des]
+            return float(row[col].values[0]) if len(row) else None
+        for des, key in [("ocp_qualif", "OCP"), ("y_top20", "TOP20"), ("y_top10", "TOP10")]:
+            if _gge_v(des, "OR_sexo") is None:
+                continue
+            p[f"GGE_{key}_OR"]   = round(_gge_v(des, "OR_sexo"), 4)
+            p[f"GGE_{key}_TAU2"] = round(_gge_v(des, "tau2_sexo"), 5)
+            p[f"GGE_{key}_SD"]   = round(_gge_v(des, "sd_sexo"), 4)
+            p[f"GGE_{key}_RHO"]  = round(_gge_v(des, "rho"), 3)
+            p[f"GGE_{key}_LR"]   = round(_gge_v(des, "LR"), 1)
+
     return p
 
 
