@@ -146,7 +146,7 @@ def kpi_box(slide, label, value, unit, l, t, w=In(2.8), h=In(1.3),
     add_text(slide, unit, l+In(0.1), t+In(0.92), w-In(0.2), In(0.35),
              font_size=10, color=C_GRAY, italic=True, font_name="Calibri")
 
-def footer(slide, slide_num, total=25):
+def footer(slide, slide_num, total=26):
     add_rect(slide, 0, H-In(0.28), W, In(0.28), fill_rgb=C_DARK)
     add_text(slide,
              "Ricardo Calheiros  |  MBA USP/ESALQ  |  Racismo Estrutural e Mercado de Trabalho",
@@ -939,10 +939,50 @@ add_text(s, f"84% do gap é de ACESSO → P1 (Cotas CBO) lidera com CC={fmt(P['T
 footer(s, 23)
 
 # ══════════════════════════════════════════════════════════════════════════════
+# SLIDE 22b — PO REGIONALIZADA: FOCALIZAÇÃO TERRITORIAL (BLUP)
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header_bar(s, "23. Pesquisa Operacional Regionalizada — Focalização Territorial",
+           "BLUP do random slope por UF → alocação ótima do orçamento | ganho da focalização sobre a alocação uniforme")
+
+add_img(s, FIGURES / "mapa_po_regional.png", In(1.4), In(1.25), In(5.1))
+
+add_text(s, "Focalização territorial (base BLUP)", In(8.0), In(1.2), In(5.1), In(0.4),
+         font_size=14, bold=True, color=C_DARK)
+
+_rpo_cards = [
+    (f"Ganho da focalização: B=9 → +{fmt(P['RPO_GANHO_B9'],1)}%  |  B=3 → +{fmt(P['RPO_GANHO_B3'],1)}%",
+     "vs. alocação uniforme entre as 27 UFs", C_RED),
+    (f"UFs prioritárias: {P['RPO_TOP5']}",
+     "maior penalidade × maior população negra afetada", C_BLUE),
+    (f"Amplitude: {P['RPO_WORST_UF']} {fmt(P['RPO_WORST_GAP_PCT'],1)}%  →  {P['RPO_BEST_UF']} {fmt(P['RPO_BEST_GAP_PCT'],1)}%",
+     "penalidade racial por UF (BLUP do MixedLM)", C_GREEN),
+    (f"Base oficial: BLUP ≠ OLS+EB (Spearman ρ={fmt(P['RPO_SPEARMAN'],2)})",
+     "modelo misto completo, não a aproximação rápida", C_AMBER),
+]
+for i, (titulo, sub, color) in enumerate(_rpo_cards):
+    y = In(1.75) + i * In(1.18)
+    add_rect(s, In(8.0), y, In(5.1), In(1.05), fill_rgb=C_LGRAY, line_rgb=color, line_pt=1.2)
+    add_rect(s, In(8.0), y, In(0.12), In(1.05), fill_rgb=color)
+    add_text(s, titulo, In(8.25), y + In(0.08), In(4.75), In(0.6),
+             font_size=12.5, bold=True, color=C_BLACK)
+    add_text(s, sub, In(8.25), y + In(0.62), In(4.75), In(0.38),
+             font_size=10.5, color=C_DARK)
+
+add_rect(s, In(0.3), In(6.6), In(12.7), In(0.65),
+         fill_rgb=RGBColor(0x1F,0x38,0x64), line_rgb=C_AMBER, line_pt=0)
+add_text(s,
+         f"O random slope (LRT p<0,001) prova que a penalidade racial é geograficamente heterogênea → "
+         f"política federativa diferenciada supera a uniforme em até +{fmt(P['RPO_GANHO_B3'],1)}% com orçamento escasso.",
+         In(0.5), In(6.65), In(12.3), In(0.55),
+         font_size=12, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
+footer(s, 24)
+
+# ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 13 — IMPLICAÇÕES DE POLÍTICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "23. Implicações de Política",
+header_bar(s, "24. Implicações de Política",
            "Três eixos simultâneos — ações isoladas são insuficientes para romper a armadilha estrutural")
 
 politicas = [
@@ -973,13 +1013,13 @@ for i, (color, title, items) in enumerate(politicas):
 add_text(s, "⚠  Ao ritmo atual de convergência (~0,02 log-pontos/ano), eliminar o gap levaria mais de 100 anos.",
          In(0.3), In(6.8), In(12.7), In(0.45),
          font_size=13, bold=True, color=C_RED, align=PP_ALIGN.CENTER)
-footer(s, 24)
+footer(s, 25)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 14 — LIMITAÇÕES E AGENDA FUTURA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "24. Limitações e Agenda Futura",
+header_bar(s, "25. Limitações e Agenda Futura",
            "Honestidade acadêmica: o que este trabalho não faz e por quê")
 
 add_text(s, "Limitações", In(0.4), In(1.25), In(6.0), In(0.4),
@@ -987,7 +1027,7 @@ add_text(s, "Limitações", In(0.4), In(1.25), In(6.0), In(0.4),
 bullet_box(s, [
     "PNAD não permite experimentos causais — coeficientes são associações condicionais, não efeitos causais no sentido de Rubin/Pearl",
     "UPA como proxy de bairro: unidade de amostragem ≠ bairro administrativo",
-    "GLMM estimado na PEA completa via lme4::glmer (nAGQ=0, bobyqa, n=7,7M, 40,9k UPAs) — M3 com inclinação aleatória de negro não estimado por custo computacional",
+    "GLMM logístico estimado na PEA completa via lme4::glmer (nAGQ=0, bobyqa, n=7,7M, 40,9k UPAs); random slope de negro no GLMM não estimado por custo — porém o random slope foi estimado no HLM de salário (base da PO regionalizada por UF)",
     "CBO auto-declarado pode ter viés de classificação por raça (deflation de ocupação)",
 ], In(0.4), In(1.75), In(6.2), In(3.8), font_size=13, dot_color=C_RED)
 
@@ -1001,7 +1041,7 @@ bullet_box(s, [
     "Modelo longitudinal com painéis rotativos da PNAD (2T seguidos) para efeitos fixos de indivíduo",
 ], In(7.0), In(1.75), In(6.2), In(3.8), font_size=13, dot_color=C_BLUE)
 
-footer(s, 25)
+footer(s, 26)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 18 — CONCLUSÃO
@@ -1009,7 +1049,7 @@ footer(s, 25)
 s = prs.slides.add_slide(BLANK)
 add_rect(s, 0, 0, W, H, fill_rgb=C_DARK)
 add_rect(s, 0, 0, W, In(0.8), fill_rgb=RGBColor(0x0D,0x1F,0x3C))
-add_text(s, "25. Conclusão", In(0.4), In(0.1), In(12), In(0.65),
+add_text(s, "26. Conclusão", In(0.4), In(0.1), In(12), In(0.65),
          font_size=26, bold=True, color=C_WHITE, font_name="Calibri")
 
 numeros = [

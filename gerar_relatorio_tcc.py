@@ -1,4 +1,4 @@
-"""
+﻿"""
 gerar_relatorio_tcc.py
 ======================
 Gera relatorio_tcc.tex — documento LaTeX completo com todos os resultados.
@@ -280,11 +280,14 @@ def sna_table_latex(r):
         r"\midrule",
     ]
     for _, row in sna.iterrows():
+        # Escapa underscores em TODAS as colunas de texto (ex.: educ_label "Sem_Instrução")
         node = str(row["node"]).replace("_", r"\_")
+        race = str(row["race"]).replace("_", r"\_")
+        educ = str(row["educ_label"]).replace("_", r"\_")
         high_b = float(row["betweenness"]) > 0
         b_cell = r"\textbf{" + f"{float(row['betweenness']):.3f}" + "}" if high_b else f"{float(row['betweenness']):.3f}"
         lines.append(
-            f"{node} & {row['race']} & {row['educ_label']} & {int(row['n_workers']):,} "
+            f"{node} & {race} & {educ} & {int(row['n_workers']):,} "
             f"& {float(row['mean_renda']):.3f} & {b_cell} & {float(row['constraint']):.4f} \\\\"
         )
     lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
@@ -310,39 +313,96 @@ def build_latex(r, k):
     _rs_disponivel = P.get("RS_TAU2_NEGRO") is not None
     if _rs_disponivel:
         import math as _math
+        # Locale pt-BR: usar fmt() (vírgula decimal + sinal U+2212) para todos os
+        # valores numéricos, inclusive percentuais — o helper :.1f produzia ponto.
         _rs_lr_str   = fmt(P.get("RS_LRT_LR", 0.0), 1)
         _rs_b_str    = fmt(P.get("RS_B_NEGRO_FIXO", 0.0), 4)
-        _rs_gap_str  = f"{abs(P.get('RS_GAP_PCT', 0.0)):.1f}"
+        _rs_gap_str  = fmt(abs(P.get('RS_GAP_PCT', 0.0)), 1)
         _rs_tau2_str = fmt(P.get("RS_TAU2_NEGRO", 0.0), 6)
         _rs_sd_str   = fmt(P.get("RS_SD_NEGRO", 0.0), 4)
-        _rs_lo_str   = f"{P.get('RS_GAP_LO_PCT', 0.0):.1f}"
-        _rs_hi_str   = f"{P.get('RS_GAP_HI_PCT', 0.0):.1f}"
+        _rs_lo_str   = fmt(P.get('RS_GAP_LO_PCT', 0.0), 1)
+        _rs_hi_str   = fmt(P.get('RS_GAP_HI_PCT', 0.0), 1)
         _rs_rho_str  = fmt(P.get("RS_RHO", 0.0), 3)
-        _rs_var_str  = f"{abs(round(P.get('RS_GAP_HI_PCT', 0.0) - P.get('RS_GAP_LO_PCT', 0.0), 1)):.1f}"
-        _rs_amostra  = (f"populacao completa ($N={fmtN(int(P.get('RS_N_OBS', 0)))}$)"
+        _rs_var_str  = fmt(abs(round(P.get('RS_GAP_HI_PCT', 0.0) - P.get('RS_GAP_LO_PCT', 0.0), 1)), 1)
+        _rs_amostra  = (f"população completa ($N={fmtN(int(P.get('RS_N_OBS', 0)))}$)"
                         if P.get("RS_SAMPLE_FRAC", 0) >= 0.99
                         else f"amostra {P.get('RS_SAMPLE_FRAC', 0)*100:.0f}\\% ($N={fmtN(int(P.get('RS_N_OBS', 0)))}$)")
         _rs_lrt_block = (
-            f"O LRT boundary test \\citep{{{{stram1994}}}} rejeita $H_0$ com "
+            f"O LRT boundary test \\cite{{stram1994}} rejeita $H_0$ com "
             f"$LR={_rs_lr_str}$, $p<0{{,}}001$: "
             f"o gap racial varia significativamente entre estados. "
-            f"O efeito fixo nacional e $\\hat{{{{\\beta}}}}_1={_rs_b_str}$ "
+            f"O efeito fixo nacional é $\\hat{{\\beta}}_1={_rs_b_str}$ "
             f"(gap de {_rs_gap_str}\\%), com $\\tau^2_1={_rs_tau2_str}$ "
             f"($DP={_rs_sd_str}$ log-pontos). "
             f"Em 95\\% das UFs o gap situa-se em $[{_rs_lo_str}\\%;\\,{_rs_hi_str}\\%]$ "
-            f"--- variacao de {_rs_var_str} pontos percentuais entre extremos."
+            f"--- variação de {_rs_var_str} pontos percentuais entre extremos."
         )
         _rs_rho_block = (
-            f"A correlacao $\\rho(u_0,u_1)={_rs_rho_str}$ e negativa: "
-            f"estados com menor renda media apresentam maior penalidade racial, "
-            f"indicando que a discriminacao se concentra nas regioes mais pobres."
+            f"A correlação $\\rho(u_0,u_1)={_rs_rho_str}$ é negativa: UFs com maior "
+            f"nível salarial médio (intercepto $u_0$ mais alto) exibem penalidade "
+            f"racial mais severa (inclinação $u_1$ mais negativa). A discriminação se "
+            f"intensifica nas economias mais ricas e desiguais --- e não nas mais "
+            f"pobres: as maiores penalidades estimadas por UF concentram-se no Distrito "
+            f"Federal, Rio de Janeiro e São Paulo, ao passo que estados do Nordeste "
+            f"(RN, PB, SE) registram as menores ($r_{{\\text{{UF}}}}=+0{{,}}45$ entre renda "
+            f"média e magnitude do gap)."
             if P.get("RS_RHO", 0) < -0.1 else
-            f"A correlacao $\\rho(u_0,u_1)={_rs_rho_str}$ e proxima de zero."
+            f"A correlação $\\rho(u_0,u_1)={_rs_rho_str}$ é próxima de zero."
         )
     else:
         _rs_lrt_block = "Resultados em processamento --- ver \\texttt{{hlm\\_m3\\_random\\_slope\\_varcov.csv}}."
         _rs_rho_block = ""
         _rs_amostra   = "amostra 20\\%"
+
+    # PO Regional (BLUP MixedLM) — bloco LaTeX pré-computado
+    if P.get("RPO_GANHO_B9") is not None:
+        _rpo_g3    = fmt(P.get("RPO_GANHO_B3", 0.0), 1)
+        _rpo_g9    = fmt(P.get("RPO_GANHO_B9", 0.0), 1)
+        _rpo_worst = P.get("RPO_WORST_UF", "DF")
+        _rpo_wgap  = fmt(abs(P.get("RPO_WORST_GAP_PCT", 0.0)), 1)
+        _rpo_best  = P.get("RPO_BEST_UF", "MG")
+        _rpo_bgap  = fmt(abs(P.get("RPO_BEST_GAP_PCT", 0.0)), 1)
+        _rpo_top5  = P.get("RPO_TOP5", "")
+        _rpo_spear = fmt(P.get("RPO_SPEARMAN", 0.0), 2)
+        _rpo_nufs  = P.get("RPO_N_UFS", 27)
+        _rpo_block = (
+            "\\paragraph{Focalização territorial: Pesquisa Operacional regionalizada.}\n"
+            "A inclinação aleatória de \\texttt{negro} por UF (Seção~\\ref{subsec:hlm_rs}) "
+            "estabeleceu que a penalidade racial é geograficamente heterogênea. "
+            "Traduzimos essa heterogeneidade em alocação ótima de recursos: usando os BLUPs "
+            f"do MixedLM como gap específico de cada uma das {_rpo_nufs} UFs, um programa "
+            "linear distribui o orçamento priorizando os estados de maior penalidade. "
+            "A Tabela~\\ref{tab:po_regional} mostra que concentrar recursos nas UFs mais "
+            f"críticas reduz o gap agregado {_rpo_g9}\\% acima da alocação uniforme com "
+            f"orçamento intermediário (e {_rpo_g3}\\% quando o orçamento é escasso) --- ganho "
+            "decorrente exclusivamente da focalização, mantida constante a efetividade da "
+            f"política. As unidades prioritárias ({_rpo_top5}) combinam alta penalidade "
+            f"--- liderada por {_rpo_worst} ({_rpo_wgap}\\%) --- e elevada população negra "
+            f"afetada, enquanto {_rpo_best} apresenta o menor diferencial ({_rpo_bgap}\\%). "
+            "Metodologicamente, a estimação por BLUP é indispensável: a aproximação rápida "
+            "por OLS estadual com encolhimento \\textit{empirical Bayes} diverge do BLUP "
+            f"(Spearman $\\rho={_rpo_spear}$), pois trata heterogeneamente os coeficientes "
+            "de controle --- por isso adotamos o modelo misto completo como base oficial.\n\n"
+            "\\begin{figure}[H]\n"
+            "  \\centering\n"
+            "  \\includegraphics[width=0.70\\textwidth]{outputs/figures/mapa_po_regional.png}\n"
+            "  \\caption{Mapa de calor da penalidade racial salarial por UF (BLUP do "
+            "\\textit{random slope}). Estados mais escuros indicam maior desvantagem; "
+            "$\\bigstar$ marca os estados prioritários para a focalização orçamentária.}\n"
+            "  \\label{fig:mapa_po_regional}\n"
+            "\\end{figure}\n\n"
+            "\\input{outputs/tables/po_regional.tex}\n\n"
+            "\\begin{figure}[H]\n"
+            "  \\centering\n"
+            "  \\includegraphics[width=\\textwidth]{outputs/figures/po_regional.png}\n"
+            "  \\caption{Penalidade racial por UF (BLUP do \\textit{random slope}) e ganho da "
+            "focalização orçamentária sobre a alocação uniforme (Pesquisa Operacional "
+            "regionalizada).}\n"
+            "  \\label{fig:po_regional}\n"
+            "\\end{figure}\n"
+        )
+    else:
+        _rpo_block = ""
 
     doc = rf"""% !TeX encoding = UTF-8
 % !TeX program  = pdflatex
@@ -386,6 +446,14 @@ def build_latex(r, k):
 % ── Referências ───────────────────────────────────────────────────────────────
 \usepackage[alf, abnt-etal-list=5]{{abntex2cite}}
 
+% Unicode minus sign (U+2212) → LaTeX math minus
+\DeclareUnicodeCharacter{{2212}}{{$-$}}
+
+% Compatibility: abntex2cite with article class
+\makeatletter
+\providecommand{{\abntnextkey}}{{}}
+\makeatother
+
 % ── Hiperlinks ───────────────────────────────────────────────────────────────
 \usepackage[colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue]{{hyperref}}
 
@@ -401,7 +469,9 @@ def build_latex(r, k):
 \centering
 \vspace*{{1cm}}
 
-\includegraphics[width=4cm]{{logo_esalq}}  % substitua pelo logo ESALQ se disponível
+\IfFileExists{{logo_esalq.pdf}}{{\includegraphics[width=4cm]{{logo_esalq}}}}{{%
+  \framebox[4cm]{{\rule{{0pt}}{{1.5cm}}\textit{{Logo ESALQ}}}}%
+}}
 
 \vspace{{1.5cm}}
 {{\Large \textbf{{ESCOLA SUPERIOR DE AGRICULTURA ``LUIZ DE QUEIROZ''\\
@@ -555,22 +625,22 @@ O Brasil é um dos países com maior desigualdade racial de renda no mundo.
 Segundo a PNAD Contínua, a razão entre o rendimento médio de trabalhadores
 brancos e negros permanece acima de 1{{:}}1,5 ao longo de toda a série
 histórica disponível, persistindo mesmo quando se controlam escolaridade,
-experiência e setor de atividade~\citep{{ibge_pnad_2023}}.
+experiência e setor de atividade~\cite{{ibge_pnad_2023}}.
 A desigualdade racial no mercado de trabalho brasileiro é, portanto,
 não apenas uma herança colonial, mas um fenômeno reproduzido ativamente
 por mecanismos que a abordagem tradicional de diferenças de capital humano
-não é capaz de capturar~\citep{{hasenbalg1979}}.
+não é capaz de capturar~\cite{{hasenbalg1979}}.
 
 A literatura empírica contemporânea identifica três canais principais de
 reprodução dessa desigualdade: (i)~discriminação direta, isto é, diferenças
 de tratamento em processos de seleção e promoção com características
-individuais observadas~\citep{{pager2007}}; (ii)~segregação residencial e
+individuais observadas~\cite{{pager2007}}; (ii)~segregação residencial e
 seus efeitos sobre o capital social disponível ao trabalhador
 --- o contexto do bairro define a qualidade das redes de indicação
-profissional~\citep{{wilson1987, sampson1997}}; e (iii)~subvalorização
+profissional~\cite{{wilson1987, sampson1997}}; e (iii)~subvalorização
 sistêmica do capital humano negro, pela qual um dado nível de escolaridade
 gera retornos financeiros menores para trabalhadores negros do que para
-brancos~\citep{{hasenbalg1979, pager2007}}.
+brancos~\cite{{hasenbalg1979, pager2007}}.
 
 Este trabalho avança sobre a literatura nacional ao integrar três
 metodologias complementares --- econometria multinível, \textit{{machine learning}}
@@ -619,23 +689,23 @@ série completa de 2016 a 2025.
 
 \subsection{{Desigualdade racial no mercado de trabalho brasileiro}}
 
-\citet{{hasenbalg1979}} demonstrou pioneiramente que a desigualdade racial
+\citeonline{{hasenbalg1979}} demonstrou pioneiramente que a desigualdade racial
 no Brasil não decorre apenas de diferenças históricas de acesso à educação,
 mas de mecanismos ativos de discriminação no mercado de trabalho que
 convertem desvantagens sociais em desvantagens econômicas de forma cumulativa.
-Trabalhos posteriores~\citep{{henriques2001, soares2009}} confirmaram a
+Trabalhos posteriores~\cite{{henriques2001, soares2009}} confirmaram a
 persistência dessas diferenças mesmo após controlar por escolaridade,
 reforçando a hipótese de discriminação estrutural.
 
 \subsection{{Efeitos de vizinhança e segregação residencial}}
 
-\citet{{wilson1987}} propôs a hipótese da \textit{{concentrated disadvantage}}:
+\citeonline{{wilson1987}} propôs a hipótese da \textit{{concentrated disadvantage}}:
 a concentração de pobreza em bairros racialmente segregados amplifica
 desvantagens individuais por meio da redução de redes de contato com
 o mercado de trabalho formal, degradação de serviços públicos e aumento
-da violência. \citet{{sampson1997}} forneceu evidência empírica para essa
+da violência. \citeonline{{sampson1997}} forneceu evidência empírica para essa
 hipótese em contexto norte-americano, e estudos brasileiros encontraram
-padrões similares para as regiões metropolitanas~\citep{{marques2010}}.
+padrões similares para as regiões metropolitanas~\cite{{marques2010}}.
 
 A abordagem de \textit{{networking}} local, operacionalizada neste trabalho
 pelo segundo nível do modelo hierárquico (UPA), testa se o contexto
@@ -645,7 +715,7 @@ após controlar por características individuais --- o chamado
 
 \subsection{{Modelos lineares hierárquicos para dados aninhados}}
 
-\citet{{raudenbush2002}} sistematizaram a fundamentação estatística dos
+\citeonline{{raudenbush2002}} sistematizaram a fundamentação estatística dos
 modelos lineares hierárquicos (HLM), tornando-os o padrão metodológico para
 análise de dados com estrutura aninhada (indivíduos dentro de bairros dentro
 de estados). Esses modelos permitem decompor a variância do desfecho em
@@ -654,7 +724,7 @@ controlando simultaneamente pelos efeitos individuais.
 
 \subsection{{Interpretabilidade em machine learning: SHAP values}}
 
-\citet{{lundberg2017}} propuseram os \textit{{SHapley Additive exPlanations}}
+\citeonline{{lundberg2017}} propuseram os \textit{{SHapley Additive exPlanations}}
 (SHAP), unificando importância de variáveis, efeitos parciais e explicações
 individuais em uma única estrutura axiomática baseada na teoria dos jogos
 cooperativos. Para dados socioeconômicos, SHAP permite responder à pergunta:
@@ -664,10 +734,10 @@ a interpretação dos coeficientes do HLM.
 
 \subsection{{Análise de redes sociais e capital social}}
 
-\citet{{granovetter1973}} demonstrou que \textit{{laços fracos}} ---
+\citeonline{{granovetter1973}} demonstrou que \textit{{laços fracos}} ---
 conexões entre indivíduos de grupos sociais distintos --- são os principais
 canais de transmissão de informações sobre oportunidades profissionais.
-\citet{{burt2004}} formalizou o conceito de \textit{{buraco estrutural}}:
+\citeonline{{burt2004}} formalizou o conceito de \textit{{buraco estrutural}}:
 indivíduos que conectam grupos desconexos obtêm vantagens relacionais
 (acesso antecipado a vagas, mentoria, promoções). Aplicado à questão racial,
 a SNA permite investigar se trabalhadores negros ocupam as posições de rede
@@ -745,7 +815,7 @@ Em um modelo de três níveis, o ICC completo é:
 onde $\tau^2_{{UF}}$ é a variância entre estados, $\tau^2_{{UPA}}$ a variância
 entre UPAs e $\sigma^2$ a variância residual intraindividual.
 Valores $\rho_{{UF}} > 0{{,}}05$ justificam a inclusão do nível~3 no modelo
-\citep{{raudenbush2002}}.
+\cite{{raudenbush2002}}.
 
 Os efeitos de localidade (UPA) são modelados como \textit{{interceptos fixos}}
 --- estratégia computacionalmente viável para 41.517 grupos e apropriada quando
@@ -765,23 +835,23 @@ disponíveis, usando 12~dimensões padronizadas: idade, três dummies de
 escolaridade (ensino médio completo, superior completo, pós-graduação),
 log-rendimento, raça, gênero, status de emprego e quatro variáveis de
 contexto da UPA. O número ótimo de clusters foi determinado pelo
-\textit{{Silhouette Coefficient}} \citep{{rousseeuw1987}} com validação
-pelo índice de Davies-Bouldin \citep{{davies_bouldin1979}}.
+\textit{{Silhouette Coefficient}} \cite{{rousseeuw1987}} com validação
+pelo índice de Davies-Bouldin \cite{{davies_bouldin1979}}.
 Para $k=2$: $S={fmt(P['KM_SILH_K2'],4)}$, $DB={fmt(P['KM_DB_K2'],4)}$;
 para $k=3$: $S={fmt(P['KM_SILH_K3'],4)}$, $DB={fmt(P['KM_DB_K3'],4)}$.
 Ambos os critérios automáticos favorecem $k=2$; $k=3$ foi adotado por
-interpretabilidade substantiva superior \citep{{ketchen1996}}, uma vez que
+interpretabilidade substantiva superior \cite{{ketchen1996}}, uma vez que
 a solução binária reproduz trivialmente a clivagem racial sem discriminar
 segmentos ocupacionais internos.
 
 \subsection{{Random Forest, XGBoost e SHAP Values}}
 
 Para predição do log-rendimento, foram ajustados dois modelos de ensemble:
-(i)~\textit{{Random Forest}} \citep{{breiman2001}} com 200 árvores e profundidade
-máxima 10; e (ii)~\textit{{XGBoost}} \citep{{chen2016}} com 300 iterações,
+(i)~\textit{{Random Forest}} \cite{{breiman2001}} com 200 árvores e profundidade
+máxima 10; e (ii)~\textit{{XGBoost}} \cite{{chen2016}} com 300 iterações,
 $\text{{lr}}=0{{,}}05$ e regularização $L_1/L_2$. Sobre o modelo XGBoost,
 foi aplicado o \textit{{TreeExplainer}} da biblioteca SHAP
-\citep{{lundberg2017}} sobre um subsample de 50.000 observações para
+\cite{{lundberg2017}} sobre um subsample de 50.000 observações para
 calcular os valores de Shapley de cada feature.
 
 \subsection{{Análise de Redes Sociais (SNA)}}
@@ -800,7 +870,7 @@ A expansão para 20~nós acrescenta a dimensão de gênero, aumentando a
 robustez das métricas de centralidade e permitindo detectar posições de
 \textit{{brokerage}} por subgrupo interseccional (raça~$\times$~gênero).
 As métricas de rede incluem centralidade de grau, \textit{{betweenness}},
-\textit{{clustering coefficient}} e \textit{{constraint}} de Burt~\citep{{burt2004}}.
+\textit{{clustering coefficient}} e \textit{{constraint}} de Burt~\cite{{burt2004}}.
 
 % ══════════════════════════════════════════════════════════════════════════════
 %  4. RESULTADOS
@@ -863,7 +933,7 @@ para verificação de robustez.
 O modelo nulo (M0) estima $\hat{{\rho}}_{{UF}} = {k['icc_uf_m0']}$,
 indicando que aproximadamente 9,8\% da variância do log-rendimento é
 atribuível ao estado de residência, acima do limiar de 5\% sugerido
-por \citet{{raudenbush2002}} para justificar a inclusão do nível superior.
+por \citeonline{{raudenbush2002}} para justificar a inclusão do nível superior.
 A adição dos \textit{{slopes contextuais}} da UPA (M2) reduz o ICC para
 5,3\%, revelando que o contexto de bairro explica parte substancial
 da heterogeneidade interestadual.
@@ -944,7 +1014,7 @@ Os critérios automáticos apresentam divergência esperada:
 $k=2$ ($S={k['km_silhouette_k2']:.4f}$, $DB={fmt(P['KM_DB_K2'],4)}$) produz
 clusters mais compactos; $k=3$ ($S={k['km_silhouette']:.4f}$,
 $DB={fmt(P['KM_DB_K3'],4)}$) foi adotado por interpretabilidade substantiva
-\citep{{ketchen1996}}, uma vez que a solução binária reproduz trivialmente a
+\cite{{ketchen1996}}, uma vez que a solução binária reproduz trivialmente a
 clivagem racial sem discriminar segmentos ocupacionais internos
 (Figura~\ref{{fig:kmeans}}). A Tabela~\ref{{tab:kmeans_perfis}} apresenta os
 perfis médios por cluster.
@@ -1138,7 +1208,7 @@ O índice de homofilia abaixo de 0{{,}}5 indica heterofilia leve:
 em termos de peso acumulado de co-presença em UPAs, há mais mistura
 inter-racial do que segregação pura. Esse padrão é consistente com
 a literatura que descreve a segregação racial brasileira como menos
-geograficamente absoluta do que a norte-americana \citep{{marques2010}},
+geograficamente absoluta do que a norte-americana \cite{{marques2010}},
 porém com forte correlação com renda. A mistura ocorre principalmente
 nos bairros populares (grupos \textit{{Sem instrução}} de ambas as raças
 compartilham Jaccard~$=0{{,}}979$), enquanto o par com menor integração é
@@ -1214,11 +1284,11 @@ multicausal, com componentes individuais, contextuais e estruturais
 que se reforçam mutuamente.
 
 \paragraph{{O que este trabalho acrescenta ao debate.}}
-\citet{{hasenbalg1979}} identificou a discriminação racial como estrutural,
+\citeonline{{hasenbalg1979}} identificou a discriminação racial como estrutural,
 sem poder quantificar mecanismos em escala nacional.
-\citet{{henriques2001}} documentou o gap educacional racial, mas não separou
+\citeonline{{henriques2001}} documentou o gap educacional racial, mas não separou
 o efeito educacional do de redes e contexto.
-\citet{{soares2009}} estimou, com dados de 2006, que cerca de 50\% do gap
+\citeonline{{soares2009}} estimou, com dados de 2006, que cerca de 50\% do gap
 salarial seria ``inexplicado'' --- interpretado como discriminação direta.
 Este trabalho, com dados de 2016--2025 e metodologias não disponíveis
 a Soares, decompõe essa \textit{{caixa preta}}: apenas 16,0\% do gap bruto
@@ -1227,7 +1297,7 @@ são diferenças de dotações --- mas essas dotações são, elas mesmas,
 produto de barreiras de acesso (GLMM) e isolamento de redes (SNA)
 que este trabalho pela primeira vez quantifica de forma integrada.
 A contribuição central não é mostrar que o gap existe --- isso a
-literatura já sabia desde \citet{{hasenbalg1979}} ---,
+literatura já sabia desde \citeonline{{hasenbalg1979}} ---,
 mas demonstrar que ele é sustentado por um
 \textbf{{sistema combinado}} em que discriminação de acesso, segregação
 residencial e exclusão de redes se reforçam mutuamente, tornando
@@ -1251,7 +1321,7 @@ pós-graduação têm betweenness nulo. Juntas, essas evidências indicam que
 negros enfrentam um duplo obstáculo ao retorno educacional: além do
 gap direto mensurado pelo HLM, perdem acesso às redes de indicação
 que convertem credenciais formais em mobilidade profissional.
-\citet{{granovetter1973}} antecipou esse mecanismo: sem \textit{{laços fracos}}
+\citeonline{{granovetter1973}} antecipou esse mecanismo: sem \textit{{laços fracos}}
 que cruzem fronteiras sociais, o capital humano acumulado circula
 apenas na própria comunidade.
 
@@ -1263,7 +1333,7 @@ interpretação: a variável racial mantém o {k['shap_negro_rank']}$^\circ$ lug
 na importância preditiva do XGBoost mesmo quando o modelo tem acesso
 completo às variáveis educacionais, demográficas e contextuais.
 Essa evidência é consistente com os experimentos de auditoria de
-\citet{{pager2007}}, que demonstram experimentalmente a discriminação
+\citeonline{{pager2007}}, que demonstram experimentalmente a discriminação
 racial em processos seletivos.
 
 \paragraph{{Lenta convergência racial.}}
@@ -1276,6 +1346,8 @@ Essa constatação não trivializa avanços recentes em políticas de cotas
 e acesso ao ensino superior, mas evidencia que reformas no campo da
 educação, sem intervenção simultânea nos mecanismos de segregação
 residencial e de acesso às redes profissionais, são insuficientes.
+
+{_rpo_block}
 
 % ══════════════════════════════════════════════════════════════════════════════
 %  6. CONCLUSÃO
@@ -1370,7 +1442,7 @@ Este estudo oferece, ao nosso conhecimento, a primeira análise integrada
 de HLM multinível, clustering, SHAP, SNA e pesquisa operacional
 (TOPSIS + programação linear) sobre a série completa da PNAD Contínua.
 Mais do que confirmar a existência do gap racial --- resultado já documentado
-desde \citet{{hasenbalg1979}} ---, este trabalho identifica e quantifica os
+desde \citeonline{{hasenbalg1979}} ---, este trabalho identifica e quantifica os
 \textbf{{mecanismos}} que o sustentam em 2016--2025: discriminação de acesso,
 segregação residencial e exclusão de redes, em sistema combinado.
 
@@ -1399,6 +1471,16 @@ evidências internacionais e requerem validação empírica no contexto brasilei
 # ── BibTeX ─────────────────────────────────────────────────────────────────────
 
 BIB = r"""
+@article{stram1994,
+  author    = {Stram, Daniel O. and Lee, Jae Won},
+  title     = {Variance Components Testing in the Longitudinal Mixed Effects Model},
+  journal   = {Biometrics},
+  volume    = {50},
+  number    = {4},
+  pages     = {1171--1177},
+  year      = {1994},
+}
+
 @book{hasenbalg1979,
   author    = {Hasenbalg, Carlos},
   title     = {Discriminação e Desigualdades Raciais no Brasil},

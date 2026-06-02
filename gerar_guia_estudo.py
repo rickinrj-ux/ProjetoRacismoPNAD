@@ -887,6 +887,42 @@ add_colored_box(doc, "O que dizer se perguntarem sobre PO:",
     title_color=(0xFF,0x8F,0x00))
 doc.add_paragraph()
 
+# ── PO Regionalizada — Focalização Territorial (BLUP por UF) ──────────────────
+if P.get("RPO_GANHO_B9") is not None:
+    add_heading(doc, "Pesquisa Operacional Regionalizada — Focalização Territorial (BLUP por UF)", level=2)
+    add_para(doc, "O que é e por que está na dissertação:", size=11, bold=True,
+             color=(0x1F,0x38,0x64), space_before=4)
+    add_bullet(doc, "Extensão da PO que usa o achado do random slope (M3): a penalidade racial NÃO é "
+                    "homogênea entre estados (LRT p<0,001). Em vez de tratar o gap como um número nacional, "
+                    f"usa-se o BLUP do MixedLM como gap específico de cada uma das {P.get('RPO_N_UFS',27)} UFs, "
+                    "e um programa linear aloca o orçamento priorizando os estados de maior penalidade.")
+    add_bullet(doc, f"Resultado central: focalizar o orçamento nas UFs mais críticas reduz o gap agregado "
+                    f"{fmt(P['RPO_GANHO_B9'],1)}% acima da alocação uniforme com orçamento intermediário (B=9 UFs) "
+                    f"— e até {fmt(P['RPO_GANHO_B3'],1)}% quando o orçamento é escasso (B=3). O ganho vem só da "
+                    "focalização (a efetividade da política é mantida constante entre estados).")
+    add_bullet(doc, f"Prioridades: {P.get('RPO_TOP5','')} (maior penalidade × maior população negra afetada). "
+                    f"Amplitude: {P.get('RPO_WORST_UF','DF')} {fmt(P['RPO_WORST_GAP_PCT'],1)}% → "
+                    f"{P.get('RPO_BEST_UF','MG')} {fmt(P['RPO_BEST_GAP_PCT'],1)}%. As maiores penalidades "
+                    "concentram-se no Distrito Federal e no Norte — estados mais ricos têm penalidade maior.")
+    add_bullet(doc, f"Decisão metodológica: a base oficial é o BLUP do modelo misto, NÃO a aproximação rápida "
+                    f"por OLS estadual + shrinkage empirical Bayes. Os dois divergem (Spearman ρ={fmt(P['RPO_SPEARMAN'],2)}), "
+                    "pois o BLUP mantém os coeficientes de controle agrupados nacionalmente enquanto o OLS "
+                    "estadual os libera — não são intercambiáveis.")
+    add_colored_box(doc, "O que dizer se perguntarem sobre a PO regionalizada:",
+        ["'O random slope provou heterogeneidade geográfica; a PO regional traduz isso em prescrição: "
+         "como o gap varia de ~−1% a ~−21% entre UFs, espalhar o orçamento por igual é subótimo. "
+         "Concentrar nas UFs de maior penalidade entrega até dois terços a mais de redução com o mesmo "
+         "recurso — argumento direto a favor de um desenho federativo diferenciado de política.'",
+         "'Usei os BLUPs (estimadores empíricos de Bayes do modelo misto), não OLS por estado. "
+         "Mostrei formalmente que eles divergem (Spearman ≈0,42) porque o OLS estadual libera todos os "
+         "coeficientes de controle, enquanto o modelo misto os mantém nacionais — o BLUP é a estimativa "
+         "principiada e coerente com o random slope já reportado.'"],
+        title_color=(0xFF,0x8F,0x00))
+    add_figure(doc, FIGS / "mapa_po_regional.png", width_cm=12,
+               caption="Mapa de calor — penalidade racial salarial por estado (mais escuro = maior "
+                       "desvantagem; ★ = estados prioritários para focalizar o orçamento).")
+    doc.add_paragraph()
+
 doc.add_page_break()
 
 # ══════════════════════════════════════════════════════════════════════════════

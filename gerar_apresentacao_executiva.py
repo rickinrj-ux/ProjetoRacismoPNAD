@@ -1,7 +1,7 @@
 """
 gerar_apresentacao_executiva.py
 Versão para congressos e empresas — linguagem acessível, narrativa visual.
-12 slides | Sem jargão técnico | Foco em impacto e políticas.
+13 slides | Sem jargão técnico | Foco em impacto e políticas.
 """
 import sys; sys.stdout.reconfigure(encoding='utf-8')
 from pathlib import Path
@@ -9,6 +9,7 @@ from pptx import Presentation
 from pptx.util import Inches as In, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
+from params import P, fmt, fmtN   # fonte única de verdade (números sincronizados)
 
 ROOT    = Path(r"C:\Users\user\Documents\ProjetoRacismoPNAD")
 FIGURES = ROOT / "outputs" / "figures"
@@ -92,7 +93,7 @@ def header(slide, title, subtitle=None, bg=C_DARK):
         text(slide, subtitle, In(0.35), In(0.63), In(12.3), In(0.35),
              size=13, color=RGBColor(0xBB, 0xDE, 0xFB), name="Calibri")
 
-def footer_exec(slide, num, total=12):
+def footer_exec(slide, num, total=13):
     rect(slide, 0, H - In(0.25), W, In(0.25), fill=C_DARK)
     text(slide, "PNAD Contínua 2016–2025  |  15,9 milhões de observações  |  Ricardo Calheiros — MBA USP/ESALQ",
          In(0.2), H - In(0.23), In(11.5), In(0.22),
@@ -134,7 +135,7 @@ rect(s, In(0.6), In(2.7), In(12.0), In(0.04), fill=C_AMBER)
 
 for i, (v, l) in enumerate([
     ("37,5%",  "gap salarial médio\n(mediana: 27,5%)"),
-    ("25%",    "menos chance de\nvaga qualificada"),
+    (f"{round((1-P['OR_M2'])*100)}%",    "menos chance de\nvaga qualificada"),
     ("+127%",  "ganho de renda com\ninclusão produtiva"),
     ("100+",   "anos para convergir\nno ritmo atual"),
 ]):
@@ -259,9 +260,9 @@ text(s, "O que a análise mostrou:", In(7.6), In(1.2), In(5.5), In(0.4),
      size=16, bold=True, color=C_DARK)
 
 achados = [
-    (C_RED,   "25% menos chance",
-     "Um trabalhador negro com exatamente as mesmas características que um branco tem 25% menos chance de estar em uma ocupação qualificada (gerente, engenheiro, advogado...)"),
-    (C_AMBER, "−1,07 pontos percentuais",
+    (C_RED,   f"{round((1-P['OR_M2'])*100)}% menos chance",
+     f"Um trabalhador negro com exatamente as mesmas características que um branco tem {round((1-P['OR_M2'])*100)}% menos chance de estar em uma ocupação qualificada (gerente, engenheiro, advogado...)"),
+    (C_AMBER, f"−{fmt(abs(P['AME_M2_pp']),1)} pontos percentuais",
      "Mesmo após considerar o bairro onde mora, o setor de trabalho e horas trabalhadas, negros ainda ficam fora das melhores vagas. Isso é o resíduo puro da discriminação."),
     (C_BLUE,  "Não é falta de diploma",
      "O modelo controla educação, experiência, setor, horas e bairro. O que sobra é a cor da pele sendo usada como critério de seleção."),
@@ -415,7 +416,48 @@ for i, (color, title, body1, body2) in enumerate(cenarios):
 footer_exec(s, 9)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 10 — O QUE FUNCIONA: TRÊS EIXOS DE AÇÃO
+# SLIDE 10 — O RACISMO TEM ENDEREÇO (VARIAÇÃO ENTRE ESTADOS)
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header(s, "O Racismo Tem Endereço — Varia Muito Entre Estados",
+       "A desvantagem racial é bem maior em alguns estados — e a política pode (e deve) focar onde mais dói")
+
+text(s, "A mesma injustiça, em tamanhos muito diferentes pelo país:",
+     In(0.4), In(1.15), In(12.5), In(0.4),
+     size=16, bold=True, color=C_DARK)
+
+# Mapa de calor do Brasil à esquerda
+img(s, FIGURES / "mapa_po_regional.png", In(0.5), In(1.55), In(4.3))
+
+# Três cartões empilhados à direita
+cards = [
+    (C_RED, "O gap muda de estado para estado",
+     f"Chega a ~{abs(P['RPO_WORST_GAP_PCT']):.0f}% ({P['RPO_WORST_UF']}) em alguns estados e cai a "
+     f"~{abs(P['RPO_BEST_GAP_PCT']):.0f}% ({P['RPO_BEST_UF']}) em outros. Não é o mesmo problema em todo lugar."),
+    (C_AMBER, "Maior onde há mais riqueza",
+     "As maiores desvantagens aparecem no Distrito Federal, no Rio e em São Paulo — crescimento "
+     "econômico, sozinho, não dissolve a barreira racial."),
+    (C_GREEN, "Focar onde dói rende muito mais",
+     f"Concentrar o orçamento nos estados de maior desvantagem entrega até +{P['RPO_GANHO_B9']:.0f}% "
+     f"mais resultado do que espalhar o dinheiro por igual."),
+]
+for i, (color, title, body) in enumerate(cards):
+    y = In(1.55) + i * In(1.62)
+    rect(s, In(5.4), y, In(7.6), In(1.5), fill=C_LGRAY, line=color, lpt=2)
+    rect(s, In(5.4), y, In(0.14), In(1.5), fill=color)
+    text(s, title, In(5.62), y + In(0.07), In(7.3), In(0.4),
+         size=13.5, bold=True, color=color, name="Calibri")
+    text(s, body, In(5.62), y + In(0.52), In(7.3), In(0.92),
+         size=12, color=C_BLACK, name="Calibri")
+
+callout(s,
+        "Em linguagem simples: tratar o país inteiro igual desperdiça recursos. Levar a política primeiro "
+        f"aos estados ★ ({P['RPO_TOP5']}) multiplica o impacto do mesmo orçamento.",
+        In(0.3), In(6.45), In(12.7), In(0.66))
+footer_exec(s, 10)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SLIDE 11 — O QUE FUNCIONA: TRÊS EIXOS DE AÇÃO
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
 header(s, "O Que Funciona — Três Eixos de Ação",
@@ -454,7 +496,7 @@ for i, (color, title, a1, a2, impacto) in enumerate(eixos):
 text(s, "⚠  Sem ação simultânea nos três eixos, fechar o gap levará mais de 100 anos no ritmo atual.",
      In(0.3), H - In(0.55), In(12.7), In(0.38),
      size=13, bold=True, color=C_RED, align=PP_ALIGN.CENTER, name="Calibri")
-footer_exec(s, 10)
+footer_exec(s, 11)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 11 — A URGÊNCIA: OS NÚMEROS DA MUDANÇA
@@ -482,7 +524,7 @@ callout(s,
         "O Brasil está a produzir emprego, mas não prosperidade igualitária. Pleno emprego com "
         "segregação ocupacional é o cenário atual — e não se resolve sozinho.",
         In(0.3), H - In(0.6), In(12.7), In(0.44))
-footer_exec(s, 11)
+footer_exec(s, 12)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 12 — CONTRACAPA / CALL TO ACTION
@@ -505,7 +547,7 @@ text(s, "A pergunta é: o que faremos com esse conhecimento?",
      size=22, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER, name="Calibri")
 
 for i, (v, l) in enumerate([
-    ("25%",   "menos chance de uma\nvaga qualificada"),
+    (f"{round((1-P['OR_M2'])*100)}%",   "menos chance de uma\nvaga qualificada"),
     ("27,5%", "gap salarial na\nmediana bruta"),
     ("+127%", "ganho potencial de\nrenda com inclusão"),
     ("+100",  "anos para convergir\nsem ação deliberada"),
@@ -525,11 +567,11 @@ text(s, "Ricardo Calheiros  |  MBA Data Science & Analytics  |  USP/ESALQ  |  ri
 text(s, "Dados e código disponíveis  |  Metodologia: HLM + ML/SHAP + Oaxaca-Blinder + GLMM + Reg. Quantílica  |  PNAD Contínua 2016–2025 (IBGE)",
      In(0.3), H - In(0.55), In(12.7), In(0.35),
      size=9.5, color=RGBColor(0x78, 0x90, 0x9C), align=PP_ALIGN.CENTER, italic=True)
-text(s, "12/12", In(12.8), H - In(0.25), In(0.5), In(0.22),
+text(s, "13/13", In(12.8), H - In(0.25), In(0.5), In(0.22),
      size=7.5, color=RGBColor(0x78, 0x90, 0x9C), align=PP_ALIGN.RIGHT)
 
 # ── Salvar ────────────────────────────────────────────────────────────────────
 prs.save(str(OUT_PPT))
 print(f"Arquivo gerado: {OUT_PPT.name}")
 print(f"Tamanho: {OUT_PPT.stat().st_size // 1024} KB")
-print("Versão executiva (12 slides) para congressos e empresas.")
+print("Versão executiva (13 slides) para congressos e empresas.")

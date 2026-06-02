@@ -228,6 +228,7 @@ def _load() -> dict:
             p["RS_SD_NEGRO"]     = round(_sd, 4)
             p["RS_RHO"]          = round(float(_row["rho_int_negro"]), 4)
             p["RS_ICC_NEGRO"]    = round(float(_row["icc_negro"]), 4)
+            p["RS_SIGMA2"]       = round(float(_row["sigma2"]), 4)  # variância residual nível 1
             p["RS_B_NEGRO_FIXO"] = round(_b, 4)
             p["RS_GAP_PCT"]      = round(_gap_pct, 1)
             p["RS_GAP_LO_PCT"]   = round(_gap_lo, 1)
@@ -241,6 +242,33 @@ def _load() -> dict:
             p["RS_LRT_P"]    = float(_lrt["p_boundary_mix"].iloc[0])
             p["RS_LRT_SIG"]  = str(_lrt["sig"].iloc[0])
             p["RS_LRT_SIGN"] = bool(_lrt["tau2_negro_significativo"].iloc[0])
+
+    # ── PO Regionalizada (base oficial: BLUP MixedLM) ─────────────────────────
+    _rpo_gaps = _TAB / "po_regional_gaps_uf.csv"
+    _rpo_aloc = _TAB / "po_regional_alocacao.csv"
+    _rpo_comp = _TAB / "blup_vs_eb_comparacao.csv"
+    if _rpo_gaps.exists() and _rpo_aloc.exists():
+        _rg = pd.read_csv(_rpo_gaps)   # ordenado por gap_blup (pior primeiro)
+        _ra = pd.read_csv(_rpo_aloc)
+        _pior, _melhor = _rg.iloc[0], _rg.iloc[-1]
+        p["RPO_N_UFS"]         = len(_rg)
+        p["RPO_WORST_UF"]      = str(_pior["sigla"])
+        p["RPO_WORST_GAP_PCT"] = round(float(_pior["gap_blup_pct"]), 1)
+        p["RPO_BEST_UF"]       = str(_melhor["sigla"])
+        p["RPO_BEST_GAP_PCT"]  = round(float(_melhor["gap_blup_pct"]), 1)
+        p["RPO_TOP5"]          = ", ".join(_rg.head(5)["sigla"].tolist())
+
+        def _ganho(B):
+            row = _ra.loc[_ra["orcamento_ufs"] == B, "ganho_focalizacao_pct"]
+            return round(float(row.values[0]), 1) if len(row) else None
+        p["RPO_GANHO_B3"] = _ganho(3)
+        p["RPO_GANHO_B9"] = _ganho(9)
+
+    if _rpo_comp.exists():
+        _rc = pd.read_csv(_rpo_comp)
+        p["RPO_PEARSON"]  = round(float(_rc["pearson_r"].iloc[0]), 3)
+        p["RPO_SPEARMAN"] = round(float(_rc["spearman_rho"].iloc[0]), 3)
+        p["RPO_OVERLAP5"] = int(_rc["overlap_top5_piores"].iloc[0])
 
     return p
 

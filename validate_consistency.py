@@ -149,6 +149,30 @@ _intra = _ar.loc[~_ar["inter_racial"],"weight_jaccard"].sum()
 _inter = _ar.loc[ _ar["inter_racial"],"weight_jaccard"].sum()
 chk("SNA_H", _intra / (_intra + _inter), tolerance=1e-3, label="sna_arestas homofilia")
 
+# PO Regional (BLUP MixedLM) — gaps por UF e alocação focalizada
+_rpo_path = TAB / "po_regional_gaps_uf.csv"
+if _rpo_path.exists():
+    _rpo = pd.read_csv(_rpo_path)               # ordenado por gap_blup (pior primeiro)
+    _rpa = pd.read_csv(TAB / "po_regional_alocacao.csv")
+    chk("RPO_N_UFS",         len(_rpo),                              label="po_regional N UFs")
+    chk("RPO_WORST_UF",      str(_rpo.iloc[0]["sigla"]),             label="po_regional pior UF")
+    chk("RPO_BEST_UF",       str(_rpo.iloc[-1]["sigla"]),            label="po_regional melhor UF")
+    # arredonda a 1 casa (mesma precisão de params) — evita estouro de tolerância relativa em valores pequenos
+    chk("RPO_WORST_GAP_PCT", round(float(_rpo.iloc[0]["gap_blup_pct"]), 1),  label="po_regional pior gap%")
+    chk("RPO_BEST_GAP_PCT",  round(float(_rpo.iloc[-1]["gap_blup_pct"]), 1), label="po_regional melhor gap%")
+    def _rpo_ganho(B):
+        return float(_rpa.loc[_rpa["orcamento_ufs"] == B, "ganho_focalizacao_pct"].values[0])
+    chk("RPO_GANHO_B3", _rpo_ganho(3), label="po_regional ganho B=3")
+    chk("RPO_GANHO_B9", _rpo_ganho(9), label="po_regional ganho B=9")
+
+# Comparação BLUP × OLS+EB (validade do atalho)
+_rpc_path = TAB / "blup_vs_eb_comparacao.csv"
+if _rpc_path.exists():
+    _rpc = pd.read_csv(_rpc_path)
+    chk("RPO_PEARSON",  float(_rpc["pearson_r"].iloc[0]),            label="blup×eb pearson")
+    chk("RPO_SPEARMAN", float(_rpc["spearman_rho"].iloc[0]),         label="blup×eb spearman")
+    chk("RPO_OVERLAP5", int(_rpc["overlap_top5_piores"].iloc[0]),    label="blup×eb overlap5")
+
 
 # ── 3. Verifica geradores: nenhum P-value crítico hardcoded ──────────────────
 
@@ -191,6 +215,8 @@ WHITELIST_PATTERNS = {
     r"2.357.851", r"307.768", r"150.267",
     # Percentis/quantis fixos
     r"20%", r"50%", r"80%", r"90%",
+    # Contagem de replicações bootstrap / N_perm = 1.000 (literal, não um parâmetro=1)
+    r"1.000", r"1,000",
     # Oster bounds delta* nos modelos OLS auxiliares (contexto OB) — coincide com GAP_LOG 2 dec
     r"0,43", r"0.43",
     # Razão de representação CBO (11,5%/25,6%) — contexto segregação, coincide com OR_TOP10_M1 2 dec
@@ -220,10 +246,25 @@ SKIP_KEYS = {
     "KM_C2_PCT_TOTAL",
     # KM_C1_GAP_PCT → "24,1" coincide com gap de gênero bruto no setor público (análise setorial)
     "KM_C1_GAP_PCT",
+    # RS_SD_NEGRO=0,05 e RS_ICC_NEGRO≈0,01 colidem com limiares ubíquos (p<0,05, p<0,01,
+    # lr=0,05, pisos np.maximum(...,0.01)) — não são hardcodes do parâmetro.
+    "RS_SD_NEGRO", "RS_ICC_NEGRO",
+    # Inteiros pequenos prone a colisão: VIF_N_MODERADO=1 → "1.000" (bootstrap replicações),
+    # SNA_EXP_N_NOS=20 → "20.0", VIF_N_BAIXO=22 → "22,0" (códigos de cor 0x22).
+    "VIF_N_MODERADO", "SNA_EXP_N_NOS", "VIF_N_BAIXO",
+    # RS_SAMPLE_FRAC=1.0 (metadado: fração amostral) → repr "1.000" colide com
+    # "1.000 replicações"/"N_perm=1.000" do bootstrap de segregação.
+    "RS_SAMPLE_FRAC",
+    # PO regional — diagnósticos/metadados prone a colisão:
+    # RPO_N_UFS=27 → "27,0" (cor hex 0x27); RPO_OVERLAP5=2 → "2.000" (renda R$2.000);
+    # RPO_SPEARMAN=0,42 → coincide com a razão CBO dirigentes (0,42), número distinto.
+    "RPO_N_UFS", "RPO_OVERLAP5", "RPO_SPEARMAN",
 }
 
 for key, val in P.items():
     if key in SKIP_KEYS:
+        continue
+    if isinstance(val, bool):   # flags booleanas (ex.: RS_LRT_SIGN) não são estatísticas
         continue
     reprs = _all_reprs(key, val)
     if reprs:
@@ -237,6 +278,7 @@ def _is_comment_or_pdict(line: str) -> bool:
         s.startswith("#")
         or "P['" in line
         or 'P["' in line
+        or "P.get(" in line      # P.get(key, default): o default não é hardcode — valor vem de P
         or "params" in line
         or "_load()" in line
         or "chk(" in line        # próprio validator

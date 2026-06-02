@@ -411,45 +411,20 @@ add_text(s, "Discriminacao varia entre estados (HLM):",
          In(6.9), In(1.12), In(6.1), In(0.42),
          font_size=16, bold=True, color=C_DARK)
 
-rs_b    = P.get("RS_B_NEGRO_FIXO", -0.1218)
-rs_gap  = abs(P.get("RS_GAP_PCT", -11.5))
-rs_lo   = P.get("RS_GAP_LO_PCT",  -20.9)
-rs_hi   = P.get("RS_GAP_HI_PCT",  -2.0)
-rs_sd   = P.get("RS_SD_NEGRO", 0.0506)
-rs_rho  = P.get("RS_RHO", -0.3719)
-rs_lr   = P.get("RS_LRT_LR", 7611.6)
+rs_lr  = P.get("RS_LRT_LR", 7611.6)
+rs_lo  = P.get("RS_GAP_LO_PCT", -20.9)
+rs_hi  = P.get("RS_GAP_HI_PCT", -2.0)
 
-big_kpi(s, "Gap medio (efeito fixo)",
-        f"{rs_gap:.1f}%",
-        "penalidade salarial racial media nacional",
-        In(6.9), In(1.65), w=In(5.9), h=In(1.4),
-        val_color=C_RED, bg=RGBColor(0x1A,0x05,0x05), border=C_RED)
+# Mapa de calor por estado (substitui os quadros de texto — mais visual e direto)
+add_img(s, FIGURES / "mapa_po_regional.png", In(7.55), In(1.5), In(4.3))
 
-add_rect(s, In(6.9), In(3.18), In(5.9), In(1.15),
-         fill_rgb=C_LGRAY, line_rgb=C_AMBER, line_pt=1.2)
-add_text(s, "Variacao entre estados (95% das UFs):",
-         In(7.05), In(3.22), In(5.6), In(0.35),
-         font_size=12, bold=True, color=C_AMBER)
-add_text(s, f"de {rs_lo:.1f}% ate {rs_hi:.1f}% — amplitude de {abs(rs_lo-rs_hi):.1f} pp",
-         In(7.05), In(3.6), In(5.6), In(0.55),
-         font_size=22, bold=True, color=C_DARK)
-
-add_rect(s, In(6.9), In(4.45), In(5.9), In(1.15),
-         fill_rgb=C_LGRAY, line_rgb=C_BLUE, line_pt=1.2)
-add_text(s, f"Correlacao estado rico x gap racial: rho = {rs_rho:.3f}",
-         In(7.05), In(4.49), In(5.6), In(0.35),
-         font_size=12, bold=True, color=C_BLUE)
-add_text(s,
-    "Estados mais pobres concentram maior penalidade racial.\n"
-    "Politicas nacionais uniformes ignoram essa heterogeneidade.",
-    In(7.05), In(4.87), In(5.6), In(0.68),
-    font_size=12.5, color=C_BLACK)
-
-add_rect(s, In(6.9), In(5.72), In(5.9), In(0.88),
+add_rect(s, In(6.9), In(6.42), In(6.1), In(0.66),
          fill_rgb=RGBColor(0xE3,0xF2,0xFD), line_rgb=C_DARK, line_pt=1)
-add_text(s, f"LRT boundary test: LR={rs_lr:.0f} | p<0,001*** — variacao geografica CONFIRMADA (N=7.689.426)",
-         In(7.05), In(5.77), In(5.6), In(0.75),
-         font_size=12, bold=True, color=C_DARK)
+add_text(s,
+    f"Amplitude {rs_lo:.0f}% a {rs_hi:.0f}% entre UFs | LRT LR={rs_lr:.0f}, p<0,001*** — "
+    "maior penalidade nos estados mais ricos (DF, RJ, SP), nao nos mais pobres.",
+    In(7.0), In(6.46), In(5.9), In(0.58),
+    font_size=10.5, bold=True, color=C_DARK)
 
 footer(s, 7)
 
@@ -553,9 +528,9 @@ for i, (color, titulo, acoes) in enumerate(eixos):
                  font_size=10.5, italic=True, color=C_GRAY)
 
 add_rect(s, In(0.3), H-In(0.6), In(12.7), In(0.32), fill_rgb=C_AMBER)
-add_text(s, "Pareto (lambda=0,5): combinacao otima = Eixo 1 (cotas) + Eixo 3 (mentoria). Atuacao isolada em remuneracao e insuficiente.",
+add_text(s, f"Pareto: cotas (Eixo 1) + mentoria (Eixo 3) = combinacao otima. E focalizar o orcamento nas UFs de maior penalidade (DF, Norte) rende +{fmt(P['RPO_GANHO_B9'],1)}% vs. distribuicao uniforme.",
          In(0.5), H-In(0.57), In(12.3), In(0.28),
-         font_size=11.5, bold=True, color=C_DARK, align=PP_ALIGN.CENTER)
+         font_size=11, bold=True, color=C_DARK, align=PP_ALIGN.CENTER)
 footer(s, 9)
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -593,9 +568,9 @@ mensagens = [
     (C_AMBER, "Opera em duas etapas distintas",
      "84% na PORTA DE ENTRADA (acesso a funcoes qualificadas) + 16% no SALARIO dentro da funcao."),
     (C_BLUE,  "E geograficamente heterogenea",
-     f"O gap varia de {P.get('RS_GAP_LO_PCT',-19.8):.1f}% a {P.get('RS_GAP_HI_PCT',-2.2):.1f}% entre estados (random slope HLM, N={fmtN(P.get('RS_N_OBS',7689426))}). Estados pobres concentram mais discriminacao."),
-    (C_GREEN, "Politicas precisam ser especificas",
-     "Cotas ocupacionais (CBO) + mentoria de redes atacam 84% do problema. Transparencia salarial ataca o restante."),
+     f"O gap varia de {P.get('RS_GAP_LO_PCT',-19.8):.1f}% a {P.get('RS_GAP_HI_PCT',-2.2):.1f}% entre estados (random slope HLM, N={fmtN(P.get('RS_N_OBS',7689426))}). Estados mais ricos (DF, RJ, SP) concentram a MAIOR penalidade."),
+    (C_GREEN, "Politicas precisam ser especificas e focalizadas",
+     f"Cotas ocupacionais (CBO) + mentoria atacam 84% do problema. E focalizar o orcamento nas UFs de maior penalidade rende +{fmt(P['RPO_GANHO_B9'],1)}% vs. distribuicao uniforme (DF, Norte primeiro)."),
 ]
 for i, (color, titulo, corpo) in enumerate(mensagens):
     add_rect(s, In(0.3), In(2.42)+i*In(1.02), In(12.7), In(0.94),

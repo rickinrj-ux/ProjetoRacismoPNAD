@@ -1845,6 +1845,77 @@ def build_doc(r, k):
             "e regenere o documento.",
             italic=True)
 
+    # ── 4.1d PO Regionalizada: Focalização Territorial ────────────────────────
+    if P.get("RPO_GANHO_B9") is not None:
+        add_heading(doc, "4.1d PO Regionalizada: Focalização Territorial da Política", level=2)
+        _rpo_g3    = fmt(P.get("RPO_GANHO_B3", 0.0), 1)
+        _rpo_g9    = fmt(P.get("RPO_GANHO_B9", 0.0), 1)
+        _rpo_worst = P.get("RPO_WORST_UF", "DF")
+        _rpo_wgap  = abs(P.get("RPO_WORST_GAP_PCT", 0.0))
+        _rpo_best  = P.get("RPO_BEST_UF", "MG")
+        _rpo_bgap  = abs(P.get("RPO_BEST_GAP_PCT", 0.0))
+        _rpo_top5  = P.get("RPO_TOP5", "")
+        _rpo_spear = fmt(P.get("RPO_SPEARMAN", 0.0), 2)
+        _rpo_nufs  = P.get("RPO_N_UFS", 27)
+        add_para(doc,
+            f"A heterogeneidade geográfica estabelecida em 4.1c tem consequência prescritiva direta. "
+            f"Usando os BLUPs do MixedLM como gap específico de cada uma das {_rpo_nufs} UFs, formulou-se "
+            f"um programa linear que aloca o orçamento priorizando os estados de maior penalidade racial "
+            f"(severidade × população negra afetada), em contraste com a alocação uniforme entre todas as "
+            f"UFs. O resultado é inequívoco: concentrar recursos nas UFs mais críticas reduz o gap agregado "
+            f"{_rpo_g9}% acima da alocação uniforme com orçamento intermediário (B=9 UFs) — e até {_rpo_g3}% "
+            f"quando o orçamento é escasso (B=3). O ganho decorre exclusivamente da focalização, mantida "
+            f"constante a efetividade da política entre estados."
+        )
+        add_para(doc,
+            f"As unidades prioritárias ({_rpo_top5}) combinam alta penalidade — liderada pelo "
+            f"{_rpo_worst} ({_rpo_wgap:.1f}%) — e elevada população negra afetada, enquanto {_rpo_best} "
+            f"registra o menor diferencial ({_rpo_bgap:.1f}%). A concentração das maiores penalidades no "
+            f"Distrito Federal e nos estados do Norte indica que a política de equidade racial salarial "
+            f"deve ter desenho federativo diferenciado, e não uniforme."
+        )
+        add_para(doc,
+            f"Nota metodológica: adotou-se o BLUP do modelo misto como base oficial, e não a aproximação "
+            f"rápida por OLS estadual com encolhimento empirical Bayes. A comparação formal mostrou que os "
+            f"dois estimadores divergem (Spearman ρ={_rpo_spear}; sobreposição de apenas 2 das 5 UFs "
+            f"prioritárias), pois o BLUP mantém os coeficientes de controle agrupados nacionalmente "
+            f"enquanto o OLS estadual os libera — não sendo, portanto, intercambiáveis.",
+            italic=True
+        )
+        # Tabela de alocação (focalizada × uniforme)
+        _aloc_path = Path("outputs/tables/po_regional_alocacao.csv")
+        if _aloc_path.exists():
+            _al = pd.read_csv(_aloc_path)
+            tbl_rpo = doc.add_table(rows=len(_al) + 1, cols=4)
+            tbl_rpo.style = "Table Grid"; tbl_rpo.alignment = WD_TABLE_ALIGNMENT.CENTER
+            for j, h in enumerate(["Orçamento (UFs)", "Redução focalizada",
+                                   "Redução uniforme", "Ganho"]):
+                cell = tbl_rpo.rows[0].cells[j]; cell.text = h
+                for run in cell.paragraphs[0].runs:
+                    run.bold = True; run.font.name = "Arial"; run.font.size = Pt(10)
+                    run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+            shade_row(tbl_rpo.rows[0], "1F3864")
+            for i, (_, arow) in enumerate(_al.iterrows(), 1):
+                tbl_rpo.rows[i].cells[0].text = str(int(arow["orcamento_ufs"]))
+                tbl_rpo.rows[i].cells[1].text = fmt(float(arow["reducao_focalizada"]), 5)
+                tbl_rpo.rows[i].cells[2].text = fmt(float(arow["reducao_uniforme"]), 5)
+                tbl_rpo.rows[i].cells[3].text = fmt(float(arow["ganho_focalizacao_pct"]), 1) + "%"
+                shade_row(tbl_rpo.rows[i], "D9E1F2" if i % 2 == 1 else "EBF0F9")
+                for cell in tbl_rpo.rows[i].cells:
+                    for run in cell.paragraphs[0].runs:
+                        run.font.name = "Times New Roman"; run.font.size = Pt(10)
+            add_caption(doc,
+                "Tabela – PO regionalizada: ganho da focalização orçamentária sobre a "
+                "alocação uniforme entre UFs (base oficial: BLUP do MixedLM).")
+        add_figure(doc, "outputs/figures/mapa_po_regional.png",
+            "Figura – Mapa de calor da penalidade racial salarial por UF (BLUP do random slope). "
+            "Estados mais escuros = maior desvantagem; ★ = prioritários para a focalização.",
+            width_cm=11)
+        add_figure(doc, "outputs/figures/po_regional.png",
+            "Figura – Penalidade racial por UF (BLUP do random slope) e valor da "
+            "focalização orçamentária sobre a alocação uniforme (PO regionalizada).",
+            width_cm=15)
+
     # 4.2 Clustering
     doc.add_page_break()
     add_heading(doc, "4.2 Clustering Socioeconômico", level=2)
