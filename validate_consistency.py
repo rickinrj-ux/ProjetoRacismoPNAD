@@ -173,6 +173,19 @@ if _rpc_path.exists():
     chk("RPO_SPEARMAN", float(_rpc["spearman_rho"].iloc[0]),         label="blup×eb spearman")
     chk("RPO_OVERLAP5", int(_rpc["overlap_top5_piores"].iloc[0]),    label="blup×eb overlap5")
 
+# Random slope GLMM real (lme4) — glmm_rs_varcomp.csv
+_grsv_path = TAB / "glmm_rs_varcomp.csv"
+if _grsv_path.exists():
+    _grsv = pd.read_csv(_grsv_path)
+    def _grsv_val(rot, col):
+        row = _grsv.loc[_grsv["rotulo"] == rot]
+        return float(row[col].values[0]) if len(row) else None
+    chk("GRS_OCP_OR",   round(_grsv_val("ocp_qualif","OR_negro"), 4),         label="glmm_rs ocp OR")
+    chk("GRS_TOP10_OR", round(_grsv_val("y_top10","OR_negro"), 4),            label="glmm_rs top10 OR")
+    chk("GRS_PRIV_OR",  round(_grsv_val("ocp_qualif_PRIVADO","OR_negro"), 4), label="glmm_rs priv OR")
+    chk("GRS_PUB_OR",   round(_grsv_val("ocp_qualif_PUBLICO","OR_negro"), 4), label="glmm_rs pub OR")
+    chk("GRS_N",        int(_grsv_val("ocp_qualif","N")),                     label="glmm_rs N")
+
 
 # ── 3. Verifica geradores: nenhum P-value crítico hardcoded ──────────────────
 
@@ -259,6 +272,12 @@ SKIP_KEYS = {
     # RPO_N_UFS=27 → "27,0" (cor hex 0x27); RPO_OVERLAP5=2 → "2.000" (renda R$2.000);
     # RPO_SPEARMAN=0,42 → coincide com a razão CBO dirigentes (0,42), número distinto.
     "RPO_N_UFS", "RPO_OVERLAP5", "RPO_SPEARMAN",
+    # Random slope GLMM — componentes de variância pequenos/ρ colidem com limiares
+    # (τ²≈0,003–0,011 → "0,01"; SD≈0,05–0,11; ρ≈0,45–0,66; LR grandes genéricos).
+    "GRS_OCP_TAU2","GRS_TOP20_TAU2","GRS_TOP10_TAU2","GRS_PRIV_TAU2","GRS_PUB_TAU2",
+    "GRS_OCP_SD","GRS_TOP20_SD","GRS_TOP10_SD",
+    "GRS_OCP_RHO","GRS_TOP20_RHO","GRS_TOP10_RHO",
+    "GRS_OCP_LR","GRS_TOP20_LR","GRS_TOP10_LR",
 }
 
 for key, val in P.items():

@@ -1916,6 +1916,37 @@ def build_doc(r, k):
             "focalização orçamentária sobre a alocação uniforme (PO regionalizada).",
             width_cm=15)
 
+    # ── 4.1e Random slope no GLMM: heterogeneidade geográfica do acesso (lme4) ──
+    if P.get("GRS_OCP_OR") is not None:
+        _lr1 = fmtN(int(round(P.get("GRS_OCP_LR", 2402.6))))
+        _lr2 = fmtN(int(round(P.get("GRS_TOP20_LR", 321.7))))
+        _lr3 = fmtN(int(round(P.get("GRS_TOP10_LR", 501.7))))
+        add_heading(doc, "4.1e Random Slope no GLMM: Heterogeneidade Geográfica do Acesso", level=2)
+        add_para(doc,
+            f"O random slope de negro foi estendido ao GLMM logístico de acesso (lme4::glmer, "
+            f"população completa, N={fmtN(int(P.get('GRS_N',7694198)))}), em três desfechos. O LRT de "
+            f"fronteira (Stram & Lee, 1994) rejeita H₀: τ²=0 em todos — ocp_qualif (LR={_lr1}), "
+            f"y_top20 (LR={_lr2}) e y_top10 (LR={_lr3}), todos p<0,001: a barreira de ACESSO também "
+            f"varia geograficamente, completando a simetria com a penalidade salarial (HLM). A "
+            f"heterogeneidade é maior no acesso a ocupações qualificadas (τ²={fmt(P['GRS_OCP_TAU2'],4)}, "
+            f"DP={fmt(P['GRS_OCP_SD'],3)} log-odds) e o gradiente de teto de vidro se mantém no efeito "
+            f"fixo (OR cai de {fmt(P['GRS_OCP_OR'],3)} para {fmt(P['GRS_TOP10_OR'],3)} rumo ao decil superior).")
+        add_para(doc,
+            f"Contraste com o salário: enquanto o gap salarial é maior nos estados mais ricos (ρ=−0,37), "
+            f"o acesso a cargos qualificados correlaciona-se positivamente com o nível ocupacional do "
+            f"estado (ρ={fmt(P['GRS_OCP_RHO'],2)}) — nas economias desenvolvidas, negros enfrentam acesso "
+            f"relativamente mais fácil, porém maior gap salarial uma vez dentro.")
+        add_para(doc,
+            f"Setor público × privado: a barreira de acesso é praticamente idêntica "
+            f"(OR público={fmt(P['GRS_PUB_OR'],3)} vs privado={fmt(P['GRS_PRIV_OR'],3)}) e igualmente "
+            f"heterogênea entre UFs (τ²={fmt(P['GRS_PUB_TAU2'],4)} vs {fmt(P['GRS_PRIV_TAU2'],4)}): o "
+            f"concurso público não dissolve a exclusão racial de acesso a ocupações qualificadas — "
+            f"refinando o achado de que o Estado ajuda, mas não resolve.")
+        add_figure(doc, "outputs/figures/glmm_rs_real.png",
+            "Figura – Random slope GLMM (lme4): OR de negro por UF em cada desfecho de acesso e por "
+            "setor. Dispersão entre UFs = heterogeneidade geográfica (BLUP); OR<1 = barreira.",
+            width_cm=16)
+
     # 4.2 Clustering
     doc.add_page_break()
     add_heading(doc, "4.2 Clustering Socioeconômico", level=2)

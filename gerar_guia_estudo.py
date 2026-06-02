@@ -921,6 +921,20 @@ if P.get("RPO_GANHO_B9") is not None:
     add_figure(doc, FIGS / "mapa_po_regional.png", width_cm=12,
                caption="Mapa de calor — penalidade racial salarial por estado (mais escuro = maior "
                        "desvantagem; ★ = estados prioritários para focalizar o orçamento).")
+    if P.get("GRS_OCP_OR") is not None:
+        add_para(doc, "Random slope também no GLMM (acesso) — versão real (lme4), não proxy:",
+                 size=11, bold=True, color=(0x1F,0x38,0x64), space_before=6)
+        add_bullet(doc, "O random slope de negro foi estimado de verdade (lme4::glmer, população "
+                        "completa) nos três desfechos de acesso/teto. O LRT rejeita τ²=0 em todos "
+                        "(p<0,001): a barreira de ACESSO varia entre estados, como o salário — os "
+                        "dois mecanismos da discriminação são geográficos.")
+        add_bullet(doc, f"Contraste a destacar: o gap salarial é MAIOR nos estados ricos (ρ=−0,37), "
+                        f"mas a barreira de acesso a cargos qualificados é MENOR neles "
+                        f"(ρ={fmt(P['GRS_OCP_RHO'],2)}) — acesso mais fácil onde há mais empregos "
+                        f"qualificados, porém gap salarial maior uma vez dentro.")
+        add_bullet(doc, f"Setor: o concurso público NÃO dissolve a barreira de acesso "
+                        f"(OR público={fmt(P['GRS_PUB_OR'],3)} ≈ privado={fmt(P['GRS_PRIV_OR'],3)}) "
+                        f"nem a homogeneíza entre UFs — refina 'o Estado ajuda, mas não resolve'.")
     doc.add_paragraph()
 
 doc.add_page_break()

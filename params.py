@@ -270,6 +270,29 @@ def _load() -> dict:
         p["RPO_SPEARMAN"] = round(float(_rc["spearman_rho"].iloc[0]), 3)
         p["RPO_OVERLAP5"] = int(_rc["overlap_top5_piores"].iloc[0])
 
+    # ── Random slope GLMM real (lme4, acesso) — glmm_rs_varcomp.csv ───────────
+    _grs_path = _TAB / "glmm_rs_varcomp.csv"
+    if _grs_path.exists():
+        _grs = pd.read_csv(_grs_path)
+        def _grs_v(rot, col):
+            row = _grs.loc[_grs["rotulo"] == rot]
+            return float(row[col].values[0]) if len(row) else None
+        for rot, key in [("ocp_qualif","OCP"), ("y_top20","TOP20"), ("y_top10","TOP10")]:
+            if _grs_v(rot, "OR_negro") is None:
+                continue
+            p[f"GRS_{key}_OR"]   = round(_grs_v(rot, "OR_negro"), 4)
+            p[f"GRS_{key}_TAU2"] = round(_grs_v(rot, "tau2_negro"), 5)
+            p[f"GRS_{key}_SD"]   = round(_grs_v(rot, "sd_negro"), 4)
+            p[f"GRS_{key}_RHO"]  = round(_grs_v(rot, "rho"), 3)
+            p[f"GRS_{key}_LR"]   = round(_grs_v(rot, "LR"), 1)
+        if _grs_v("ocp_qualif", "N") is not None:
+            p["GRS_N"] = int(_grs_v("ocp_qualif", "N"))
+        if _grs_v("ocp_qualif_PRIVADO", "OR_negro") is not None:
+            p["GRS_PRIV_OR"]   = round(_grs_v("ocp_qualif_PRIVADO", "OR_negro"), 4)
+            p["GRS_PRIV_TAU2"] = round(_grs_v("ocp_qualif_PRIVADO", "tau2_negro"), 5)
+            p["GRS_PUB_OR"]    = round(_grs_v("ocp_qualif_PUBLICO", "OR_negro"), 4)
+            p["GRS_PUB_TAU2"]  = round(_grs_v("ocp_qualif_PUBLICO", "tau2_negro"), 5)
+
     return p
 
 

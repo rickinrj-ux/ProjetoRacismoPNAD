@@ -404,6 +404,49 @@ def build_latex(r, k):
     else:
         _rpo_block = ""
 
+    # GLMM random slope (acesso, lme4) — bloco LaTeX pré-computado
+    if P.get("GRS_OCP_OR") is not None:
+        _grs_n      = fmtN(int(P.get("GRS_N", 7694198)))
+        _grs_ocpor  = fmt(P.get("GRS_OCP_OR", 0.705), 3)
+        _grs_t10or  = fmt(P.get("GRS_TOP10_OR", 0.660), 3)
+        _grs_tau    = fmt(P.get("GRS_OCP_TAU2", 0.0112), 4)
+        _grs_sd     = fmt(P.get("GRS_OCP_SD", 0.106), 3)
+        _grs_rho    = fmt(P.get("GRS_OCP_RHO", 0.636), 2)
+        _grs_lr1    = fmtN(int(round(P.get("GRS_OCP_LR", 2402.6))))
+        _grs_lr2    = fmtN(int(round(P.get("GRS_TOP20_LR", 321.7))))
+        _grs_lr3    = fmtN(int(round(P.get("GRS_TOP10_LR", 501.7))))
+        _grs_pubor  = fmt(P.get("GRS_PUB_OR", 0.705), 3)
+        _grs_privor = fmt(P.get("GRS_PRIV_OR", 0.695), 3)
+        _grs_pubt   = fmt(P.get("GRS_PUB_TAU2", 0.0114), 4)
+        _grs_privt  = fmt(P.get("GRS_PRIV_TAU2", 0.0107), 4)
+        _grs_block = (
+            f"Estendeu-se o \\textit{{random slope}} de \\texttt{{negro}} ao GLMM logístico de "
+            f"acesso (\\texttt{{lme4::glmer}}, população completa, $N={_grs_n}$), em três desfechos. "
+            f"O LRT de fronteira rejeita $H_0{{\\colon}}\\,\\tau^2_1=0$ em todos --- "
+            f"\\texttt{{ocp\\_qualif}} ($LR={_grs_lr1}$), \\texttt{{y\\_top20}} ($LR={_grs_lr2}$) e "
+            f"\\texttt{{y\\_top10}} ($LR={_grs_lr3}$), todos $p<0{{,}}001$: a barreira de acesso "
+            f"também varia geograficamente. A heterogeneidade é maior no acesso a ocupações "
+            f"qualificadas ($\\tau^2_1={_grs_tau}$, $DP={_grs_sd}$ log-odds) e preserva o gradiente "
+            f"de teto de vidro no efeito fixo (OR cai de {_grs_ocpor} para {_grs_t10or} rumo ao "
+            f"decil superior).\n\n"
+            f"Em contraste com o salário ($\\rho=-0{{,}}37$), o acesso a cargos qualificados "
+            f"correlaciona-se \\emph{{positivamente}} com o nível ocupacional do estado "
+            f"($\\rho={_grs_rho}$): UFs com mais empregos qualificados exibem \\emph{{menor}} "
+            f"penalidade de acesso --- nas economias desenvolvidas, negros enfrentam acesso "
+            f"relativamente mais fácil, porém maior gap salarial uma vez dentro.\n\n"
+            f"\\textbf{{Setor público {{\\texttimes}} privado.}} A barreira de acesso é praticamente "
+            f"idêntica (OR$_{{\\text{{púb}}}}={_grs_pubor}$ vs OR$_{{\\text{{priv}}}}={_grs_privor}$) "
+            f"e igualmente heterogênea entre UFs ($\\tau^2={_grs_pubt}$ vs ${_grs_privt}$): o concurso "
+            f"público \\emph{{não dissolve}} a exclusão racial de acesso a ocupações qualificadas.\n\n"
+            f"\\begin{{figure}}[H]\n  \\centering\n"
+            f"  \\includegraphics[width=\\textwidth]{{outputs/figures/glmm_rs_real.png}}\n"
+            f"  \\caption{{Random slope GLMM (\\texttt{{lme4}}): Odds Ratio de \\texttt{{negro}} por "
+            f"UF em cada desfecho de acesso e por setor. Dispersão entre UFs = heterogeneidade "
+            f"geográfica (BLUP); OR$<$1 = barreira.}}\n  \\label{{fig:glmm_rs}}\n\\end{{figure}}\n"
+        )
+    else:
+        _grs_block = ""
+
     doc = rf"""% !TeX encoding = UTF-8
 % !TeX program  = pdflatex
 %
@@ -995,6 +1038,11 @@ testando $H_0{{\colon}}\,\tau^2_1 = 0$ (discriminação homogênea entre estados
 {_rs_lrt_block}
 
 {_rs_rho_block}
+
+\subsection{{Random Slope no GLMM: Heterogeneidade Geográfica do Acesso}}
+\label{{subsec:glmm_rs}}
+
+{_grs_block}
 
 \noindent\rule{{\textwidth}}{{1pt}}
 \textbf{{\large BARREIRA II --- PENALIDADE RESIDUAL E TETO DE VIDRO}}

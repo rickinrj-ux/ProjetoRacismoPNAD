@@ -629,6 +629,23 @@ O LRT boundary test \cite{stram1994} rejeita $H_0$ com $LR=7611,6$, $p<0{,}001$:
 
 A correlação $\rho(u_0,u_1)=−0,372$ é negativa: UFs com maior nível salarial médio (intercepto $u_0$ mais alto) exibem penalidade racial mais severa (inclinação $u_1$ mais negativa). A discriminação se intensifica nas economias mais ricas e desiguais --- e não nas mais pobres: as maiores penalidades estimadas por UF concentram-se no Distrito Federal, Rio de Janeiro e São Paulo, ao passo que estados do Nordeste (RN, PB, SE) registram as menores ($r_{\text{UF}}=+0{,}45$ entre renda média e magnitude do gap).
 
+\subsection{Random Slope no GLMM: Heterogeneidade Geográfica do Acesso}
+\label{subsec:glmm_rs}
+
+Estendeu-se o \textit{random slope} de \texttt{negro} ao GLMM logístico de acesso (\texttt{lme4::glmer}, população completa, $N=7.694.198$), em três desfechos. O LRT de fronteira rejeita $H_0{\colon}\,\tau^2_1=0$ em todos --- \texttt{ocp\_qualif} ($LR=2.403$), \texttt{y\_top20} ($LR=322$) e \texttt{y\_top10} ($LR=502$), todos $p<0{,}001$: a barreira de acesso também varia geograficamente. A heterogeneidade é maior no acesso a ocupações qualificadas ($\tau^2_1=0,0112$, $DP=0,106$ log-odds) e preserva o gradiente de teto de vidro no efeito fixo (OR cai de 0,705 para 0,660 rumo ao decil superior).
+
+Em contraste com o salário ($\rho=-0{,}37$), o acesso a cargos qualificados correlaciona-se \emph{positivamente} com o nível ocupacional do estado ($\rho=0,64$): UFs com mais empregos qualificados exibem \emph{menor} penalidade de acesso --- nas economias desenvolvidas, negros enfrentam acesso relativamente mais fácil, porém maior gap salarial uma vez dentro.
+
+\textbf{Setor público {\texttimes} privado.} A barreira de acesso é praticamente idêntica (OR$_{\text{púb}}=0,705$ vs OR$_{\text{priv}}=0,695$) e igualmente heterogênea entre UFs ($\tau^2=0,0114$ vs $0,0107$): o concurso público \emph{não dissolve} a exclusão racial de acesso a ocupações qualificadas.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{outputs/figures/glmm_rs_real.png}
+  \caption{Random slope GLMM (\texttt{lme4}): Odds Ratio de \texttt{negro} por UF em cada desfecho de acesso e por setor. Dispersão entre UFs = heterogeneidade geográfica (BLUP); OR$<$1 = barreira.}
+  \label{fig:glmm_rs}
+\end{figure}
+
+
 \noindent\rule{\textwidth}{1pt}
 \textbf{\large BARREIRA II --- PENALIDADE RESIDUAL E TETO DE VIDRO}
 \textit{O custo de ser negro, mesmo após superar a barreira de entrada}
