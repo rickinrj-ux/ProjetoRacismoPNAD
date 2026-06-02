@@ -293,6 +293,33 @@ def _load() -> dict:
             p["GRS_PUB_OR"]    = round(_grs_v("ocp_qualif_PUBLICO", "OR_negro"), 4)
             p["GRS_PUB_TAU2"]  = round(_grs_v("ocp_qualif_PUBLICO", "tau2_negro"), 5)
 
+    # ── HLM random slope estendido: setor (salário) + gênero ─────────────────
+    _hrs_setor = _TAB / "hlm_rs_setor.csv"
+    if _hrs_setor.exists():
+        _hs = pd.read_csv(_hrs_setor)
+        def _hs_v(setor, col):
+            row = _hs.loc[_hs["setor"] == setor]
+            return float(row[col].values[0]) if len(row) else None
+        if _hs_v("Privado", "b_negro") is not None:
+            p["HRS_PRIV_GAP_PCT"]  = round(_hs_v("Privado", "OR_equiv_pct"), 1)
+            p["HRS_PRIV_TAU2"]     = round(_hs_v("Privado", "tau2_negro"), 5)
+            p["HRS_PRIV_SD"]       = round(_hs_v("Privado", "sd_negro"), 4)
+            p["HRS_PUB_GAP_PCT"]   = round(_hs_v("Público", "OR_equiv_pct"), 1)
+            p["HRS_PUB_TAU2"]      = round(_hs_v("Público", "tau2_negro"), 5)
+            p["HRS_PUB_SD"]        = round(_hs_v("Público", "sd_negro"), 4)
+
+    _hrs_gen = _TAB / "hlm_rs_genero.csv"
+    if _hrs_gen.exists():
+        _hg = pd.read_csv(_hrs_gen).iloc[0]
+        p["HRS_GEN_B_NEGRO"]   = round(float(_hg["b_negro"]), 4)
+        p["HRS_GEN_B_SEXO"]    = round(float(_hg["b_sexo_fem"]), 4)
+        p["HRS_GEN_TAU2_NEGRO"]= round(float(_hg["tau2_negro"]), 5)
+        p["HRS_GEN_SD_NEGRO"]  = round(float(_hg["sd_negro"]), 4)
+        p["HRS_GEN_TAU2_SEXO"] = round(float(_hg["tau2_sexo"]), 5)
+        p["HRS_GEN_SD_SEXO"]   = round(float(_hg["sd_sexo"]), 4)
+        p["HRS_GEN_RHO"]       = round(float(_hg["rho_negro_sexo"]), 4)
+        p["HRS_GEN_LR"]        = round(float(_hg["LR_add_sexo"]), 1)
+
     return p
 
 

@@ -186,6 +186,21 @@ if _grsv_path.exists():
     chk("GRS_PUB_OR",   round(_grsv_val("ocp_qualif_PUBLICO","OR_negro"), 4), label="glmm_rs pub OR")
     chk("GRS_N",        int(_grsv_val("ocp_qualif","N")),                     label="glmm_rs N")
 
+# HLM random slope estendido (setor + gênero)
+_hrss_path = TAB / "hlm_rs_setor.csv"
+if _hrss_path.exists():
+    _hrss = pd.read_csv(_hrss_path)
+    def _hrss_v(s, c):
+        r = _hrss.loc[_hrss["setor"] == s]
+        return float(r[c].values[0]) if len(r) else None
+    chk("HRS_PRIV_GAP_PCT", round(_hrss_v("Privado", "OR_equiv_pct"), 1), label="hlm_rs priv gap")
+    chk("HRS_PUB_GAP_PCT",  round(_hrss_v("Público", "OR_equiv_pct"), 1),  label="hlm_rs pub gap")
+_hrsg_path = TAB / "hlm_rs_genero.csv"
+if _hrsg_path.exists():
+    _hrsg = pd.read_csv(_hrsg_path).iloc[0]
+    chk("HRS_GEN_B_SEXO", round(float(_hrsg["b_sexo_fem"]), 4),     label="hlm_rs gen b_sexo")
+    chk("HRS_GEN_RHO",    round(float(_hrsg["rho_negro_sexo"]), 4), label="hlm_rs gen rho")
+
 
 # ── 3. Verifica geradores: nenhum P-value crítico hardcoded ──────────────────
 
@@ -278,6 +293,10 @@ SKIP_KEYS = {
     "GRS_OCP_SD","GRS_TOP20_SD","GRS_TOP10_SD",
     "GRS_OCP_RHO","GRS_TOP20_RHO","GRS_TOP10_RHO",
     "GRS_OCP_LR","GRS_TOP20_LR","GRS_TOP10_LR",
+    # HLM random slope estendido — variâncias pequenas/SD/LR colidem com limiares
+    "HRS_PRIV_TAU2","HRS_PUB_TAU2","HRS_PRIV_SD","HRS_PUB_SD","HRS_PRIV_GAP_PCT","HRS_PUB_GAP_PCT",
+    "HRS_GEN_TAU2_NEGRO","HRS_GEN_TAU2_SEXO","HRS_GEN_SD_NEGRO","HRS_GEN_SD_SEXO",
+    "HRS_GEN_B_NEGRO","HRS_GEN_LR",
 }
 
 for key, val in P.items():

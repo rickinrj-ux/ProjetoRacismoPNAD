@@ -447,6 +447,40 @@ def build_latex(r, k):
     else:
         _grs_block = ""
 
+    # HLM random slope estendido (setor salário + gênero) — strings pré-computadas
+    if P.get("HRS_PUB_GAP_PCT") is not None:
+        _hrs_priv  = fmt(abs(P.get("HRS_PRIV_GAP_PCT", 11.2)), 1)
+        _hrs_pub   = fmt(abs(P.get("HRS_PUB_GAP_PCT", 7.8)), 1)
+        _hrs_privt = fmt(P.get("HRS_PRIV_TAU2", 0.00218), 5)
+        _hrs_pubt  = fmt(P.get("HRS_PUB_TAU2", 0.0014), 5)
+        _hrs_setor_block = (
+            f"Já no \\emph{{salário}}, o setor público \\emph{{atenua}} o gap racial "
+            f"({_hrs_pub}\\% vs {_hrs_priv}\\% no privado) e o \\emph{{homogeneíza}} entre UFs "
+            f"($\\tau^2_1={_hrs_pubt}$ vs ${_hrs_privt}$). O concurso equaliza a "
+            f"\\emph{{remuneração}} de quem entra, mas não a \\emph{{entrada}} --- precisando o "
+            f"diagnóstico ``o Estado ajuda, mas não resolve''."
+        )
+    else:
+        _hrs_setor_block = ""
+
+    if P.get("HRS_GEN_LR") is not None:
+        _hg_lr    = fmtN(int(round(P.get("HRS_GEN_LR", 15774.9))))
+        _hg_sdneg = fmt(P.get("HRS_GEN_SD_NEGRO", 0.0495), 3)
+        _hg_sdsex = fmt(P.get("HRS_GEN_SD_SEXO", 0.0641), 3)
+        _hg_rho   = fmt(P.get("HRS_GEN_RHO", -0.456), 2)
+        _hgen_block = (
+            f"\\medskip\n\\noindent\\textbf{{Nível adicional --- gênero.}} "
+            f"Estendendo o \\textit{{random slope}} a \\texttt{{sexo\\_fem}} "
+            f"($(1+\\text{{negro}}+\\text{{sexo\\_fem}}\\mid \\text{{UF}})$), o LRT confirma que o "
+            f"gap salarial de gênero também varia geograficamente ($LR={_hg_lr}$, $p<0{{,}}001$) "
+            f"--- com \\emph{{maior}} dispersão que o racial ($DP_{{\\text{{gênero}}}}={_hg_sdsex}$ "
+            f"vs $DP_{{\\text{{raça}}}}={_hg_sdneg}$ log-pontos). A correlação entre as duas "
+            f"inclinações é negativa ($\\rho={_hg_rho}$): nas UFs de maior penalidade racial, a de "
+            f"gênero tende a ser menor (discriminações geograficamente compensatórias)."
+        )
+    else:
+        _hgen_block = ""
+
     doc = rf"""% !TeX encoding = UTF-8
 % !TeX program  = pdflatex
 %
@@ -1039,10 +1073,14 @@ testando $H_0{{\colon}}\,\tau^2_1 = 0$ (discriminação homogênea entre estados
 
 {_rs_rho_block}
 
+{_hgen_block}
+
 \subsection{{Random Slope no GLMM: Heterogeneidade Geográfica do Acesso}}
 \label{{subsec:glmm_rs}}
 
 {_grs_block}
+
+{_hrs_setor_block}
 
 \noindent\rule{{\textwidth}}{{1pt}}
 \textbf{{\large BARREIRA II --- PENALIDADE RESIDUAL E TETO DE VIDRO}}

@@ -1947,6 +1947,28 @@ def build_doc(r, k):
             "setor. Dispersão entre UFs = heterogeneidade geográfica (BLUP); OR<1 = barreira.",
             width_cm=16)
 
+    # ── 4.1f Extensões: setor (salário) e nível de gênero (HLM) ────────────────
+    if P.get("HRS_PUB_GAP_PCT") is not None:
+        add_heading(doc, "4.1f Setor (Salário) e Nível de Gênero — Extensões do Random Slope", level=2)
+        add_para(doc,
+            f"Simetria no salário (HLM por setor): enquanto no ACESSO o setor público não atenua a "
+            f"barreira, no SALÁRIO ele a ATENUA — gap racial de {fmt(abs(P['HRS_PUB_GAP_PCT']),1)}% no "
+            f"público vs {fmt(abs(P['HRS_PRIV_GAP_PCT']),1)}% no privado — e a HOMOGENEÍZA entre estados "
+            f"(τ²={fmt(P['HRS_PUB_TAU2'],5)} vs {fmt(P['HRS_PRIV_TAU2'],5)}). O concurso equaliza a "
+            f"remuneração de quem entra, mas não a entrada — precisando o diagnóstico 'o Estado ajuda, "
+            f"mas não resolve': equaliza pagamento, não acesso.")
+        add_para(doc,
+            f"Nível adicional — gênero: estendendo o random slope a sexo_fem (1+negro+sexo_fem|UF), o "
+            f"LRT confirma que o gap salarial de gênero também varia geograficamente "
+            f"(LR={fmtN(int(round(P['HRS_GEN_LR'])))}, p<0,001), com dispersão MAIOR que a racial "
+            f"(DP gênero={fmt(P['HRS_GEN_SD_SEXO'],3)} vs raça={fmt(P['HRS_GEN_SD_NEGRO'],3)} log-pontos). "
+            f"A correlação entre as duas inclinações é negativa (ρ={fmt(P['HRS_GEN_RHO'],2)}): nas UFs de "
+            f"maior penalidade racial, a de gênero tende a ser menor (discriminações geograficamente "
+            f"compensatórias).")
+        add_figure(doc, "outputs/figures/hlm_rs_ext.png",
+            "Figura – HLM por setor (gap salarial racial e sua heterogeneidade: público × privado) e "
+            "heterogeneidade geográfica raça vs gênero (random slope conjunto).", width_cm=15)
+
     # 4.2 Clustering
     doc.add_page_break()
     add_heading(doc, "4.2 Clustering Socioeconômico", level=2)

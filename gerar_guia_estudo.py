@@ -935,6 +935,15 @@ if P.get("RPO_GANHO_B9") is not None:
         add_bullet(doc, f"Setor: o concurso público NÃO dissolve a barreira de acesso "
                         f"(OR público={fmt(P['GRS_PUB_OR'],3)} ≈ privado={fmt(P['GRS_PRIV_OR'],3)}) "
                         f"nem a homogeneíza entre UFs — refina 'o Estado ajuda, mas não resolve'.")
+    if P.get("HRS_PUB_GAP_PCT") is not None:
+        add_bullet(doc, f"Contraste SALÁRIO × ACESSO (HLM por setor): no salário o público ATENUA o gap "
+                        f"racial ({fmt(abs(P['HRS_PUB_GAP_PCT']),1)}% vs {fmt(abs(P['HRS_PRIV_GAP_PCT']),1)}% "
+                        f"privado) e o homogeneíza entre UFs; no acesso, não. Frase de defesa: 'o concurso "
+                        f"equaliza o pagamento de quem entra, não a entrada'.")
+        add_bullet(doc, f"Nível de gênero (HLM): o gap de gênero também varia entre estados (LRT p<0,001), "
+                        f"com dispersão MAIOR que o racial (DP {fmt(P['HRS_GEN_SD_SEXO'],3)} vs "
+                        f"{fmt(P['HRS_GEN_SD_NEGRO'],3)}); ρ negativo ({fmt(P['HRS_GEN_RHO'],2)}) — onde a "
+                        f"penalidade racial é maior, a de gênero tende a ser menor.")
     doc.add_paragraph()
 
 doc.add_page_break()

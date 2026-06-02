@@ -629,6 +629,9 @@ O LRT boundary test \cite{stram1994} rejeita $H_0$ com $LR=7611,6$, $p<0{,}001$:
 
 A correlação $\rho(u_0,u_1)=−0,372$ é negativa: UFs com maior nível salarial médio (intercepto $u_0$ mais alto) exibem penalidade racial mais severa (inclinação $u_1$ mais negativa). A discriminação se intensifica nas economias mais ricas e desiguais --- e não nas mais pobres: as maiores penalidades estimadas por UF concentram-se no Distrito Federal, Rio de Janeiro e São Paulo, ao passo que estados do Nordeste (RN, PB, SE) registram as menores ($r_{\text{UF}}=+0{,}45$ entre renda média e magnitude do gap).
 
+\medskip
+\noindent\textbf{Nível adicional --- gênero.} Estendendo o \textit{random slope} a \texttt{sexo\_fem} ($(1+\text{negro}+\text{sexo\_fem}\mid \text{UF})$), o LRT confirma que o gap salarial de gênero também varia geograficamente ($LR=15.775$, $p<0{,}001$) --- com \emph{maior} dispersão que o racial ($DP_{\text{gênero}}=0,064$ vs $DP_{\text{raça}}=0,050$ log-pontos). A correlação entre as duas inclinações é negativa ($\rho=−0,46$): nas UFs de maior penalidade racial, a de gênero tende a ser menor (discriminações geograficamente compensatórias).
+
 \subsection{Random Slope no GLMM: Heterogeneidade Geográfica do Acesso}
 \label{subsec:glmm_rs}
 
@@ -645,6 +648,8 @@ Em contraste com o salário ($\rho=-0{,}37$), o acesso a cargos qualificados cor
   \label{fig:glmm_rs}
 \end{figure}
 
+
+Já no \emph{salário}, o setor público \emph{atenua} o gap racial (7,8\% vs 11,2\% no privado) e o \emph{homogeneíza} entre UFs ($\tau^2_1=0,00140$ vs $0,00218$). O concurso equaliza a \emph{remuneração} de quem entra, mas não a \emph{entrada} --- precisando o diagnóstico ``o Estado ajuda, mas não resolve''.
 
 \noindent\rule{\textwidth}{1pt}
 \textbf{\large BARREIRA II --- PENALIDADE RESIDUAL E TETO DE VIDRO}

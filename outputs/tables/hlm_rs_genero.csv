@@ -1,0 +1,2 @@
+b_negro,b_sexo_fem,tau2_intercepto,tau2_negro,sd_negro,tau2_sexo,sd_sexo,rho_negro_sexo,LR_add_sexo,p_boundary,sig,n_obs,n_uf
+-0.1208,-0.1654,0.02102,0.002452,0.0495,0.004108,0.0641,-0.4563,15774.9,0.0,***,7689426,27
