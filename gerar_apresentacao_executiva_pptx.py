@@ -383,6 +383,13 @@ add_text(s,
     "Enforcement anti-discriminatorio deve focar nos trabalhadores de menor renda.",
     In(0.5), In(5.6), In(12.3), In(0.6),
     font_size=13, bold=True, color=C_DARK, align=PP_ALIGN.CENTER)
+add_rect(s, In(0.3), In(6.35), In(12.7), In(0.55),
+         fill_rgb=RGBColor(0xF3,0xE5,0xF5), line_rgb=C_DARK, line_pt=1)
+add_text(s,
+    f"Genero (GLMM random slope): o teto de vidro feminino e de RENDA, nao de categoria — mulheres "
+    f"acessam ocupacoes qualificadas (OR={fmt(P['GGE_OCP_OR'],2)}) mas nao o topo de renda (OR top10={fmt(P['GGE_TOP10_OR'],3)}).",
+    In(0.5), In(6.39), In(12.3), In(0.48),
+    font_size=11, bold=True, color=C_DARK, align=PP_ALIGN.CENTER)
 footer(s, 6)
 
 # ══════════════════════════════════════════════════════════════════════════════

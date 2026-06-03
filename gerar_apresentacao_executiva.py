@@ -306,9 +306,9 @@ for i, (titulo, corpo) in enumerate(bullets):
          size=11, color=C_BLACK, name="Calibri")
 
 callout(s,
-        "Ciclo de vida: o gap cresce de 9% (14–24 anos) para 37,5% (35–44 anos, pico de carreira) "
-        "— o teto de vidro se fecha exatamente quando as promoções mais importam.",
-        In(0.3), In(6.12), In(12.7), In(0.62))
+        "Ciclo de vida (raça): o gap cresce de 9% para 37,5% no pico da carreira. E há um teto de vidro "
+        "de GÊNERO distinto: mulheres chegam às profissões qualificadas, mas não ao topo dos salários.",
+        In(0.3), In(6.12), In(12.7), In(0.78))
 footer_exec(s, 6)
 
 # ══════════════════════════════════════════════════════════════════════════════

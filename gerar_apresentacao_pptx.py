@@ -146,7 +146,7 @@ def kpi_box(slide, label, value, unit, l, t, w=In(2.8), h=In(1.3),
     add_text(slide, unit, l+In(0.1), t+In(0.92), w-In(0.2), In(0.35),
              font_size=10, color=C_GRAY, italic=True, font_name="Calibri")
 
-def footer(slide, slide_num, total=27):
+def footer(slide, slide_num, total=28):
     add_rect(slide, 0, H-In(0.28), W, In(0.28), fill_rgb=C_DARK)
     add_text(slide,
              "Ricardo Calheiros  |  MBA USP/ESALQ  |  Racismo Estrutural e Mercado de Trabalho",
@@ -995,10 +995,26 @@ add_text(s, f"LRT rejeita τ²=0 em TODOS os desfechos (p<0,001): o acesso varia
 footer(s, 25)
 
 # ══════════════════════════════════════════════════════════════════════════════
+# SLIDE 24b — RANDOM SLOPE GLMM DE GÊNERO
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header_bar(s, "25. Random Slope GLMM de Gênero — Teto de Remuneração, não de Categoria",
+           "lme4, população completa | inclinação aleatória de sexo_fem por UF nos 3 desfechos")
+add_img(s, FIGURES / "glmm_genero_real.png", In(0.3), In(1.25), In(12.7))
+add_rect(s, In(0.3), In(6.5), In(12.7), In(0.72),
+         fill_rgb=RGBColor(0x7B,0x32,0x94), line_rgb=C_AMBER, line_pt=0)
+add_text(s, f"Mulheres: MAIS acesso a ocupações qualificadas (OR={fmt(P['GGE_OCP_OR'],2)}>1, profissões feminizadas) "
+            f"mas MUITO MENOS ao topo de renda (OR top10={fmt(P['GGE_TOP10_OR'],3)}). Teto de vidro de gênero = "
+            f"REMUNERAÇÃO, não categoria — e varia mais entre estados que o racial (~10x no topo).",
+         In(0.5), In(6.56), In(12.3), In(0.62),
+         font_size=11, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
+footer(s, 26)
+
+# ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 13 — IMPLICAÇÕES DE POLÍTICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "25. Implicações de Política",
+header_bar(s, "26. Implicações de Política",
            "Três eixos simultâneos — ações isoladas são insuficientes para romper a armadilha estrutural")
 
 politicas = [
@@ -1029,13 +1045,13 @@ for i, (color, title, items) in enumerate(politicas):
 add_text(s, "⚠  Ao ritmo atual de convergência (~0,02 log-pontos/ano), eliminar o gap levaria mais de 100 anos.",
          In(0.3), In(6.8), In(12.7), In(0.45),
          font_size=13, bold=True, color=C_RED, align=PP_ALIGN.CENTER)
-footer(s, 26)
+footer(s, 27)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 14 — LIMITAÇÕES E AGENDA FUTURA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "26. Limitações e Agenda Futura",
+header_bar(s, "27. Limitações e Agenda Futura",
            "Honestidade acadêmica: o que este trabalho não faz e por quê")
 
 add_text(s, "Limitações", In(0.4), In(1.25), In(6.0), In(0.4),
@@ -1057,7 +1073,7 @@ bullet_box(s, [
     "Modelo longitudinal com painéis rotativos da PNAD (2T seguidos) para efeitos fixos de indivíduo",
 ], In(7.0), In(1.75), In(6.2), In(3.8), font_size=13, dot_color=C_BLUE)
 
-footer(s, 27)
+footer(s, 28)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 18 — CONCLUSÃO
@@ -1065,7 +1081,7 @@ footer(s, 27)
 s = prs.slides.add_slide(BLANK)
 add_rect(s, 0, 0, W, H, fill_rgb=C_DARK)
 add_rect(s, 0, 0, W, In(0.8), fill_rgb=RGBColor(0x0D,0x1F,0x3C))
-add_text(s, "27. Conclusão", In(0.4), In(0.1), In(12), In(0.65),
+add_text(s, "28. Conclusão", In(0.4), In(0.1), In(12), In(0.65),
          font_size=26, bold=True, color=C_WHITE, font_name="Calibri")
 
 numeros = [
