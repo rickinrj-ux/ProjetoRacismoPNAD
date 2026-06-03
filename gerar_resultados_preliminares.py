@@ -164,71 +164,111 @@ par("A análise de redes sociais (SNA) modelou a co-presença ocupacional como g
 
 # ── Resultados Preliminares ───────────────────────────────────────────────────
 secao("Resultados Preliminares")
-sub("Gap salarial e mediação contextual")
-par(f"O diferencial salarial racial bruto é expressivo e, no modelo hierárquico, mais da "
-    f"metade dele é mediada pelo contexto de moradia (UPA): a renda média do bairro é o "
-    f"determinante individual mais forte do rendimento — acima da própria escolaridade. A "
-    f"decomposição de Oaxaca-Blinder atribui cerca de {pa(g('DOT_PCT',83.5),0)}% do gap a "
-    f"diferenças de dotações e {pa(g('RET_PCT',16.5),0)}% a retornos diferenciais; contudo, "
-    f"as dotações são, elas próprias, produto das barreiras de acesso e da segregação "
-    f"territorial. O ICC de UF no modelo nulo de salário é de {pa(g('ICC_HLM_M0_pct',9.83),1)}%.")
-sub("Barreira de acesso e teto de vidro")
-par(f"O GLMM logístico confirma uma barreira de acesso a ocupações qualificadas: a chance "
-    f"de um trabalhador negro ocupar cargos qualificados é cerca de "
-    f"{fmt(round((1-g('OR_M2',0.69))*100),0)}% menor que a de um branco idêntico "
-    f"(OR={or_str(g('OR_M2',0.69))}; {ame(g('AME_M2_pp',-4.84))}). O teto de vidro se "
-    f"intensifica no topo: o odds ratio de acesso cai de {or_str(g('OR_TOP20_M1',0.536))} "
-    f"(quintil superior de renda) para {or_str(g('OR_TOP10_M1',0.4533))} (decil superior) — "
-    f"a barreira é mais alta exatamente onde os prêmios são maiores. O ICC de UPA no GLMM é "
-    f"de {pa(g('ICC_M1_pct',22.2),1)}%, sinalizando forte componente territorial do acesso.")
-figura("glmm_rs_real.png",
-       "Figura 1. Random slope do GLMM (lme4): odds ratio de 'negro' por UF em cada desfecho "
-       "de acesso; a dispersão entre estados indica heterogeneidade geográfica.", w=16)
-sub("Heterogeneidade geográfica e contraste setorial")
-par(f"Os modelos de inclinação aleatória rejeitam a hipótese de efeito homogêneo entre "
-    f"estados (p<0,001), tanto para o salário quanto para o acesso: a discriminação é "
-    f"geograficamente heterogênea. No salário, o gap racial entre UFs varia "
-    f"aproximadamente de {pa(g('RS_GAP_LO_PCT',-19.8),1)}% a {pa(g('RS_GAP_HI_PCT',-2.2),1)}%. "
-    f"Um achado relevante emerge do contraste por setor: o setor público ATENUA o gap "
-    f"salarial racial ({pa(g('HRS_PUB_GAP_PCT',-7.8),1)}% no público contra "
-    f"{pa(g('HRS_PRIV_GAP_PCT',-11.2),1)}% no privado) e o homogeneíza entre estados; "
-    f"porém, no ACESSO a ocupações qualificadas, o setor público não atenua a barreira "
-    f"(OR={or_str(g('GRS_PUB_OR',0.705))} no público contra {or_str(g('GRS_PRIV_OR',0.695))} "
-    f"no privado). Ou seja, o concurso público equaliza a remuneração de quem entra, mas não "
-    f"a entrada.")
+par("Os resultados preliminares sustentam uma tese central: a desigualdade racial no mercado "
+    "de trabalho brasileiro não é um evento pontual de contratação, mas um SISTEMA DE BARREIRAS "
+    "EM CAMADAS — acesso, remuneração e redes — ancorado no território e geograficamente "
+    "heterogêneo, que persiste mesmo quando se controla a escolaridade e mesmo dentro do Estado. "
+    "As subseções a seguir percorrem esse sistema: partem da falha da explicação meritocrática, "
+    "isolam as três camadas que a substituem, demonstram seu caráter sistêmico e, por fim, "
+    "traduzem o diagnóstico em prescrição.")
+
+sub("A falha da explicação meritocrática")
+par(f"Se o rendimento fosse função apenas do capital humano, controlar escolaridade, "
+    f"experiência e jornada deveria dissolver o gap racial — o que não ocorre. A decomposição "
+    f"de Oaxaca-Blinder atribui cerca de {pa(g('DOT_PCT',83.5),0)}% do diferencial a diferenças "
+    f"de dotações e apenas {pa(g('RET_PCT',16.5),0)}% a retornos diferenciais. O ponto decisivo, "
+    f"porém, está na COMPOSIÇÃO dessas dotações (Figura 1): os fatores que mais explicam o gap "
+    f"não são educacionais, mas CONTEXTUAIS e OCUPACIONAIS — a proporção de negros na UPA e o "
+    f"acesso a grupos ocupacionais de prestígio. As dotações não são, portanto, mérito neutro: "
+    f"são o produto das barreiras que as subseções seguintes isolam. O capital humano explica "
+    f"pouco; o que importa é onde se nasce e a que ocupações se tem acesso.")
+figura("oaxaca_por_variavel.png",
+       "Figura 1. Decomposição de Oaxaca-Blinder por variável: o gap vem sobretudo do contexto "
+       "(proporção de negros na UPA) e da ocupação — não da escolaridade.", w=15)
+
+sub("Camada 1 — A barreira de acesso e o teto de vidro")
+par(f"A primeira camada é a exclusão da PORTA DE ENTRADA. O GLMM logístico multinível estima "
+    f"que um trabalhador negro idêntico a um branco tem cerca de "
+    f"{fmt(round((1-g('OR_M2',0.69))*100),0)}% menos chance de ocupar um cargo qualificado "
+    f"(OR={or_str(g('OR_M2',0.69))}; {ame(g('AME_M2_pp',-4.84))}). A barreira não é uniforme ao "
+    f"longo da hierarquia: ela se agrava no topo (Figura 2) — o odds ratio de acesso cai de "
+    f"{or_str(g('OR_TOP20_M1',0.536))} no quintil superior de renda para "
+    f"{or_str(g('OR_TOP10_M1',0.4533))} no decil superior. É um teto de vidro de ACESSO: quanto "
+    f"mais valiosa a posição, mais opaco o filtro racial. O elevado ICC de UPA "
+    f"({pa(g('ICC_M1_pct',22.2),1)}%) já antecipa que essa barreira tem raiz territorial — o fio "
+    f"que conecta as camadas.")
+figura("glmm_glassceil_forest.png",
+       "Figura 2. GLMM — odds ratios de acesso por desfecho: o gradiente decrescente rumo ao "
+       "topo da renda caracteriza o teto de vidro de acesso (OR < 1 = barreira).", w=14)
+
+sub("Camada 2 — O território como eixo da desigualdade")
+par("Por que as dotações são desiguais? A segunda camada responde: pelo LUGAR. No modelo "
+    "hierárquico, mais da metade do gap salarial é mediada pelo contexto de moradia (UPA), e o "
+    "aprendizado de máquina confirma-o de forma independente e não-paramétrica: entre todos os "
+    "preditores do rendimento, a RENDA MÉDIA DO BAIRRO é o mais importante (Figura 3) — acima da "
+    "escolaridade e de qualquer atributo individual. A raça, isoladamente, tem peso preditivo "
+    "direto modesto justamente porque opera ATRAVÉS do território: a segregação residencial "
+    "histórica converte-se em segregação de renda atual. Em uma frase: o bairro prediz mais que "
+    "o diploma. É esse eixo territorial que dá unidade às demais camadas.")
+figura("shap_importance_xgb.png",
+       "Figura 3. Importância SHAP (XGBoost, R²≈0,62): a renda média da UPA (bairro) é o "
+       "principal determinante do rendimento, evidenciando o eixo territorial da desigualdade.", w=14)
+
+sub("Camada 3 — As redes que excluem")
+par("A terceira camada explica por que superar as duas primeiras ainda não basta. A análise de "
+    "redes sociais mostra que os grupos negros — inclusive os de alta escolaridade — ocupam "
+    "posições de maior isolamento estrutural (constraint de Burt) e betweenness próximo de zero: "
+    "ficam fora das redes de indicação que convertem credenciais em oportunidades (Figura 4). "
+    "Assim, o retorno do diploma negro é menor não por mérito, mas pela ausência do capital "
+    "social que, historicamente, é majoritariamente branco (Granovetter, 1973; Burt, 2004). As "
+    "três camadas — acesso, território e redes — reforçam-se mutuamente.")
+figura("sna_constraint_vs_renda.png",
+       "Figura 4. Análise de redes: isolamento estrutural (constraint de Burt) × renda por grupo "
+       "(raça × educação) — grupos negros combinam maior isolamento e menor renda.", w=13)
+
+sub("O caráter sistêmico: heterogeneidade geográfica, Estado e gênero")
+par(f"Três achados confirmam que se trata de um sistema, e não de fatores avulsos. Primeiro, a "
+    f"discriminação é GEOGRAFICAMENTE HETEROGÊNEA: modelos de inclinação aleatória (real, via "
+    f"lme4 e MixedLM) rejeitam o efeito homogêneo entre estados (p<0,001), tanto no acesso quanto "
+    f"no salário — o gap salarial racial varia entre UFs de {pa(g('RS_GAP_LO_PCT',-19.8),1)}% a "
+    f"{pa(g('RS_GAP_HI_PCT',-2.2),1)}% (Figura 5). Segundo, o ESTADO não dissolve a barreira: o "
+    f"setor público atenua o gap SALARIAL racial ({pa(g('HRS_PUB_GAP_PCT',-7.8),1)}% vs "
+    f"{pa(g('HRS_PRIV_GAP_PCT',-11.2),1)}% no privado) e o homogeneíza entre UFs, mas NÃO atenua a "
+    f"barreira de ACESSO (OR={or_str(g('GRS_PUB_OR',0.705))} vs {or_str(g('GRS_PRIV_OR',0.695))}) "
+    f"— o concurso equaliza a remuneração de quem entra, não a entrada. Terceiro, o GÊNERO segue "
+    f"padrão próprio e complementar: mulheres acessam mais ocupações qualificadas "
+    f"(OR={fmt(g('GGE_OCP_OR',2.01),2)}) mas muito menos o topo de renda "
+    f"(OR={or_str(g('GGE_TOP10_OR',0.522))}) — teto de vidro de remuneração, com heterogeneidade "
+    f"geográfica ainda maior que a racial.")
 figura("mapa_po_regional.png",
-       "Figura 2. Penalidade salarial racial por estado (BLUP do random slope): mais escuro = "
-       "maior desvantagem; estrelas indicam UFs prioritárias para focalização.", w=11)
-sub("Gênero e interseccionalidade")
-par(f"A extensão da inclinação aleatória ao gênero revela um padrão distinto do racial: "
-    f"mulheres têm MAIOR acesso a 'ocupações qualificadas' (OR={fmt(g('GGE_OCP_OR',2.01),2)}), "
-    f"por concentração em profissões credenciadas feminizadas, mas MENOR acesso ao topo da "
-    f"renda (OR no decil superior = {or_str(g('GGE_TOP10_OR',0.522))}). O teto de vidro de "
-    f"gênero é, portanto, de remuneração, não de categoria ocupacional, e sua "
-    f"heterogeneidade geográfica supera a racial (desvio-padrão entre UFs de "
-    f"{fmt(g('HRS_GEN_SD_SEXO',0.064),3)} para gênero contra {fmt(g('HRS_GEN_SD_NEGRO',0.05),3)} "
-    f"para raça). A correlação negativa entre as duas heterogeneidades "
-    f"(ρ={fmt(g('HRS_GEN_RHO',-0.46),2)}) sugere que, nas UFs de maior penalidade racial, a "
-    f"de gênero tende a ser menor.")
-sub("Aprendizado de máquina, redes e pesquisa operacional")
-par(f"Os modelos de aprendizado de máquina (XGBoost, R²≈0,62) corroboram, de forma "
-    f"não-paramétrica, o diagnóstico: o preditor mais importante do rendimento (SHAP) é a "
-    f"renda média do bairro, acima da escolaridade — a raça atua sobretudo por meio dos "
-    f"mediadores estruturais, o que é coerente com a decomposição de Oaxaca-Blinder. A SNA "
-    f"mostra isolamento estrutural dos grupos negros nas redes profissionais. A pesquisa "
-    f"operacional ranqueia 'cotas ocupacionais (CBO 1–4)' como intervenção dominante "
-    f"(TOPSIS CC={fmt(g('TOPSIS_P1_CC',0.83),3)}), e a versão regionalizada mostra que "
-    f"focalizar o orçamento nas UFs de maior penalidade (lideradas por "
+       "Figura 5. Penalidade salarial racial por estado (BLUP do random slope): mais escuro = "
+       "maior desvantagem; estrelas marcam as UFs prioritárias para a focalização da política.", w=11)
+
+sub("Da diagnose à prescrição: pesquisa operacional")
+par(f"Se a desigualdade é um sistema em camadas e territorialmente desigual, a política eficaz "
+    f"precisa ser multidimensional e focalizada — exatamente o que a pesquisa operacional "
+    f"formaliza. O ranqueamento multicritério (TOPSIS) aponta as cotas de acesso a ocupações "
+    f"qualificadas como intervenção dominante (CC={fmt(g('TOPSIS_P1_CC',0.83),3)}; Figura 6), "
+    f"coerente com o fato de a maior barreira ser de acesso. A versão regionalizada mostra, "
+    f"ainda, que concentrar o orçamento nas UFs de maior penalidade (lideradas por "
     f"{g('RPO_WORST_UF','DF')}, {pa(g('RPO_WORST_GAP_PCT',-20.9),1)}%) rende até "
-    f"{pa(g('RPO_GANHO_B9',68.2),0)}% mais redução do gap do que a alocação uniforme.")
+    f"{pa(g('RPO_GANHO_B9',68.2),0)}% mais redução do gap do que a distribuição uniforme — "
+    f"fechando o ciclo entre o diagnóstico das camadas e a alocação ótima de recursos.")
+figura("po_politicas_topsis.png",
+       "Figura 6. Pesquisa operacional (TOPSIS): ranking multicritério das seis políticas; cotas "
+       "de acesso a ocupações qualificadas lideram, em linha com a barreira de acesso.", w=15)
 
 # ── Considerações preliminares ────────────────────────────────────────────────
 secao("Considerações Preliminares")
-par("Os resultados parciais sustentam que a desigualdade racial no trabalho brasileiro é um "
-    "fenômeno estrutural, multicausal e territorialmente desigual, que opera em pelo menos "
-    "duas etapas independentes — acesso e remuneração — e que não é dissolvido "
-    "espontaneamente nem integralmente pela ação do Estado. As próximas etapas incluem o "
-    "refinamento das análises de robustez e a consolidação das recomendações de política.")
+par("Tomados em conjunto, os resultados parciais convergem para a tese central: a desigualdade "
+    "racial no trabalho brasileiro é um SISTEMA DE BARREIRAS EM CAMADAS — acesso, remuneração e "
+    "redes — que se reforçam e têm como eixo comum o TERRITÓRIO (o bairro prediz mais que o "
+    "diploma). Esse sistema persiste sob controle de escolaridade, agrava-se no topo da "
+    "distribuição, varia entre estados e não é dissolvido pelo Estado, que equaliza a "
+    "remuneração de quem entra, mas não o acesso. A consequência prescritiva é direta: políticas "
+    "unidimensionais e uniformes são insuficientes; a pesquisa operacional indica intervenção "
+    "multidimensional, centrada no acesso e focalizada nas UFs de maior penalidade. As próximas "
+    "etapas incluem o refinamento das análises de robustez e a consolidação das recomendações.")
 
 # ── Referências ───────────────────────────────────────────────────────────────
 secao("Referências")
