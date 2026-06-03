@@ -194,7 +194,7 @@ for i, (val, lbl) in enumerate([
     add_text(s, lbl, x+In(0.1), In(5.28), In(2.7), In(0.35),
              font_size=10, color=C_WHITE, align=PP_ALIGN.CENTER)
 
-add_text(s, "Orientador(a): _______________",
+add_text(s, "Orientador: Edilson José Rodrigues",
          In(0.3), H-In(0.6), In(8), In(0.4),
          font_size=12, color=RGBColor(0x90,0xA4,0xAE), italic=True)
 

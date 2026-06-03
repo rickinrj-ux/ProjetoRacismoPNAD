@@ -77,9 +77,9 @@ def figura(nome, legenda, w=15):
 titulo("A desigualdade racial no mercado de trabalho brasileiro é estrutural, "
        "contextual e geograficamente heterogênea")
 doc.add_paragraph()
-centro("Ricardo Calheiros¹*; [Nome completo do(a) orientador(a)]²", size=12)
+centro("Ricardo Calheiros¹*; Edilson José Rodrigues²", size=12)
 centro("¹* MBA em Data Science e Analytics, USP/Esalq. E-mail: rickinrj@gmail.com", size=10)
-centro("² Titulação. Instituição (opcional). E-mail: orientador@email.com", size=10)
+centro("² Orientador. MBA USP/Esalq.", size=10)
 doc.add_paragraph()
 
 # ── Resumo ────────────────────────────────────────────────────────────────────
