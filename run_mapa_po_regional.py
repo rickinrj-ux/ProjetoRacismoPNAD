@@ -92,17 +92,19 @@ def main():
             ax.text(x + 0.84, y + 0.86, "★", ha="center", va="center",
                     fontsize=11, color="#1565C0", zorder=4)
 
-    ax.set_xlim(0.5, 7.2)
-    ax.set_ylim(-9.6, -0.4)
+    # Limites com MARGEM: linha 1 (y=-1) e linha 9 (y=-9) inteiras dentro dos eixos
+    ax.set_xlim(0.4, 7.0)
+    ax.set_ylim(-10.05, 0.05)
     ax.set_aspect("equal")
     ax.axis("off")
 
-    # Título e subtítulo
+    # Título e subtítulo em coordenadas de FIGURA (acima da grade — não sobrepõem)
     fig.suptitle("O Racismo Tem Endereço — Penalidade Racial Salarial por Estado",
-                 fontsize=17, fontweight="bold", y=0.965)
-    ax.set_title("Quanto um trabalhador negro ganha a menos que um branco idêntico, por UF\n"
-                 "(quanto mais escuro, maior a desvantagem) | ★ = estados prioritários para a política",
-                 fontsize=11, color="#444444", pad=14)
+                 fontsize=16, fontweight="bold", y=0.975)
+    fig.text(0.5, 0.938,
+             "Quanto um trabalhador negro ganha a menos que um branco idêntico, por UF "
+             "(mais escuro = maior desvantagem)  |  ★ = estados prioritários",
+             ha="center", fontsize=10.5, color="#444444")
 
     # Barra de cor
     sm = cm.ScalarMappable(norm=norm, cmap=cmap); sm.set_array([])
@@ -120,7 +122,7 @@ def main():
             bbox=dict(boxstyle="round,pad=0.5", facecolor="#FFF8E7",
                       edgecolor="#FF8F00", linewidth=1.2))
 
-    plt.subplots_adjust(top=0.90, bottom=0.075, left=0.02, right=0.92)
+    plt.subplots_adjust(top=0.90, bottom=0.085, left=0.02, right=0.92)
     out = OUT_FIG / "mapa_po_regional.png"
     plt.savefig(out, dpi=160, bbox_inches="tight")
     plt.close()
