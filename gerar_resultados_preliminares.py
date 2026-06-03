@@ -244,18 +244,37 @@ figura("mapa_po_regional.png",
        "Figura 5. Penalidade salarial racial por estado (BLUP do random slope): mais escuro = "
        "maior desvantagem; estrelas marcam as UFs prioritárias para a focalização da política.", w=11)
 
+sub("Hipóteses complementares: o papel ambíguo do Estado")
+par("Um conjunto de hipóteses adicionais testa diretamente a hipótese alternativa de que o "
+    "Estado promoveria — ou, ao menos, não dissolveria — a desigualdade racial. Os resultados "
+    "são ambíguos e refinam a tese central. Como indutor de igualdade GERAL, o Estado funciona: "
+    "o setor público reduz levemente a desigualdade de renda (índice de Gini inferior ao do "
+    "privado; H1). Mas como dissolvente da barreira RACIAL, não: embora o público atenue o gap "
+    "racial (H2, Figura 6) — coerente com a camada sistêmica anterior —, ele PIORA o gap de "
+    "gênero (−20,9% no público contra −18,6% no privado; H3): o concurso equaliza a entrada, mas "
+    "a promoção às posições de liderança reflete, ou amplifica, os vieses do setor privado. No "
+    "agregado (H4), o país combina pleno emprego histórico com renda real estagnada — produz "
+    "ocupação, não prosperidade igualitária. E a armadilha da qualificação persiste (H5): a "
+    "proporção de trabalhadores negros em ocupações de alta qualificação (≈11%) é cerca de "
+    "metade da de brancos (≈22%), gap estável na década. Em síntese, o Estado mitiga a "
+    "desigualdade GERAL, mas não a RACIAL — sustentando parcialmente a hipótese alternativa e "
+    "reforçando o caráter sistêmico do problema.")
+figura("estado_h2h3_gaps.png",
+       "Figura 6. Hipóteses do Estado (H2/H3): gap racial e de gênero por setor (gaps "
+       "controlados) — o público atenua o racial, mas agrava o de gênero.", w=15)
+
 sub("Da diagnose à prescrição: pesquisa operacional")
 par(f"Se a desigualdade é um sistema em camadas e territorialmente desigual, a política eficaz "
     f"precisa ser multidimensional e focalizada — exatamente o que a pesquisa operacional "
     f"formaliza. O ranqueamento multicritério (TOPSIS) aponta as cotas de acesso a ocupações "
-    f"qualificadas como intervenção dominante (CC={fmt(g('TOPSIS_P1_CC',0.83),3)}; Figura 6), "
+    f"qualificadas como intervenção dominante (CC={fmt(g('TOPSIS_P1_CC',0.83),3)}; Figura 7), "
     f"coerente com o fato de a maior barreira ser de acesso. A versão regionalizada mostra, "
     f"ainda, que concentrar o orçamento nas UFs de maior penalidade (lideradas por "
     f"{g('RPO_WORST_UF','DF')}, {pa(g('RPO_WORST_GAP_PCT',-20.9),1)}%) rende até "
     f"{pa(g('RPO_GANHO_B9',68.2),0)}% mais redução do gap do que a distribuição uniforme — "
     f"fechando o ciclo entre o diagnóstico das camadas e a alocação ótima de recursos.")
 figura("po_politicas_topsis.png",
-       "Figura 6. Pesquisa operacional (TOPSIS): ranking multicritério das seis políticas; cotas "
+       "Figura 7. Pesquisa operacional (TOPSIS): ranking multicritério das seis políticas; cotas "
        "de acesso a ocupações qualificadas lideram, em linha com a barreira de acesso.", w=15)
 
 # ── Considerações preliminares ────────────────────────────────────────────────
