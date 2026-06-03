@@ -30,7 +30,7 @@ QUANTIS     = [0.10, 0.25, 0.50, 0.75, 0.90, 0.95]
 
 COLS = [
     "negro", "sexo_fem", "idade_c", "idade_sq",
-    "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+    "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao", "educ_cat",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
     "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
     "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
@@ -41,6 +41,7 @@ COLS = [
 print("Carregando dados ...")
 df = pd.read_parquet(ROOT / "data/processed/features.parquet", columns=COLS)
 df["UF_str"] = df["UF"].astype(str)
+df["educ_missing"] = df["educ_cat"].isna().astype(int)
 
 mask = (df["pea"] == 1) & (df["renda_bruta"] > 0) & (df["negro"].notna())
 df   = df[mask].copy()
@@ -59,7 +60,7 @@ HAS_OCC = all(c in df.columns for c in ["horas_c","emprego_formal","ocp_dirigent
           and df["horas_c"].notna().any()
 
 # ── Fórmulas ──────────────────────────────────────────────────────────────────
-_IND = ("negro + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
+_IND = ("negro + educ_medio_completo + educ_superior_completo + educ_pos_graduacao + educ_missing"
         " + idade_c + idade_sq + sexo_fem")
 _UPA = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
 _OCC = ("horas_c + emprego_formal + conta_propria + trab_domestico"

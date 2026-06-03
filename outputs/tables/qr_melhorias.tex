@@ -1,24 +1,28 @@
 \begin{table}[H]
 \centering
-\caption{Regressão quantílica: coeficiente $\hat{\beta}_{\text{negro}}$ por quantil e grupo.
+\caption{Regressão quantílica: coeficiente $\hat{\beta}_{\text{negro}}$ por quantil e sexo.
          Gap~(\%) $= (e^{\hat{\beta}}-1)\times 100$.
          M3: controles individuais + contexto UPA + UF efeito fixo.
-         Teste KB: Z = -5.25 ($p ***$),
-         $\chi^2(2) = 67.07$ ($p < 0{,}001$).}
+         $^{***}p<0{,}001$ em todos os quantis e grupos.}
 \label{tab:qr_melhorias}
 \small
-\begin{tabular}{lrrrrrr}
+\begin{tabular}{lrrrrrrr}
 \toprule
 & \multicolumn{2}{c}{Global} & \multicolumn{2}{c}{Homens} & \multicolumn{2}{c}{Mulheres} \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
 Quantil & $\hat{\beta}$ & Gap~(\%) & $\hat{\beta}$ & Gap~(\%) & $\hat{\beta}$ & Gap~(\%) \\
 \midrule
-  q10 & -0.0865 & -8.3\% & -0.0640 & -6.2\% & -0.1207 & -11.4\% \\
-  q25 & -0.0766 & -7.4\% & -0.0636 & -6.2\% & -0.0942 & -9.0\% \\
-  q50 & -0.0837 & -8.0\% & -0.0764 & -7.4\% & -0.0916 & -8.8\% \\
-  q75 & -0.1063 & -10.1\% & -0.1041 & -9.9\% & -0.1070 & -10.2\% \\
-  q90 & -0.1252 & -11.8\% & -0.1270 & -11.9\% & -0.1167 & -11.0\% \\
-  q95 & -0.1326 & -12.4\% & -0.1338 & -12.5\% & -0.1255 & -11.8\% \\
+$\tau=0.10$ & $-0.0832$ & $-8.0\%$ & $-0.0608$ & $-5.9\%$ & $-0.1160$ & $-11.0\%$ \\
+$\tau=0.25$ & $-0.0734$ & $-7.1\%$ & $-0.0605$ & $-5.9\%$ & $-0.0915$ & $-8.7\%$ \\
+$\tau=0.50$ & $-0.0813$ & $-7.8\%$ & $-0.0739$ & $-7.1\%$ & $-0.0899$ & $-8.6\%$ \\
+$\tau=0.75$ & $-0.1039$ & $-9.9\%$ & $-0.1012$ & $-9.6\%$ & $-0.1049$ & $-10.0\%$ \\
+$\tau=0.90$ & $-0.1235$ & $-11.6\%$ & $-0.1244$ & $-11.7\%$ & $-0.1155$ & $-10.9\%$ \\
+$\tau=0.95$ & $-0.1317$ & $-12.3\%$ & $-0.1327$ & $-12.4\%$ & $-0.1244$ & $-11.7\%$ \\
+\midrule
+\textbf{Δ (q90−q10)} & $\mathbf{-4.03\text{pp}}***$ & \multicolumn{2}{c}{$Z = -5.57$} & \multicolumn{2}{c}{$p = 2.52e-08$} & \\
 \bottomrule
 \end{tabular}
+\note{Teste de heterogeneidade quantílica (Koenker-Bassett style):
+      $H_0$: $\hat{\beta}(q)$ constante para todo $q$.
+      SE do contraste via bootstrap ($B=200$, $5\%$ da amostra, $\text{SEED}=42$).}
 \end{table}

@@ -104,7 +104,7 @@ LEVEL1  = IND_VARS + UPA_CTX
 # Fórmula do MixedLM: inclui também contextuais de UF (a parte fixa pode usá-las;
 # o random slope é só para negro). Idêntica em espírito a run_hlm_m3_random_slope.
 _FE = (" + ".join(LEVEL1)
-       + " + pct_negro_uf_z + tx_desemprego_uf_z + media_educ_uf_z + C(Ano)")
+       + " + educ_missing + pct_negro_uf_z + tx_desemprego_uf_z + media_educ_uf_z + C(Ano)")
 FORMULA_M3 = f"log_renda ~ {_FE}"
 
 
@@ -112,10 +112,11 @@ FORMULA_M3 = f"log_renda ~ {_FE}"
 
 def load_data():
     log.info(f"Carregando {FEATURES} ...")
-    cols = (["log_renda", "UF", "UPA", "Ano"] + IND_VARS + UPA_CTX
+    cols = (["log_renda", "UF", "UPA", "Ano", "educ_cat"] + IND_VARS + UPA_CTX
             + ["pct_negro_uf_z", "tx_desemprego_uf_z", "media_educ_uf_z"])
     df = pd.read_parquet(FEATURES, columns=list(dict.fromkeys(cols)))
     df = df[df["log_renda"].notna() & (df["log_renda"] > 0)].copy()
+    df["educ_missing"] = df["educ_cat"].isna().astype("int8")
     df = df.dropna(subset=["log_renda", "UF", "Ano"] + LEVEL1
                    + ["pct_negro_uf_z", "tx_desemprego_uf_z", "media_educ_uf_z"])
     upa_counts = df["UPA"].value_counts()

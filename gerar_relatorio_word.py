@@ -694,7 +694,7 @@ def build_doc(r, k):
         "como um evento isolado de discriminação salarial — opera como um sistema de barreiras "
         "em camadas que começa antes do primeiro salário, persiste ao longo de toda a trajetória "
         "profissional e se perpetua via exclusão das redes que convertem educação em mobilidade. "
-        "Mesmo após controlar 23 covariáveis individuais, ocupacionais e contextuais, "
+        "Mesmo após controlar 24 covariáveis individuais, ocupacionais e contextuais, "
         "trabalhadores negros recebem sistematicamente menos que brancos equivalentes. "
         "Políticas baseadas apenas em aumento de escolaridade são, portanto, necessárias "
         "mas estruturalmente insuficientes para eliminar esse diferencial."
@@ -3202,7 +3202,7 @@ def build_doc(r, k):
     )
     add_para(doc,
         f"O achado mais robusto desta análise é que {k['med']:.1f}% do gap salarial racial bruto é "
-        f"mediado pelo local de moradia. O coeficiente contextual γ̂₀₁ = −0,289 para a proporção "
+        f"mediado pelo local de moradia. O coeficiente contextual γ̂₀₁ = −0,269 para a proporção "
         f"de negros na UPA indica que a penalidade de viver em bairro segregado equivale, em "
         f"magnitude, à própria penalidade individual de ser negro. Isso sugere que políticas de "
         f"redistribuição de renda que não enfrentem a segregação residencial terão eficácia limitada "
@@ -3441,7 +3441,7 @@ def build_doc(r, k):
         "com metas raciais — são instrumentos de médio prazo para reduzir esse diferencial."
     )
     add_para(doc,
-        "P1.4 — Intervenção na segregação residencial. O coeficiente contextual γ̂₀₁=−0,289 para "
+        "P1.4 — Intervenção na segregação residencial. O coeficiente contextual γ̂₀₁=−0,269 para "
         "a proporção de negros na UPA indica que viver em bairros majoritariamente negros reduz "
         "o rendimento em 25%, independentemente das características individuais. Políticas de "
         "habitação inclusiva — incluindo financiamento preferencial para famílias negras em "
@@ -3583,7 +3583,7 @@ def build_doc(r, k):
         f"Essas conclusões emergem da convergência de seis metodologias independentes sobre "
         f"7,7 milhões de observações da PNAD Contínua 2016–2025. O gap racial bruto de {k['gb']:.1f}% "
         f"(M1) se decompõe em três camadas: mediação contextual de {k['med']:.1f}% pelo bairro "
-        f"de moradia (o coeficiente γ₀₁ = −0,289 para proporção de negros na UPA equivale, "
+        f"de moradia (o coeficiente γ₀₁ = −0,269 para proporção de negros na UPA equivale, "
         f"em magnitude, à própria penalidade individual de ser negro); mediação ocupacional de "
         f"{k['med_occ']:.1f}% pelo acesso desigual a grupos CBO de alta remuneração; e gap residual "
         f"de {k['gap_m4']:.1f}% (M4) — discriminação pura pós-ocupação. O GLMM logístico "
@@ -3626,21 +3626,57 @@ def build_doc(r, k):
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     set_paragraph_format(p, first_line=1.25)
 
-    p = doc.add_paragraph()
-    run = p.add_run("Limitações e direções futuras. ")
-    run.bold = True; run.font.name = "Times New Roman"; run.font.size = Pt(12)
-    run2 = p.add_run(
-        "O caráter transversal do painel público da PNAD Contínua impede a análise de trajetórias "
-        "individuais de mobilidade salarial ao longo do tempo. A extensão da análise para dados "
-        "corporativos (RAIS) permitiria investigar o glass ceiling em cargos de liderança com "
-        "identificação de firma. As premissas de efetividade dos modelos de PO foram calibradas "
-        "com evidências internacionais e requerem validação empírica no contexto brasileiro. "
-        "A análise SNA, embora expandida para 20 nós, ainda não captura redes de indicação "
-        "intraempresa — extensão natural para pesquisas futuras com dados administrativos."
+    add_heading(doc, "Limitações e escopo de validade", level=2)
+    _limitacoes = [
+        ("Natureza inferencial vs. preditiva dos modelos. ",
+         "Os modelos HLM, Oaxaca-Blinder, regressão quantílica e correção de Heckman produzem "
+         "estimativas de associação condicional — o diferencial racial que persiste sob controle de "
+         "observáveis —, e não prova causal contrafactual, pois não derivam de desenho experimental "
+         "ou quase-experimental. O XGBoost e os valores SHAP têm finalidade preditiva e interpretativa: "
+         "medem a contribuição de cada variável para a previsão do rendimento, não o efeito causal de "
+         "manipulá-la. A convergência entre os dois regimes confere robustez ao diagnóstico, mas a "
+         "linguagem causal foi deliberadamente evitada."),
+        ("Cobertura da variável de escolaridade. ",
+         "A escolaridade detalhada está registrada para cerca de 31% da PEA no painel público; os "
+         "níveis de instrução entram como dummies de conclusão acompanhadas de um indicador explícito "
+         "de não-registro (educ_missing), de modo que a categoria de referência não confunda baixa "
+         "escolaridade com dado ausente. Testes de sensibilidade mostram que o coeficiente racial é "
+         "estável a essa especificação (variação inferior a 1%); ainda assim, os retornos educacionais "
+         "devem ser interpretados com a cautela própria de uma variável parcialmente observada."),
+        ("Granularidade macroestrutural da SNA. ",
+         "A PNAD Contínua não coleta vínculos sociais interpessoais; a rede é de grupos demográficos "
+         "(raça × escolaridade × gênero) conectados por co-residência na UPA, não de indivíduos. "
+         "Betweenness e constraint devem ser lidos como posição estrutural de grupos no espaço da "
+         "segregação residencial — o andaime macroestrutural da formação de redes —, e não como "
+         "intermediação interpessoal medida. Uma SNA de laços individuais exigiria dados relacionais "
+         "(RAIS firma-trabalhador ou surveys egocêntricos) fora do escopo da PNAD."),
+        ("Caráter normativo da Pesquisa Operacional. ",
+         "TOPSIS e programação linear são ferramentas prescritivas, dependentes de pesos de critério "
+         "e premissas de efetividade marginal das políticas, calibradas com evidência internacional e "
+         "com os próprios coeficientes estimados; indicam priorização condicional a essas premissas e "
+         "requerem validação empírica no contexto brasileiro — não são previsões pontuais de impacto."),
+        ("Desenho transversal e direções futuras. ",
+         "O caráter transversal do painel público impede a análise de trajetórias individuais; o painel "
+         "rotativo completo com microdado identificado e a extensão à RAIS permitiriam investigar "
+         "mobilidade e o teto de vidro em cargos de liderança com identificação de firma. A SNA poderia "
+         "ser refinada para grafos bipartidos UPA × grupo, elevando a resolução espacial da medida de "
+         "segregação."),
+    ]
+    for _lead, _body in _limitacoes:
+        p = doc.add_paragraph()
+        run = p.add_run(_lead); run.bold = True; run.font.name = "Times New Roman"; run.font.size = Pt(12)
+        run2 = p.add_run(_body); run2.font.name = "Times New Roman"; run2.font.size = Pt(12)
+        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        set_paragraph_format(p, first_line=1.25)
+
+    add_heading(doc, "Declaração de uso de inteligência artificial", level=2)
+    add_para(doc,
+        "Na elaboração deste trabalho foram utilizadas ferramentas de inteligência artificial "
+        "(Claude Code, da Anthropic) como apoio à implementação e depuração de código (Python e R), "
+        "à geração de figuras e tabelas e à formatação dos documentos. A concepção da pesquisa, a "
+        "escolha das metodologias, a interpretação dos resultados e a redação final são de "
+        "responsabilidade do autor, que revisou, validou e responde por todo o conteúdo."
     )
-    run2.font.name = "Times New Roman"; run2.font.size = Pt(12)
-    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-    set_paragraph_format(p, first_line=1.25)
 
     doc.add_page_break()
 

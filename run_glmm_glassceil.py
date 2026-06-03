@@ -39,7 +39,7 @@ SEED = 42
 # ── Colunas necessárias ──────────────────────────────────────────────────────
 COLS = [
     "negro", "sexo_fem", "idade_c", "idade_sq",
-    "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+    "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao", "educ_cat",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z", "media_renda_upa_z",
     "emprego_formal", "setor_publico", "conta_propria", "trab_domestico",
     "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
@@ -81,10 +81,14 @@ q90 = df["renda_bruta"].quantile(0.90)
 df["y_top20"] = (df["renda_bruta"] >= q80).astype(int)
 df["y_top10"] = (df["renda_bruta"] >= q90).astype(int)
 
-# Dummies de educação (100% cobertura PEA — substitui educ_ord ordinal)
+# Dummies de educação + indicador de escolaridade não registrada.
+# educ_cat está ausente em ~69% da PEA; preencher os dummies com 0 sem sinalizar a
+# ausência contamina a categoria-base (mistura "sem instrução" com "dado faltante")
+# e inverte os sinais. O termo educ_missing isola esse grupo e restaura os sinais.
 df["educ_medio_completo"]    = df["educ_medio_completo"].fillna(0).astype(int)
 df["educ_superior_completo"] = df["educ_superior_completo"].fillna(0).astype(int)
 df["educ_pos_graduacao"]     = df["educ_pos_graduacao"].fillna(0).astype(int)
+df["educ_missing"]           = df["educ_cat"].isna().astype(int)
 # Variáveis de vínculo empregatício — NA → 0
 df["emprego_formal"] = df["emprego_formal"].fillna(0).astype(int)
 df["setor_publico"]  = df["setor_publico"].fillna(0).astype(int)
@@ -98,7 +102,7 @@ print(f"  Brancos: {(df['negro']==0).sum():,}  |  Negros: {(df['negro']==1).sum(
 
 # ── Fórmulas ──────────────────────────────────────────────────────────────────
 _IND   = ("negro + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
-          " + sexo_fem + idade_c + idade_sq"
+          " + educ_missing + sexo_fem + idade_c + idade_sq"
           " + emprego_formal + setor_publico + conta_propria + trab_domestico")
 _UPA   = "media_renda_upa_z + media_educ_upa_z + tx_desemprego_upa_z + pct_negro_upa_z"
 _INTER = "negro:educ_superior_completo + negro:educ_pos_graduacao"

@@ -40,6 +40,7 @@ BOOT_FRAC   = 0.05  # fração usada no bootstrap (velocidade)
 COLS = [
     "negro", "sexo_fem", "idade_c", "idade_sq",
     "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+    "educ_cat",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
     "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
     "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
@@ -51,6 +52,9 @@ COLS = [
 print("Carregando dados ...")
 df_full = pd.read_parquet(ROOT / "data/processed/features.parquet", columns=COLS)
 df_full["UF_str"] = df_full["UF"].astype(str)
+# educ_missing: isola escolaridade nao registrada (educ_cat NA ~69%) — sem ele os
+# dummies (NA->0) contaminam a base e invertem os sinais da educacao.
+df_full["educ_missing"] = df_full["educ_cat"].isna().astype(int)
 
 BASE_DROP = ["negro", "sexo_fem", "idade_c", "idade_sq",
              "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
@@ -72,7 +76,7 @@ HAS_OCC = all(c in df.columns for c in ["horas_c","emprego_formal","ocp_dirigent
           and df["horas_c"].notna().any()
 
 _BASE_F = ("educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
-           " + idade_c + idade_sq + sexo_fem"
+           " + educ_missing + idade_c + idade_sq + sexo_fem"
            " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z")
 _OCC_F  = ("horas_c + emprego_formal + conta_propria + trab_domestico"
            " + ocp_dirigente + ocp_profissional + ocp_tecnico + ocp_administrativo"
@@ -83,7 +87,7 @@ FORMULA_FULL = f"log_renda ~ {_BASE_F}" + (f" + {_OCC_F}" if HAS_OCC else "")
 FORMULA_NOSEX = f"log_renda ~ {_BASE_NOSEX}" + (f" + {_OCC_F}" if HAS_OCC else "")
 
 _IND_QR = ("negro + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
-           " + idade_c + idade_sq + sexo_fem")
+           " + educ_missing + idade_c + idade_sq + sexo_fem")
 _UPA_QR = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
 QR_FORMULA = f"log_renda ~ {_IND_QR} + {_UPA_QR} + C(UF_str)"
 

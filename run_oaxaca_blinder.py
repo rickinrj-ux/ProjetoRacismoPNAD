@@ -20,6 +20,7 @@ FIGURES.mkdir(parents=True, exist_ok=True)
 
 COLS = ["negro", "sexo_fem", "idade_c", "idade_sq",
         "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+        "educ_cat",
         "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
         "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
         "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
@@ -28,6 +29,10 @@ COLS = ["negro", "sexo_fem", "idade_c", "idade_sq",
 
 print("Carregando dados ...")
 df = pd.read_parquet(ROOT / "data/processed/features.parquet", columns=COLS)
+
+# educ_missing: isola escolaridade nao registrada (educ_cat NA em ~69%); sem este
+# controle os dummies de educacao (NA->0) contaminam a base e invertem os sinais.
+df["educ_missing"] = df["educ_cat"].isna().astype(int)
 
 OCC_VARS = ["horas_c", "emprego_formal", "conta_propria", "trab_domestico",
             "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
@@ -47,7 +52,7 @@ n_n = int((df["negro"] == 1).sum())
 print(f"População completa: {len(df):,}  (brancos={n_b:,}, negros={n_n:,})")
 
 _BASE_F = ("educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
-           " + idade_c + idade_sq + sexo_fem"
+           " + educ_missing + idade_c + idade_sq + sexo_fem"
            " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z")
 _OCC_F  = ("horas_c + emprego_formal + conta_propria + trab_domestico"
            " + ocp_dirigente + ocp_profissional + ocp_tecnico + ocp_administrativo"
@@ -98,6 +103,7 @@ var_labels = {
     "educ_medio_completo":    "Ensino Médio completo",
     "educ_superior_completo": "Superior completo",
     "educ_pos_graduacao":     "Pós-graduação",
+    "educ_missing":           "Escolaridade não registrada",
     "idade_c":                "Idade (centrada)",
     "idade_sq":               "Idade²",
     "sexo_fem":               "Sexo feminino",

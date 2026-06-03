@@ -87,7 +87,7 @@ FEATURES = [
     # Individuais
     "negro", "sexo_fem", "idade_c", "idade_sq",
     "educ_fund_completo", "educ_medio_completo",
-    "educ_superior_completo", "educ_pos_graduacao",
+    "educ_superior_completo", "educ_pos_graduacao", "educ_missing",
     # Trabalho (novos)
     "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
     # Grupo CBO — referência: elementar (novos)
@@ -109,6 +109,7 @@ FEATURE_LABELS = {
     "educ_medio_completo":     "Educ.: Médio",
     "educ_superior_completo":  "Educ.: Superior",
     "educ_pos_graduacao":      "Educ.: Pós-graduação",
+    "educ_missing":            "Educ.: não registrada",
     "horas_c":                 "Horas trabalhadas",
     "emprego_formal":          "Emprego formal (carteira)",
     "conta_propria":           "Conta própria",
@@ -137,6 +138,8 @@ FEATURE_LABELS = {
 def load_data():
     logger.info(f"Carregando {FEATURES_PATH} ...")
     df = pd.read_parquet(FEATURES_PATH)
+    # educ_missing: escolaridade não registrada (educ_cat NA ~69%) como feature própria.
+    df["educ_missing"] = df["educ_cat"].isna().astype(int) if "educ_cat" in df.columns else 0
 
     df = df[df["log_renda"].notna() & (df["log_renda"] > 0)].copy()
     df = df.dropna(subset=FEATURES + [TARGET]).reset_index(drop=True)

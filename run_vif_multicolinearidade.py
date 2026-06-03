@@ -52,6 +52,7 @@ M4_PREDICTORS = [
     # Individuais
     "negro", "sexo_fem", "log_horas", "urbano",
     "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+    "educ_missing",
     # Contexto UPA
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
     # Vínculo empregatício
@@ -70,6 +71,7 @@ LABEL_MAP = {
     "educ_medio_completo": "Educ.: Médio",
     "educ_superior_completo": "Educ.: Superior",
     "educ_pos_graduacao": "Educ.: Pós-graduação",
+    "educ_missing": "Educ.: não registrada",
     "pct_negro_upa_z": "% Negro na UPA (z)",
     "tx_desemprego_upa_z": "Desemprego UPA (z)",
     "media_educ_upa_z": "Educ. média UPA (z)",
@@ -92,8 +94,9 @@ SUBSAMPLE_N = 200_000
 
 def load_sample():
     logger.info(f"Carregando subsample N={SUBSAMPLE_N:,} para VIF ...")
-    cols = M4_PREDICTORS + ["pea", "renda_bruta"]
+    cols = [c for c in M4_PREDICTORS if c != "educ_missing"] + ["educ_cat", "pea", "renda_bruta"]
     df = pd.read_parquet(FEATURES_PATH, columns=cols)
+    df["educ_missing"] = df["educ_cat"].isna().astype(int)
     df = df[(df["pea"] == 1) & (df["renda_bruta"] > 0)].dropna(subset=M4_PREDICTORS)
     df_sample = df.sample(n=min(SUBSAMPLE_N, len(df)), random_state=42)
     logger.info(f"  Sample: {len(df_sample):,} obs. com {len(M4_PREDICTORS)} preditores")

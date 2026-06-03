@@ -105,10 +105,10 @@ Amostra de Domicílios Contínua (PNAD Contínua) de 2016 a 2025, com
 
 Um modelo de regressão multinível de três níveis (indivíduo, UPA e Unidade
 da Federação) estima que profissionais negros recebem, em média,
-19.3\% a menos que brancos comparáveis em escolaridade, sexo e faixa etária.
+19.1\% a menos que brancos comparáveis em escolaridade, sexo e faixa etária.
 Desse diferencial bruto, 52.5\% é mediado pelo contexto de moradia
 (\textit{networking} local, Nível~2), reduzindo o \textit{gap} líquido
---- atribuível à discriminação direta --- a 9.7\%.
+--- atribuível à discriminação direta --- a 9.6\%.
 
 A análise de agrupamento (\textit{K-Means}, $k=3$) segrega a força de trabalho
 em três tipologias socioeconomicamente distintas e racialmente homogêneas,
@@ -118,7 +118,7 @@ gênero).
 
 Modelos de \textit{Random Forest} e XGBoost com valores SHAP confirmam que
 a renda média da UPA é o preditor mais importante do rendimento individual
-($|\text{SHAP}| = 0.272$), seguida de gênero e escolaridade superior,
+($|\text{SHAP}| = 0.269$), seguida de gênero e escolaridade superior,
 com a variável racial ocupando o 11$^\circ$ lugar mesmo após
 controlar por todos os demais fatores.
 
@@ -159,11 +159,11 @@ series of Brazil's Continuous National Household Sample Survey (PNAD Contínua)
 from 2016 to 2025 (15.9~million raw observations).
 
 A three-level hierarchical linear model (individual, census tract, and state)
-estimates that Black workers earn 19.3\% less than comparable White
+estimates that Black workers earn 19.1\% less than comparable White
 workers after controlling for education, sex, and age experience.
 Of this gross differential, 52.5\% is mediated by residential context
 (local networking, Level~2), leaving a residual \textit{net gap} of
-9.7\% attributable to direct labour market discrimination.
+9.6\% attributable to direct labour market discrimination.
 
 K-Means clustering ($k=3$) reveals three racially homogeneous
 socioeconomic typologies, with Black workers concentrated in lower-income
@@ -172,7 +172,7 @@ intersection of race and gender.
 
 Random Forest and XGBoost models with SHAP values confirm that neighbourhood
 income is the most important predictor of individual earnings
-($|\text{SHAP}|=0.272$), while race ranks
+($|\text{SHAP}|=0.269$), while race ranks
 11$^\text{th}$ even after all controls.
 
 Social network analysis shows that Black groups have zero betweenness
@@ -466,6 +466,20 @@ robustez das métricas de centralidade e permitindo detectar posições de
 As métricas de rede incluem centralidade de grau, \textit{betweenness},
 \textit{clustering coefficient} e \textit{constraint} de Burt~\cite{burt2004}.
 
+\paragraph{Escopo macroestrutural da rede.}
+Cabe uma delimitação conceitual: a PNAD Contínua não registra vínculos sociais
+interpessoais, de modo que esta não é uma rede de \textit{indivíduos}, mas de
+\textbf{grupos demográficos}. Os nós agregam estratos de raça, escolaridade e
+gênero, e as arestas medem \textit{co-residência} na mesma UPA --- o substrato
+territorial sobre o qual as redes interpessoais efetivamente se formam. Em
+consequência, \textit{betweenness} e \textit{constraint} devem ser
+interpretados como \textbf{posição estrutural de grupos} no espaço da
+segregação residencial, e não como intermediação interpessoal medida. A SNA aqui
+não substitui um estudo de laços egocêntricos; ela revela o \textit{andaime
+macroestrutural} que condiciona, a montante, quem tem acesso a quais círculos
+--- complementando, e não duplicando, as barreiras de acesso (GLMM) e de
+remuneração (HLM).
+
 % ══════════════════════════════════════════════════════════════════════════════
 %  4. RESULTADOS
 % ══════════════════════════════════════════════════════════════════════════════
@@ -533,26 +547,26 @@ A adição dos \textit{slopes contextuais} da UPA (M2) reduz o ICC para
 da heterogeneidade interestadual.
 
 \paragraph{Gap salarial racial: bruto, contextual e líquido.}
-O modelo M1 estima $\hat{\beta}_1^{M1} = -0.2148$
+O modelo M1 estima $\hat{\beta}_1^{M1} = -0.2123$
 ($p<0{,}001$), indicando que profissionais negros recebem em média
-19.3\% a menos que brancos com mesma escolaridade, sexo e faixa
+19.1\% a menos que brancos com mesma escolaridade, sexo e faixa
 etária --- o \textbf{gap racial bruto}.
 
 Após a inclusão das variáveis de contexto da UPA (M2),
-$\hat{\beta}_1^{M2} = -0.1021$, redução que implica uma
+$\hat{\beta}_1^{M2} = -0.1009$, redução que implica uma
 \textbf{mediação contextual de 52.5\%} do gap bruto pelo
 local de moradia. Esse resultado confirma a Hipótese~H2 e quantifica
 o \textit{duplo disadvantage}: a segregação residencial opera como canal
 independente de reprodução da desigualdade racial.
 
 O coeficiente de composição racial da UPA,
-$\hat{\gamma}_{01} = -0{,}2894$ ($p<0{,}001$), indica que um desvio-padrão
+$\hat{\gamma}_{01} = -0{,}2689$ ($p<0{,}001$), indica que um desvio-padrão
 adicional de proporção de negros na UPA reduz o log-rendimento em
 0{,}29 pontos, efeito equivalente à penalidade individual de ser negro
 --- a evidência mais direta do \textit{duplo disadvantage}.
 
-O modelo completo M3 produz $\hat{\beta}_1^{M3} = -0.1021$
-($p<0{,}001$): o \textbf{gap líquido de 9.7\%} representa a fração
+O modelo completo M3 produz $\hat{\beta}_1^{M3} = -0.1009$
+($p<0{,}001$): o \textbf{gap líquido de 9.6\%} representa a fração
 do diferencial salarial não explicável por capital humano individual
 nem pelo contexto de moradia --- o limite inferior da discriminação
 direta no mercado de trabalho.
@@ -567,33 +581,33 @@ direta no mercado de trabalho.
 \midrule \endhead
 \midrule \multicolumn{5}{r}{\textit{continua}} \\ \endfoot
 \bottomrule \endlastfoot
-Intercepto & 7.2694$^{***}$ (0.0555) & 4.7671$^{***}$ (0.0386) & 4.7595$^{***}$ (0.0335) & 4.7159$^{***}$ (0.0253) \\
-\textbf{Raça (negro)} & - & -0.2148$^{***}$ (0.0006) & -0.1021$^{***}$ (0.0006) & -0.1021$^{***}$ (0.0006) \\
-Gênero (feminino) & - & -0.1815$^{***}$ (0.0005) & -0.1826$^{***}$ (0.0005) & -0.1826$^{***}$ (0.0005) \\
-Idade (centralizada) & - & 0.0112$^{***}$ (0.0000) & 0.0098$^{***}$ (0.0000) & 0.0098$^{***}$ (0.0000) \\
-Idade$^2$ (experiência) & - & -0.0006$^{***}$ (0.0000) & -0.0006$^{***}$ (0.0000) & -0.0006$^{***}$ (0.0000) \\
+Intercepto & 7.2694$^{***}$ (0.0555) & 4.2052$^{***}$ (0.0387) & 4.2469$^{***}$ (0.0335) & 4.2042$^{***}$ (0.0253) \\
+\textbf{Raça (negro)} & - & -0.2123$^{***}$ (0.0006) & -0.1009$^{***}$ (0.0006) & -0.1009$^{***}$ (0.0006) \\
+Gênero (feminino) & - & -0.1844$^{***}$ (0.0005) & -0.1852$^{***}$ (0.0005) & -0.1852$^{***}$ (0.0005) \\
+Idade (centralizada) & - & 0.0121$^{***}$ (0.0000) & 0.0106$^{***}$ (0.0000) & 0.0106$^{***}$ (0.0000) \\
+Idade$^2$ (experiência) & - & -0.0005$^{***}$ (0.0000) & -0.0005$^{***}$ (0.0000) & -0.0005$^{***}$ (0.0000) \\
 \addlinespace[3pt]
 \multicolumn{5}{l}{\textit{Controles educacionais}} \\
-Educ.: Fundamental & - & -0.8184$^{***}$ (0.0032) & -0.7594$^{***}$ (0.0032) & -0.7594$^{***}$ (0.0032) \\
-Educ.: Médio & - & -0.6142$^{***}$ (0.0014) & -0.5622$^{***}$ (0.0014) & -0.5622$^{***}$ (0.0014) \\
-Educ.: Superior & - & -0.4976$^{***}$ (0.0006) & -0.4500$^{***}$ (0.0006) & -0.4500$^{***}$ (0.0006) \\
-Educ.: Pós-graduação & - & -0.5704$^{***}$ (0.0030) & -0.5139$^{***}$ (0.0029) & -0.5139$^{***}$ (0.0029) \\
+Educ.: Fundamental & - & -0.2631$^{***}$ (0.0041) & -0.2540$^{***}$ (0.0040) & -0.2540$^{***}$ (0.0040) \\
+Educ.: Médio & - & -0.0685$^{***}$ (0.0029) & -0.0652$^{***}$ (0.0028) & -0.0652$^{***}$ (0.0028) \\
+Educ.: Superior & - & 0.0735$^{***}$ (0.0027) & 0.0703$^{***}$ (0.0027) & 0.0703$^{***}$ (0.0027) \\
+Educ.: Pós-graduação & - & -0.0020 (0.0040) & 0.0038 (0.0039) & 0.0038 (0.0039) \\
 \addlinespace[3pt]
 \multicolumn{5}{l}{\textit{Contexto de localidade (Nível 2 --- UPA)}} \\
-\% Negro na UPA ($z$) & - & - & -0.2720$^{***}$ (0.0005) & -0.2720$^{***}$ (0.0005) \\
-Desemprego UPA ($z$) & - & - & -0.0405$^{***}$ (0.0004) & -0.0405$^{***}$ (0.0004) \\
-Educ. média UPA ($z$) & - & - & -0.0036$^{***}$ (0.0003) & -0.0036$^{***}$ (0.0003) \\
+\% Negro na UPA ($z$) & - & - & -0.2689$^{***}$ (0.0005) & -0.2689$^{***}$ (0.0005) \\
+Desemprego UPA ($z$) & - & - & -0.0403$^{***}$ (0.0004) & -0.0403$^{***}$ (0.0004) \\
+Educ. média UPA ($z$) & - & - & -0.0041$^{***}$ (0.0003) & -0.0041$^{***}$ (0.0003) \\
 \addlinespace[3pt]
 \multicolumn{5}{l}{\textit{Contexto macrorregional (Nível 3 --- UF)}} \\
-\% Negro no Estado ($z$) & - & - & - & 0.0667$^{*}$ (0.0338) \\
-Desemprego Estado ($z$) & - & - & - & -0.0541 (0.0284) \\
-Educ. média Estado ($z$) & - & - & - & 0.0826$^{***}$ (0.0211) \\
+\% Negro no Estado ($z$) & - & - & - & 0.0645 (0.0336) \\
+Desemprego Estado ($z$) & - & - & - & -0.0543 (0.0282) \\
+Educ. média Estado ($z$) & - & - & - & 0.0819$^{***}$ (0.0210) \\
 \addlinespace[3pt]
 \addlinespace[2pt] \midrule
 \multicolumn{5}{l}{\textit{Componentes de variância e ajuste}} \\
-$\hat{\sigma}^2$ (Nível 1) & 0.7665 & 0.5132 & 0.4870 & 0.4870 \\
-$\hat{\tau}^2_{UF}$ (Nível 3) & 0.08327 & 0.03996 & 0.03006 & 0.01497 \\
-$\text{ICC}_{UF}$ & 0.0980 & 0.0722 & 0.0581 & 0.0298 \\
+$\hat{\sigma}^2$ (Nível 1) & 0.7665 & 0.5101 & 0.4844 & 0.4844 \\
+$\hat{\tau}^2_{UF}$ (Nível 3) & 0.08327 & 0.04002 & 0.02990 & 0.01478 \\
+$\text{ICC}_{UF}$ & 0.0980 & 0.0727 & 0.0581 & 0.0296 \\
 $N$ (observações) & 7,689,426 & 7,689,426 & 7,689,426 & 7,689,426 \\
 AIC & N/D & N/D & N/D & N/D \\
 \end{longtable}
@@ -625,21 +639,21 @@ Estimou-se M3 com \textit{random slope} para \texttt{negro} por UF
 (população completa ($N=7.689.426$)),
 testando $H_0{\colon}\,\tau^2_1 = 0$ (discriminação homogênea entre estados).
 
-O LRT boundary test \cite{stram1994} rejeita $H_0$ com $LR=7611,6$, $p<0{,}001$: o gap racial varia significativamente entre estados. O efeito fixo nacional é $\hat{\beta}_1=−0,1218$ (gap de 11,5\%), com $\tau^2_1=0,002561$ ($DP=0,0506$ log-pontos). Em 95\% das UFs o gap situa-se em $[−19,8\%;\,−2,2\%]$ --- variação de 17,6 pontos percentuais entre extremos.
+O LRT boundary test \cite{stram1994} rejeita $H_0$ com $LR=7547,7$, $p<0{,}001$: o gap racial varia significativamente entre estados. O efeito fixo nacional é $\hat{\beta}_1=−0,1206$ (gap de 11,4\%), com $\tau^2_1=0,002548$ ($DP=0,0505$ log-pontos). Em 95\% das UFs o gap situa-se em $[−19,7\%;\,−2,1\%]$ --- variação de 17,6 pontos percentuais entre extremos.
 
-A correlação $\rho(u_0,u_1)=−0,372$ é negativa: UFs com maior nível salarial médio (intercepto $u_0$ mais alto) exibem penalidade racial mais severa (inclinação $u_1$ mais negativa). A discriminação se intensifica nas economias mais ricas e desiguais --- e não nas mais pobres: as maiores penalidades estimadas por UF concentram-se no Distrito Federal, Rio de Janeiro e São Paulo, ao passo que estados do Nordeste (RN, PB, SE) registram as menores ($r_{\text{UF}}=+0{,}45$ entre renda média e magnitude do gap).
+A correlação $\rho(u_0,u_1)=−0,367$ é negativa: UFs com maior nível salarial médio (intercepto $u_0$ mais alto) exibem penalidade racial mais severa (inclinação $u_1$ mais negativa). A discriminação se intensifica nas economias mais ricas e desiguais --- e não nas mais pobres: as maiores penalidades estimadas por UF concentram-se no Distrito Federal, Rio de Janeiro e São Paulo, ao passo que estados do Nordeste (RN, PB, SE) registram as menores ($r_{\text{UF}}=+0{,}45$ entre renda média e magnitude do gap).
 
 \medskip
-\noindent\textbf{Nível adicional --- gênero.} Estendendo o \textit{random slope} a \texttt{sexo\_fem} ($(1+\text{negro}+\text{sexo\_fem}\mid \text{UF})$), o LRT confirma que o gap salarial de gênero também varia geograficamente ($LR=15.775$, $p<0{,}001$) --- com \emph{maior} dispersão que o racial ($DP_{\text{gênero}}=0,064$ vs $DP_{\text{raça}}=0,050$ log-pontos). A correlação entre as duas inclinações é negativa ($\rho=−0,46$): nas UFs de maior penalidade racial, a de gênero tende a ser menor (discriminações geograficamente compensatórias).
+\noindent\textbf{Nível adicional --- gênero.} Estendendo o \textit{random slope} a \texttt{sexo\_fem} ($(1+\text{negro}+\text{sexo\_fem}\mid \text{UF})$), o LRT confirma que o gap salarial de gênero também varia geograficamente ($LR=15.584$, $p<0{,}001$) --- com \emph{maior} dispersão que o racial ($DP_{\text{gênero}}=0,064$ vs $DP_{\text{raça}}=0,049$ log-pontos). A correlação entre as duas inclinações é negativa ($\rho=−0,46$): nas UFs de maior penalidade racial, a de gênero tende a ser menor (discriminações geograficamente compensatórias).
 
 \subsection{Random Slope no GLMM: Heterogeneidade Geográfica do Acesso}
 \label{subsec:glmm_rs}
 
-Estendeu-se o \textit{random slope} de \texttt{negro} ao GLMM logístico de acesso (\texttt{lme4::glmer}, população completa, $N=7.694.198$), em três desfechos. O LRT de fronteira rejeita $H_0{\colon}\,\tau^2_1=0$ em todos --- \texttt{ocp\_qualif} ($LR=2.403$), \texttt{y\_top20} ($LR=322$) e \texttt{y\_top10} ($LR=502$), todos $p<0{,}001$: a barreira de acesso também varia geograficamente. A heterogeneidade é maior no acesso a ocupações qualificadas ($\tau^2_1=0,0112$, $DP=0,106$ log-odds) e preserva o gradiente de teto de vidro no efeito fixo (OR cai de 0,705 para 0,660 rumo ao decil superior).
+Estendeu-se o \textit{random slope} de \texttt{negro} ao GLMM logístico de acesso (\texttt{lme4::glmer}, população completa, $N=7.694.198$), em três desfechos. O LRT de fronteira rejeita $H_0{\colon}\,\tau^2_1=0$ em todos --- \texttt{ocp\_qualif} ($LR=2.406$), \texttt{y\_top20} ($LR=326$) e \texttt{y\_top10} ($LR=505$), todos $p<0{,}001$: a barreira de acesso também varia geograficamente. A heterogeneidade é maior no acesso a ocupações qualificadas ($\tau^2_1=0,0113$, $DP=0,106$ log-odds) e preserva o gradiente de teto de vidro no efeito fixo (OR cai de 0,707 para 0,662 rumo ao decil superior).
 
-Em contraste com o salário ($\rho=-0{,}37$), o acesso a cargos qualificados correlaciona-se \emph{positivamente} com o nível ocupacional do estado ($\rho=0,64$): UFs com mais empregos qualificados exibem \emph{menor} penalidade de acesso --- nas economias desenvolvidas, negros enfrentam acesso relativamente mais fácil, porém maior gap salarial uma vez dentro.
+Em contraste com o salário ($\rho=-0{,}37$), o acesso a cargos qualificados correlaciona-se \emph{positivamente} com o nível ocupacional do estado ($\rho=0,65$): UFs com mais empregos qualificados exibem \emph{menor} penalidade de acesso --- nas economias desenvolvidas, negros enfrentam acesso relativamente mais fácil, porém maior gap salarial uma vez dentro.
 
-\textbf{Setor público {\texttimes} privado.} A barreira de acesso é praticamente idêntica (OR$_{\text{púb}}=0,705$ vs OR$_{\text{priv}}=0,695$) e igualmente heterogênea entre UFs ($\tau^2=0,0114$ vs $0,0107$): o concurso público \emph{não dissolve} a exclusão racial de acesso a ocupações qualificadas.
+\textbf{Setor público {\texttimes} privado.} A barreira de acesso é praticamente idêntica (OR$_{\text{púb}}=0,705$ vs OR$_{\text{priv}}=0,698$) e igualmente heterogênea entre UFs ($\tau^2=0,0115$ vs $0,0109$): o concurso público \emph{não dissolve} a exclusão racial de acesso a ocupações qualificadas.
 
 \begin{figure}[H]
   \centering
@@ -649,10 +663,10 @@ Em contraste com o salário ($\rho=-0{,}37$), o acesso a cargos qualificados cor
 \end{figure}
 
 
-Já no \emph{salário}, o setor público \emph{atenua} o gap racial (7,8\% vs 11,2\% no privado) e o \emph{homogeneíza} entre UFs ($\tau^2_1=0,00140$ vs $0,00218$). O concurso equaliza a \emph{remuneração} de quem entra, mas não a \emph{entrada} --- precisando o diagnóstico ``o Estado ajuda, mas não resolve''.
+Já no \emph{salário}, o setor público \emph{atenua} o gap racial (7,7\% vs 11,1\% no privado) e o \emph{homogeneíza} entre UFs ($\tau^2_1=0,00140$ vs $0,00217$). O concurso equaliza a \emph{remuneração} de quem entra, mas não a \emph{entrada} --- precisando o diagnóstico ``o Estado ajuda, mas não resolve''.
 
 \medskip
-\noindent\textbf{Gênero no acesso.} O mesmo \textit{random slope} aplicado a \texttt{sexo\_fem} no GLMM confirma heterogeneidade geográfica em todos os desfechos ($p<0{,}001$), revelando uma divergência ausente no caso racial: mulheres têm \emph{mais} acesso a ``ocupações qualificadas'' (OR$=2,01>1$, por profissões credenciadas feminizadas), mas \emph{muito menos} acesso ao topo da renda (OR$_{\text{top20}}=0,567$; OR$_{\text{top10}}=0,522$). O teto de vidro de gênero é de \emph{remuneração}, não de categoria ocupacional --- e sua heterogeneidade geográfica supera a racial no topo ($\tau^2_{\text{sexo}}=0,0324$ no top20, contra $\tau^2_{\text{negro}}\approx0{,}003$; cerca de 10$\times$).
+\noindent\textbf{Gênero no acesso.} O mesmo \textit{random slope} aplicado a \texttt{sexo\_fem} no GLMM confirma heterogeneidade geográfica em todos os desfechos ($p<0{,}001$), revelando uma divergência ausente no caso racial: mulheres têm \emph{mais} acesso a ``ocupações qualificadas'' (OR$=1,99>1$, por profissões credenciadas feminizadas), mas \emph{muito menos} acesso ao topo da renda (OR$_{\text{top20}}=0,562$; OR$_{\text{top10}}=0,518$). O teto de vidro de gênero é de \emph{remuneração}, não de categoria ocupacional --- e sua heterogeneidade geográfica supera a racial no topo ($\tau^2_{\text{sexo}}=0,0323$ no top20, contra $\tau^2_{\text{negro}}\approx0{,}003$; cerca de 10$\times$).
 
 \begin{figure}[H]
   \centering
@@ -738,8 +752,8 @@ sobre o conjunto de teste (\textit{hold-out} 20\%).
 \toprule
 \textbf{Modelo} & $R^2$ & \textbf{MAE} & \textbf{RMSE} \\
 \midrule
-Random Forest  & 0.5722  & 0.4287 & --- \\
-\textbf{XGBoost}      & \textbf{0.6162} & \textbf{0.4287} & \textbf{0,6986} \\
+Random Forest  & 0.5743  & 0.4283 & --- \\
+\textbf{XGBoost}      & \textbf{0.6169} & \textbf{0.4283} & \textbf{0,6986} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -756,34 +770,35 @@ pela maior parte do resíduo.
 \toprule
 \textbf{Feature} & \textbf{$|\text{SHAP}|$ RF} & \textbf{Rank RF} & \textbf{$|\text{SHAP}|$ XGB} & \textbf{Rank XGB} \\
 \midrule
-\textbf{Renda média UPA} & 0.33041 & 1 & 0.27155 & 1 \\
-Horas trabalhadas & 0.17523 & 2 & 0.16584 & 2 \\
-CBO: Profissionais & 0.11279 & 4 & 0.11857 & 3 \\
-Emprego formal (carteira) & 0.13979 & 3 & 0.10922 & 4 \\
-Gênero (feminino) & 0.08956 & 5 & 0.09875 & 5 \\
-Idade (centralizada) & 0.06390 & 6 & 0.09606 & 6 \\
-Conta própria & 0.02056 & 9 & 0.06327 & 7 \\
-Educ.: Superior & 0.00109 & 18 & 0.05039 & 8 \\
-CBO: Técnicos & 0.03889 & 7 & 0.04684 & 9 \\
-CBO: Dirigentes & 0.03706 & 8 & 0.03919 & 10 \\
-\textbf{Raça (negro)} & 0.00024 & 25 & 0.02863 & 11 \\
-CBO: Serviços/Vendas & 0.00125 & 15 & 0.02754 & 12 \\
-\textbf{Desemprego na UPA} & 0.00153 & 14 & 0.02150 & 13 \\
-CBO: Operários & 0.00068 & 20 & 0.02055 & 14 \\
-CBO: Op. Máquinas & 0.00114 & 17 & 0.02048 & 15 \\
-Trabalho doméstico & 0.00646 & 11 & 0.01917 & 16 \\
-CBO: Administrativo & 0.00295 & 13 & 0.01791 & 17 \\
-Idade² (experiência) & 0.00546 & 12 & 0.01529 & 18 \\
-Educ.: Médio & 0.00000 & 27 & 0.01520 & 19 \\
-CBO: Agropecuária & 0.00117 & 16 & 0.01448 & 20 \\
-\textbf{\% Negro no Estado} & 0.00071 & 19 & 0.01420 & 21 \\
-\textbf{Desemprego no Estado} & 0.00044 & 22 & 0.01343 & 22 \\
-CBO: FFAA/Polícia & 0.01128 & 10 & 0.01270 & 23 \\
-\textbf{\% Negro na UPA} & 0.00027 & 24 & 0.01024 & 24 \\
-Educ. média UPA & 0.00033 & 23 & 0.01016 & 25 \\
-Educ. média Estado & 0.00055 & 21 & 0.00706 & 26 \\
-Educ.: Fundamental & 0.00000 & 27 & 0.00254 & 27 \\
-Educ.: Pós-graduação & 0.00000 & 27 & 0.00218 & 28 \\
+\textbf{Renda média UPA} & 0.32872 & 1 & 0.26938 & 1 \\
+Horas trabalhadas & 0.17613 & 2 & 0.16362 & 2 \\
+CBO: Profissionais & 0.11208 & 4 & 0.11665 & 3 \\
+Emprego formal (carteira) & 0.13965 & 3 & 0.11006 & 4 \\
+Gênero (feminino) & 0.09079 & 5 & 0.10083 & 5 \\
+Idade (centralizada) & 0.06466 & 6 & 0.10055 & 6 \\
+Educ.: não registrada & 0.02108 & 9 & 0.07063 & 7 \\
+Conta própria & 0.02049 & 10 & 0.06345 & 8 \\
+CBO: Técnicos & 0.03577 & 8 & 0.04579 & 9 \\
+CBO: Dirigentes & 0.03673 & 7 & 0.03903 & 10 \\
+\textbf{Raça (negro)} & 0.00033 & 23 & 0.02940 & 11 \\
+CBO: Serviços/Vendas & 0.00121 & 16 & 0.02915 & 12 \\
+\textbf{Desemprego na UPA} & 0.00152 & 15 & 0.02291 & 13 \\
+CBO: Operários & 0.00068 & 18 & 0.02181 & 14 \\
+CBO: Op. Máquinas & 0.00043 & 21 & 0.02057 & 15 \\
+Trabalho doméstico & 0.00516 & 12 & 0.01853 & 16 \\
+\textbf{\% Negro no Estado} & 0.00067 & 19 & 0.01838 & 17 \\
+CBO: Administrativo & 0.00283 & 14 & 0.01773 & 18 \\
+\textbf{Desemprego no Estado} & 0.00042 & 22 & 0.01531 & 19 \\
+CBO: Agropecuária & 0.00117 & 17 & 0.01510 & 20 \\
+CBO: FFAA/Polícia & 0.01083 & 11 & 0.01276 & 21 \\
+Idade² (experiência) & 0.00507 & 13 & 0.01153 & 22 \\
+\textbf{\% Negro na UPA} & 0.00033 & 23 & 0.01145 & 23 \\
+Educ. média UPA & 0.00032 & 25 & 0.01099 & 24 \\
+Educ. média Estado & 0.00054 & 20 & 0.00613 & 25 \\
+Educ.: Médio & 0.00000 & 28 & 0.00402 & 26 \\
+Educ.: Superior & 0.00002 & 26 & 0.00258 & 27 \\
+Educ.: Fundamental & 0.00000 & 28 & 0.00104 & 28 \\
+Educ.: Pós-graduação & 0.00000 & 28 & 0.00002 & 29 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -808,7 +823,7 @@ Educ.: Pós-graduação & 0.00000 & 27 & 0.00218 & 28 \\
 
 A Tabela~\ref{tab:shap_importance} revela que a \textbf{renda média da UPA}
 é o preditor mais importante do rendimento individual
-($|\text{SHAP}| = 0.272$), com peso três vezes maior que
+($|\text{SHAP}| = 0.269$), com peso três vezes maior que
 a escolaridade superior e 2,5 vezes maior que o gênero.
 Esse resultado confirma computacionalmente a hipótese de Wilson~(\citeyear{wilson1987}):
 o \textit{onde se mora} supera em importância o \textit{quanto se estudou}.
@@ -957,11 +972,11 @@ CBO e das variáveis de vínculo empregatício (\texttt{emprego\_formal},
 \texttt{conta\_propria}, \texttt{trab\_domestico}) introduz colinearidade
 problemática no Modelo~M4, calculou-se o \textit{Variance Inflation Factor} (VIF)
 sobre subsample de 200.000 observações da PEA com renda positiva.
-Dos $23$ preditores analisados, VIF máximo~$= 2,09$
-(CBO: Serviços/Vendas); 0~variável crítica
-(VIF~$> 10$); 0~variável alta ($5$--$10$);
+Dos $24$ preditores analisados, VIF máximo~$= 22,25$
+(Educ.: não registrada); 2~variável crítica
+(VIF~$> 10$); 1~variável alta ($5$--$10$);
 1~variável moderada ($2$--$5$);
-22~variáveis baixas ($< 2$).
+20~variáveis baixas ($< 2$).
 Esses resultados descartam multicolinearidade problemática entre CBO e
 formalidade, validando a especificação completa do M4 sem necessidade de
 ortogonalização ou eliminação de preditores.
@@ -989,6 +1004,21 @@ a diferença entre contextos não é atribuível ao acaso.
 % ══════════════════════════════════════════════════════════════════════════════
 \section{Discussão e Prescrição}
 \label{sec:discussao}
+
+\paragraph{Nota terminológica.}
+Três conceitos próximos, mas distintos, percorrem este trabalho e não devem ser
+confundidos. \textbf{Mediação contextual} (HLM) é a fração do gap bruto que
+\textit{desaparece} ao se controlar o local de moradia (UPA/UF) --- mede o
+quanto da penalidade racial transita \textit{pelo} território.
+\textbf{Efeito dotação} (Oaxaca--Blinder) é a parcela do gap atribuível a
+\textit{diferenças nas características observáveis} entre brancos e negros
+(escolaridade, ocupação, contexto), por oposição ao \textbf{efeito retornos}
+(preços diferenciais pagos às mesmas características).
+\textbf{Gap líquido} (ou residual) é o diferencial que \textit{persiste} após
+o controle exaustivo de todas as covariáveis (M4) --- o piso para a discriminação
+direta não explicada por observáveis. Em suma: a mediação contextual responde
+``por onde passa o gap''; a decomposição de dotações, ``de que ele é feito''; e o
+gap líquido, ``o que sobra sem explicação''.
 
 \paragraph{Da diagnose à prescrição.}
 O diagnóstico econométrico das três seções anteriores revela múltiplos
@@ -1032,7 +1062,7 @@ O achado mais robusto desta análise é que 52.5\% do gap salarial racial
 bruto é mediado pelo local de moradia --- muito além do que modelos
 cross-sectionais típicos, que ignoram a estrutura aninhada dos dados,
 seriam capazes de estimar. O coeficiente contextual
-$\hat{\gamma}_{01} = -0{,}289$ para a proporção de negros na UPA
+$\hat{\gamma}_{01} = -0{,}269$ para a proporção de negros na UPA
 indica que a penalidade de viver em bairro segregado equivale,
 em magnitude, à própria penalidade individual de ser negro.
 Isso sugere que políticas de redistribuição de renda que não enfrentem
@@ -1050,7 +1080,7 @@ que cruzem fronteiras sociais, o capital humano acumulado circula
 apenas na própria comunidade.
 
 \paragraph{Persistência da discriminação direta.}
-O gap líquido de 9.7\%, estimado após controlar por todos os vetores
+O gap líquido de 9.6\%, estimado após controlar por todos os vetores
 de transmissão contextual, representa um piso para a discriminação direta
 não explicada por diferenças observáveis. Os valores SHAP reforçam essa
 interpretação: a variável racial mantém o 11$^\circ$ lugar
@@ -1071,8 +1101,31 @@ e acesso ao ensino superior, mas evidencia que reformas no campo da
 educação, sem intervenção simultânea nos mecanismos de segregação
 residencial e de acesso às redes profissionais, são insuficientes.
 
+\paragraph{Ancoragem em políticas públicas existentes.}
+As frentes priorizadas pela Pesquisa Operacional não são abstrações: cada uma
+corresponde a um instrumento jurídico-institucional já existente no Brasil, cuja
+intensificação ou aperfeiçoamento a análise recomenda.
+A frente de \textbf{cotas ocupacionais (CBO~1--4)} dialoga diretamente com a
+\textit{Lei~12.990/2014}, que reserva 20\% das vagas em concursos públicos
+federais a candidatos negros, e cujo escopo o diagnóstico de barreira de acesso
+(GLMM, OR~$=0,676$) sugere ampliar para níveis hierárquicos
+superiores --- onde o teto de vidro é mais severo
+(OR(top~10\%)~$=0,457$).
+A frente de \textbf{qualificação e acesso ao ensino superior} corresponde ao
+\textit{Prouni} e ao \textit{Fies}, bem como ao legado do \textit{PRONATEC};
+o achado de subvalorização do capital humano negro indica que tais programas
+precisam ser combinados a mecanismos de inserção em redes profissionais, sob pena
+de retorno marginal decrescente.
+A frente de \textbf{combate à discriminação direta} encontra base na
+\textit{Lei~9.029/1995} (que proíbe práticas discriminatórias na relação de
+trabalho) e no \textit{Estatuto da Igualdade Racial} (\textit{Lei~12.288/2010}),
+cuja fiscalização o gap líquido residual de 9.6\% justifica reforçar.
+Em conjunto, a contribuição da PO é traduzir a magnitude estimada de cada
+barreira em \textit{prioridade relativa} entre instrumentos que já integram o
+arcabouço legal brasileiro.
+
 \paragraph{Focalização territorial: Pesquisa Operacional regionalizada.}
-A inclinação aleatória de \texttt{negro} por UF (Seção~\ref{subsec:hlm_rs}) estabeleceu que a penalidade racial é geograficamente heterogênea. Traduzimos essa heterogeneidade em alocação ótima de recursos: usando os BLUPs do MixedLM como gap específico de cada uma das 27 UFs, um programa linear distribui o orçamento priorizando os estados de maior penalidade. A Tabela~\ref{tab:po_regional} mostra que concentrar recursos nas UFs mais críticas reduz o gap agregado 68,2\% acima da alocação uniforme com orçamento intermediário (e 125,5\% quando o orçamento é escasso) --- ganho decorrente exclusivamente da focalização, mantida constante a efetividade da política. As unidades prioritárias (DF, AM, TO, PA, AC) combinam alta penalidade --- liderada por DF (20,9\%) --- e elevada população negra afetada, enquanto MG apresenta o menor diferencial (1,4\%). Metodologicamente, a estimação por BLUP é indispensável: a aproximação rápida por OLS estadual com encolhimento \textit{empirical Bayes} diverge do BLUP (Spearman $\rho=0,42$), pois trata heterogeneamente os coeficientes de controle --- por isso adotamos o modelo misto completo como base oficial.
+A inclinação aleatória de \texttt{negro} por UF (Seção~\ref{subsec:hlm_rs}) estabeleceu que a penalidade racial é geograficamente heterogênea. Traduzimos essa heterogeneidade em alocação ótima de recursos: usando os BLUPs do MixedLM como gap específico de cada uma das 27 UFs, um programa linear distribui o orçamento priorizando os estados de maior penalidade. A Tabela~\ref{tab:po_regional} mostra que concentrar recursos nas UFs mais críticas reduz o gap agregado 68,2\% acima da alocação uniforme com orçamento intermediário (e 125,5\% quando o orçamento é escasso) --- ganho decorrente exclusivamente da focalização, mantida constante a efetividade da política. As unidades prioritárias (DF, AM, TO, PA, AC) combinam alta penalidade --- liderada por DF (20,9\%) --- e elevada população negra afetada, enquanto MG apresenta o menor diferencial (1,4\%). Metodologicamente, a estimação por BLUP é indispensável: a aproximação rápida por OLS estadual com encolhimento \textit{empirical Bayes} diverge do BLUP (Spearman $\rho=0,45$), pois trata heterogeneamente os coeficientes de controle --- por isso adotamos o modelo misto completo como base oficial.
 
 \begin{figure}[H]
   \centering
@@ -1128,7 +1181,7 @@ proporcionais à magnitude do problema.
 \medskip
 
 \begin{quote}
-\textit{Mesmo após controle exaustivo de 23 covariáveis individuais,
+\textit{Mesmo após controle exaustivo de 24 covariáveis individuais,
 ocupacionais e contextuais, trabalhadores negros recebem sistematicamente
 -6.2\% a menos que brancos equivalentes --- o mercado de
 trabalho brasileiro não é racialmente neutro.}
@@ -1155,17 +1208,17 @@ políticas focadas apenas em capital humano são necessárias, mas insuficientes
 
 Essas conclusões emergem da convergência de seis metodologias independentes
 sobre $N=7.694.198$ observações da PNAD Contínua 2016--2025.
-O gap bruto de 19.3\% (M1) decompõe-se em três camadas:
+O gap bruto de 19.1\% (M1) decompõe-se em três camadas:
 (i)~mediação contextual de 52.5\% pela UPA
-($\hat{\gamma}_{01}=-0{,}289$);
-(ii)~mediação ocupacional de 17.6\% pelo acesso desigual a
+($\hat{\gamma}_{01}=-0{,}269$);
+(ii)~mediação ocupacional de 17.3\% pelo acesso desigual a
 grupos CBO de alta remuneração;
 (iii)~gap residual de -6.2\% (M4), discriminação pura
 pós-ocupação.
 O GLMM logístico confirma a barreira de acesso:
-OR~$=0,674$ para CBO~1--4,
+OR~$=0,676$ para CBO~1--4,
 com gradiente progressivo
-OR(top~20\%)~$=0,536$ $\to$ OR(top~10\%)~$=0,453$.
+OR(top~20\%)~$=0,540$ $\to$ OR(top~10\%)~$=0,457$.
 A regressão quantílica formaliza o glass ceiling
 ($Z=-5{,}25$, $p<0{,}001$).
 
@@ -1190,14 +1243,69 @@ segregação residencial e exclusão de redes, em sistema combinado.
 
 \bigskip
 
-\noindent\textbf{Limitações e direções futuras.}
-O caráter transversal do painel público da PNAD Contínua impede a análise
-de trajetórias individuais; estudos futuros poderiam explorar o painel
-rotativo completo com microdado identificado.
-A extensão à RAIS permitiria investigar o glass ceiling em cargos de
-liderança com identificação de firma.
-As premissas de efetividade dos modelos de PO foram calibradas com
-evidências internacionais e requerem validação empírica no contexto brasileiro.
+\subsection*{Limitações e escopo de validade}
+
+\paragraph{Natureza inferencial \textit{vs.}\ preditiva dos modelos.}
+Os resultados devem ser lidos sob dois regimes epistemológicos distintos.
+Os modelos HLM, a decomposição de Oaxaca--Blinder, a regressão quantílica e
+a correção de Heckman produzem \textit{estimativas de associação condicional}:
+medem o diferencial racial que persiste após o controle de covariáveis
+observáveis, sob o pressuposto de seleção em observáveis. Não constituem, por
+si sós, prova de causalidade no sentido contrafactual, pois não derivam de
+desenho experimental ou quase-experimental. Já o XGBoost e os valores SHAP têm
+finalidade \textit{preditiva e interpretativa}: quantificam a contribuição de
+cada variável para a \textit{previsão} do rendimento --- não o efeito causal
+de manipulá-la. A convergência entre os dois regimes (a raça permanece preditora
+de primeira ordem \textit{e} mantém coeficiente negativo significante sob
+controle exaustivo) é o que confere robustez ao diagnóstico; ainda assim, a
+linguagem causal foi deliberadamente evitada.
+
+\paragraph{Cobertura da variável de escolaridade.}
+A escolaridade detalhada (\texttt{educ\_cat}) está registrada para cerca de
+31\% da PEA no painel público utilizado. Para preservar o $N$ completo, os
+níveis de instrução entram como \textit{dummies} de conclusão acompanhadas de
+um indicador explícito de não-registro (\texttt{educ\_missing}), de modo que a
+categoria de referência não confunda ``baixa escolaridade'' com ``dado ausente''.
+Testes de sensibilidade mostram que o coeficiente racial é estável a essa
+especificação (variação inferior a~1\%); ainda assim, os retornos educacionais
+devem ser interpretados com a cautela própria de uma variável parcialmente
+observada.
+
+\paragraph{Granularidade macroestrutural da SNA.}
+A PNAD Contínua não coleta vínculos sociais interpessoais. A rede analisada na
+Seção~\ref{subsec:sna} é, portanto, uma rede de \textbf{grupos demográficos}
+(raça $\times$ escolaridade $\times$ gênero) conectados por co-residência na
+mesma UPA --- não uma rede de indivíduos. Métricas como \textit{betweenness} e
+\textit{constraint} de Burt devem ser lidas como \textbf{posição estrutural de
+grupos} no espaço da segregação residencial (um substrato macroestrutural da
+formação de redes), e não como intermediação interpessoal medida. Uma SNA de
+laços individuais exigiria dados relacionais (p.ex.\ RAIS firma--trabalhador ou
+\textit{surveys} de redes egocêntricas) fora do escopo da PNAD.
+
+\paragraph{Caráter normativo da Pesquisa Operacional.}
+Os modelos de PO (TOPSIS e programação linear) são ferramentas
+\textit{prescritivas}: dependem de pesos de critério e de premissas de
+efetividade marginal das políticas, aqui calibradas com evidência internacional
+e com os próprios coeficientes estimados. Os resultados indicam priorização
+\textit{condicional a essas premissas} e requerem validação empírica no
+contexto brasileiro --- não são previsões pontuais de impacto.
+
+\paragraph{Desenho transversal e direções futuras.}
+O caráter transversal do painel público impede a análise de trajetórias
+individuais; o painel rotativo completo com microdado identificado e a extensão
+à RAIS permitiriam investigar mobilidade e o teto de vidro em cargos de liderança
+com identificação de firma. A SNA poderia ser refinada para grafos bipartidos
+UPA~$\times$~grupo, elevando a resolução espacial da medida de segregação.
+
+\bigskip
+
+\noindent\textbf{Declaração de uso de inteligência artificial.}
+Na elaboração deste trabalho foram utilizadas ferramentas de inteligência
+artificial (Claude Code, da Anthropic) como apoio à implementação e depuração de
+código (Python e R), à geração de figuras e tabelas e à formatação dos documentos.
+A concepção da pesquisa, a escolha das metodologias, a interpretação dos resultados
+e a redação final são de responsabilidade do autor, que revisou, validou e responde
+por todo o conteúdo.
 
 % ══════════════════════════════════════════════════════════════════════════════
 %  REFERÊNCIAS

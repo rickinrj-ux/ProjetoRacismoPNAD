@@ -124,7 +124,7 @@ chk("KM_SILH_K2", float(_kmet.loc[_kmet["k"]==2,"silhouette"].values[0]), label=
 chk("KM_SILH_K3", float(_kmet.loc[_kmet["k"]==3,"silhouette"].values[0]), label="kmeans_metricas silhouette k=3", tolerance=1e-3)
 
 # HLM variâncias
-_hlm = pd.read_csv(TAB / "hlm_serie_s20pct.csv", index_col=0)
+_hlm = pd.read_csv(TAB / "hlm_serie_completo.csv", index_col=0)
 def _hv(row, col):
     v = _hlm.loc[row, col]
     return float(v) if v not in ("FE", "-", "") else None
@@ -313,6 +313,18 @@ SKIP_KEYS = {
     "GGE_OCP_RHO","GGE_TOP20_RHO","GGE_TOP10_RHO","GGE_OCP_LR","GGE_TOP20_LR","GGE_TOP10_LR",
     # ORs do GLMM gênero colidem com R² do ML no guia ("0,57"/"0,52") e outros (chk valida à parte)
     "GGE_OCP_OR","GGE_TOP20_OR","GGE_TOP10_OR",
+    # ── Colisões surgidas após o re-run com educ_missing (valores deslocados que passam a
+    #    coincidir com números legítimos de prosa, contexto distinto; chk valida cada um à parte) ──
+    # OR_M1_menor_pct=32,4 → coincide com gap racial do setor público (−32,4%, análise setorial)
+    "OR_M1_menor_pct",
+    # ICC_M1_pct=21,6 → coincide com recuperação real da renda (+21,6%, série temporal)
+    "ICC_M1_pct",
+    # HLM_SIGMA2_M2=HLM_SIGMA2_M3=RS_SIGMA2=0,48 → coincide com Oster δ*=−0,48 (sensibilidade a omitidas)
+    "HLM_SIGMA2_M2", "HLM_SIGMA2_M3", "RS_SIGMA2",
+    # RET_LOG=0,069 → coincide com a interação β_negro×mulher=+0,069 (RIF-OB)
+    "RET_LOG",
+    # VIF_N_CRITICO=2 → "R$2.000" (renda); VIF_N_TOTAL=24 → gap de gênero "−24,0%" (setorial)
+    "VIF_N_CRITICO", "VIF_N_TOTAL",
 }
 
 for key, val in P.items():

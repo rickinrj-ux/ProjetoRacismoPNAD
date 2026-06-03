@@ -67,6 +67,10 @@ df <- df_raw |>
     educ_medio_completo    = as.integer(!is.na(educ_medio_completo) & educ_medio_completo == 1),
     educ_superior_completo = as.integer(!is.na(educ_superior_completo) & educ_superior_completo == 1),
     educ_pos_graduacao     = as.integer(!is.na(educ_pos_graduacao) & educ_pos_graduacao == 1),
+    # educ_missing: escolaridade não registrada (educ_cat ausente em ~69% da PEA).
+    # Sem este indicador os dummies (NA->0) contaminam a categoria-base e invertem
+    # os sinais da educação; com ele a base = fundamental incompleto/sem instrução COM dado.
+    educ_missing   = as.integer(is.na(educ_cat)),
     emprego_formal = as.integer(!is.na(emprego_formal) & emprego_formal == 1),
     setor_publico  = as.integer(!is.na(setor_publico) & setor_publico == 1),
     conta_propria  = as.integer(!is.na(conta_propria) & conta_propria == 1),
@@ -96,7 +100,7 @@ cat(sprintf("  educ_superior: %.1f%%  |  conta_propria: %.1f%%  |  trab_domestic
 # ── 2. Fórmulas dos modelos ───────────────────────────────────────────────────
 # Dummies de educação (alinhado com HLM/OB/QR) + tipo de vínculo empregatício
 CTRL <- paste("sexo_fem",
-              "+ educ_medio_completo + educ_superior_completo + educ_pos_graduacao",
+              "+ educ_medio_completo + educ_superior_completo + educ_pos_graduacao + educ_missing",
               "+ idade_c + I(idade_c^2) + horas_c",
               "+ emprego_formal + setor_publico + conta_propria + trab_domestico")
 

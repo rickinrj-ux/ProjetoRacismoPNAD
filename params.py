@@ -89,8 +89,8 @@ def _load() -> dict:
     p["RET_LOG"]     = round(float(_ob_g["ret_log"]),  4)   # 0.0702
     p["RET_PCT"]     = round(float(_ob_g["ret_pct"]),  1)   # 16.5
 
-    # ── HLM — componentes de variância e ICC (hlm_serie_s20pct.csv) ─────────
-    _hlm = pd.read_csv(_TAB / "hlm_serie_s20pct.csv", index_col=0)
+    # ── HLM — componentes de variância e ICC (hlm_serie_completo.csv, pop. completa) ─────────
+    _hlm = pd.read_csv(_TAB / "hlm_serie_completo.csv", index_col=0)
     def _hlm_val(row, col):
         v = _hlm.loc[row, col]
         return float(v) if v not in ("FE", "-", "") else None

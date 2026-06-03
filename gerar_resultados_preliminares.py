@@ -278,6 +278,26 @@ figura("po_politicas_topsis.png",
        "de acesso a ocupações qualificadas lideram, em linha com a barreira de acesso.", w=15)
 
 # ── Considerações preliminares ────────────────────────────────────────────────
+secao("Limitações e escopo de validade")
+par("Natureza inferencial vs. preditiva. Os modelos HLM, Oaxaca-Blinder, regressão quantílica e "
+    "correção de Heckman produzem estimativas de ASSOCIAÇÃO CONDICIONAL — o diferencial racial que "
+    "persiste sob controle de observáveis —, e não prova causal contrafactual. O XGBoost e os "
+    "valores SHAP têm finalidade PREDITIVA e interpretativa: medem a contribuição de cada variável "
+    "para a previsão do rendimento, não o efeito causal de manipulá-la. A linguagem causal foi "
+    "deliberadamente evitada.")
+par("Cobertura da escolaridade. A escolaridade detalhada está registrada para cerca de 31% da PEA "
+    "no painel público; os níveis entram como dummies de conclusão acompanhadas de um indicador "
+    "explícito de não-registro (educ_missing), de modo que a categoria-base não confunda baixa "
+    "escolaridade com dado ausente. O coeficiente racial é estável a essa especificação (variação "
+    "inferior a 1%).")
+par("Granularidade da SNA. A PNAD não coleta vínculos interpessoais; a rede é de GRUPOS demográficos "
+    "conectados por co-residência na UPA, não de indivíduos. Betweenness e constraint devem ser lidos "
+    "como posição estrutural de grupos no espaço da segregação residencial — o andaime macroestrutural "
+    "da formação de redes —, e não como intermediação interpessoal medida.")
+par("Caráter normativo da PO. TOPSIS e programação linear são ferramentas prescritivas, dependentes "
+    "de pesos de critério e premissas de efetividade; indicam priorização condicional a essas "
+    "premissas e requerem validação empírica no contexto brasileiro.")
+
 secao("Considerações Preliminares")
 par("Tomados em conjunto, os resultados parciais convergem para a tese central: a desigualdade "
     "racial no trabalho brasileiro é um SISTEMA DE BARREIRAS EM CAMADAS — acesso, remuneração e "
@@ -316,6 +336,13 @@ for r in sorted(refs):
     p = doc.add_paragraph(r); p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     p.paragraph_format.space_after = Pt(6); p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
     for run in p.runs: run.font.size = Pt(11)
+
+secao("Declaração de uso de inteligência artificial")
+par("Na elaboração deste trabalho foram utilizadas ferramentas de inteligência artificial "
+    "(Claude Code, da Anthropic) como apoio à implementação e depuração de código (Python e R), à "
+    "geração de figuras e tabelas e à formatação dos documentos. A concepção da pesquisa, a escolha "
+    "das metodologias, a interpretação dos resultados e a redação final são de responsabilidade do "
+    "autor, que revisou, validou e responde por todo o conteúdo.")
 
 doc.save(str(OUT))
 print(f"Arquivo gerado: {OUT.name}")

@@ -32,6 +32,7 @@ IPCA = {
 # ── Carregar e amostrar ────────────────────────────────────────────────────
 print("Carregando dados ...")
 df_full = pd.read_parquet(ROOT / "data" / "processed" / "features.parquet")
+df_full["educ_missing"] = df_full["educ_cat"].isna().astype(int) if "educ_cat" in df_full.columns else 0
 print(f"  Total: {len(df_full):,} obs.")
 
 # População completa de empregados com renda
@@ -136,7 +137,7 @@ print("  estado_h1_gini.png salvo.")
 print("\n─── H2/H3: Gap racial e de gênero por setor ────────────────────────")
 
 CTRL = ("educ_fund_completo + educ_medio_completo + educ_superior_completo + "
-        "educ_pos_graduacao + idade_c + idade_sq + horas_c")
+        "educ_pos_graduacao + educ_missing + idade_c + idade_sq + horas_c")
 
 formula = (f"log_renda ~ negro + sexo_fem + setor_publico + "
            f"negro:setor_publico + sexo_fem:setor_publico + {CTRL}")

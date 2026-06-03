@@ -61,7 +61,7 @@ OUTPUTS.mkdir(parents=True, exist_ok=True)
 # ── Formulas ───────────────────────────────────────────────────────────────────
 _IND = ("negro + sexo_fem + idade_c + idade_sq"
         " + educ_fund_completo + educ_medio_completo"
-        " + educ_superior_completo + educ_pos_graduacao"
+        " + educ_superior_completo + educ_pos_graduacao + educ_missing"
         " + log_horas + urbano + C(Ano)")
 _UPA = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
 _UF  = "pct_negro_uf_z + tx_desemprego_uf_z + media_educ_uf_z"
@@ -90,7 +90,7 @@ FORMULAS_OLS = {
 MODEL_VARS = [
     "log_renda", "negro", "sexo_fem", "idade_c", "idade_sq",
     "educ_fund_completo", "educ_medio_completo",
-    "educ_superior_completo", "educ_pos_graduacao",
+    "educ_superior_completo", "educ_pos_graduacao", "educ_missing",
     "log_horas", "urbano", "Ano",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
     "pct_negro_uf_z",  "tx_desemprego_uf_z",  "media_educ_uf_z",
@@ -110,6 +110,12 @@ def load_data(sample_frac=None):
 
     df = df[df["log_renda"].notna() & (df["log_renda"] > 0)].copy()
     logger.info(f"  Com renda positiva: {len(df):,} obs.")
+
+    # educ_missing: indicador de escolaridade nao registrada (educ_cat ausente em ~69%).
+    # Sem este flag, os dummies de educacao (NA->0) contaminam a categoria-base e
+    # invertem os sinais; com ele, a base = "ensino fundamental incompleto/sem instrucao
+    # COM dado", e o grupo sem registro fica isolado num termo proprio.
+    df["educ_missing"] = df["educ_cat"].isna().astype("int8") if "educ_cat" in df.columns else 0
 
     # Fallback: reconstrói colunas se features.parquet for anterior à atualização
     if "log_horas" not in df.columns and "horas_trabalhadas" in df.columns:
@@ -258,7 +264,7 @@ def gap_decomp(b_m1, b_m2, b_m3, b_m4=None):
 KEY_VARS = [
     "Intercept", "negro", "sexo_fem", "idade_c", "idade_sq",
     "educ_fund_completo", "educ_medio_completo",
-    "educ_superior_completo", "educ_pos_graduacao",
+    "educ_superior_completo", "educ_pos_graduacao", "educ_missing",
     "log_horas", "urbano",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
     "pct_negro_uf_z",  "tx_desemprego_uf_z",  "media_educ_uf_z",

@@ -974,6 +974,20 @@ robustez das métricas de centralidade e permitindo detectar posições de
 As métricas de rede incluem centralidade de grau, \textit{{betweenness}},
 \textit{{clustering coefficient}} e \textit{{constraint}} de Burt~\cite{{burt2004}}.
 
+\paragraph{{Escopo macroestrutural da rede.}}
+Cabe uma delimitação conceitual: a PNAD Contínua não registra vínculos sociais
+interpessoais, de modo que esta não é uma rede de \textit{{indivíduos}}, mas de
+\textbf{{grupos demográficos}}. Os nós agregam estratos de raça, escolaridade e
+gênero, e as arestas medem \textit{{co-residência}} na mesma UPA --- o substrato
+territorial sobre o qual as redes interpessoais efetivamente se formam. Em
+consequência, \textit{{betweenness}} e \textit{{constraint}} devem ser
+interpretados como \textbf{{posição estrutural de grupos}} no espaço da
+segregação residencial, e não como intermediação interpessoal medida. A SNA aqui
+não substitui um estudo de laços egocêntricos; ela revela o \textit{{andaime
+macroestrutural}} que condiciona, a montante, quem tem acesso a quais círculos
+--- complementando, e não duplicando, as barreiras de acesso (GLMM) e de
+remuneração (HLM).
+
 % ══════════════════════════════════════════════════════════════════════════════
 %  4. RESULTADOS
 % ══════════════════════════════════════════════════════════════════════════════
@@ -1054,7 +1068,7 @@ o \textit{{duplo disadvantage}}: a segregação residencial opera como canal
 independente de reprodução da desigualdade racial.
 
 O coeficiente de composição racial da UPA,
-$\hat{{\gamma}}_{{01}} = -0{{,}}2894$ ($p<0{{,}}001$), indica que um desvio-padrão
+$\hat{{\gamma}}_{{01}} = -0{{,}}2689$ ($p<0{{,}}001$), indica que um desvio-padrão
 adicional de proporção de negros na UPA reduz o log-rendimento em
 0{{,}}29 pontos, efeito equivalente à penalidade individual de ser negro
 --- a evidência mais direta do \textit{{duplo disadvantage}}.
@@ -1379,6 +1393,21 @@ a diferença entre contextos não é atribuível ao acaso.
 \section{{Discussão e Prescrição}}
 \label{{sec:discussao}}
 
+\paragraph{{Nota terminológica.}}
+Três conceitos próximos, mas distintos, percorrem este trabalho e não devem ser
+confundidos. \textbf{{Mediação contextual}} (HLM) é a fração do gap bruto que
+\textit{{desaparece}} ao se controlar o local de moradia (UPA/UF) --- mede o
+quanto da penalidade racial transita \textit{{pelo}} território.
+\textbf{{Efeito dotação}} (Oaxaca--Blinder) é a parcela do gap atribuível a
+\textit{{diferenças nas características observáveis}} entre brancos e negros
+(escolaridade, ocupação, contexto), por oposição ao \textbf{{efeito retornos}}
+(preços diferenciais pagos às mesmas características).
+\textbf{{Gap líquido}} (ou residual) é o diferencial que \textit{{persiste}} após
+o controle exaustivo de todas as covariáveis (M4) --- o piso para a discriminação
+direta não explicada por observáveis. Em suma: a mediação contextual responde
+``por onde passa o gap''; a decomposição de dotações, ``de que ele é feito''; e o
+gap líquido, ``o que sobra sem explicação''.
+
 \paragraph{{Da diagnose à prescrição.}}
 O diagnóstico econométrico das três seções anteriores revela múltiplos
 gargalos simultâneos --- exclusão de acesso, penalidade salarial direta
@@ -1421,7 +1450,7 @@ O achado mais robusto desta análise é que {med:.1f}\% do gap salarial racial
 bruto é mediado pelo local de moradia --- muito além do que modelos
 cross-sectionais típicos, que ignoram a estrutura aninhada dos dados,
 seriam capazes de estimar. O coeficiente contextual
-$\hat{{\gamma}}_{{01}} = -0{{,}}289$ para a proporção de negros na UPA
+$\hat{{\gamma}}_{{01}} = -0{{,}}269$ para a proporção de negros na UPA
 indica que a penalidade de viver em bairro segregado equivale,
 em magnitude, à própria penalidade individual de ser negro.
 Isso sugere que políticas de redistribuição de renda que não enfrentem
@@ -1459,6 +1488,29 @@ Essa constatação não trivializa avanços recentes em políticas de cotas
 e acesso ao ensino superior, mas evidencia que reformas no campo da
 educação, sem intervenção simultânea nos mecanismos de segregação
 residencial e de acesso às redes profissionais, são insuficientes.
+
+\paragraph{{Ancoragem em políticas públicas existentes.}}
+As frentes priorizadas pela Pesquisa Operacional não são abstrações: cada uma
+corresponde a um instrumento jurídico-institucional já existente no Brasil, cuja
+intensificação ou aperfeiçoamento a análise recomenda.
+A frente de \textbf{{cotas ocupacionais (CBO~1--4)}} dialoga diretamente com a
+\textit{{Lei~12.990/2014}}, que reserva 20\% das vagas em concursos públicos
+federais a candidatos negros, e cujo escopo o diagnóstico de barreira de acesso
+(GLMM, OR~$={or_str(P['OR_M1'])}$) sugere ampliar para níveis hierárquicos
+superiores --- onde o teto de vidro é mais severo
+(OR(top~10\%)~$={or_str(P['OR_TOP10_M1'])}$).
+A frente de \textbf{{qualificação e acesso ao ensino superior}} corresponde ao
+\textit{{Prouni}} e ao \textit{{Fies}}, bem como ao legado do \textit{{PRONATEC}};
+o achado de subvalorização do capital humano negro indica que tais programas
+precisam ser combinados a mecanismos de inserção em redes profissionais, sob pena
+de retorno marginal decrescente.
+A frente de \textbf{{combate à discriminação direta}} encontra base na
+\textit{{Lei~9.029/1995}} (que proíbe práticas discriminatórias na relação de
+trabalho) e no \textit{{Estatuto da Igualdade Racial}} (\textit{{Lei~12.288/2010}}),
+cuja fiscalização o gap líquido residual de {gl:.1f}\% justifica reforçar.
+Em conjunto, a contribuição da PO é traduzir a magnitude estimada de cada
+barreira em \textit{{prioridade relativa}} entre instrumentos que já integram o
+arcabouço legal brasileiro.
 
 {_rpo_block}
 
@@ -1499,7 +1551,7 @@ proporcionais à magnitude do problema.
 \medskip
 
 \begin{{quote}}
-\textit{{Mesmo após controle exaustivo de 23 covariáveis individuais,
+\textit{{Mesmo após controle exaustivo de {P['VIF_N_TOTAL']} covariáveis individuais,
 ocupacionais e contextuais, trabalhadores negros recebem sistematicamente
 {k['gap_m4']:.1f}\% a menos que brancos equivalentes --- o mercado de
 trabalho brasileiro não é racialmente neutro.}}
@@ -1528,7 +1580,7 @@ Essas conclusões emergem da convergência de seis metodologias independentes
 sobre $N={fmtN(P['N_GLMM'])}$ observações da PNAD Contínua 2016--2025.
 O gap bruto de {gb:.1f}\% (M1) decompõe-se em três camadas:
 (i)~mediação contextual de {med:.1f}\% pela UPA
-($\hat{{\gamma}}_{{01}}=-0{{,}}289$);
+($\hat{{\gamma}}_{{01}}=-0{{,}}269$);
 (ii)~mediação ocupacional de {k['med_occ']:.1f}\% pelo acesso desigual a
 grupos CBO de alta remuneração;
 (iii)~gap residual de {k['gap_m4']:.1f}\% (M4), discriminação pura
@@ -1561,14 +1613,69 @@ segregação residencial e exclusão de redes, em sistema combinado.
 
 \bigskip
 
-\noindent\textbf{{Limitações e direções futuras.}}
-O caráter transversal do painel público da PNAD Contínua impede a análise
-de trajetórias individuais; estudos futuros poderiam explorar o painel
-rotativo completo com microdado identificado.
-A extensão à RAIS permitiria investigar o glass ceiling em cargos de
-liderança com identificação de firma.
-As premissas de efetividade dos modelos de PO foram calibradas com
-evidências internacionais e requerem validação empírica no contexto brasileiro.
+\subsection*{{Limitações e escopo de validade}}
+
+\paragraph{{Natureza inferencial \textit{{vs.}}\ preditiva dos modelos.}}
+Os resultados devem ser lidos sob dois regimes epistemológicos distintos.
+Os modelos HLM, a decomposição de Oaxaca--Blinder, a regressão quantílica e
+a correção de Heckman produzem \textit{{estimativas de associação condicional}}:
+medem o diferencial racial que persiste após o controle de covariáveis
+observáveis, sob o pressuposto de seleção em observáveis. Não constituem, por
+si sós, prova de causalidade no sentido contrafactual, pois não derivam de
+desenho experimental ou quase-experimental. Já o XGBoost e os valores SHAP têm
+finalidade \textit{{preditiva e interpretativa}}: quantificam a contribuição de
+cada variável para a \textit{{previsão}} do rendimento --- não o efeito causal
+de manipulá-la. A convergência entre os dois regimes (a raça permanece preditora
+de primeira ordem \textit{{e}} mantém coeficiente negativo significante sob
+controle exaustivo) é o que confere robustez ao diagnóstico; ainda assim, a
+linguagem causal foi deliberadamente evitada.
+
+\paragraph{{Cobertura da variável de escolaridade.}}
+A escolaridade detalhada (\texttt{{educ\_cat}}) está registrada para cerca de
+31\% da PEA no painel público utilizado. Para preservar o $N$ completo, os
+níveis de instrução entram como \textit{{dummies}} de conclusão acompanhadas de
+um indicador explícito de não-registro (\texttt{{educ\_missing}}), de modo que a
+categoria de referência não confunda ``baixa escolaridade'' com ``dado ausente''.
+Testes de sensibilidade mostram que o coeficiente racial é estável a essa
+especificação (variação inferior a~1\%); ainda assim, os retornos educacionais
+devem ser interpretados com a cautela própria de uma variável parcialmente
+observada.
+
+\paragraph{{Granularidade macroestrutural da SNA.}}
+A PNAD Contínua não coleta vínculos sociais interpessoais. A rede analisada na
+Seção~\ref{{subsec:sna}} é, portanto, uma rede de \textbf{{grupos demográficos}}
+(raça $\times$ escolaridade $\times$ gênero) conectados por co-residência na
+mesma UPA --- não uma rede de indivíduos. Métricas como \textit{{betweenness}} e
+\textit{{constraint}} de Burt devem ser lidas como \textbf{{posição estrutural de
+grupos}} no espaço da segregação residencial (um substrato macroestrutural da
+formação de redes), e não como intermediação interpessoal medida. Uma SNA de
+laços individuais exigiria dados relacionais (p.ex.\ RAIS firma--trabalhador ou
+\textit{{surveys}} de redes egocêntricas) fora do escopo da PNAD.
+
+\paragraph{{Caráter normativo da Pesquisa Operacional.}}
+Os modelos de PO (TOPSIS e programação linear) são ferramentas
+\textit{{prescritivas}}: dependem de pesos de critério e de premissas de
+efetividade marginal das políticas, aqui calibradas com evidência internacional
+e com os próprios coeficientes estimados. Os resultados indicam priorização
+\textit{{condicional a essas premissas}} e requerem validação empírica no
+contexto brasileiro --- não são previsões pontuais de impacto.
+
+\paragraph{{Desenho transversal e direções futuras.}}
+O caráter transversal do painel público impede a análise de trajetórias
+individuais; o painel rotativo completo com microdado identificado e a extensão
+à RAIS permitiriam investigar mobilidade e o teto de vidro em cargos de liderança
+com identificação de firma. A SNA poderia ser refinada para grafos bipartidos
+UPA~$\times$~grupo, elevando a resolução espacial da medida de segregação.
+
+\bigskip
+
+\noindent\textbf{{Declaração de uso de inteligência artificial.}}
+Na elaboração deste trabalho foram utilizadas ferramentas de inteligência
+artificial (Claude Code, da Anthropic) como apoio à implementação e depuração de
+código (Python e R), à geração de figuras e tabelas e à formatação dos documentos.
+A concepção da pesquisa, a escolha das metodologias, a interpretação dos resultados
+e a redação final são de responsabilidade do autor, que revisou, validou e responde
+por todo o conteúdo.
 
 % ══════════════════════════════════════════════════════════════════════════════
 %  REFERÊNCIAS

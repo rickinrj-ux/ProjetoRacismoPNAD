@@ -44,6 +44,7 @@ df <- df_raw |>
     educ_medio_completo    = as.integer(!is.na(educ_medio_completo) & educ_medio_completo == 1),
     educ_superior_completo = as.integer(!is.na(educ_superior_completo) & educ_superior_completo == 1),
     educ_pos_graduacao     = as.integer(!is.na(educ_pos_graduacao) & educ_pos_graduacao == 1),
+    educ_missing   = as.integer(is.na(educ_cat)),
     emprego_formal = as.integer(!is.na(emprego_formal) & emprego_formal == 1),
     setor_publico  = as.integer(!is.na(setor_publico) & setor_publico == 1),
     conta_propria  = as.integer(!is.na(conta_propria) & conta_propria == 1),
@@ -59,7 +60,7 @@ df <- df_raw |>
   )
 cat(sprintf("  N efetivo: %s | UFs: %d\n", format(nrow(df), big.mark=","), n_distinct(df$UF)))
 
-CTRL <- paste("sexo_fem + educ_medio_completo + educ_superior_completo + educ_pos_graduacao",
+CTRL <- paste("sexo_fem + educ_medio_completo + educ_superior_completo + educ_pos_graduacao + educ_missing",
               "+ idade_c + I(idade_c^2) + horas_c + emprego_formal + conta_propria + trab_domestico",
               "+ renda_media_upa_c + edu_media_upa_c")
 ctrl_fast <- glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=3e5), calc.derivs=FALSE)
