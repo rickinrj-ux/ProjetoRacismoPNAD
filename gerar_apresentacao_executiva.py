@@ -357,8 +357,8 @@ img(s, FIGURES / "estado_h2h3_gaps.png", In(6.6), In(1.2), In(6.4))
 
 for i, (v, lbl, sub, color) in enumerate([
     ("Sim",   "Gini público < privado",           "0,466 vs 0,472 — melhora marginal", C_GREEN),
-    ("Não",   "Gap racial não some no concurso",  "−25,2% público vs −29,2% privado",  C_AMBER),
-    ("Piora", "Gap de gênero é maior no público", "−20,8% público vs −16,9% privado",  C_RED),
+    ("Não",   "Gap racial não some no concurso",  "−28,3% público vs −34,5% privado",  C_AMBER),
+    ("Piora", "Gap de gênero é maior no público", "−20,9% público vs −18,6% privado",  C_RED),
 ]):
     x = In(0.3) + i * In(4.15)
     rect(s, x, In(5.05), In(3.9), In(1.2),

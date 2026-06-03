@@ -3472,7 +3472,7 @@ def build_doc(r, k):
     )
     add_para(doc,
         "P2.2 — Transparência salarial no setor público. O gap racial persiste no setor público "
-        "mesmo com controles (−24,6% vs −29,2% no privado). A publicação de faixas salariais por "
+        "mesmo com controles (−28,3% vs −34,5% no privado). A publicação de faixas salariais por "
         "cargo, nível e raça nos relatórios anuais de gestão de pessoas das autarquias federais e "
         "estaduais tornaria visíveis eventuais diferenciais de progressão na carreira."
     )
@@ -3739,10 +3739,10 @@ def build_doc(r, k):
         "Resultado: REFUTADA parcialmente. O gap racial bruto é menor no setor público "
         "(−32,4%) do que no privado (−44,1%). Após controle por escolaridade, experiência e "
         "horas trabalhadas (regressão com interação negro × setor_publico), o gap controlado "
-        "é −29,2% no privado e −24,6% no público — uma diferença de 4,6 pontos percentuais "
+        "é −34,5% no privado e −28,3% no público — uma diferença de 6,2 pontos percentuais "
         "favorável ao setor público. A interação negro:setor_publico é positiva e "
         "estatisticamente significativa, indicando que o Estado atenua (mas não elimina) o "
-        "gap racial. O gap de 24,6% que persiste mesmo no setor público — onde a admissão "
+        "gap racial. O gap de 28,3% que persiste mesmo no setor público — onde a admissão "
         "é via concurso público padronizado — é consistente com discriminação na progressão "
         "de carreira: cargos de Direção e Assessoramento Superior (DAS) são preenchidos por "
         "indicação política, e a sub-representação de negros nesses cargos perpetua o gap "
@@ -3761,10 +3761,10 @@ def build_doc(r, k):
     )
     add_para(doc,
         "Resultado: CONFIRMADA para raça, REFUTADA para gênero. Para raça, o Estado atenua o "
-        "gap racial em aproximadamente 4 pontos percentuais (ver H2). Para gênero, o resultado "
-        "é contrário ao esperado: o gap de gênero controlado é de −16,9% no setor privado e "
-        "−18,8% no setor público — 1,9 ponto percentual maior no setor público. Em termos "
-        "brutos, o gap de gênero também é maior no público (−24,1% vs −21,1% no privado). "
+        "gap racial em aproximadamente 6 pontos percentuais (ver H2). Para gênero, o resultado "
+        "é contrário ao esperado: o gap de gênero controlado é de −18,6% no setor privado e "
+        "−20,9% no setor público — 2,3 pontos percentuais maior no setor público. Em termos "
+        "brutos, o gap de gênero também é maior no público (−24,0% vs −21,1% no privado). "
         "Esse resultado contradiz a narrativa de que o concurso público garante igualdade de "
         "gênero. A explicação é estrutural: o setor público tem concentração de mulheres em "
         "cargos de médio nível (professoras, enfermeiras, assistentes) enquanto os cargos de "

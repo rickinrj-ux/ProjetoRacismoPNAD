@@ -705,9 +705,9 @@ add_bullet(doc, "Barras agrupadas: cada par compara o gap no setor privado vs p�
                 "para raça (H2) e gênero (H3).")
 add_bullet(doc, "Valores são coeficientes de regressão controlada (β do dummy negro ou sexo_fem), "
                 "não diferenças brutas.")
-add_bullet(doc, "Gap racial bruto: privado −44,1% / público −33,3%. Controlado: privado −29,2% / "
-                "público −25,2%.")
-add_bullet(doc, "Gap de gênero: privado −16,9% / público −18,8% (após controles). "
+add_bullet(doc, "Gap racial bruto: privado −44,1% / público −32,4%. Controlado: privado −34,5% / "
+                "público −28,3%.")
+add_bullet(doc, "Gap de gênero: privado −18,6% / público −20,9% (após controles). "
                 "O setor público tem gap de GÊNERO maior que o privado — o paradoxo H3.")
 add_para(doc, "Interpretação do paradoxo H3:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
 add_bullet(doc, "O concurso público iguala a entrada (não há discriminação no acesso ao cargo), "

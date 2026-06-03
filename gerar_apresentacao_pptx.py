@@ -804,14 +804,14 @@ add_img(s, FIGURES / "estado_h1_gini.png",   In(0.3), In(1.2), In(6.3))
 add_img(s, FIGURES / "estado_h2h3_gaps.png", In(6.8), In(1.2), In(6.2))
 
 kpi_box(s, "Gini setor público",    "0,466",   "vs privado 0,472 | total 0,488",      In(0.3),  In(4.6), w=In(2.8), val_color=C_BLUE)
-kpi_box(s, "Gap racial público",    "−25,2%",  "controlado | privado −29,2%",         In(3.3),  In(4.6), w=In(3.1), val_color=C_RED)
-kpi_box(s, "Gap gênero público",    "−18,8%",  "PIOR que privado −16,9% (paradoxo)",  In(6.6),  In(4.6), w=In(3.5), val_color=C_AMBER)
+kpi_box(s, "Gap racial público",    "−28,3%",  "controlado | privado −34,5%",         In(3.3),  In(4.6), w=In(3.1), val_color=C_RED)
+kpi_box(s, "Gap gênero público",    "−20,9%",  "PIOR que privado −18,6% (paradoxo)",  In(6.6),  In(4.6), w=In(3.5), val_color=C_AMBER)
 kpi_box(s, "Prêmio salarial pub.",  "+99,6%",  "Theil entre setores: 7,8% do total",  In(10.3), In(4.6), w=In(2.7), val_color=C_GREEN)
 
 add_rect(s, In(0.3), In(6.05), In(12.7), In(0.50),
          fill_rgb=RGBColor(0xE3,0xF2,0xFD), line_rgb=C_DARK, line_pt=0.8)
 add_text(s, "H1: Estado reduz levemente o Gini (0,466 vs 0,472) mas prêmio de +99,6% concentra renda entre servidores.  "
-            "H2: Racismo persiste no público (−25,2%) — atenuado vs privado (−29,2%).  "
+            "H2: Racismo persiste no público (−28,3%) — atenuado vs privado (−34,5%).  "
             "H3 (paradoxo): concurso iguala entrada, mas promoção/DAS favorece homens → gap de gênero maior no público.",
          In(0.5), In(6.10), In(12.3), In(0.45),
          font_size=11.5, color=C_DARK)
