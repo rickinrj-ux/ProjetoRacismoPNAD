@@ -325,6 +325,9 @@ SKIP_KEYS = {
     "RET_LOG",
     # VIF_N_CRITICO=2 → "R$2.000" (renda); VIF_N_TOTAL=24 → gap de gênero "−24,0%" (setorial)
     "VIF_N_CRITICO", "VIF_N_TOTAL",
+    # GRG_MB_TOP10=0,49 (OR mulher branca no top10) colide com o Gini domiciliar per capita do
+    # IBGE (~0,49) citado no guia — valores distintos, sem param para o Gini do IBGE.
+    "GRG_MB_TOP10",
 }
 
 for key, val in P.items():

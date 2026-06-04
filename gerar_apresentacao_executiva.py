@@ -1,7 +1,7 @@
 """
 gerar_apresentacao_executiva.py
 Versão para congressos e empresas — linguagem acessível, narrativa visual.
-13 slides | Sem jargão técnico | Foco em impacto e políticas.
+14 slides | Sem jargão técnico | Foco em impacto e políticas.
 """
 import sys; sys.stdout.reconfigure(encoding='utf-8')
 from pathlib import Path
@@ -93,7 +93,7 @@ def header(slide, title, subtitle=None, bg=C_DARK):
         text(slide, subtitle, In(0.35), In(0.63), In(12.3), In(0.35),
              size=13, color=RGBColor(0xBB, 0xDE, 0xFB), name="Calibri")
 
-def footer_exec(slide, num, total=13):
+def footer_exec(slide, num, total=14):
     rect(slide, 0, H - In(0.25), W, In(0.25), fill=C_DARK)
     text(slide, "PNAD Contínua 2016–2025  |  15,9 milhões de observações  |  Ricardo Calheiros — MBA USP/ESALQ",
          In(0.2), H - In(0.23), In(11.5), In(0.22),
@@ -312,6 +312,22 @@ callout(s,
 footer_exec(s, 6)
 
 # ══════════════════════════════════════════════════════════════════════════════
+# SLIDE — INTERSECCIONALIDADE (MULHER NEGRA)
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header(s, "Quem Mais Sofre: a Mulher Negra",
+       "Ela consegue ENTRAR em boas ocupações — mas é a mais barrada de CHEGAR AO TOPO da renda")
+img(s, FIGURES / "grupo_rg_interseccional.png", In(0.4), In(1.3), In(7.5))
+big_stat(s, f"{fmt(P['GRG_MN_OCP'],2)}x", "Acesso à categoria qualificada",
+         "mulher negra ACIMA do homem branco", In(8.2), In(1.55), w=In(4.7), h=In(1.95), val_color=C_BLUE)
+big_stat(s, f"{fmt(P['GRG_MN_TOP10'],2)}x", "Topo de renda (10% mais ricos)",
+         "a MAIS excluída de todos os grupos", In(8.2), In(3.75), w=In(4.7), h=In(1.95), val_color=C_RED)
+callout(s, "O teto de vidro não é neutro: combina raça e gênero exatamente onde mais importa — o topo. "
+           "A mulher negra entra na categoria, mas não sobe à renda do topo.",
+        In(0.4), In(6.45), In(12.6), In(0.6))
+footer_exec(s, 7)
+
+# ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 7 — A REDE QUE EXCLUI
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
@@ -343,7 +359,7 @@ callout(s,
         '"Mesmo que dois candidatos tenham o mesmo currículo, o que tem a rede certa chega primeiro. '
         'Essa rede, historicamente, é majoritariamente branca."',
         In(0.3), In(6.55), In(6.5), In(0.68), bg=RGBColor(0xE3,0xF2,0xFD), border=C_BLUE)
-footer_exec(s, 7)
+footer_exec(s, 8)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 8 — O ESTADO AJUDA, MAS NÃO RESOLVE
@@ -376,7 +392,7 @@ callout(s,
         "O concurso público equaliza a entrada, mas a promoção às posições de liderança (DAS, chefia) "
         "ainda reflete os vieses do setor privado — ou piores.",
         In(0.3), In(6.38), In(12.7), In(0.55))
-footer_exec(s, 8)
+footer_exec(s, 9)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 9 — O CUSTO PARA O BRASIL
@@ -413,7 +429,7 @@ for i, (color, title, body1, body2) in enumerate(cenarios):
     text(s, body2, In(7.45), In(2.82) + i * In(1.5), In(5.5), In(0.38),
          size=11, color=C_GRAY, italic=True, name="Calibri")
 
-footer_exec(s, 9)
+footer_exec(s, 10)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 10 — O RACISMO TEM ENDEREÇO (VARIAÇÃO ENTRE ESTADOS)
@@ -454,7 +470,7 @@ callout(s,
         "Em linguagem simples: tratar o país inteiro igual desperdiça recursos. Levar a política primeiro "
         f"aos estados ★ ({P['RPO_TOP5']}) multiplica o impacto do mesmo orçamento.",
         In(0.3), In(6.45), In(12.7), In(0.66))
-footer_exec(s, 10)
+footer_exec(s, 11)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 11 — O QUE FUNCIONA: TRÊS EIXOS DE AÇÃO
@@ -496,7 +512,7 @@ for i, (color, title, a1, a2, impacto) in enumerate(eixos):
 text(s, "⚠  Sem ação simultânea nos três eixos, fechar o gap levará mais de 100 anos no ritmo atual.",
      In(0.3), H - In(0.55), In(12.7), In(0.38),
      size=13, bold=True, color=C_RED, align=PP_ALIGN.CENTER, name="Calibri")
-footer_exec(s, 11)
+footer_exec(s, 12)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 11 — A URGÊNCIA: OS NÚMEROS DA MUDANÇA
@@ -524,7 +540,7 @@ callout(s,
         "O Brasil está a produzir emprego, mas não prosperidade igualitária. Pleno emprego com "
         "segregação ocupacional é o cenário atual — e não se resolve sozinho.",
         In(0.3), H - In(0.6), In(12.7), In(0.44))
-footer_exec(s, 12)
+footer_exec(s, 13)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 12 — CONTRACAPA / CALL TO ACTION
@@ -574,4 +590,4 @@ text(s, "13/13", In(12.8), H - In(0.25), In(0.5), In(0.22),
 prs.save(str(OUT_PPT))
 print(f"Arquivo gerado: {OUT_PPT.name}")
 print(f"Tamanho: {OUT_PPT.stat().st_size // 1024} KB")
-print("Versão executiva (13 slides) para congressos e empresas.")
+print("Versão executiva (14 slides) para congressos e empresas.")

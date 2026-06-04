@@ -607,9 +607,9 @@ add_bullet(doc, f"Interação sub-aditiva (OR={fmt(P['GRG_INT_OCP'],2)} no acess
                 f"é um pouco menor entre mulheres — mas a negra acumula raça + teto de vidro de gênero no topo.")
 add_colored_box(doc, "O que dizer se perguntarem sobre interseccionalidade (GLMM):",
     ["'O efeito não é uniforme entre desfechos. No ACESSO à categoria qualificada, a mulher negra é "
-     "até alçada (OR 1,33), porque profissões feminizadas — magistério, enfermagem, administrativo — "
+     f"até alçada (OR {fmt(P['GRG_MN_OCP'],2)}), porque profissões feminizadas — magistério, enfermagem, administrativo — "
      "são CBO 1–4; o mais barrado é o homem negro. Mas no TOPO da renda o quadro inverte: a mulher "
-     "negra é a mais excluída de todas (OR 0,34 no decil superior). O teto de vidro não é racial nem "
+     f"negra é a mais excluída de todas (OR {fmt(P['GRG_MN_TOP10'],2)} no decil superior). O teto de vidro não é racial nem "
      "sexualmente neutro — recai com força máxima sobre ela.'",
      "'A interação é sub-aditiva (não é soma simples), mas isso não a protege: ela pode ENTRAR em "
      "ocupações qualificadas, mas é sistematicamente barrada de CHEGAR AO TOPO da remuneração — raça e "

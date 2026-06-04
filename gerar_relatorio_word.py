@@ -3256,6 +3256,17 @@ def build_doc(r, k):
         "desigualdade racial aguda coexistem no mesmo território."
     )
     add_para(doc,
+        "Triangulação com o Índice de Progresso Social (IPS). O IPS municipal (Imazon e parceiros, "
+        "2026), que avalia a qualidade de vida dos 5.570 municípios a partir de 57 indicadores sociais "
+        "e ambientais, oferece corroboração externa e multidimensional do eixo territorial. Uma "
+        "integração fina com o proxy de bairro (UPA) é inviável: a PNAD pública não divulga o município "
+        "(só UF e capital/RM/interior) e o IPS é municipal — mais agregado que a UPA (sub-municipal). "
+        "O IPS não valida o achado de bairro (está acima dele na escala), mas ecoa o gradiente macro: "
+        "as regiões de menor progresso social (Norte e Nordeste) coincidem com as de maior penalidade "
+        "racial. Usa-se, portanto, como evidência convergente do caráter territorial — não como fonte "
+        "de dados integrada, e ressalvando que o IPS mede progresso social geral, não desigualdade racial."
+    )
+    add_para(doc,
         f"O achado mais robusto desta análise é que {k['med']:.1f}% do gap salarial racial bruto é "
         f"mediado pelo local de moradia. O coeficiente contextual γ̂₀₁ = −0,269 para a proporção "
         f"de negros na UPA indica que a penalidade de viver em bairro segregado equivale, em "

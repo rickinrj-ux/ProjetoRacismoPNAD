@@ -32,7 +32,7 @@ C_PURPLE = RGBColor(0x6A, 0x00, 0x8A)
 
 W = In(13.33)
 H = In(7.50)
-TOTAL_SLIDES = 10
+TOTAL_SLIDES = 11
 
 prs = Presentation()
 prs.slide_width  = W
@@ -541,12 +541,29 @@ add_text(s, f"Pareto: cotas (Eixo 1) + mentoria (Eixo 3) = combinacao otima. E f
 footer(s, 9)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 10 — CONCLUSAO EXECUTIVA
+# SLIDE — INTERSECCIONALIDADE
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header_bar(s, "9. Interseccionalidade — O Teto de Vidro Recai sobre a Mulher Negra",
+           "4 grupos raca x genero (ref. homem branco): alcada no acesso, a mais excluida no topo da renda")
+add_img(s, FIGURES / "grupo_rg_interseccional.png", In(0.4), In(1.3), In(7.6))
+big_kpi(s, "Mulher negra — acesso (CBO 1-4)", f"OR {fmt(P['GRG_MN_OCP'],2)}",
+        "acima do homem branco (profissoes feminizadas)", In(8.3), In(1.5), w=In(4.6), val_color=C_BLUE)
+big_kpi(s, "Mulher negra — topo 10% renda", f"OR {fmt(P['GRG_MN_TOP10'],2)}",
+        "a MAIS excluida de todos os grupos", In(8.3), In(3.6), w=In(4.6), val_color=C_RED)
+add_rect(s, In(0.4), In(6.45), In(12.5), In(0.62), fill_rgb=RGBColor(0xE3,0xF2,0xFD), line_rgb=C_DARK, line_pt=0.8)
+add_text(s, "A mulher negra pode ENTRAR em ocupacoes qualificadas, mas e barrada de CHEGAR AO TOPO da "
+            "remuneracao: o teto de vidro nao e racial nem sexualmente neutro — combina os dois eixos onde mais importa.",
+         In(0.6), In(6.5), In(12.1), In(0.52), font_size=12, bold=True, color=C_DARK, align=PP_ALIGN.CENTER)
+footer(s, 10)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SLIDE 11 — CONCLUSAO EXECUTIVA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
 add_rect(s, 0, 0, W, H, fill_rgb=C_DARK)
 add_rect(s, 0, 0, W, In(0.75), fill_rgb=RGBColor(0x0D,0x1F,0x3C))
-add_text(s, "9. Conclusao — O Que Este Trabalho Prova",
+add_text(s, "10. Conclusao — O Que Este Trabalho Prova",
          In(0.4), In(0.1), In(12.5), In(0.6),
          font_size=25, bold=True, color=C_WHITE)
 
@@ -588,6 +605,10 @@ for i, (color, titulo, corpo) in enumerate(mensagens):
              font_size=14, bold=True, color=color)
     add_text(s, corpo, In(0.6), In(2.86)+i*In(1.02), In(12.2), In(0.45),
              font_size=13, color=C_WHITE)
+
+add_text(s, "Contexto IBGE (2025): a qualidade de vida avancou (POF), mas a desigualdade de renda voltou a "
+            "subir (Gini domiciliar per capita 0,491) — o avanco agregado nao fecha o gap racial documentado aqui.",
+         In(0.6), In(6.56), In(12.2), In(0.42), font_size=11, color=C_GRAY, italic=True)
 
 add_rect(s, 0, H-In(0.45), W, In(0.45), fill_rgb=RGBColor(0x0D,0x1F,0x3C))
 add_text(s,
