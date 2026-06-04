@@ -108,6 +108,14 @@ par("A persistência da desigualdade racial no mercado de trabalho brasileiro é
     "décadas, trabalhadores negros seguem auferindo rendimentos inferiores e ocupando, em "
     "menor proporção, as posições de maior prestígio e remuneração — um padrão que a "
     "explicação meritocrática, baseada apenas em capital humano, não dá conta de prever.")
+par("Esse hiato convive com um quadro recente de avanço social com desigualdade persistente: a "
+    "Pesquisa de Orçamentos Familiares (POF) do IBGE registra melhora ampla na qualidade de vida "
+    "entre 2008 e 2018 (queda de ~30% no Índice de Perda de Qualidade de Vida), mas sem fechar o "
+    "gap racial (chefes pretos/pardos 0,183 vs. brancos 0,122) nem o territorial (Norte 0,223 / "
+    "Nordeste 0,207 vs. Sul 0,114; IBGE, POF 2017–2018). No rendimento, o Gini domiciliar per "
+    "capita voltou a subir em 2025 (0,491, ante 0,487 em 2024), puxado pelo topo (IBGE/PNAD "
+    "Contínua, 2025). É esse padrão — progresso agregado que não dissolve a barreira racial — que "
+    "este trabalho disseca no mercado de trabalho.")
 par("A literatura internacional sugere que a discriminação não é um evento único na "
     "contratação, mas um sistema de barreiras que se reforçam: exclusão de acesso a "
     "ocupações qualificadas (Pager, 2007), efeitos de vizinhança e segregação residencial "
@@ -321,6 +329,8 @@ refs = [
     "HENRIQUES, R. Desigualdade racial no Brasil: evolução das condições de vida na década de 90. Rio de Janeiro: IPEA, 2001. (Texto para discussão, 807).",
     "HWANG, C. L.; YOON, K. Multiple attribute decision making: methods and applications. Berlin: Springer, 1981.",
     "INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA (IBGE). Pesquisa Nacional por Amostra de Domicílios Contínua. Rio de Janeiro: IBGE, 2016-2025.",
+    "INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA (IBGE). Pesquisa de Orçamentos Familiares 2017-2018: análise da qualidade de vida. Rio de Janeiro: IBGE, 2019.",
+    "INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA (IBGE). PNAD Contínua: Rendimento de Todas as Fontes 2025. Rio de Janeiro: IBGE, 2025.",
     "KOENKER, R.; BASSETT, G. Regression quantiles. Econometrica, v. 46, n. 1, p. 33-50, 1978.",
     "LUNDBERG, S. M.; LEE, S. A unified approach to interpreting model predictions. In: NeurIPS, 2017. p. 4765-4774.",
     "OAXACA, R. Male-female wage differentials in urban labor markets. International Economic Review, v. 14, n. 3, p. 693-709, 1973.",

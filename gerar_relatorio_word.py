@@ -724,6 +724,20 @@ def build_doc(r, k):
         "de capital humano não é capaz de capturar (HASENBALG, 1979)."
     )
     add_para(doc,
+        "Esse hiato convive com um quadro macroestrutural recente de avanço social com desigualdade "
+        "persistente. De um lado, a qualidade de vida avançou: entre as edições 2008 e 2018 da "
+        "Pesquisa de Orçamentos Familiares (POF), o Índice de Perda de Qualidade de Vida recuou cerca "
+        "de 30%, mas a melhora foi proporcional entre os grupos e não fechou o hiato racial nem o "
+        "territorial — famílias chefiadas por pessoas pretas ou pardas mantêm índice de 0,183 contra "
+        "0,122 das brancas, e o Nordeste (0,207) e o Norte (0,223) seguem muito acima do Sul (0,114) "
+        "(IBGE, POF 2017–2018). De outro lado, no rendimento, a desigualdade voltou a crescer: o Gini "
+        "do rendimento domiciliar per capita subiu de 0,487 (2024) para 0,491 (2025), puxado pelo "
+        "distanciamento do topo — a renda dos 10% mais ricos cresceu 8,7% no ano, contra 3,1% dos 10% "
+        "mais pobres (IBGE/PNAD Contínua, Rendimento de Todas as Fontes 2025). É precisamente esse "
+        "padrão — progresso agregado que não dissolve a barreira racial — que este trabalho disseca no "
+        "mercado de trabalho."
+    )
+    add_para(doc,
         "A literatura empírica contemporânea identifica três canais principais de reprodução dessa "
         "desigualdade: (i) discriminação direta, isto é, diferenças de tratamento em processos de "
         "seleção e promoção com características individuais observadas (PAGER, 2007); (ii) segregação "
@@ -3201,6 +3215,19 @@ def build_doc(r, k):
         "políticas focadas em um único mecanismo."
     )
     add_para(doc,
+        "Os resultados convergem com o retrato macroestrutural mais recente do IBGE. A melhora "
+        "multidimensional captada pela POF não eliminou o gap racial de qualidade de vida (0,183 para "
+        "chefes pretos/pardos vs. 0,122 para brancos), e a renda voltou a concentrar-se no topo em "
+        "2025 (Gini do rendimento domiciliar per capita de 0,491). Cabe uma ressalva metodológica: o "
+        "Gini estimado neste trabalho refere-se ao rendimento do trabalho entre ocupados (em torno de "
+        "0,48), conceito distinto do Gini domiciliar per capita de todas as fontes do IBGE — níveis "
+        "próximos, mas medidas diferentes, que podem divergir em tendência (a alta de 2025 é puxada "
+        "por renda não-trabalho do topo, que não transita pelo rendimento dos ocupados). O contraste "
+        "territorial reforça a tese: o Distrito Federal, de maior renda per capita do país, é também a "
+        "UF de maior penalidade racial salarial em nossos modelos regionais — riqueza média elevada e "
+        "desigualdade racial aguda coexistem no mesmo território."
+    )
+    add_para(doc,
         f"O achado mais robusto desta análise é que {k['med']:.1f}% do gap salarial racial bruto é "
         f"mediado pelo local de moradia. O coeficiente contextual γ̂₀₁ = −0,269 para a proporção "
         f"de negros na UPA indica que a penalidade de viver em bairro segregado equivale, em "
@@ -3694,6 +3721,8 @@ def build_doc(r, k):
         "KOENKER, R.; BASSETT, G. Regression quantiles. Econometrica, v. 46, n. 1, p. 33–50, 1978.",
         "HENRIQUES, R. Desigualdade racial no Brasil: evolução das condições de vida na década de 90. Rio de Janeiro: IPEA, 2001. (Texto para discussão, 807).",
         "IBGE – INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA. PNAD Contínua: notas metodológicas. Rio de Janeiro: IBGE, 2023.",
+        "IBGE – INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA. Pesquisa de Orçamentos Familiares 2017–2018: análise da qualidade de vida (Índice de Perda de Qualidade de Vida). Rio de Janeiro: IBGE, 2019.",
+        "IBGE – INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA. PNAD Contínua: Rendimento de Todas as Fontes 2025. Rio de Janeiro: IBGE, 2025.",
         "LUNDBERG, S. M.; LEE, S.-I. A unified approach to interpreting model predictions. Advances in Neural Information Processing Systems, v. 30, 2017.",
         "MARQUES, E. Redes sociais, segregação e pobreza. São Paulo: Editora UNESP, 2010.",
         "OAXACA, R. Male-female wage differentials in urban labor markets. International Economic Review, v. 14, n. 3, p. 693–709, 1973.",
