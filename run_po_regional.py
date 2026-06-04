@@ -157,7 +157,9 @@ def figura(d, df_aloc):
                  fontsize=11, fontweight="bold")
     handles = [plt.Line2D([0], [0], marker="o", ls="", color=c, label=r)
                for r, c in CORES_REG.items()]
-    ax.legend(handles=handles, fontsize=8, loc="lower left")
+    # canto superior-esquerdo: área vazia (UFs de menor gap ficam à direita) — evita
+    # sobrepor os estados de maior penalidade (DF/AM/TO), no canto inferior-esquerdo.
+    ax.legend(handles=handles, fontsize=8, loc="upper left", framealpha=0.9)
     ax.grid(alpha=0.3, axis="x")
 
     # (b) Ganho da focalização vs orçamento
