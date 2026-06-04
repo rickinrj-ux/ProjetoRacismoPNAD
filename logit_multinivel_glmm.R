@@ -263,13 +263,13 @@ p_or <- ggplot(or_plot_data,
   scale_shape_manual(values = c(16, 17)) +
   labs(
     title    = "Odds Ratios — Logit Multinível (GLMM lme4)",
-    subtitle = "Variável dependente: acesso a ocupação qualificada (CBO grupos 1–2)\nOR < 1 = desvantagem | Linha tracejada = paridade",
+    subtitle = "Variável dependente: acesso a ocupação qualificada (CBO grupos 1–4)\nOR < 1 = desvantagem | Linha tracejada = paridade",
     x        = "Odds Ratio (escala log)",
     y        = NULL,
     shape    = "Modelo",
     caption  = "Fonte: PNAD Contínua 2016–2025. GLMM com efeito aleatório de UPA (nAGQ=0, bobyqa)."
   ) +
-  scale_x_log10() +
+  scale_x_log10(expand = expansion(mult = 0.13)) +   # margem evita corte dos pontos/rótulos nas bordas
   facet_wrap(~modelo, ncol = 2) +
   theme_minimal(base_size = 12) +
   theme(
