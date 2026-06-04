@@ -1278,6 +1278,43 @@ a diferenças em educação, experiência, gênero ou contexto de moradia.
   \label{{fig:shap_wf}}
 \end{{figure}}
 
+\subsection{{Interseccionalidade: raça e gênero no acesso e no topo}}
+\label{{subsec:interseccional}}
+
+Os modelos anteriores tratam raça e gênero de forma aditiva. Uma leitura
+\textit{{interseccional}} pergunta se a desvantagem de ser negra \emph{{e}} mulher é a
+soma das partes. Reespecificamos o GLMM de acesso com um fator de quatro grupos
+(\texttt{{grupo\_rg}}: homem branco [referência], mulher branca, homem negro, mulher
+negra) e a interação \texttt{{negro$\times$sexo\_fem}}, em três desfechos: acesso a
+ocupação qualificada (CBO~1--4), renda no top~20\% e no top~10\%.
+
+\begin{{figure}}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{{grupo_rg_interseccional}}
+  \caption{{Razões de chance dos quatro grupos raça$\times$gênero \textit{{vs.}}~homem
+  branco, em três desfechos. A mulher negra é \emph{{alçada}} no acesso à categoria,
+  mas torna-se a \emph{{mais excluída}} no topo da renda.}}
+  \label{{fig:interseccional}}
+\end{{figure}}
+
+O resultado revela uma \textbf{{inversão}} (Figura~\ref{{fig:interseccional}}). No
+\textbf{{acesso à categoria}} qualificada, a mulher negra tem OR~$={fmt(P['GRG_MN_OCP'],2)}$
+--- \emph{{acima}} do homem branco ---, porque o efeito de gênero é positivo nesse
+desfecho (profissões credenciadas feminizadas, em CBO~1--4); o grupo mais penalizado
+é o \textbf{{homem negro}} (OR~$={fmt(P['GRG_HN_OCP'],2)}$). No \textbf{{topo da renda}},
+porém, o quadro \emph{{inverte}}: a mulher negra passa a ser a \textbf{{mais excluída}}
+de todos --- OR~$={fmt(P['GRG_MN_TOP10'],2)}$ no decil superior, abaixo da mulher branca
+($={fmt(P['GRG_MB_TOP10'],2)}$) e do homem negro ($={fmt(P['GRG_HN_TOP10'],2)}$). A
+interação \texttt{{negro$\times$sexo\_fem}} é \textit{{sub-aditiva}} em todos os desfechos
+(OR~$={fmt(P['GRG_INT_OCP'],2)}$ no acesso; $={fmt(P['GRG_INT_TOP10'],2)}$ no top~10\%):
+a penalidade racial é ligeiramente menor entre mulheres, mas isso não impede que a
+mulher negra acumule a barreira racial \emph{{e}} o teto de vidro de gênero exatamente
+onde mais importa para a ascensão --- o topo da distribuição.
+
+Esse achado refina a tese central: o teto de vidro não é racial nem sexualmente neutro
+--- recai com força máxima sobre a mulher negra, que pode \emph{{entrar}} em ocupações
+qualificadas, mas é sistematicamente barrada de \emph{{chegar ao topo}} da remuneração.
+
 \noindent\rule{{\textwidth}}{{1pt}}
 \textbf{{\large BARREIRA III --- ISOLAMENTO ESTRUTURAL E CAPITAL SOCIAL}}
 \textit{{Por que educação, sozinha, não quebra o ciclo}}

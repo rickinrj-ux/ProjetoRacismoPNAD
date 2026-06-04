@@ -1997,6 +1997,34 @@ def build_doc(r, k):
             "OR>1 = vantagem na categoria; OR<1 = desvantagem na renda (teto de remuneração).",
             width_cm=16)
 
+    # 4.1g Interseccionalidade raça×gênero (grupo_rg)
+    add_heading(doc, "4.1g Interseccionalidade raça×gênero: acesso vs. topo da renda", level=2)
+    add_para(doc,
+        "Os modelos anteriores tratam raça e gênero de forma aditiva. Uma leitura interseccional "
+        "pergunta se a desvantagem de ser negra e mulher é a soma das partes. Reespecificamos o GLMM "
+        "de acesso com um fator de quatro grupos (grupo_rg: homem branco [referência], mulher branca, "
+        "homem negro, mulher negra) e a interação negro×sexo_fem, em três desfechos: acesso a ocupação "
+        "qualificada (CBO 1–4), renda no top 20% e no top 10%.")
+    if (FIGURES / "grupo_rg_interseccional.png").exists():
+        add_figure(doc, FIGURES / "grupo_rg_interseccional.png",
+            "Figura – Razões de chance dos quatro grupos raça×gênero vs. homem branco, em três "
+            "desfechos. A mulher negra é alçada no acesso à categoria, mas torna-se a mais excluída "
+            "no topo da renda.", width_cm=14)
+    add_para(doc,
+        f"O resultado revela uma inversão. No acesso à categoria qualificada, a mulher negra tem "
+        f"OR={fmt(P['GRG_MN_OCP'],2)} — acima do homem branco —, porque o efeito de gênero é positivo "
+        f"nesse desfecho (profissões credenciadas feminizadas, em CBO 1–4); o grupo mais penalizado é "
+        f"o homem negro (OR={fmt(P['GRG_HN_OCP'],2)}). No topo da renda, porém, o quadro inverte: a "
+        f"mulher negra passa a ser a mais excluída de todos — OR={fmt(P['GRG_MN_TOP10'],2)} no decil "
+        f"superior, abaixo da mulher branca ({fmt(P['GRG_MB_TOP10'],2)}) e do homem negro "
+        f"({fmt(P['GRG_HN_TOP10'],2)}). A interação negro×sexo_fem é sub-aditiva em todos os desfechos "
+        f"(OR={fmt(P['GRG_INT_OCP'],2)} no acesso; {fmt(P['GRG_INT_TOP10'],2)} no top 10%): a penalidade "
+        f"racial é ligeiramente menor entre mulheres, mas isso não impede que a mulher negra acumule a "
+        f"barreira racial e o teto de vidro de gênero exatamente onde mais importa para a ascensão — o "
+        f"topo da distribuição. O teto de vidro, portanto, não é racial nem sexualmente neutro: recai "
+        f"com força máxima sobre a mulher negra, que pode entrar em ocupações qualificadas, mas é "
+        f"sistematicamente barrada de chegar ao topo da remuneração.")
+
     # 4.2 Clustering
     doc.add_page_break()
     add_heading(doc, "4.2 Clustering Socioeconômico", level=2)

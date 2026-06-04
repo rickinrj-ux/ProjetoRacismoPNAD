@@ -208,6 +208,16 @@ par(f"A primeira camada é a exclusão da PORTA DE ENTRADA. O GLMM logístico mu
 figura("glmm_glassceil_forest.png",
        "Figura 2. GLMM — odds ratios de acesso por desfecho: o gradiente decrescente rumo ao "
        "topo da renda caracteriza o teto de vidro de acesso (OR < 1 = barreira).", w=14)
+par(f"Uma leitura interseccional (quatro grupos raça×gênero, referência = homem branco) revela uma "
+    f"inversão. No ACESSO à categoria, a mulher negra é alçada (OR={fmt(g('GRG_MN_OCP',1.33),2)}, "
+    f"acima do homem branco, por profissões feminizadas em CBO 1–4) e o mais penalizado é o homem "
+    f"negro (OR={fmt(g('GRG_HN_OCP',0.65),2)}); mas no TOPO da renda o quadro inverte e a mulher negra "
+    f"torna-se a MAIS excluída de todos (OR={fmt(g('GRG_MN_TOP10',0.34),2)} no decil superior, abaixo "
+    f"da mulher branca e do homem negro). A interação é sub-aditiva, mas o teto de vidro recai com "
+    f"força máxima sobre a mulher negra (Figura 2b).")
+figura("grupo_rg_interseccional.png",
+       "Figura 2b. Interseccionalidade raça×gênero: a mulher negra é alçada no acesso à categoria, "
+       "mas a mais excluída no topo da renda (OR vs. homem branco).", w=14)
 
 sub("Camada 2 — O território como eixo da desigualdade")
 par("Por que as dotações são desiguais? A segunda camada responde: pelo LUGAR. No modelo "

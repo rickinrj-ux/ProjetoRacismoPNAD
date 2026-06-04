@@ -66,6 +66,21 @@ def _load() -> dict:
     p["AME_TOP20_M1"]= round(_gc_val("y_top20",    "M1", "AME_pp"),   2)   # -8.95
     p["AME_TOP10_M1"]= round(_gc_val("y_top10",    "M1", "AME_pp"),   2)   # -6.43
 
+    # ── Interseccionalidade raça×gênero (grupo_rg de 4 níveis; ref = homem branco) ──
+    _grg_path = _TAB / "grupo_rg_4grupos_desfechos.csv"
+    if _grg_path.exists():
+        _grg = pd.read_csv(_grg_path).set_index("desfecho")
+        def _grg_val(desfecho, col): return float(_grg.loc[desfecho, col])
+        p["GRG_MB_OCP"]   = round(_grg_val("ocp_qualif", "OR_mulher_branca"), 3)  # 1.795
+        p["GRG_HN_OCP"]   = round(_grg_val("ocp_qualif", "OR_homem_negro"),   3)  # 0.652
+        p["GRG_MN_OCP"]   = round(_grg_val("ocp_qualif", "OR_mulher_negra"),  3)  # 1.335
+        p["GRG_MB_TOP10"] = round(_grg_val("y_top10",    "OR_mulher_branca"), 3)  # 0.490
+        p["GRG_HN_TOP10"] = round(_grg_val("y_top10",    "OR_homem_negro"),   3)  # 0.646
+        p["GRG_MN_TOP10"] = round(_grg_val("y_top10",    "OR_mulher_negra"),  3)  # 0.338
+        p["GRG_MN_TOP20"] = round(_grg_val("y_top20",    "OR_mulher_negra"),  3)  # 0.362
+        p["GRG_INT_OCP"]  = round(_grg_val("ocp_qualif", "OR_interacao"),     3)  # 1.141
+        p["GRG_INT_TOP10"]= round(_grg_val("y_top10",    "OR_interacao"),     3)  # 1.069
+
     # ── E-values glassceil (Python) ───────────────────────────────────────────
     _ev = pd.read_csv(_TAB / "evalues_glmm.csv")
 
