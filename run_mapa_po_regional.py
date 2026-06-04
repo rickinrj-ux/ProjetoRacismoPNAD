@@ -59,9 +59,13 @@ def main():
     ganho_b9 = P.get("RPO_GANHO_B9", 68.2)
 
     mag = {s: abs(v) for s, v in gaps.items()}            # magnitude da penalidade
-    vmin, vmax = min(mag.values()), max(mag.values())
-    norm = mcolors.Normalize(vmin=vmin, vmax=vmax)
-    cmap = plt.get_cmap("YlOrRd")                          # claro→escuro = pior
+    # Escala DISCRETA por faixas de magnitude (pontos percentuais). Classificar cada
+    # estado em sua faixa garante que a cor reflita inequivocamente a magnitude — evita
+    # que estados de penalidade média (~11%) pareçam de baixa magnitude por compressão
+    # causada pelos outliers (DF/AM ~21%). Estados de mesma faixa têm a mesma cor.
+    bounds = [0, 5, 10, 15, 20, 25]
+    cmap = plt.get_cmap("YlOrRd", len(bounds) - 1)        # 5 cores discretas claro→escuro
+    norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
     fig, ax = plt.subplots(figsize=(9.5, 10.5))
     cell, gap_pad = 1.0, 0.08
@@ -82,8 +86,8 @@ def main():
             facecolor=color, zorder=2,
         )
         ax.add_patch(box)
-        # texto: cor adaptativa ao fundo
-        txt_color = "white" if norm(abs(v)) > 0.55 else "#1A1A1A"
+        # texto: cor adaptativa ao fundo (faixas 15–20 e 20–25% = fundo escuro → branco)
+        txt_color = "white" if norm(abs(v)) >= 3 else "#1A1A1A"
         ax.text(x + 0.5, y + 0.62, sigla, ha="center", va="center",
                 fontsize=14, fontweight="bold", color=txt_color, zorder=3)
         ax.text(x + 0.5, y + 0.34, f"{v:.0f}%".replace("-", "−"),
@@ -108,8 +112,10 @@ def main():
 
     # Barra de cor
     sm = cm.ScalarMappable(norm=norm, cmap=cmap); sm.set_array([])
-    cbar = fig.colorbar(sm, ax=ax, fraction=0.035, pad=0.02, aspect=28)
-    cbar.set_label("Magnitude da penalidade racial (%)", fontsize=10)
+    cbar = fig.colorbar(sm, ax=ax, fraction=0.035, pad=0.02, aspect=28,
+                        ticks=bounds, spacing="proportional")
+    cbar.set_label("Magnitude da penalidade racial (% — faixas)", fontsize=10)
+    cbar.ax.set_yticklabels([f"{b}%" for b in bounds])
 
     # Caixa de destaque (focalização)
     pior = df.iloc[0]; melhor = df.iloc[-1]
