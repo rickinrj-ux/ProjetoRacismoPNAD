@@ -589,6 +589,34 @@ add_colored_box(doc, "O que dizer se perguntarem sobre interseccionalidade:",
     title_color=(0xFF,0x8F,0x00))
 doc.add_paragraph()
 
+# ── Figura 9d: grupo_rg GLMM interseccional ──────────────────────────────────
+add_heading(doc, "Figura 9d — Interseccionalidade GLMM (grupo_rg): o teto de vidro recai sobre a mulher negra", level=2)
+add_figure(doc, FIGS / "grupo_rg_interseccional.png", width_cm=14,
+           caption="OR dos 4 grupos raça×gênero vs. homem branco em 3 desfechos. A mulher negra é "
+                   "alçada no acesso à categoria, mas a mais excluída no topo da renda.")
+add_para(doc, "Como ler:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
+add_bullet(doc, "GLMM com fator de 4 grupos (homem branco = referência) + interação negro×sexo_fem, "
+                "em 3 desfechos: acesso a CBO 1–4, renda no top 20% e no top 10%.")
+add_bullet(doc, f"ACESSO (CBO 1–4): mulher negra OR={fmt(P['GRG_MN_OCP'],2)} (ACIMA do homem branco — "
+                f"profissões feminizadas são CBO 1–4); o mais penalizado é o homem negro "
+                f"(OR={fmt(P['GRG_HN_OCP'],2)}).")
+add_bullet(doc, f"TOPO da renda (top 10%): INVERTE — a mulher negra é a MAIS excluída "
+                f"(OR={fmt(P['GRG_MN_TOP10'],2)}), abaixo da mulher branca ({fmt(P['GRG_MB_TOP10'],2)}) "
+                f"e do homem negro ({fmt(P['GRG_HN_TOP10'],2)}).")
+add_bullet(doc, f"Interação sub-aditiva (OR={fmt(P['GRG_INT_OCP'],2)} no acesso): a penalidade racial "
+                f"é um pouco menor entre mulheres — mas a negra acumula raça + teto de vidro de gênero no topo.")
+add_colored_box(doc, "O que dizer se perguntarem sobre interseccionalidade (GLMM):",
+    ["'O efeito não é uniforme entre desfechos. No ACESSO à categoria qualificada, a mulher negra é "
+     "até alçada (OR 1,33), porque profissões feminizadas — magistério, enfermagem, administrativo — "
+     "são CBO 1–4; o mais barrado é o homem negro. Mas no TOPO da renda o quadro inverte: a mulher "
+     "negra é a mais excluída de todas (OR 0,34 no decil superior). O teto de vidro não é racial nem "
+     "sexualmente neutro — recai com força máxima sobre ela.'",
+     "'A interação é sub-aditiva (não é soma simples), mas isso não a protege: ela pode ENTRAR em "
+     "ocupações qualificadas, mas é sistematicamente barrada de CHEGAR AO TOPO da remuneração — raça e "
+     "gênero se combinam exatamente onde mais importa para a ascensão.'"],
+    title_color=(0xFF,0x8F,0x00))
+doc.add_paragraph()
+
 # ── Figura 10: SHAP ───────────────────────────────────────────────────────────
 add_heading(doc, "Figura 10 — SHAP Values: Importância das Variáveis no XGBoost", level=2)
 add_figure(doc, FIGS / "shap_importance_xgb.png", width_cm=14,
@@ -694,6 +722,34 @@ add_bullet(doc, "O estado REDUZ a desigualdade interna (Gini público < privado)
                 "contribui 7,8% para a desigualdade total.")
 add_bullet(doc, "Conclusão de H1: o estado é simultaneamente redutor de desigualdade interna e "
                 "gerador de desigualdade interssetorial. A resposta é 'ambos' — depende da perspectiva.")
+doc.add_paragraph()
+
+# ── Contexto macro recente do IBGE (A+B) ──────────────────────────────────────
+add_heading(doc, "Contexto macro recente do IBGE (POF + Gini 2025) — o que dizer se a banca perguntar", level=2)
+add_para(doc, "A banca pode citar notícias recentes do IBGE. Distinga o que melhorou (qualidade de "
+              "vida) do que NÃO melhorou (desigualdade de renda):", size=11, space_before=2)
+add_bullet(doc, "A) QUALIDADE DE VIDA melhorou (POF 2017–2018): o Índice de Perda de Qualidade de Vida "
+                "caiu ~30%, MAS o gap racial persiste (chefes pretos/pardos 0,183 vs brancos 0,122) e "
+                "o territorial também (Norte 0,223 / Nordeste 0,207 vs Sul 0,114).")
+add_bullet(doc, "B) DESIGUALDADE DE RENDA subiu: o Gini do rendimento domiciliar per capita subiu de "
+                "0,487 (2024) para 0,491 (2025), puxado pelo topo — 10% mais ricos +8,7% vs 10% mais "
+                "pobres +3,1% (PNAD Contínua, Rendimento de Todas as Fontes 2025).")
+add_bullet(doc, "RESSALVA METODOLÓGICA (importante): o Gini calculado no trabalho (~0,48) é da RENDA DO "
+                "TRABALHO entre OCUPADOS — conceito DIFERENTE do Gini domiciliar per capita de todas as "
+                "fontes do IBGE (~0,49). Níveis próximos, mas medidas distintas; podem divergir em "
+                "tendência (a alta de 2025 vem de renda não-trabalho do topo).")
+add_colored_box(doc, "O que dizer se perguntarem 'o Gini do IBGE não bate com o seu?' ou 'o Brasil não melhorou?':",
+    ["'O que melhorou foi a QUALIDADE DE VIDA (POF), não o Gini de renda — que, aliás, SUBIU em 2025 "
+     "(0,491), puxado pelo topo. Meu trabalho é coerente com isso: documenta uma barreira racial que "
+     "persiste apesar do avanço social agregado.'",
+     "'Meu Gini (~0,48) e o do IBGE (~0,49) medem coisas diferentes: o meu é da renda do TRABALHO "
+     "entre OCUPADOS; o do IBGE é da renda DOMICILIAR PER CAPITA de TODAS as fontes (inclui "
+     "aposentadorias, transferências, capital e pessoas sem renda). Níveis próximos, mas não "
+     "diretamente comparáveis — por isso não os comparo como se fossem a mesma métrica.'",
+     "'O contraste territorial reforça minha tese: o IBGE mostra o DF com a maior renda per capita do "
+     "país, enquanto meus modelos mostram o DF com a MAIOR penalidade racial salarial — riqueza média "
+     "e desigualdade racial convivem no mesmo território.'"],
+    title_color=(0xFF,0x8F,0x00))
 doc.add_paragraph()
 
 # ── Figuras Estado H2/H3 ───────────────────────────────────────────────────────
