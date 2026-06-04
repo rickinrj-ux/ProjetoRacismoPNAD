@@ -391,7 +391,10 @@ for i, (v, lbl, sub, color) in enumerate([
 callout(s,
         "O concurso público equaliza a entrada, mas a promoção às posições de liderança (DAS, chefia) "
         "ainda reflete os vieses do setor privado — ou piores.",
-        In(0.3), In(6.38), In(12.7), In(0.55))
+        In(0.3), In(6.33), In(12.7), In(0.5))
+text(s, "Contexto IBGE 2025: a qualidade de vida melhorou (POF), mas a desigualdade de renda voltou a subir "
+        "(Gini per capita 0,491) — o avanço agregado não fecha o gap racial.",
+     In(0.35), In(6.92), In(12.6), In(0.28), size=9.5, color=C_GRAY, italic=True, name="Calibri")
 footer_exec(s, 9)
 
 # ══════════════════════════════════════════════════════════════════════════════
