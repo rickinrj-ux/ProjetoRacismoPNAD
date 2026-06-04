@@ -146,7 +146,7 @@ def kpi_box(slide, label, value, unit, l, t, w=In(2.8), h=In(1.3),
     add_text(slide, unit, l+In(0.1), t+In(0.92), w-In(0.2), In(0.35),
              font_size=10, color=C_GRAY, italic=True, font_name="Calibri")
 
-def footer(slide, slide_num, total=28):
+def footer(slide, slide_num, total=29):
     add_rect(slide, 0, H-In(0.28), W, In(0.28), fill_rgb=C_DARK)
     add_text(slide,
              "Ricardo Calheiros  |  MBA USP/ESALQ  |  Racismo Estrutural e Mercado de Trabalho",
@@ -815,6 +815,9 @@ add_text(s, "H1: Estado reduz levemente o Gini (0,466 vs 0,472) mas prêmio de +
             "H3 (paradoxo): concurso iguala entrada, mas promoção/DAS favorece homens → gap de gênero maior no público.",
          In(0.5), In(6.10), In(12.3), In(0.45),
          font_size=11.5, color=C_DARK)
+add_text(s, "Contexto IBGE (2025): o Gini domiciliar per capita do país subiu a 0,491 (conceito distinto do Gini do "
+            "trabalho aqui, ~0,48); a POF mostra qualidade de vida em alta, mas o gap racial persiste (0,183 vs 0,122).",
+         In(0.5), In(6.62), In(12.3), In(0.45), font_size=10, color=RGBColor(0x55,0x55,0x55))
 
 footer(s, 19)
 
@@ -1011,10 +1014,42 @@ add_text(s, f"Mulheres: MAIS acesso a ocupações qualificadas (OR={fmt(P['GGE_O
 footer(s, 26)
 
 # ══════════════════════════════════════════════════════════════════════════════
+# SLIDE — INTERSECCIONALIDADE GLMM (grupo_rg)
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header_bar(s, "26. Interseccionalidade GLMM — O Teto de Vidro Recai sobre a Mulher Negra",
+           "grupo_rg (4 grupos, ref. homem branco) × 3 desfechos | alçada no acesso, a mais excluída no topo")
+add_img(s, FIGURES / "grupo_rg_interseccional.png", In(0.3), In(1.2), In(7.4))
+add_text(s, "A inversão acesso → topo", In(8.0), In(1.2), In(5.0), In(0.4),
+         font_size=15, bold=True, color=C_DARK)
+_int_boxes = [
+    (C_BLUE, "Acesso (CBO 1-4)",
+     f"Mulher negra OR={fmt(P['GRG_MN_OCP'],2)} (acima do homem branco)\n"
+     f"Mais penalizado: homem negro (OR={fmt(P['GRG_HN_OCP'],2)})\n"
+     f"Gênero positivo: profissões feminizadas"),
+    (C_RED, "Topo da renda (top 10%)",
+     f"Mulher negra é a MAIS excluída: OR={fmt(P['GRG_MN_TOP10'],2)}\n"
+     f"Abaixo da mulher branca ({fmt(P['GRG_MB_TOP10'],2)}) e do homem negro ({fmt(P['GRG_HN_TOP10'],2)})"),
+    (RGBColor(0x6A,0x00,0x8A), "Interação sub-aditiva",
+     f"OR={fmt(P['GRG_INT_OCP'],2)} no acesso: penalidade racial um pouco menor entre mulheres — "
+     f"mas a negra acumula raça + teto de gênero no topo"),
+]
+for i,(color,tit,desc) in enumerate(_int_boxes):
+    add_rect(s, In(8.0), In(1.72)+i*In(1.62), In(5.0), In(1.46), fill_rgb=C_LGRAY, line_rgb=color, line_pt=1.5)
+    add_rect(s, In(8.0), In(1.72)+i*In(1.62), In(5.0), In(0.44), fill_rgb=color)
+    add_text(s, tit, In(8.12), In(1.75)+i*In(1.62), In(4.75), In(0.42), font_size=13, bold=True, color=C_WHITE)
+    add_text(s, desc, In(8.12), In(2.22)+i*In(1.62), In(4.75), In(0.92), font_size=11, color=C_BLACK)
+add_rect(s, In(0.3), In(6.78), In(12.7), In(0.56), fill_rgb=RGBColor(0xE3,0xF2,0xFD), line_rgb=C_DARK, line_pt=0.8)
+add_text(s, "O teto de vidro não é racial nem sexualmente neutro: a mulher negra pode ENTRAR em ocupações "
+            "qualificadas, mas é barrada de CHEGAR AO TOPO da remuneração.",
+         In(0.5), In(6.83), In(12.3), In(0.45), font_size=12, color=C_DARK)
+footer(s, 27)
+
+# ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 13 — IMPLICAÇÕES DE POLÍTICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "26. Implicações de Política",
+header_bar(s, "27. Implicações de Política",
            "Três eixos simultâneos — ações isoladas são insuficientes para romper a armadilha estrutural")
 
 politicas = [
@@ -1045,13 +1080,13 @@ for i, (color, title, items) in enumerate(politicas):
 add_text(s, "⚠  Ao ritmo atual de convergência (~0,02 log-pontos/ano), eliminar o gap levaria mais de 100 anos.",
          In(0.3), In(6.8), In(12.7), In(0.45),
          font_size=13, bold=True, color=C_RED, align=PP_ALIGN.CENTER)
-footer(s, 27)
+footer(s, 28)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 14 — LIMITAÇÕES E AGENDA FUTURA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "27. Limitações e Agenda Futura",
+header_bar(s, "28. Limitações e Agenda Futura",
            "Honestidade acadêmica: o que este trabalho não faz e por quê")
 
 add_text(s, "Limitações", In(0.4), In(1.25), In(6.0), In(0.4),
@@ -1059,7 +1094,7 @@ add_text(s, "Limitações", In(0.4), In(1.25), In(6.0), In(0.4),
 bullet_box(s, [
     "PNAD não permite experimentos causais — coeficientes são associações condicionais, não efeitos causais no sentido de Rubin/Pearl",
     "UPA como proxy de bairro: unidade de amostragem ≠ bairro administrativo",
-    "GLMM logístico estimado na PEA completa via lme4::glmer (nAGQ=0, bobyqa, n=7,7M, 40,9k UPAs); random slope de negro no GLMM não estimado por custo — porém o random slope foi estimado no HLM de salário (base da PO regionalizada por UF)",
+    "GLMM logístico estimado na PEA completa via lme4::glmer (nAGQ=0, bobyqa, n=7,7M, 40,9k UPAs); random slope de negro estimado tanto no HLM (salário) quanto no GLMM (acesso, 1+negro|UF) — heterogeneidade geográfica confirmada (LRT p<0,001)",
     "CBO auto-declarado pode ter viés de classificação por raça (deflation de ocupação)",
 ], In(0.4), In(1.75), In(6.2), In(3.8), font_size=13, dot_color=C_RED)
 
@@ -1073,7 +1108,7 @@ bullet_box(s, [
     "Modelo longitudinal com painéis rotativos da PNAD (2T seguidos) para efeitos fixos de indivíduo",
 ], In(7.0), In(1.75), In(6.2), In(3.8), font_size=13, dot_color=C_BLUE)
 
-footer(s, 28)
+footer(s, 29)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 18 — CONCLUSÃO
@@ -1081,7 +1116,7 @@ footer(s, 28)
 s = prs.slides.add_slide(BLANK)
 add_rect(s, 0, 0, W, H, fill_rgb=C_DARK)
 add_rect(s, 0, 0, W, In(0.8), fill_rgb=RGBColor(0x0D,0x1F,0x3C))
-add_text(s, "28. Conclusão", In(0.4), In(0.1), In(12), In(0.65),
+add_text(s, "29. Conclusão", In(0.4), In(0.1), In(12), In(0.65),
          font_size=26, bold=True, color=C_WHITE, font_name="Calibri")
 
 numeros = [
