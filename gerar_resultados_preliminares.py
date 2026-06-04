@@ -218,6 +218,15 @@ par(f"Uma leitura interseccional (quatro grupos raça×gênero, referência = ho
 figura("grupo_rg_interseccional.png",
        "Figura 2b. Interseccionalidade raça×gênero: a mulher negra é alçada no acesso à categoria, "
        "mas a mais excluída no topo da renda (OR vs. homem branco).", w=14)
+par(f"Um indicador distribucional reforça o teto de vidro. O Gini da renda do trabalho é MAIOR entre "
+    f"brancos ({fmt(g('GINI_BRANCO_TRAB',0.485),3)}) do que entre negros ({fmt(g('GINI_NEGRO_TRAB',0.449),3)}) "
+    f"— em todos os anos da série. Isso não é equidade entre negros: é CONFINAMENTO AO PISO (renda "
+    f"homogeneamente baixa), o reverso distribucional da barreira de acesso ao topo. Quem é barrado do "
+    f"topo achata-se na base. Cabe a ressalva de que este Gini refere-se ao rendimento do TRABALHO entre "
+    f"ocupados — conceito distinto do Gini domiciliar per capita do IBGE (Figura 2c).")
+figura("gini_raca.png",
+       "Figura 2c. Gini intra-raça (renda do trabalho, ponderado): brancos têm maior desigualdade "
+       "interna; negros, comprimidos no piso — o reverso do teto de vidro, não equidade.", w=13)
 
 sub("Camada 2 — O território como eixo da desigualdade")
 par("Por que as dotações são desiguais? A segunda camada responde: pelo LUGAR. No modelo "
@@ -231,6 +240,12 @@ par("Por que as dotações são desiguais? A segunda camada responde: pelo LUGAR
 figura("shap_importance_xgb.png",
        "Figura 3. Importância SHAP (XGBoost, R²≈0,62): a renda média da UPA (bairro) é o "
        "principal determinante do rendimento, evidenciando o eixo territorial da desigualdade.", w=14)
+par("Esse eixo territorial encontra corroboração externa no Índice de Progresso Social (IPS) municipal "
+    "(Imazon e parceiros, 2026): as regiões de menor progresso social (Norte e Nordeste) coincidem com "
+    "as de maior penalidade racial em nossos modelos. Ressalva metodológica: a integração fina com o "
+    "proxy de bairro (UPA) é inviável — a PNAD não divulga o município e o IPS é municipal, mais "
+    "agregado que a UPA —, de modo que o IPS entra como evidência convergente do caráter territorial, "
+    "não como fonte de dados integrada.")
 
 sub("Camada 3 — As redes que excluem")
 par("A terceira camada explica por que superar as duas primeiras ainda não basta. A análise de "

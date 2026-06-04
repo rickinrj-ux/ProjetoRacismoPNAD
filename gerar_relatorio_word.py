@@ -2796,9 +2796,10 @@ def build_doc(r, k):
         f"a amostra representativa do mercado de trabalho real (ocp_qualif=29,8%). Os ORs do "
         f"modelo expandido (M1={fmt(P['OR_M1'],3)}; M2={fmt(P['OR_M2'],3)}) são menores que os anteriores (M1=0,704; "
         f"M2=0,747) — reflexo de que a amostra antiga sobrerrepresentava trabalhadores não "
-        f"qualificados, subestimando o gap racial de acesso. O ICC caiu de 26,2% para {fmt(P['ICC_M1_pct'],1)}% "
-        f"em M1 e de 22,2% para {fmt(P['ICC_M2_pct'],1)}% em M2 — a maior cobertura geográfica (40.969 UPAs) "
-        f"dilui a variância entre UPAs ao incluir trabalhadores de toda a hierarquia ocupacional.")
+        f"qualificados, subestimando o gap racial de acesso. O ICC da especificação de cobertura completa "
+        f"é {fmt(P['ICC_M1_pct'],1)}% (M1) e {fmt(P['ICC_M2_pct'],1)}% (M2) — abaixo do observado na amostra "
+        f"restrita de educ_ord, pois a maior cobertura geográfica (40.969 UPAs) dilui a variância entre "
+        f"UPAs ao incluir trabalhadores de toda a hierarquia ocupacional.")
     add_para(doc,
         f"Os resultados (Tabela 7, Figura 27) documentam teto de vidro duplo: negros têm "
         f"OR={or_str(P['OR_M1'])} (AME={ame(P['AME_M1_pp'])}) de acesso a ocupações CBO 1–4 em M1, e OR={or_str(P['OR_TOP20_M1'])} "

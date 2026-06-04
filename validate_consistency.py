@@ -328,6 +328,9 @@ SKIP_KEYS = {
     # GRG_MB_TOP10=0,49 (OR mulher branca no top10) colide com o Gini domiciliar per capita do
     # IBGE (~0,49) citado no guia — valores distintos, sem param para o Gini do IBGE.
     "GRG_MB_TOP10",
+    # GINI_*_TRAB (0,48/0,49/0,45) — faixa Gini ubíqua na prosa; colidem com HLM_SIGMA2/Oster
+    # (0,48) e outros. Os valores específicos (0,485/0,449) são citados sourced via P[].
+    "GINI_TOTAL_TRAB", "GINI_BRANCO_TRAB", "GINI_NEGRO_TRAB",
 }
 
 for key, val in P.items():

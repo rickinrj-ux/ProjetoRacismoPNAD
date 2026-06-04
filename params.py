@@ -81,6 +81,15 @@ def _load() -> dict:
         p["GRG_INT_OCP"]  = round(_grg_val("ocp_qualif", "OR_interacao"),     3)  # 1.141
         p["GRG_INT_TOP10"]= round(_grg_val("y_top10",    "OR_interacao"),     3)  # 1.069
 
+    # ── Gini intra-raça (renda do trabalho entre ocupados, ponderado V1028) ────
+    _grpath = _TAB / "gini_raca.csv"
+    if _grpath.exists():
+        _gr = pd.read_csv(_grpath).set_index("grupo")
+        p["GINI_TOTAL_TRAB"]   = round(float(_gr.loc["Total",   "gini"]), 3)   # 0.482
+        p["GINI_BRANCO_TRAB"]  = round(float(_gr.loc["Brancos", "gini"]), 3)   # 0.485
+        p["GINI_NEGRO_TRAB"]   = round(float(_gr.loc["Negros",  "gini"]), 3)   # 0.449
+        p["GINI_THEIL_BETW_PCT"] = round(float(_gr.loc["Total", "theil_between_pct"]), 1)  # 6.3
+
     # ── E-values glassceil (Python) ───────────────────────────────────────────
     _ev = pd.read_csv(_TAB / "evalues_glmm.csv")
 

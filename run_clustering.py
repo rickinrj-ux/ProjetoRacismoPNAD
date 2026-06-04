@@ -19,8 +19,13 @@ VARIAVEIS DE CLUSTERING (12 dimensoes):
                  educ_pos_graduacao, log_renda, negro, sexo_fem, empregado
     Contexto UPA: pct_negro_upa_z, tx_desemprego_upa_z, media_educ_upa_z,
                   media_renda_upa_z
-    (educ_ord removido — cobertura de apenas 31% da PEA; substituido por dummies
-     com 100% de cobertura, consistente com o GLMM lme4 PEA completa)
+    (educ_ord removido — cobertura de apenas 31% da PEA; substituido por dummies de
+     conclusao. RESSALVA: educ_cat e NA em ~69%, e esse NA entra como 0 nos dummies,
+     de modo que o grupo sem registro aparece como "baixa escolaridade" nas features.
+     Diferente dos modelos de REGRESSAO (HLM/GLMM), aqui NAO se adiciona o indicador
+     educ_missing: o clustering e DESCRITIVO (k-means) e um flag de ausencia como
+     feature criaria um artefato de "cluster de dado faltante". Os perfis devem ser
+     lidos sob essa ressalva de cobertura da escolaridade.)
 
 SELECAO DE K:
     Metodo do cotovelo (inertia) + silhouette coefficient.

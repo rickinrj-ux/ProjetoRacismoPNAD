@@ -1508,7 +1508,11 @@ Cabe uma ressalva metodológica: o Gini estimado neste trabalho refere-se ao
 distinto do Gini domiciliar \emph{{per capita}} de todas as fontes do IBGE ---
 níveis próximos, mas medidas diferentes que podem divergir em tendência, pois a
 alta de 2025 é puxada por renda \emph{{não}}-trabalho do topo, que não transita
-pelo rendimento dos ocupados. O contraste territorial reforça a tese: o Distrito
+pelo rendimento dos ocupados. Nesse mesmo conceito, a desigualdade \emph{{interna}}
+é maior entre brancos ($={fmt(P['GINI_BRANCO_TRAB'],3)}$) do que entre negros
+($={fmt(P['GINI_NEGRO_TRAB'],3)}$) --- não por equidade, mas por confinamento dos
+negros ao piso da distribuição, o reverso distribucional do teto de vidro.
+O contraste territorial reforça a tese: o Distrito
 Federal, de maior renda \emph{{per capita}} do país, é também a UF de \emph{{maior}}
 penalidade racial salarial em nossos modelos regionais --- riqueza média elevada e
 desigualdade racial aguda coexistem no mesmo território.
