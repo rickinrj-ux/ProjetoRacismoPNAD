@@ -251,7 +251,7 @@ par("Um conjunto de hipóteses adicionais testa diretamente a hipótese alternat
     "o setor público reduz levemente a desigualdade de renda (índice de Gini inferior ao do "
     "privado; H1). Mas como dissolvente da barreira RACIAL, não: embora o público atenue o gap "
     "racial (H2, Figura 6) — coerente com a camada sistêmica anterior —, ele PIORA o gap de "
-    "gênero (−20,9% no público contra −18,6% no privado; H3): o concurso equaliza a entrada, mas "
+    "gênero (−21,2% no público contra −18,9% no privado; H3): o concurso equaliza a entrada, mas "
     "a promoção às posições de liderança reflete, ou amplifica, os vieses do setor privado. No "
     "agregado (H4), o país combina pleno emprego histórico com renda real estagnada — produz "
     "ocupação, não prosperidade igualitária. E a armadilha da qualificação persiste (H5): a "
