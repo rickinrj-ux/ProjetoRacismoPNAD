@@ -38,8 +38,8 @@ from pathlib import Path
 sys.path.insert(0, "src")
 
 # ── Logging ────────────────────────────────────────────────────────────────────
-Path("logs").mkdir(exist_ok=True)
-LOG_FILE = "logs/hlm_serie_completa.log"
+Path("outputs/_logs").mkdir(exist_ok=True)
+LOG_FILE = "outputs/_logs/hlm_serie_completa.log"
 handlers = [
     logging.FileHandler(LOG_FILE, encoding="utf-8"),
     logging.StreamHandler(sys.stdout),

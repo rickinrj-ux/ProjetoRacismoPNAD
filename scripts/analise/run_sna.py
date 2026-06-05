@@ -55,9 +55,9 @@ from itertools import combinations
 sys.path.insert(0, "src")
 warnings.filterwarnings("ignore")
 
-Path("logs").mkdir(exist_ok=True)
+Path("outputs/_logs").mkdir(exist_ok=True)
 handlers = [
-    logging.FileHandler("logs/sna.log", encoding="utf-8"),
+    logging.FileHandler("outputs/_logs/sna.log", encoding="utf-8"),
     logging.StreamHandler(sys.stdout),
 ]
 logging.basicConfig(

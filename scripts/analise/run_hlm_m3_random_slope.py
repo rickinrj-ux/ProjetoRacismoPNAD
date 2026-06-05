@@ -43,8 +43,8 @@ from pathlib import Path
 
 sys.path.insert(0, "src")
 
-Path("logs").mkdir(exist_ok=True)
-LOG_FILE = "logs/hlm_m3_random_slope.log"
+Path("outputs/_logs").mkdir(exist_ok=True)
+LOG_FILE = "outputs/_logs/hlm_m3_random_slope.log"
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-8s | %(message)s",

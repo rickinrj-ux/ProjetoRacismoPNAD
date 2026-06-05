@@ -54,9 +54,9 @@ sys.path.insert(0, "src")
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
-Path("logs").mkdir(exist_ok=True)
+Path("outputs/_logs").mkdir(exist_ok=True)
 handlers = [
-    logging.FileHandler("logs/ml_shap.log", encoding="utf-8"),
+    logging.FileHandler("outputs/_logs/ml_shap.log", encoding="utf-8"),
     logging.StreamHandler(sys.stdout),
 ]
 logging.basicConfig(

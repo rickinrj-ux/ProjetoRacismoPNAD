@@ -50,9 +50,9 @@ from pathlib import Path
 sys.path.insert(0, "src")
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-Path("logs").mkdir(exist_ok=True)
+Path("outputs/_logs").mkdir(exist_ok=True)
 handlers = [
-    logging.FileHandler("logs/clustering.log", encoding="utf-8"),
+    logging.FileHandler("outputs/_logs/clustering.log", encoding="utf-8"),
     logging.StreamHandler(sys.stdout),
 ]
 logging.basicConfig(

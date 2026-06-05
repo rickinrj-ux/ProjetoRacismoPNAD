@@ -25,6 +25,7 @@ ENV/
 
 # ─── Logs ───
 logs/
+outputs/_logs/
 *.log
 
 # ─── Arquivos temporários do pipeline ───

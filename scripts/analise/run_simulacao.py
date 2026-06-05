@@ -29,12 +29,12 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding='utf-8')
 sys.path.insert(0, "src")
-Path("logs").mkdir(exist_ok=True)
+Path("outputs/_logs").mkdir(exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-8s | %(message)s",
     handlers=[
-        logging.FileHandler("logs/simulacao.log", encoding="utf-8"),
+        logging.FileHandler("outputs/_logs/simulacao.log", encoding="utf-8"),
         logging.StreamHandler(sys.stdout),
     ],
 )

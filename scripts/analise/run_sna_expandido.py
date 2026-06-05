@@ -35,13 +35,13 @@ from itertools import combinations
 sys.path.insert(0, "src")
 warnings.filterwarnings("ignore")
 
-Path("logs").mkdir(exist_ok=True)
+Path("outputs/_logs").mkdir(exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-8s | %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
     handlers=[
-        logging.FileHandler("logs/sna_expandido.log", encoding="utf-8"),
+        logging.FileHandler("outputs/_logs/sna_expandido.log", encoding="utf-8"),
         logging.StreamHandler(sys.stdout),
     ],
 )

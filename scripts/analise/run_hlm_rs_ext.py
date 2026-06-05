@@ -49,11 +49,11 @@ ROOT    = Path.cwd()
 OUT_FIG = ROOT / "outputs" / "figures"
 OUT_TAB = ROOT / "outputs" / "tables"
 OUT_FIG.mkdir(parents=True, exist_ok=True)
-Path("logs").mkdir(exist_ok=True)
+Path("outputs/_logs").mkdir(exist_ok=True)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(message)s",
     datefmt="%H:%M:%S",
-    handlers=[logging.FileHandler("logs/hlm_rs_ext.log", encoding="utf-8"),
+    handlers=[logging.FileHandler("outputs/_logs/hlm_rs_ext.log", encoding="utf-8"),
               logging.StreamHandler(sys.stdout)])
 log = logging.getLogger(__name__)
 

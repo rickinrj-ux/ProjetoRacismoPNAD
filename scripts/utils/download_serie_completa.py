@@ -26,7 +26,7 @@ from pathlib import Path
 
 sys.path.insert(0, "src")
 
-LOG_FILE = Path("logs/download_serie.log")
+LOG_FILE = Path("outputs/_logs/download_serie.log")
 LOG_FILE.parent.mkdir(exist_ok=True)
 
 # Log simultaneo para arquivo e console

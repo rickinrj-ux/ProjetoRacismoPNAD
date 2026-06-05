@@ -69,13 +69,13 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-8s | %(message)s",
     handlers=[
-        logging.FileHandler("logs/politicas_po.log", encoding="utf-8"),
+        logging.FileHandler("outputs/_logs/politicas_po.log", encoding="utf-8"),
         logging.StreamHandler(sys.stdout),
     ],
 )
 log = logging.getLogger(__name__)
 
-Path("logs").mkdir(exist_ok=True)
+Path("outputs/_logs").mkdir(exist_ok=True)
 
 # ── Parâmetros confirmados pelos modelos (via params.py → CSVs) ──────────────
 

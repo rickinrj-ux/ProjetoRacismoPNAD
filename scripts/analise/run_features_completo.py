@@ -13,7 +13,7 @@ _sys.path.insert(0, _os.getcwd())
 import sys, logging, time
 sys.path.insert(0, "src")
 
-LOG_FILE = "logs/features_completo.log"
+LOG_FILE = "outputs/_logs/features_completo.log"
 handlers = [
     logging.FileHandler(LOG_FILE, encoding="utf-8"),
     logging.StreamHandler(sys.stdout),
