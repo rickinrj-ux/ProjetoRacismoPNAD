@@ -34,8 +34,8 @@ from rif_decomp import run_rif_decomp
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--sample", type=float, default=0.10,
-                        help="Fração da amostra. Default: 10%% (recomendado para velocidade).")
+    parser.add_argument("--sample", type=float, default=None,
+                        help="Fração da amostra. Default: None = população completa.")
     args = parser.parse_args()
     sample = None if args.sample == 0 else args.sample
     run_rif_decomp(sample_frac=sample)

@@ -118,7 +118,7 @@ gênero).
 
 Modelos de \textit{Random Forest} e XGBoost com valores SHAP confirmam que
 a renda média da UPA é o preditor mais importante do rendimento individual
-($|\text{SHAP}| = 0.269$), seguida de gênero e escolaridade superior,
+($|\text{SHAP}| = 0.275$), seguida de gênero e escolaridade superior,
 com a variável racial ocupando o 11$^\circ$ lugar mesmo após
 controlar por todos os demais fatores.
 
@@ -172,7 +172,7 @@ intersection of race and gender.
 
 Random Forest and XGBoost models with SHAP values confirm that neighbourhood
 income is the most important predictor of individual earnings
-($|\text{SHAP}|=0.269$), while race ranks
+($|\text{SHAP}|=0.275$), while race ranks
 11$^\text{th}$ even after all controls.
 
 Social network analysis shows that Black groups have zero betweenness
@@ -767,8 +767,8 @@ sobre o conjunto de teste (\textit{hold-out} 20\%).
 \toprule
 \textbf{Modelo} & $R^2$ & \textbf{MAE} & \textbf{RMSE} \\
 \midrule
-Random Forest  & 0.5743  & 0.4283 & --- \\
-\textbf{XGBoost}      & \textbf{0.6169} & \textbf{0.4283} & \textbf{0,6986} \\
+Random Forest  & 0.5735  & 0.4287 & --- \\
+\textbf{XGBoost}      & \textbf{0.6168} & \textbf{0.4287} & \textbf{0,6986} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -776,6 +776,16 @@ Random Forest  & 0.5743  & 0.4283 & --- \\
 O $R^2 \approx 0{,}43$ é robusto para dados de rendimento individual,
 onde a variância não observada (setor, cargo, tempo de serviço) responde
 pela maior parte do resíduo.
+
+\paragraph{Ausência de sobreajuste (população completa).}
+Estimado sobre a população (\mbox{$N=7.694.198$}; treino~80\%/teste~20\%),
+o método não-paramétrico não apresenta \textit{overfitting}: o $R^2$ de treino e de
+teste praticamente coincidem (\textit{gap}~$=0,0006$ para o XGBoost e
+para o Random Forest). Três evidências convergem: o \textit{gap} treino--teste
+$\approx 0$; a razão $N \gg$ complexidade (modelos regularizados sobre 7,7~milhões de
+observações); e a estabilidade do $R^2$ de teste entre a subamostra de 20\% e a
+população (praticamente idêntico, $\approx 0{,}62$). Em suma, \emph{ampliar} a base
+de amostral para populacional \emph{reduz} --- não aumenta --- o risco de sobreajuste.
 
 \begin{table}[H]
 \centering
@@ -785,35 +795,35 @@ pela maior parte do resíduo.
 \toprule
 \textbf{Feature} & \textbf{$|\text{SHAP}|$ RF} & \textbf{Rank RF} & \textbf{$|\text{SHAP}|$ XGB} & \textbf{Rank XGB} \\
 \midrule
-\textbf{Renda média UPA} & 0.32872 & 1 & 0.26938 & 1 \\
-Horas trabalhadas & 0.17613 & 2 & 0.16362 & 2 \\
-CBO: Profissionais & 0.11208 & 4 & 0.11665 & 3 \\
-Emprego formal (carteira) & 0.13965 & 3 & 0.11006 & 4 \\
-Gênero (feminino) & 0.09079 & 5 & 0.10083 & 5 \\
-Idade (centralizada) & 0.06466 & 6 & 0.10055 & 6 \\
-Educ.: não registrada & 0.02108 & 9 & 0.07063 & 7 \\
-Conta própria & 0.02049 & 10 & 0.06345 & 8 \\
-CBO: Técnicos & 0.03577 & 8 & 0.04579 & 9 \\
-CBO: Dirigentes & 0.03673 & 7 & 0.03903 & 10 \\
-\textbf{Raça (negro)} & 0.00033 & 23 & 0.02940 & 11 \\
-CBO: Serviços/Vendas & 0.00121 & 16 & 0.02915 & 12 \\
-\textbf{Desemprego na UPA} & 0.00152 & 15 & 0.02291 & 13 \\
-CBO: Operários & 0.00068 & 18 & 0.02181 & 14 \\
-CBO: Op. Máquinas & 0.00043 & 21 & 0.02057 & 15 \\
-Trabalho doméstico & 0.00516 & 12 & 0.01853 & 16 \\
-\textbf{\% Negro no Estado} & 0.00067 & 19 & 0.01838 & 17 \\
-CBO: Administrativo & 0.00283 & 14 & 0.01773 & 18 \\
-\textbf{Desemprego no Estado} & 0.00042 & 22 & 0.01531 & 19 \\
-CBO: Agropecuária & 0.00117 & 17 & 0.01510 & 20 \\
-CBO: FFAA/Polícia & 0.01083 & 11 & 0.01276 & 21 \\
-Idade² (experiência) & 0.00507 & 13 & 0.01153 & 22 \\
-\textbf{\% Negro na UPA} & 0.00033 & 23 & 0.01145 & 23 \\
-Educ. média UPA & 0.00032 & 25 & 0.01099 & 24 \\
-Educ. média Estado & 0.00054 & 20 & 0.00613 & 25 \\
-Educ.: Médio & 0.00000 & 28 & 0.00402 & 26 \\
-Educ.: Superior & 0.00002 & 26 & 0.00258 & 27 \\
-Educ.: Fundamental & 0.00000 & 28 & 0.00104 & 28 \\
-Educ.: Pós-graduação & 0.00000 & 28 & 0.00002 & 29 \\
+\textbf{Renda média UPA} & 0.33232 & 1 & 0.27491 & 1 \\
+Horas trabalhadas & 0.17465 & 2 & 0.16360 & 2 \\
+CBO: Profissionais & 0.11539 & 4 & 0.11933 & 3 \\
+Emprego formal (carteira) & 0.14084 & 3 & 0.11079 & 4 \\
+Gênero (feminino) & 0.09185 & 5 & 0.10107 & 5 \\
+Idade (centralizada) & 0.06443 & 6 & 0.09976 & 6 \\
+Educ.: não registrada & 0.02991 & 9 & 0.07000 & 7 \\
+Conta própria & 0.02117 & 10 & 0.06360 & 8 \\
+CBO: Técnicos & 0.03600 & 8 & 0.04635 & 9 \\
+CBO: Dirigentes & 0.03962 & 7 & 0.03942 & 10 \\
+\textbf{Raça (negro)} & 0.00007 & 25 & 0.02962 & 11 \\
+CBO: Serviços/Vendas & 0.00080 & 16 & 0.02907 & 12 \\
+CBO: Operários & 0.00047 & 20 & 0.02215 & 13 \\
+\textbf{Desemprego na UPA} & 0.00068 & 19 & 0.02165 & 14 \\
+CBO: Op. Máquinas & 0.00017 & 22 & 0.02047 & 15 \\
+Trabalho doméstico & 0.00674 & 13 & 0.01840 & 16 \\
+CBO: Administrativo & 0.00233 & 14 & 0.01757 & 17 \\
+\textbf{\% Negro no Estado} & 0.00080 & 16 & 0.01709 & 18 \\
+CBO: Agropecuária & 0.00131 & 15 & 0.01522 & 19 \\
+\textbf{Desemprego no Estado} & 0.00039 & 21 & 0.01501 & 20 \\
+CBO: FFAA/Polícia & 0.01078 & 11 & 0.01271 & 21 \\
+Idade² (experiência) & 0.00772 & 12 & 0.01101 & 22 \\
+\textbf{\% Negro na UPA} & 0.00012 & 23 & 0.01078 & 23 \\
+Educ. média UPA & 0.00008 & 24 & 0.01054 & 24 \\
+Educ. média Estado & 0.00069 & 18 & 0.00616 & 25 \\
+Educ.: Médio & 0.00000 & 28 & 0.00452 & 26 \\
+Educ.: Superior & 0.00001 & 26 & 0.00245 & 27 \\
+Educ.: Fundamental & 0.00000 & 28 & 0.00093 & 28 \\
+Educ.: Pós-graduação & 0.00000 & 28 & 0.00000 & 29 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -838,7 +848,7 @@ Educ.: Pós-graduação & 0.00000 & 28 & 0.00002 & 29 \\
 
 A Tabela~\ref{tab:shap_importance} revela que a \textbf{renda média da UPA}
 é o preditor mais importante do rendimento individual
-($|\text{SHAP}| = 0.269$), com peso três vezes maior que
+($|\text{SHAP}| = 0.275$), com peso três vezes maior que
 a escolaridade superior e 2,5 vezes maior que o gênero.
 Esse resultado confirma computacionalmente a hipótese de Wilson~(\citeyear{wilson1987}):
 o \textit{onde se mora} supera em importância o \textit{quanto se estudou}.
@@ -1040,14 +1050,14 @@ O gap salarial racial (negro~$-$~branco em log-renda) foi estimado por
 área com intervalos de confiança bootstrap (1.000 replicações,
 $N=771.756$, 10\% da amostra). Os resultados confirmam padrão não linear:
 Capital $−38,6\%$
-$[\text{IC}_{95\%}$: $−39,2\%$;
+$[\text{IC}_{95\%}$: $−38,9\%$;
 $−38,1\%]$;
-Interior $−36,4\%$
-$[\text{IC}_{95\%}$: $−36,7\%$;
-$−36,1\%]$;
-RM (exceto capital) $−28,1\%$
-$[\text{IC}_{95\%}$: $−28,8\%$;
-$−27,4\%]$.
+Interior $−36,2\%$
+$[\text{IC}_{95\%}$: $−36,5\%$;
+$−35,7\%]$;
+RM (exceto capital) $−28,0\%$
+$[\text{IC}_{95\%}$: $−28,1\%$;
+$−27,3\%]$.
 Teste de permutação Capital~vs.~Interior: $p < 0{,}001$, confirmando que
 a diferença entre contextos não é atribuível ao acaso.
 

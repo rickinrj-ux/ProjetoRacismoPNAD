@@ -76,7 +76,7 @@ OUTPUTS_FIG   = Path("outputs/figures")
 OUTPUTS_TB.mkdir(parents=True, exist_ok=True)
 OUTPUTS_FIG.mkdir(parents=True, exist_ok=True)
 
-SAMPLE_FRAC   = 0.20
+SAMPLE_FRAC   = None   # None = população completa (modelo treina em 7,69M; SHAP em subset p/ viz)
 SHAP_SAMPLE   = 50_000
 RANDOM_STATE  = 42
 
@@ -149,8 +149,12 @@ def load_data():
 
     logger.info(f"  Apos filtros: {len(df):,} obs.")
 
-    df = df.sample(frac=SAMPLE_FRAC, random_state=RANDOM_STATE).reset_index(drop=True)
-    logger.info(f"  Amostra {SAMPLE_FRAC*100:.0f}%: {len(df):,} obs.")
+    if SAMPLE_FRAC:
+        df = df.sample(frac=SAMPLE_FRAC, random_state=RANDOM_STATE).reset_index(drop=True)
+        logger.info(f"  Amostra {SAMPLE_FRAC*100:.0f}%: {len(df):,} obs.")
+    else:
+        df = df.reset_index(drop=True)
+        logger.info(f"  População completa: {len(df):,} obs.")
     return df
 
 
@@ -445,11 +449,18 @@ def main():
 
     # ── Random Forest ──────────────────────────────────────────────────────────
     rf = fit_rf(X_tr, y_tr)
-    metrics = [evaluate("Random Forest", y_te, rf.predict(X_te))]
+    m_rf = evaluate("Random Forest", y_te, rf.predict(X_te))
+    m_rf["R2_treino"] = round(r2_score(y_tr, rf.predict(X_tr)), 4)        # diagnóstico de overfitting
+    m_rf["gap_overfit"] = round(m_rf["R2_treino"] - m_rf["R²"], 4)
+    metrics = [m_rf]
 
     # ── XGBoost ────────────────────────────────────────────────────────────────
     xgb_model = fit_xgb(X_tr, y_tr)
-    metrics.append(evaluate("XGBoost", y_te, xgb_model.predict(X_te)))
+    m_xgb = evaluate("XGBoost", y_te, xgb_model.predict(X_te))
+    m_xgb["R2_treino"] = round(r2_score(y_tr, xgb_model.predict(X_tr)), 4)
+    m_xgb["gap_overfit"] = round(m_xgb["R2_treino"] - m_xgb["R²"], 4)
+    metrics.append(m_xgb)
+    logger.info(f"  Overfitting (R²treino-R²teste): RF={m_rf['gap_overfit']:.4f} | XGB={m_xgb['gap_overfit']:.4f}")
 
     # Salva métricas
     pd.DataFrame(metrics).to_csv(OUTPUTS_TB / "ml_performance.csv", index=False)

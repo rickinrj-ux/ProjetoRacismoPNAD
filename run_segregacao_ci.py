@@ -42,7 +42,7 @@ OUTPUTS_TB.mkdir(parents=True, exist_ok=True)
 OUTPUTS_FIG.mkdir(parents=True, exist_ok=True)
 
 N_BOOT         = 1000
-SUBSAMPLE_FRAC = 0.10   # 10% para velocidade (N~760k)
+SUBSAMPLE_FRAC = 1.0    # 1.0 = população completa (estimativas pontuais); bootstrap capado em BOOT_CAP
 SEED           = 42
 AREA_ORDER     = ["Capital", "RM (exceto\ncapital)", "Interior"]
 AREA_LABELS    = {"Capital": "Capital", "RM (exceto\ncapital)": "RM", "Interior": "Interior"}
@@ -82,8 +82,12 @@ def gap_pct(g):
     return (np.exp(g) - 1) * 100 if not np.isnan(g) else np.nan
 
 
+BOOT_CAP = 300_000   # teto p/ reamostragem do bootstrap/permutação (SE); o ponto usa o grupo completo
+
 def bootstrap_gap(grp, n_boot=N_BOOT, seed=SEED):
     rng = np.random.default_rng(seed)
+    if len(grp) > BOOT_CAP:
+        grp = grp.sample(n=BOOT_CAP, random_state=seed)
     gaps = []
     for _ in range(n_boot):
         sample = grp.sample(n=len(grp), replace=True, random_state=rng.integers(0, 2**31))
@@ -123,15 +127,18 @@ def run_analysis(df):
     # Teste de diferença Capital vs. Interior (permutação)
     cap = df[df["area_tipo"] == "Capital"]
     inter = df[df["area_tipo"] == "Interior"]
-    obs_diff = abs(gap_log(cap) - gap_log(inter))
-    combined = pd.concat([cap.assign(group="Capital"),
-                          inter.assign(group="Interior")])
+    obs_diff = abs(gap_log(cap) - gap_log(inter))   # populacional
+    # distribuição nula por permutação numa subamostra capada (o obs_diff acima é populacional)
+    cap_s   = cap.sample(n=BOOT_CAP, random_state=SEED)   if len(cap)   > BOOT_CAP else cap
+    inter_s = inter.sample(n=BOOT_CAP, random_state=SEED) if len(inter) > BOOT_CAP else inter
+    combined = pd.concat([cap_s.assign(group="Capital"),
+                          inter_s.assign(group="Interior")])
     perm_diffs = []
     rng = np.random.default_rng(SEED + 1)
     for _ in range(N_BOOT):
         shuffled = combined.copy()
         shuffled["area_tipo"] = rng.permutation(
-            ["Capital"] * len(cap) + ["Interior"] * len(inter)
+            ["Capital"] * len(cap_s) + ["Interior"] * len(inter_s)
         )
         d = abs(gap_log(shuffled[shuffled["area_tipo"] == "Capital"]) -
                 gap_log(shuffled[shuffled["area_tipo"] == "Interior"]))

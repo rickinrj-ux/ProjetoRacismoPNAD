@@ -24,7 +24,7 @@ FIGURES = ROOT / "outputs" / "figures"
 TABLES  = ROOT / "outputs" / "tables"
 FIGURES.mkdir(parents=True, exist_ok=True)
 
-SAMPLE_FRAC = 0.20
+SAMPLE_FRAC = None   # None = população completa
 SEED        = 42
 QUANTIS     = [0.10, 0.25, 0.50, 0.75, 0.90, 0.95]
 
@@ -51,10 +51,13 @@ BASE_DROP = ["negro","sexo_fem","idade_c","idade_sq",
              "pct_negro_upa_z","tx_desemprego_upa_z","media_educ_upa_z","log_renda"]
 df = df.dropna(subset=BASE_DROP)
 
-rng = np.random.default_rng(SEED)
-idx = rng.choice(len(df), size=int(len(df) * SAMPLE_FRAC), replace=False)
-df  = df.iloc[idx].reset_index(drop=True)
-print(f"  Amostra {int(SAMPLE_FRAC*100)}%: {len(df):,} obs.")
+if SAMPLE_FRAC:
+    rng = np.random.default_rng(SEED)
+    idx = rng.choice(len(df), size=int(len(df) * SAMPLE_FRAC), replace=False)
+    df  = df.iloc[idx].reset_index(drop=True)
+else:
+    df = df.reset_index(drop=True)
+print(f"  {'Amostra '+str(int(SAMPLE_FRAC*100))+'%' if SAMPLE_FRAC else 'População completa'}: {len(df):,} obs.")
 
 HAS_OCC = all(c in df.columns for c in ["horas_c","emprego_formal","ocp_dirigente"]) \
           and df["horas_c"].notna().any()
