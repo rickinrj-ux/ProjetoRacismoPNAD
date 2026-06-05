@@ -23,12 +23,13 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).parent
+GEN = ROOT / "scripts" / "geradores"
 GENERATORS = [
-    ROOT / "gerar_relatorio_word.py",
-    ROOT / "gerar_relatorio_tcc.py",
-    ROOT / "gerar_apresentacao_pptx.py",
-    ROOT / "gerar_guia_estudo.py",
-    ROOT / "run_politicas_po.py",   # upstream: lê OR/OB/ICC para gerar CSVs de TOPSIS/PL
+    GEN / "gerar_relatorio_word.py",
+    GEN / "gerar_relatorio_tcc.py",
+    GEN / "gerar_apresentacao_pptx.py",
+    GEN / "gerar_guia_estudo.py",
+    ROOT / "scripts" / "analise" / "run_politicas_po.py",   # upstream: lê OR/OB/ICC para gerar CSVs de TOPSIS/PL
 ]
 
 # ── 1. Carrega params.py ──────────────────────────────────────────────────────

@@ -34,6 +34,18 @@ _seg_out.txt
 # ─── ZIP gerados (podem ser recriados) ───
 relatorio_tcc_overleaf.zip
 
+# ─── Artefatos de build do LaTeX (recriáveis pelo pdflatex) ───
+*.aux
+*.bbl
+*.blg
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
 # ─── Configurações locais do Claude Code ───
 .claude/
 
@@ -55,3 +67,6 @@ Thumbs.db
 .Rhistory
 .RData
 .Rproj.user/
+
+# ─── MLflow tracking local (não versionar) ───
+mlruns/
