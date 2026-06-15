@@ -191,15 +191,15 @@ doc.add_paragraph()
 # ── Prioridade 2 ──────────────────────────────────────────────────────────────
 add_heading(doc, "1.2  Prioridade 2 — Risco moderado", level=2)
 
-add_para(doc, "BURT, R. S. (2004). Structural Holes and Good Ideas. "
-              "American Journal of Sociology, v. 110, n. 2, p. 349-399.",
+add_para(doc, "CRENSHAW, K. (1989). Demarginalizing the Intersection of Race and Sex. "
+              "University of Chicago Legal Forum, v. 1989, n. 1, p. 139-167.",
          size=11, bold=True, space_before=8)
-add_bullet(doc, "Por que é relevante: fundamenta a análise de betweenness centrality na SNA e "
-                "o argumento de que negros têm betweenness=0 mesmo com pós-graduação.")
-add_bullet(doc, "O que ler: Introduction (pp. 349–355) + seção 'Network Constraint and Brokerage' "
-                "(pp. 355–370). São ~20 páginas.")
-add_bullet(doc, "Conceito-chave: structural hole = posição de broker entre grupos que não se conectam "
-                "diretamente. Alta betweenness = acesso antecipado a informação e oportunidades.")
+add_bullet(doc, "Por que é relevante: fundamenta a decomposição interseccional — a penalidade extra "
+                "da mulher negra (+9,5 p.p.) não é a soma das penalidades de raça e de gênero isoladas.")
+add_bullet(doc, "O que ler: o argumento central sobre a interseccionalidade como categoria analítica "
+                "própria (a metáfora do cruzamento).")
+add_bullet(doc, "Conceito-chave: interseccionalidade = a combinação raça × gênero produz desvantagem "
+                "específica e não-aditiva, que eixos isolados não capturam.")
 doc.add_paragraph()
 
 add_para(doc, "WILSON, W. J. (1987). The Truly Disadvantaged: The Inner City, the Underclass, "
@@ -243,7 +243,7 @@ cronograma = [
     ("Dia 1", "Raudenbush & Bryk — Capítulos 2 e 4 (~40 páginas)"),
     ("Dia 2", "Hsieh et al. (2019) — artigo completo (~40 páginas)"),
     ("Dia 3", "Oaxaca (1973) + Blinder (1973) — seções de decomposição (~30 páginas no total)"),
-    ("Dia 4", "Burt (2004) + Wilson (1987) Cap. 1 (~60 páginas no total)"),
+    ("Dia 4", "Crenshaw (1989) + Wilson (1987) Cap. 1 (~50 páginas no total)"),
     ("Dia 5", "Reler o roteiro de defesa e simular as perguntas da banca com os novos insumos"),
     ("Dia 6", "Revisão das equações dos modelos (HLM, Oaxaca, QR) e dos resultados numéricos"),
     ("Dia 7", "Descanso + leitura leve do Fortin et al. se sentir necessidade"),
@@ -478,10 +478,11 @@ add_bullet(doc, "84% do gap é de dotações: a discriminação opera principalm
 add_bullet(doc, "Isso inverte a intuição comum: combater apenas o gap salarial direto (16%) "
                 "deixa 84% do problema intacto.")
 add_colored_box(doc, "O que dizer se perguntarem:",
-    ["'O Oaxaca une os três vértices do triângulo de evidências. Os 84% de dotações são explicados "
-     "pelo logit (acesso a ocupações) e pela SNA (exclusão das redes). Os 16% de retornos são "
-     "explicados pelo HLM M4 (6,2% de discriminação pura de remuneração). Os métodos são "
-     "consistentes entre si.'",
+    ["'O Oaxaca conversa com os demais métodos do núcleo. Os 83,8% de dotações são explicados pelo "
+     "GLMM (a barreira de acesso às ocupações, OR≈0,705). Os 16,2% de retornos correspondem ao "
+     "HLM M4 (6,2% de discriminação salarial residual). A ressalva de Oaxaca & Ransom (1999) é "
+     "que incluir ocupação como dotação subestima a discriminação total — por isso GLMM e Oaxaca "
+     "são complementares.'",
      "Se perguntarem sobre three-fold: 'A decomposição three-fold adiciona um componente de "
      "interação entre dotações e retornos que não tem interpretação causal clara em contexto "
      "de discriminação racial. Por isso a literatura de economics of discrimination prefere "
@@ -599,34 +600,6 @@ add_colored_box(doc, "O que dizer se perguntarem sobre interseccionalidade:",
 doc.add_paragraph()
 
 # ── Figura 9d: grupo_rg GLMM interseccional ──────────────────────────────────
-add_heading(doc, "Figura 9d — Interseccionalidade GLMM (grupo_rg): o teto de vidro recai sobre a mulher negra", level=2)
-add_figure(doc, FIGS / "grupo_rg_interseccional.png", width_cm=14,
-           caption="OR dos 4 grupos raça×gênero vs. homem branco em 3 desfechos. A mulher negra é "
-                   "alçada no acesso à categoria, mas a mais excluída no topo da renda.")
-add_para(doc, "Como ler:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "GLMM com fator de 4 grupos (homem branco = referência) + interação negro×sexo_fem, "
-                "em 3 desfechos: acesso a CBO 1–4, renda no top 20% e no top 10%.")
-add_bullet(doc, f"ACESSO (CBO 1–4): mulher negra OR={fmt(P['GRG_MN_OCP'],2)} (ACIMA do homem branco — "
-                f"profissões feminizadas são CBO 1–4); o mais penalizado é o homem negro "
-                f"(OR={fmt(P['GRG_HN_OCP'],2)}).")
-add_bullet(doc, f"TOPO da renda (top 10%): INVERTE — a mulher negra é a MAIS excluída "
-                f"(OR={fmt(P['GRG_MN_TOP10'],2)}), abaixo da mulher branca ({fmt(P['GRG_MB_TOP10'],2)}) "
-                f"e do homem negro ({fmt(P['GRG_HN_TOP10'],2)}).")
-add_bullet(doc, f"Interação sub-aditiva (OR={fmt(P['GRG_INT_OCP'],2)} no acesso): a penalidade racial "
-                f"é um pouco menor entre mulheres — mas a negra acumula raça + teto de vidro de gênero no topo.")
-add_colored_box(doc, "O que dizer se perguntarem sobre interseccionalidade (GLMM):",
-    ["'O efeito não é uniforme entre desfechos. No ACESSO à categoria qualificada, a mulher negra é "
-     f"até alçada (OR {fmt(P['GRG_MN_OCP'],2)}), porque profissões feminizadas — magistério, enfermagem, administrativo — "
-     "são CBO 1–4; o mais barrado é o homem negro. Mas no TOPO da renda o quadro inverte: a mulher "
-     f"negra é a mais excluída de todas (OR {fmt(P['GRG_MN_TOP10'],2)} no decil superior). O teto de vidro não é racial nem "
-     "sexualmente neutro — recai com força máxima sobre ela.'",
-     "'A interação é sub-aditiva (não é soma simples), mas isso não a protege: ela pode ENTRAR em "
-     "ocupações qualificadas, mas é sistematicamente barrada de CHEGAR AO TOPO da remuneração — raça e "
-     "gênero se combinam exatamente onde mais importa para a ascensão.'"],
-    title_color=(0xFF,0x8F,0x00))
-doc.add_paragraph()
-
-# ── Figura 10: SHAP ───────────────────────────────────────────────────────────
 add_heading(doc, "Figura 10 — SHAP Values: Importância das Variáveis no XGBoost", level=2)
 add_figure(doc, FIGS / "shap_importance_xgb.png", width_cm=14,
            caption="Importância média dos SHAP values por variável. R²=0,6162.")
@@ -654,34 +627,34 @@ add_colored_box(doc, "O que dizer se perguntarem sobre interpretabilidade do XGB
     title_color=(0x15,0x65,0xC0))
 doc.add_paragraph()
 
-# ── Figura 11: SNA ─────────────────────────────────────────────────────────────
+# ── ML / SHAP: o que dizer na defesa ──────────────────────────────────────────
 add_heading(doc, "O Papel do Machine Learning no Trabalho (o que dizer na defesa)", level=2)
 add_para(doc, "O que o ML prediz e por que está no trabalho:", size=11, bold=True,
          color=(0x1F,0x38,0x64), space_before=4)
 add_bullet(doc, "Prediz a RENDA (log_renda) a partir de 28 variáveis (individuais, ocupação/CBO e "
                 "contexto de UPA/UF). Desempenho: XGBoost R²=0,62; Random Forest R²=0,57.")
-add_bullet(doc, "NÃO é o motor causal (isso é HLM/GLMM/Oaxaca/Heckman/Oster). Cumpre TRÊS funções: "
+add_bullet(doc, "NÃO é o motor causal (isso é HLM/GLMM/Oaxaca/quantílica). Cumpre TRÊS funções: "
                 "(1) triangulação/robustez — método não-paramétrico, sem supor linearidade, confirma "
                 "o sinal econométrico; (2) interpretabilidade via SHAP — quantifica a contribuição de "
                 "cada variável e suas interações; (3) mecanismo tangível — waterfalls de casos individuais.")
 add_para(doc, "Achado central do SHAP (forte para a defesa):", size=11, bold=True,
          color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "O preditor nº 1 é a RENDA MÉDIA DA UPA (bairro) — acima da escolaridade e de qualquer "
-                "traço individual. A variável 'negro' tem importância DIRETA modesta (abaixo do top-12).")
+add_bullet(doc, "A RENDA MÉDIA DA UPA (bairro) figura entre os preditores de maior peso, mas é "
+                "parcialmente endógena (problema do reflexo, Manski 1993): agrega o próprio indivíduo, "
+                "então deve ser lida como mediação territorial, não como determinante causal. A "
+                "variável 'negro' tem importância DIRETA modesta (abaixo do top-12).")
 add_bullet(doc, "Isso CONFIRMA a tese (não contradiz): a raça tem efeito direto pequeno porque opera POR "
                 "MEIO dos mediadores (onde mora, ocupação, formalidade), que são moldados pela barreira "
                 "racial — a tradução computacional do Oaxaca-Blinder (a maior parte do gap é 'dotações', "
                 "mas dotações são produto de segregação e exclusão de acesso).")
 add_para(doc, "Como conecta com o resto do trabalho:", size=11, bold=True,
          color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "HLM: o domínio do contexto no SHAP espelha a mediação contextual do HLM (~52% via UPA). "
+add_bullet(doc, "HLM: o peso do contexto no SHAP espelha a mediação contextual do HLM (~52% via UPA). "
                 "Oaxaca: importância direta pequena da raça ↔ gap majoritariamente de dotações. GLMM: o "
-                "ML modela RENDA, o GLMM modela ACESSO (faces complementares). SNA: a parcela residual da "
-                "raça + betweenness=0 explicam por que o diploma negro rende menos. PO: a importância SHAP "
-                "ajuda a calibrar as prioridades das políticas.")
-add_bullet(doc, "Explicar vs. prever: a heterogeneidade geográfica (random slope) é inferencialmente real, "
-                "mas adicionar UF ao ML não muda o R² (testado: ΔR²≈0) — o contexto já está nas features. "
-                "Use essa distinção se questionarem.")
+                "ML modela RENDA, o GLMM modela ACESSO (faces complementares). Os métodos do núcleo "
+                "convergem para o mesmo diagnóstico, por vias independentes.")
+add_bullet(doc, "Explicar vs. prever: o ML é preditivo/validador, não inferencial. Adicionar UF ao ML "
+                "não muda o R² (ΔR²≈0) — o contexto já está nas features. Use essa distinção se questionarem.")
 add_colored_box(doc, "Se perguntarem 'por que ML se já tem econometria?':",
     ["'O ML não substitui a econometria — triangula. Se um modelo flexível, livre de supor linearidade e "
      "capaz de captar qualquer interação, chega ao MESMO diagnóstico (o contexto domina, a raça opera via "
@@ -691,49 +664,6 @@ add_colored_box(doc, "Se perguntarem 'por que ML se já tem econometria?':",
 doc.add_paragraph()
 doc.add_page_break()
 
-add_heading(doc, "Figura 11 — Rede Social Ocupacional: Betweenness por Raça e Escolaridade", level=2)
-add_figure(doc, FIGS / "sna_rede_demografica.png", width_cm=14,
-           caption="Rede de co-ocupação. Nós = grupos de raça × educação. Tamanho do nó = betweenness centrality.")
-add_para(doc, "Como ler:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "Nós: cada nó representa um grupo (ex: 'negro + superior completo', 'branco + médio').")
-add_bullet(doc, "Arestas: conexão = co-ocorrência na mesma ocupação/setor.")
-add_bullet(doc, "Tamanho do nó: proporcional à betweenness centrality — quão central o grupo é "
-                "como ponte entre diferentes clusters da rede.")
-add_bullet(doc, "Cor/posição: grupos brancos tendem a ocupar o centro da rede; grupos negros "
-                "ficam na periferia independente do nível educacional.")
-add_para(doc, "Achado principal:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "Brancos com pós-graduação têm alta betweenness: são brokers que conectam "
-                "grupos diferentes — acesso a vagas, informação e promoções (Burt, 2004).")
-add_bullet(doc, "Negros com pós-graduação têm betweenness ≈ 0: mesmo com as mesmas credenciais, "
-                "não ocupam posições de ponte na rede. As credenciais 'valem menos' porque "
-                "não convertem em acesso às redes de conversão.")
-add_colored_box(doc, "O que dizer se perguntarem:",
-    ["'A SNA adiciona uma dimensão que o HLM e o logit não capturam: o capital social estrutural. "
-     "Mesmo que um negro consiga entrar em uma ocupação qualificada, sua betweenness=0 significa "
-     "que ele não tem acesso às redes informais que geram promoção, mentoria e informação "
-     "antecipada sobre vagas. Isso explica parte do gap residual de 6,2% do HLM M4.'"],
-    title_color=(0x1F,0x38,0x64))
-doc.add_paragraph()
-
-# ── Figuras Estado H1 ─────────────────────────────────────────────────────────
-add_heading(doc, "Figura 12 — Gini por Setor (H1): Estado como Indutor de Desigualdade?", level=2)
-add_figure(doc, FIGS / "estado_h1_gini.png", width_cm=14,
-           caption="Gini por setor (público vs privado) e decomposição de Theil T.")
-add_para(doc, "Como ler:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "Gráfico de barras: Gini total (0,4879), público (0,4662) e privado (0,4715).")
-add_bullet(doc, "Gini menor no público = distribuição de renda mais igualitária dentro do setor público.")
-add_bullet(doc, "Decomposição de Theil T: 7,8% da desigualdade total é ENTRE os dois setores. "
-                "Isso significa que a diferença de renda médio entre público e privado gera "
-                "7,8% da desigualdade agregada.")
-add_para(doc, "Interpretação da hipótese H1:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "O estado REDUZ a desigualdade interna (Gini público < privado), mas o prêmio "
-                "salarial do servidor (+99,6% vs privado) cria uma divisão ENTRE setores que "
-                "contribui 7,8% para a desigualdade total.")
-add_bullet(doc, "Conclusão de H1: o estado é simultaneamente redutor de desigualdade interna e "
-                "gerador de desigualdade interssetorial. A resposta é 'ambos' — depende da perspectiva.")
-doc.add_paragraph()
-
-# ── Contexto macro recente do IBGE (A+B) ──────────────────────────────────────
 add_heading(doc, "Contexto macro recente do IBGE (POF + Gini 2025) — o que dizer se a banca perguntar", level=2)
 add_para(doc, "A banca pode citar notícias recentes do IBGE. Distinga o que melhorou (qualidade de "
               "vida) do que NÃO melhorou (desigualdade de renda):", size=11, space_before=2)
@@ -762,83 +692,6 @@ add_colored_box(doc, "O que dizer se perguntarem 'o Gini do IBGE não bate com o
 doc.add_paragraph()
 
 # ── Figuras Estado H2/H3 ───────────────────────────────────────────────────────
-add_heading(doc, "Figura 13 — Gaps Racial e de Gênero por Setor (H2/H3)", level=2)
-add_figure(doc, FIGS / "estado_h2h3_gaps.png", width_cm=14,
-           caption="Gaps salariais controlados por raça e gênero no setor público vs privado.")
-add_para(doc, "Como ler:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "Barras agrupadas: cada par compara o gap no setor privado vs público, "
-                "para raça (H2) e gênero (H3).")
-add_bullet(doc, "Valores são coeficientes de regressão controlada (β do dummy negro ou sexo_fem), "
-                "não diferenças brutas.")
-add_bullet(doc, "Gap racial bruto: privado −44,1% / público −32,4%. Controlado: privado −34,3% / "
-                "público −28,1%.")
-add_bullet(doc, "Gap de gênero: privado −18,9% / público −21,2% (após controles). "
-                "O setor público tem gap de GÊNERO maior que o privado — o paradoxo H3.")
-add_para(doc, "Interpretação do paradoxo H3:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "O concurso público iguala a entrada (não há discriminação no acesso ao cargo), "
-                "mas a progressão de carreira e os cargos de confiança (DAS, cargos militares "
-                "seniores, judiciário de topo) são preenchidos por nomeação e promoção, "
-                "onde o viés de gênero persiste.")
-add_bullet(doc, "Resultado: dentro do setor público, mulheres ficam presas nos cargos de entrada "
-                "enquanto homens avançam — gap maior que no setor privado onde não há esse "
-                "'teto de vidro institucionalizado'.")
-doc.add_paragraph()
-
-# ── Figura H4 tendência ──────────────────────────────────────────────────────
-add_heading(doc, "Figura 14 — Renda Real e Emprego 2016–2025 (H4)", level=2)
-add_figure(doc, FIGS / "estado_h4_tendencia.png", width_cm=14,
-           caption="Renda real mediana (base IPCA 2016=100) e taxa de emprego 2016–2025.")
-add_para(doc, "Como ler:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "Eixo Y esquerdo (linha): renda real mediana em R$ de 2016.")
-add_bullet(doc, "Eixo Y direito (barra ou linha pontilhada): taxa de emprego (% da PEA).")
-add_bullet(doc, "Dois eixos no mesmo gráfico permitem ver a co-evolução das duas séries.")
-add_para(doc, "O que o padrão mostra:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "Emprego sobe consistentemente de 87–88% (2017–2020) para 94,4% em 2025 — máxima histórica.")
-add_bullet(doc, "Renda real cai de R$1.200 (2016) para R$1.106 (2022 — mínima), recupera para "
-                "R$1.345 (2024) e recua novamente para R$1.283 em 2025.")
-add_bullet(doc, "Divergência entre emprego e renda real: confirma H4 — o crescimento do emprego "
-                "no governo atual não se traduziu em prosperidade equivalente em termos reais.")
-add_bullet(doc, "A renda nominal sobe (R$1.200→R$2.000), mas deflacionada pelo IPCA "
-                "(base 2016=100) o ganho real é modesto e volátil.")
-doc.add_paragraph()
-
-# ── Figura H4 inclusão ─────────────────────────────────────────────────────────
-add_heading(doc, "Figura 15 — Simulação de Inclusão Produtiva (H4)", level=2)
-add_figure(doc, FIGS / "estado_h4_inclusao.png", width_cm=14,
-           caption="Ganho potencial de renda se negros tivessem a mesma distribuição CBO que brancos.")
-add_para(doc, "Como ler:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "Duas barras: renda média negra ATUAL vs renda CONTRAFACTUAL "
-                "(se negros tivessem a mesma distribuição de CBO que brancos).")
-add_bullet(doc, "A diferença entre as barras = +127,3% = ganho potencial de renda se a "
-                "segregação ocupacional fosse eliminada.")
-add_para(doc, "Premissas da simulação:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "Mantém os salários de cada grupo CBO constantes — só redistribui negros pelos "
-                "grupos como se tivessem o perfil CBO dos brancos.")
-add_bullet(doc, "Proxy conservador: não considera mudança de produtividade, apenas redistribuição.")
-add_bullet(doc, "O proxy de PIB (+74,3 p.p.) assume que negros representam 58% da força de trabalho "
-                "e que o ganho de renda se traduz proporcionalmente em demanda agregada.")
-doc.add_paragraph()
-
-# ── Figura H5 armadilha ─────────────────────────────────────────────────────────
-add_heading(doc, "Figura 16 — Gap de Qualificação 2016–2025 (H5: Armadilha da Renda Média)", level=2)
-add_figure(doc, FIGS / "estado_h5_armadilha.png", width_cm=14,
-           caption="% de trabalhadores com alta qualificação por raça ao longo do tempo.")
-add_para(doc, "Como ler:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "Eixo X: anos (2016–2025).")
-add_bullet(doc, "Eixo Y: % de trabalhadores com alta qualificação (CBO grupos 1 e 2, ou superior "
-                "completo com função compatível).")
-add_bullet(doc, "Três linhas: total, brancos e negros.")
-add_para(doc, "O que o padrão mostra:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "Brancos: 19,7% (2016) → 22,4% (2025) — crescimento de +2,7 p.p. em 10 anos.")
-add_bullet(doc, "Negros: 9,6% (2016) → 11,0% (2025) — crescimento de +1,4 p.p. em 10 anos.")
-add_bullet(doc, "As três linhas sobem em paralelo: o gap absoluto permanece praticamente constante "
-                "(≈10 p.p.). Não há convergência.")
-add_bullet(doc, "Isso é a armadilha da renda média: o Brasil eleva a qualificação geral, mas a "
-                "desigualdade racial na qualificação não diminui — e sem quebrar essa barreira, "
-                "o país não consegue sair da armadilha de renda média (Hsieh et al., 2019).")
-doc.add_paragraph()
-
-# ── Figura modelos LL/AIC ─────────────────────────────────────────────────────
 add_heading(doc, "Figura 17 — Comparação de Modelos: Log-Likelihood e AIC", level=2)
 add_figure(doc, FIGS / "modelos_loglik_aic.png", width_cm=14,
            caption="LL e AIC para 10 modelos. Quanto menor o AIC, melhor o ajuste penalizado por complexidade.")
@@ -887,7 +740,7 @@ add_colored_box(doc, "O que dizer se perguntarem sobre a escolha do HLM:",
 doc.add_paragraph()
 
 # ── Análises de Sensibilidade ─────────────────────────────────────────────────
-add_heading(doc, "Análises de Sensibilidade — Konfound, E-values e Oster δ*", level=2)
+add_heading(doc, "Análises de Sensibilidade — Konfound e E-values", level=2)
 add_para(doc, "Como ler:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
 add_bullet(doc, "Konfound (pkonfound): quantos casos precisariam ser trocados de trat./controle, "
                 "ou qual % dos casos precisaria estar mal alocado, para reverter a conclusão. "
@@ -895,9 +748,6 @@ add_bullet(doc, "Konfound (pkonfound): quantos casos precisariam ser trocados de
 add_bullet(doc, "E-value (VanderWeele & Ding, 2017): qual a magnitude mínima de uma variável "
                 "omitida (como razão de risco) para anular o efeito observado. E-value ≥ 2 "
                 "indica boa resistência.")
-add_bullet(doc, "Oster δ*: qual proporção da variação total dos controles observados seria "
-                "necessária nos não-observados para anular o efeito. δ* negativo confirma "
-                "robustez (variáveis omitidas teriam que atuar na direção contrária).")
 add_para(doc, "Resultados:", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
 add_bullet(doc, "Konfound HLM: M1=99,5%; M2=M3=98,8%; M4=98,5% — quase 100% dos casos "
                 "precisariam ser mal alocados para reverter a conclusão de discriminação.")
@@ -905,154 +755,14 @@ add_bullet(doc, f"OLS subestima: gap OLS=43,8%–48,5% vs HLM=50,8%–{fmt(P['GA
                 f"o viés de subestimação do OLS fica em torno de 9,7 p.p. em M1 e 5,4 p.p. em M4.")
 add_bullet(doc, f"E-values GLMM lme4 (PEA completa): M1={fmt(P['EVAL_M1'],3)}; M2={fmt(P['EVAL_M2'],3)} — variável omitida "
                 f"precisaria ter associação ≥2,3× com raça E com acesso a ocupações para eliminar o OR.")
-add_bullet(doc, "Oster δ*: M1=−0,48; M2=−0,43; M4=−0,39 — todos negativos, confirmando "
-                "que variáveis omitidas teriam que atenuar (não amplificar) para anular o gap.")
 add_colored_box(doc, "O que dizer se perguntarem sobre endogeneidade ou variáveis omitidas:",
-    ["'Testei três frameworks de sensibilidade independentes. O pkonfound mostra que seria "
+    ["'Testei dois frameworks de sensibilidade independentes. O pkonfound mostra que seria "
      "necessário reclassificar ~99% das observações para reverter a conclusão — impossível "
      "dado o N=7,7 milhões. O E-value ≥2,0 exige que uma variável omitida tenha associação "
-     "dobrada com raça E com renda simultaneamente — sem candidato plausível. E o Oster δ* "
-     "negativo significa que a seleção nas variáveis omitidas teria que ser na direção "
-     "oposta à seleção observada. Os três convergem: o resultado é robusto.'"],
+     "dobrada com raça E com o desfecho simultaneamente — sem candidato plausível. Os dois "
+     "convergem: o resultado é robusto.'"],
     title_color=(0x2E,0x7D,0x32))
 doc.add_paragraph()
-
-# ── Heckman + Tendência Temporal + Event Study COVID ──────────────────────────
-add_heading(doc, "Análises Complementares — Heckman, Tendência Temporal e Event Study COVID", level=2)
-add_para(doc, "Correção de Seleção Amostral (Heckman):", size=11, bold=True,
-         color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "Problema: analisamos apenas quem tem renda (PEA ocupada). A seleção para "
-                "participar do mercado de trabalho pode ser endógena — se negros participam "
-                "menos, o gap observado é subestimado.")
-add_bullet(doc, "Modelo de seleção (Probit 1ª etapa): educação, idade, número de filhos, "
-                "presença de cônjuge → gera lambda de Mills (λ).")
-add_bullet(doc, "Resultado: λ=−1,985 (***) — seleção amostral significativa e negativa. "
-                "Gap OLS=−9,71% → Gap Heckman=−7,41% (Δ=+2,3 p.p.): o gap bruto estava "
-                "SUBESTIMADO; negros mais excluídos do mercado atenuavam o gap aparente.")
-add_para(doc, "Tendência Temporal e Teste de Chow:", size=11, bold=True,
-         color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "Gap anual estimado: a discriminação racial mantém-se estável ao longo do "
-                "período (tendência linear δ=0,0008/ano, não significativa).")
-add_bullet(doc, "Teste de Chow (2020): F(2,6)=7,012; p=0,027 — quebra estrutural significativa "
-                "em 2020 (pandemia). O gap racial NÃO teve convergência pré-COVID.")
-add_para(doc, "Event Study COVID (DiD):", size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "Tratamento: pós-2020 (COVID). Estimativa: τ=+0,015; SE=0,007; p=0,025.")
-add_bullet(doc, "Interpretação: τ=+0,015 indica **convergência aparente** de curto prazo — "
-                "o gap reduziu-se 1,5 p.p. após 2020. Provável seleção de saída: negros de "
-                "menor renda saíram do mercado formal, elevando a renda relativa dos que ficaram.")
-add_colored_box(doc, "O que dizer se perguntarem sobre essas análises:",
-    ["'O Heckman resolve a crítica de que estamos vendo apenas os 'bem-sucedidos'. O resultado "
-     "(λ negativo e gap que cresce com a correção) indica que a exclusão racial do mercado "
-     "de trabalho é real e que os excluídos estariam em situação ainda pior.'",
-     "'O Chow mostra quebra estrutural em 2020. O DiD mostra convergência aparente de curto "
-     "prazo (τ=+0.015): negros sofreram menos no diferencial salarial, mas provavelmente por "
-     "seleção de saída — não por melhora real. O gap de longo prazo permanece estável.'"],
-    title_color=(0x1F,0x38,0x64))
-doc.add_paragraph()
-
-# ── Pesquisa Operacional — TOPSIS / AHP / LP ──────────────────────────────────
-add_heading(doc, "Pesquisa Operacional — Priorização de Políticas (TOPSIS, AHP, LP)", level=2)
-add_para(doc, "O que é e por que está na dissertação:", size=11, bold=True,
-         color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "PO (Pesquisa Operacional) transforma o diagnóstico empírico em recomendações "
-                "de política priorizadas objetivamente. Sem PO, a dissertação terminaria com "
-                "'há discriminação' — com PO, termina com 'e aqui está a política mais "
-                "custo-eficaz para combatê-la, formalmente justificada'.")
-add_bullet(doc, "Métodos: TOPSIS (ranking multicritério), AHP (pesos dos critérios, CR=0,004 "
-                "← consistente), LP (Programação Linear com restrição orçamentária), "
-                "Pareto frontier (eficiência custo × impacto).")
-add_para(doc, "TOPSIS — Ranking de Políticas (critérios: impacto no gap, custo, viabilidade, prazo):",
-         size=11, bold=True, color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, f"#1 Cotas em CBO 1–4 (P1): CC={fmt(P['TOPSIS_P1_CC'],3)} — política mais próxima da 'solução ideal'. "
-                "Ataca diretamente o mecanismo de exclusão de acesso a ocupações qualificadas "
-                "que explica 84% do gap via dotações.")
-add_bullet(doc, f"#2 Equidade Educacional (P2): CC={fmt(P['TOPSIS_P2_CC'],3)} — segunda mais eficiente. "
-                "Reduz o componente de dotações educacionais.")
-add_bullet(doc, f"#3 Mentoria e Redes (P3): CC={fmt(P['TOPSIS_P3_CC'],3)} — responde diretamente ao achado da "
-                "SNA (betweenness=0 para negros = sem capital social estrutural).")
-add_bullet(doc, f"#4 Transparência Salarial (P4): CC={fmt(P['TOPSIS_P4_CC'],3)} — ataca os retornos diferenciais (16%).")
-add_bullet(doc, f"PL-1 (Cotas CBO): projeta redução de {fmt(P['PL1_B5_PCT'],1)}% do gap bruto em simulações de LP.")
-add_para(doc, "AHP — Consistência dos Pesos:", size=11, bold=True,
-         color=(0x1F,0x38,0x64), space_before=4)
-add_bullet(doc, "CR=0,004 (< 0,10 = aceitável). A matriz de comparação por pares de critérios "
-                "é consistente — os pesos refletem preferências racionais e transitivas.")
-add_colored_box(doc, "O que dizer se perguntarem sobre PO:",
-    ["'A PO não é um método avaliativo adicional — é a tradução dos resultados empíricos "
-     "em ação. A decomposição OB mostra que 84% do gap é de dotações → isso informa os "
-     "pesos do TOPSIS. A SNA mostra que betweenness=0 → isso entra no critério de viabilidade "
-     "da política P3. Os métodos são encadeados: diagnóstico → priorização → simulação.'",
-     "'O TOPSIS é um método multi-critério MCDM clássico (Hwang & Yoon, 1981). Ele ranqueia "
-     "alternativas pela distância relativa à solução ideal e à pior solução. CR<0,10 no AHP "
-     "é o padrão de consistência de Saaty (1980) — garantia de que os pesos derivados da "
-     "comparação por pares são internamente consistentes.'"],
-    title_color=(0xFF,0x8F,0x00))
-doc.add_paragraph()
-
-# ── PO Regionalizada — Focalização Territorial (BLUP por UF) ──────────────────
-if P.get("RPO_GANHO_B9") is not None:
-    add_heading(doc, "Pesquisa Operacional Regionalizada — Focalização Territorial (BLUP por UF)", level=2)
-    add_para(doc, "O que é e por que está na dissertação:", size=11, bold=True,
-             color=(0x1F,0x38,0x64), space_before=4)
-    add_bullet(doc, "Extensão da PO que usa o achado do random slope (M3): a penalidade racial NÃO é "
-                    "homogênea entre estados (LRT p<0,001). Em vez de tratar o gap como um número nacional, "
-                    f"usa-se o BLUP do MixedLM como gap específico de cada uma das {P.get('RPO_N_UFS',27)} UFs, "
-                    "e um programa linear aloca o orçamento priorizando os estados de maior penalidade.")
-    add_bullet(doc, f"Resultado central: focalizar o orçamento nas UFs mais críticas reduz o gap agregado "
-                    f"{fmt(P['RPO_GANHO_B9'],1)}% acima da alocação uniforme com orçamento intermediário (B=9 UFs) "
-                    f"— e até {fmt(P['RPO_GANHO_B3'],1)}% quando o orçamento é escasso (B=3). O ganho vem só da "
-                    "focalização (a efetividade da política é mantida constante entre estados).")
-    add_bullet(doc, f"Prioridades: {P.get('RPO_TOP5','')} (maior penalidade × maior população negra afetada). "
-                    f"Amplitude: {P.get('RPO_WORST_UF','DF')} {fmt(P['RPO_WORST_GAP_PCT'],1)}% → "
-                    f"{P.get('RPO_BEST_UF','MG')} {fmt(P['RPO_BEST_GAP_PCT'],1)}%. As maiores penalidades "
-                    "concentram-se no Distrito Federal e no Norte — estados mais ricos têm penalidade maior.")
-    add_bullet(doc, f"Decisão metodológica: a base oficial é o BLUP do modelo misto, NÃO a aproximação rápida "
-                    f"por OLS estadual + shrinkage empirical Bayes. Os dois divergem (Spearman ρ={fmt(P['RPO_SPEARMAN'],2)}), "
-                    "pois o BLUP mantém os coeficientes de controle agrupados nacionalmente enquanto o OLS "
-                    "estadual os libera — não são intercambiáveis.")
-    add_colored_box(doc, "O que dizer se perguntarem sobre a PO regionalizada:",
-        ["'O random slope provou heterogeneidade geográfica; a PO regional traduz isso em prescrição: "
-         "como o gap varia de ~−1% a ~−21% entre UFs, espalhar o orçamento por igual é subótimo. "
-         "Concentrar nas UFs de maior penalidade entrega até dois terços a mais de redução com o mesmo "
-         "recurso — argumento direto a favor de um desenho federativo diferenciado de política.'",
-         "'Usei os BLUPs (estimadores empíricos de Bayes do modelo misto), não OLS por estado. "
-         "Mostrei formalmente que eles divergem (Spearman ≈0,42) porque o OLS estadual libera todos os "
-         "coeficientes de controle, enquanto o modelo misto os mantém nacionais — o BLUP é a estimativa "
-         "principiada e coerente com o random slope já reportado.'"],
-        title_color=(0xFF,0x8F,0x00))
-    add_figure(doc, FIGS / "mapa_po_regional.png", width_cm=12,
-               caption="Mapa de calor — penalidade racial salarial por estado (mais escuro = maior "
-                       "desvantagem; ★ = estados prioritários para focalizar o orçamento).")
-    if P.get("GRS_OCP_OR") is not None:
-        add_para(doc, "Random slope também no GLMM (acesso) — versão real (lme4), não proxy:",
-                 size=11, bold=True, color=(0x1F,0x38,0x64), space_before=6)
-        add_bullet(doc, "O random slope de negro foi estimado de verdade (lme4::glmer, população "
-                        "completa) nos três desfechos de acesso/teto. O LRT rejeita τ²=0 em todos "
-                        "(p<0,001): a barreira de ACESSO varia entre estados, como o salário — os "
-                        "dois mecanismos da discriminação são geográficos.")
-        add_bullet(doc, f"Contraste a destacar: o gap salarial é MAIOR nos estados ricos (ρ=−0,37), "
-                        f"mas a barreira de acesso a cargos qualificados é MENOR neles "
-                        f"(ρ={fmt(P['GRS_OCP_RHO'],2)}) — acesso mais fácil onde há mais empregos "
-                        f"qualificados, porém gap salarial maior uma vez dentro.")
-        add_bullet(doc, f"Setor: o concurso público NÃO dissolve a barreira de acesso "
-                        f"(OR público={fmt(P['GRS_PUB_OR'],3)} ≈ privado={fmt(P['GRS_PRIV_OR'],3)}) "
-                        f"nem a homogeneíza entre UFs — refina 'o Estado ajuda, mas não resolve'.")
-    if P.get("HRS_PUB_GAP_PCT") is not None:
-        add_bullet(doc, f"Contraste SALÁRIO × ACESSO (HLM por setor): no salário o público ATENUA o gap "
-                        f"racial ({fmt(abs(P['HRS_PUB_GAP_PCT']),1)}% vs {fmt(abs(P['HRS_PRIV_GAP_PCT']),1)}% "
-                        f"privado) e o homogeneíza entre UFs; no acesso, não. Frase de defesa: 'o concurso "
-                        f"equaliza o pagamento de quem entra, não a entrada'.")
-        add_bullet(doc, f"Nível de gênero (HLM): o gap de gênero também varia entre estados (LRT p<0,001), "
-                        f"com dispersão MAIOR que o racial (DP {fmt(P['HRS_GEN_SD_SEXO'],3)} vs "
-                        f"{fmt(P['HRS_GEN_SD_NEGRO'],3)}); ρ negativo ({fmt(P['HRS_GEN_RHO'],2)}) — onde a "
-                        f"penalidade racial é maior, a de gênero tende a ser menor.")
-    if P.get("GGE_OCP_OR") is not None:
-        add_bullet(doc, f"Gênero no GLMM (acesso): mulheres têm MAIS acesso a ocupações qualificadas "
-                        f"(OR={fmt(P['GGE_OCP_OR'],2)}>1, profissões feminizadas), mas MUITO MENOS ao topo "
-                        f"da renda (OR top10={fmt(P['GGE_TOP10_OR'],3)}). Frase: 'o teto de vidro de gênero "
-                        f"é de REMUNERAÇÃO, não de categoria' — e varia mais entre estados que o racial no topo (~10×).")
-    doc.add_paragraph()
-
-doc.add_page_break()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PARTE 3 — EQUAÇÕES IMPORTANTES PARA MEMORIZAR

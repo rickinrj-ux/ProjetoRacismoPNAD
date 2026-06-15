@@ -17,6 +17,10 @@ implicações/conclusão NÃO são removidos (reescritos à mão depois).
 """
 import sys, re, py_compile
 from pathlib import Path
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
 
 PARKED = [
     "TENDÊNCIA TEMPORAL", "TENDENCIA TEMPORAL", "HECKMAN", "EVENT STUDY",
@@ -28,26 +32,40 @@ PARKED = [
     # títulos específicos das apresentações executivas
     "REDES E DISCRIMINA", "REDE QUE EXCLUI", "ESTADO AJUDA", "RACISMO TEM ENDERE",
     "VARIAÇÃO ENTRE ESTADOS",
+    # títulos de figuras parqueadas (guia de estudo, docx)
+    "REDE SOCIAL", "GINI POR SETOR", "POR SETOR (H2", "SIMULAÇÃO DE INCLUSÃO",
+    "(H1)", "(H4)", "(H5", "ESTADO COMO INDUTOR", "INCLINAÇÃO ALEATÓRIA",
+    "HETEROGENEIDADE GEOGRÁFICA", "FOCALIZAÇÃO TERRITORIAL",
 ]
 # Banners cujo título contém estes termos NÃO são removidos (reescrita manual):
 KEEP_OVERRIDE = ["TRIÂNGULO", "SÍNTESE", "IMPLICAÇÕES", "CONCLUSÃO", "LIMITAÇÕES",
                  "INTERSECCIONALIDADE OB", "4 GRUPOS"]
 
 BANNER = re.compile(r"^#\s*[═=]{10,}\s*$")
+# blocos de seção em docx: add_heading(doc, "Titulo", level=2)  (figuras/subseções)
+HEADING = re.compile(r'add_heading\(\s*doc\s*,\s*[fr]?"([^"]+)"[^)]*level\s*=\s*2')
 
 
 def parse_blocks(lines):
-    """Retorna lista de (ini, fim, titulo) para cada bloco de banner ═══."""
-    idx = []
-    for i in range(len(lines) - 2):
-        if BANNER.match(lines[i]) and lines[i + 1].startswith("#") and BANNER.match(lines[i + 2]):
-            idx.append(i)
+    """Retorna (blocos, idx_primeiro). Um bloco começa num banner ═══ (3 linhas)
+    OU num add_heading(...,level=2); vai até o próximo começo de bloco."""
+    starts = []  # (idx, titulo)
+    i = 0
+    n = len(lines)
+    while i < n:
+        if i + 2 < n and BANNER.match(lines[i]) and lines[i + 1].startswith("#") and BANNER.match(lines[i + 2]):
+            starts.append((i, lines[i + 1].lstrip("# ").strip().upper()))
+            i += 3
+            continue
+        m = HEADING.search(lines[i])
+        if m:
+            starts.append((i, m.group(1).strip().upper()))
+        i += 1
     blocks = []
-    for k, start in enumerate(idx):
-        end = idx[k + 1] if k + 1 < len(idx) else len(lines)
-        titulo = lines[start + 1].lstrip("# ").strip().upper()
-        blocks.append((start, end, titulo))
-    return blocks, (idx[0] if idx else len(lines))
+    for k, (s, t) in enumerate(starts):
+        e = starts[k + 1][0] if k + 1 < len(starts) else n
+        blocks.append((s, e, t))
+    return blocks, (starts[0][0] if starts else n)
 
 
 def is_parked(titulo):
