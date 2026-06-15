@@ -1,0 +1,24 @@
+\begin{table}[!ht]
+\centering
+\caption{GLMM Logístico --- Teto de Vidro Ocupacional e Salarial. Odds ratio do coeficiente \emph{negro} (IC 95\% entre colchetes), efeito marginal médio (AME, em pontos percentuais) e E-value (VanderWeele \& Ding, 2017). População completa da PEA ($N=7{,}69$ milhões). Desfechos binários estimados por logit multinível com efeito aleatório de UPA. Todos os coeficientes com $p<0{,}001$.}
+\label{tab:glmm_glassceil}
+\begin{tabular}{llccc}
+\toprule
+Desfecho & Modelo & OR (IC 95\%) & AME (p.p.) & E-value \\
+\midrule
+Cargo qualificado (CBO 1--4) & M1 (indiv.\ + UF) & 0,555 [0,553; 0,557] & −8,60 & 3,03 \\
+ & M2 (+ contexto UPA) & 0,705 [0,702; 0,708] & −4,72 & 2,20 \\
+ & M3 (+ interação credencial) & 0,699 [0,695; 0,702] & −4,83 & --- \\
+\midrule
+Top 20\% de renda & M1 (indiv.\ + UF) & 0,540 [0,538; 0,542] & −8,79 & 3,14 \\
+ & M2 (+ contexto UPA) & 0,691 [0,688; 0,694] & −4,56 & 2,26 \\
+ & M3 (+ interação credencial) & 0,694 [0,691; 0,698] & −4,50 & --- \\
+\midrule
+Top 10\% de renda & M1 (indiv.\ + UF) & 0,457 [0,454; 0,459] & −6,33 & 3,84 \\
+ & M2 (+ contexto UPA) & 0,656 [0,651; 0,660] & −2,88 & 2,43 \\
+ & M3 (+ interação credencial) & 0,664 [0,660; 0,669] & −2,79 & --- \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize\emph{Leitura:} OR $<1$ indica menor chance de acesso para trabalhadores negros vs.\ brancos de mesmo perfil. O teto se aperta no extremo superior (top 10\%) e o E-value $\geq 2{,}2$ no M2 indica que um confundidor não-observado precisaria de associação $\geq 2{,}2\times$ com raça \emph{e} com o desfecho para anular o efeito.
+\end{table}

@@ -27,7 +27,38 @@ git checkout master
 - **`MANIFESTO_METODOS.md`** — classificação de cada método em Núcleo / Robustez / Estendido,
   com o script e a tabela `.tex` correspondentes.
 - **`run_tcc.ps1`** — launcher curado: roda **apenas** os scripts do núcleo + robustez, na
-  ordem, usando o Python do Spyder.
+  ordem, e ao final (re)gera o relatório enxuto. Use `-NucleoSo` para só o núcleo, ou
+  `-Relatorio` para só (re)gerar o relatório.
+- **`scripts/gerar_tabela_glmm.py`** — gera `outputs/tables/glmm_glassceil.tex` (tabela-síntese
+  do GLMM: 3 desfechos × M1–M3, OR/IC/AME/E-value, população completa).
+- **`scripts/gerar_relatorio_enxuto.py`** — pós-processa `relatorio_tcc.tex` (completo) em
+  **`relatorio_tcc_enxuto.tex`**: remove as seções do escopo estendido (clustering, SNA,
+  random slope, segregação, PO regional) e **insere** as subseções de Resultados do núcleo
+  (Oaxaca, Quantílica/RIF, GLMM) com as tabelas via `\input`. Não toca no gerador completo.
+
+## Relatório enxuto
+
+```powershell
+./tcc/run_tcc.ps1 -Relatorio   # gera relatorio_tcc_enxuto.tex (na raiz)
+```
+
+Compilar **a partir da raiz do projeto** (as paths de `outputs/` são relativas à raiz):
+`pdflatex relatorio_tcc_enxuto.tex` → `bibtex` → `pdflatex` ×2. No Overleaf, subir o repo e
+definir `relatorio_tcc_enxuto.tex` como documento principal.
+
+### Pendências de revisão MANUAL (prosa — não automatizadas)
+
+O pós-processador trata estrutura (seções, figuras, tabelas), mas **não reescreve a prosa
+autoral**. Revisar à mão no `relatorio_tcc_enxuto.tex`:
+
+1. **Resumo (PT) e Abstract (EN)** ainda descrevem K-Means, SNA e TOPSIS como parte da
+   metodologia — ajustar para o núcleo de 4 + robustez.
+2. **Discussão/Conclusão** mencionam SNA/clustering/PO de passagem (ex.: "isolamento de
+   redes", ranqueamento TOPSIS) — remover ou reposicionar como agenda futura.
+3. **Metodologia** descreve formalmente HLM e ML/SHAP, mas Oaxaca, Quantílica/RIF e GLMM
+   entram direto em Resultados — convém adicionar parágrafos de método para esses três.
+4. Ordem em Resultados: ML/SHAP (robustez) aparece antes do trio de núcleo; opcional movê-lo
+   para depois.
 
 ## Núcleo de 4 (resumo)
 

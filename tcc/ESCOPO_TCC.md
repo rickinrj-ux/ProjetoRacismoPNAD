@@ -40,7 +40,7 @@ Robustez (apêndice enxuto): ML/SHAP + um par de testes de sensibilidade (E-valu
 | Ponto | Ação |
 |-------|------|
 | **(crítico) Muitos métodos** | Núcleo de 4 + 6 de robustez; ~20 técnicas parqueadas em `mestrado-extenso`. |
-| **Resultados em tabelas** | A maioria já existe como `.tex` em `outputs/tables/` (`ob_decomposicao.tex`, `qr_melhorias.tex`, `rif_ob_decomposicao.tex`, `evalues_glmm.tex`, `hlm_*.tex`). Falta apenas gerar `glmm_resumo.tex` e **inserir** as tabelas no relatório junto às figuras. |
+| **Resultados em tabelas** | Maioria já existia como `.tex` (`ob_decomposicao`, `qr_melhorias`, `rif_ob_decomposicao`, `evalues_glmm`, `hlm_*`). Gerada a tabela-síntese do GLMM (`glmm_glassceil.tex`, via `tcc/scripts/gerar_tabela_glmm.py`) e **inseridas** todas no `relatorio_tcc_enxuto.tex` via `\input`, junto às figuras. |
 | **Frase "principal determinante"** | Corrigida — ver abaixo. |
 
 ## A frase "renda média do bairro é o principal determinante"

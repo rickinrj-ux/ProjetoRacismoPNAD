@@ -23,7 +23,7 @@ Quatro métodos, cada um respondendo uma pergunta distinta. Esta é a espinha do
 | 1 | **HLM 3 níveis** | Quanto do gap salarial sobrevive aos controles e em que nível geográfico nasce? | `run_hlm_serie_completa.py`, `run_hlm_m4.py` | `multilevel_model.py` | `hlm_serie_completo.tex`, `hlm_m4.tex`, `hlm_coeficientes.tex`, `hlm_equacoes.tex` |
 | 2 | **Oaxaca-Blinder** | Quanto do gap é composição (dotações) vs. retorno (discriminação)? | `run_oaxaca_blinder.py` | — | `ob_decomposicao.tex` |
 | 3 | **Regressão quantílica (+RIF-OB)** | A penalidade muda ao longo da distribuição de renda? (teto de vidro / sticky floor) | `run_regressao_quantilica.py`, `run_rif_decomp.py` | `rif_decomp.py` | `qr_melhorias.tex`, `rif_ob_decomposicao.tex` (dados: `quantreg_negro.csv`) |
-| 4 | **GLMM logístico** | Negros têm menor chance de acessar cargo qualificado / topo de renda? | `run_glmm_glassceil.py`, `run_logit_multinivel.py` | — | (gerar `glmm_resumo.tex` a partir de `glmm_resumo.csv` + `glmm_odds_ratios.csv`) |
+| 4 | **GLMM logístico** | Negros têm menor chance de acessar cargo qualificado / topo de renda? | `run_glmm_glassceil.py`, `run_logit_multinivel.py` | — | `glmm_glassceil.tex` (gerada por `tcc/scripts/gerar_tabela_glmm.py`), `evalues_glmm.tex` |
 
 **Apoio descritivo do núcleo** (entram como tabelas/figuras descritivas, não como "método"):
 `run_composicao_ocupacional.py` (composição ocupacional por raça), estatísticas descritivas

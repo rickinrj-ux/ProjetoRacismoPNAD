@@ -5,11 +5,13 @@
     A versão estendida (todos os métodos) está no branch `mestrado-extenso`.
 
     Uso:
-        ./tcc/run_tcc.ps1            # roda núcleo + robustez
-        ./tcc/run_tcc.ps1 -NucleoSo # roda só o núcleo de 4
+        ./tcc/run_tcc.ps1             # roda núcleo + robustez
+        ./tcc/run_tcc.ps1 -NucleoSo   # roda só o núcleo de 4
+        ./tcc/run_tcc.ps1 -Relatorio  # (re)gera só o relatório enxuto
 #>
 param(
-    [switch]$NucleoSo
+    [switch]$NucleoSo,
+    [switch]$Relatorio
 )
 
 $ErrorActionPreference = "Stop"
@@ -51,8 +53,29 @@ function Invoke-Etapa([string[]]$Scripts, [string]$Titulo) {
     }
 }
 
+function Build-Relatorio {
+    Write-Host "`n===== RELATÓRIO ENXUTO =====" -ForegroundColor Cyan
+    # 1. tabela-síntese do GLMM (núcleo)
+    Write-Host "  -> tcc/scripts/gerar_tabela_glmm.py" -ForegroundColor Green
+    & $Python (Join-Path $PSScriptRoot "scripts\gerar_tabela_glmm.py")
+    # 2. relatório completo (fonte) — necessário para o pós-processador
+    Write-Host "  -> scripts/geradores/gerar_relatorio_tcc.py" -ForegroundColor Green
+    & $Python (Join-Path $Root "scripts\geradores\gerar_relatorio_tcc.py")
+    # 3. pós-processa -> relatorio_tcc_enxuto.tex
+    Write-Host "  -> tcc/scripts/gerar_relatorio_enxuto.py" -ForegroundColor Green
+    & $Python (Join-Path $PSScriptRoot "scripts\gerar_relatorio_enxuto.py")
+}
+
+if ($Relatorio) {
+    Build-Relatorio
+    Write-Host "`nRelatório enxuto: relatorio_tcc_enxuto.tex" -ForegroundColor Cyan
+    return
+}
+
 Invoke-Etapa $Nucleo "NÚCLEO (corpo do TCC)"
 if (-not $NucleoSo) {
     Invoke-Etapa $Robustez "ROBUSTEZ (apêndice)"
 }
+Build-Relatorio
 Write-Host "`nConcluído. Tabelas em outputs/tables/, figuras em outputs/figures/." -ForegroundColor Cyan
+Write-Host "Relatório enxuto: relatorio_tcc_enxuto.tex" -ForegroundColor Cyan
