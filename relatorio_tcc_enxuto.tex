@@ -117,12 +117,13 @@ brancos comparáveis em escolaridade, sexo e idade. Desse diferencial bruto, 52,
 é mediado pelo contexto de moradia (Nível~2), reduzindo o \textit{gap} líquido ---
 atribuível à discriminação direta --- a 9,6\%.
 
-As decomposições de Oaxaca--Blinder e RIF por quantil separam a parcela do gap
-explicada por dotações (capital humano e posição ocupacional) da parcela não explicada
-por características observáveis --- limite inferior da discriminação. A análise por
-quantil revela um padrão de \textit{sticky floor}: o componente de discriminação de
-mercado é maior na base da distribuição (33,1\% no q10) e decresce rumo ao topo
-(11,2\% no q90).
+A decomposição de Oaxaca--Blinder (especificação de acesso, com ocupação e contexto
+como dotações) atribui 83,8\% do gap a diferenças de dotações e 16,2\% à parcela não
+explicada por características observáveis --- limite inferior da discriminação salarial
+\emph{dentro} da ocupação. A decomposição RIF por quantil mostra um padrão de
+\textit{sticky floor}: esse componente de retorno é maior na base da distribuição
+(35,1\% no q10) e decresce rumo ao topo (12,9\% no q90). A discriminação opera,
+portanto, sobretudo no \emph{acesso} às ocupações --- canal que o GLMM mede diretamente.
 
 O GLMM logístico de acesso confirma o teto de vidro ocupacional: controlados
 escolaridade, sexo, idade e contexto, trabalhadores negros têm \textit{odds} de
@@ -164,12 +165,13 @@ controlling for education, sex, and age. Of this gross differential, 52.5\% is
 mediated by residential context (Level~2), leaving a residual \textit{net gap} of
 9.6\% attributable to direct labour-market discrimination.
 
-The Oaxaca--Blinder and quantile RIF decompositions separate the share of the gap
-explained by endowments (human capital and occupational position) from the share
-unexplained by observable characteristics --- a lower bound on discrimination. The
-quantile analysis reveals a \textit{sticky floor} pattern: the market-discrimination
-component is largest at the bottom of the distribution (33.1\% at q10) and declines
-toward the top (11.2\% at q90).
+The Oaxaca--Blinder decomposition (access specification, with occupation and context
+treated as endowments) attributes 83.8\% of the gap to endowment differences and 16.2\%
+to the component unexplained by observable characteristics --- a lower bound on
+within-occupation wage discrimination. The quantile RIF decomposition reveals a
+\textit{sticky floor}: this returns component is largest at the bottom of the
+distribution (35.1\% at q10) and declines toward the top (12.9\% at q90). Discrimination
+thus operates mainly on \emph{access} to occupations --- which the GLMM measures directly.
 
 The multilevel logistic model confirms an occupational glass ceiling: controlling for
 education, sex, age, and context, Black workers face odds of accessing a qualified
@@ -574,6 +576,7 @@ Random Forest  & 0.5735  & 0.4287 & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
+\noindent\emph{Como ler a Tabela~\ref{tab:ml_perf}:} R\textsuperscript{2} mais alto = melhor previsão; o \emph{gap} treino--teste próximo de zero indica ausência de sobreajuste.
 
 O $R^2 \approx 0{,}43$ é robusto para dados de rendimento individual,
 onde a variância não observada (setor, cargo, tempo de serviço) responde
@@ -629,6 +632,7 @@ Educ.: Pós-graduação & 0.00000 & 28 & 0.00000 & 29 \\
 \bottomrule
 \end{tabular}
 \end{table}
+\noindent\emph{Como ler a Tabela~\ref{tab:shap_importance}:} variáveis ordenadas pela importância média ($|\text{SHAP}|$); valores maiores = maior peso na previsão da renda.
 
 \begin{figure}[H]
   \centering
@@ -647,6 +651,7 @@ Educ.: Pós-graduação & 0.00000 & 28 & 0.00000 & 29 \\
   \caption{Análise SHAP --- XGBoost ($N_\text{SHAP}=50.000$).}
   \label{fig:shap}
 \end{figure}
+\noindent\emph{Como ler a Figura~\ref{fig:shap}:} cada ponto é um trabalhador; quanto mais à direita (ou maior a barra), maior o efeito da variável na renda prevista. A cor indica se o valor da variável é alto ou baixo.
 
 A Tabela~\ref{tab:shap_importance} revela que a \textbf{renda média da UPA}
 figura entre os preditores de maior peso do rendimento individual ($|\text{SHAP}| = 0.275$). Trata-se, porém, de preditor parcialmente endógeno (problema do reflexo, Manski 1993), pois agrega o próprio indivíduo, o que recomenda interpretá-lo como evidência de mediação territorial e não como determinante causal isolado.
@@ -681,37 +686,50 @@ a diferenças em educação, experiência, gênero ou contexto de moradia.
 \end{figure}
 
 % ── NÚCLEO: decomposições e acesso (inserido pela versão enxuta) ──
+\subsection{Decomposição do gap por mediação contextual e ocupacional}
+A Tabela~\ref{tab:mediacao} resume o resultado central dos modelos HLM: à medida
+que se adicionam controles de contexto (UPA) e ocupação, o gap racial encolhe de
+$-19{,}1\%$ (M1) para $-6{,}2\%$ (M4). \emph{Como ler:} acompanhe a coluna
+$\beta_{\text{negro}}$ aproximando-se de zero linha a linha --- a fração do gap já
+explicada aparece em ``Mediação acum.''; o que resta no M4 é a penalidade que
+nenhum atributo observável explica.
+\input{outputs/tables/gap_mediacao_tcc.tex}
+
 \subsection{Decomposição de Oaxaca--Blinder: composição \emph{vs.}\ discriminação}
-A decomposição de Oaxaca--Blinder separa o gap salarial bruto em uma parcela
-explicada por diferenças de dotações (capital humano e posição ocupacional) e
-uma parcela não explicada, atribuível a retornos diferenciais --- o componente
-usualmente interpretado como discriminação de mercado. A
-Tabela~\ref{tab:oaxaca_blinder} reporta a decomposição \emph{two-fold} sobre a
-população completa.
-\input{outputs/tables/ob_decomposicao.tex}
+A decomposição de Oaxaca--Blinder separa o gap em uma parcela explicada por
+diferenças de dotações (capital humano e posição ocupacional) e uma parcela não
+explicada (limite inferior da discriminação). A Tabela~\ref{tab:oaxaca_blinder}
+usa a especificação de acesso (ocupação e contexto como dotações): 83,8\% do gap é
+composição e 16,2\% é não-explicado. \emph{Como ler:} a coluna ``\% do Gap''
+reparte o gap total (100\%) entre as duas fontes; veja a ressalva da legenda
+(incluir ocupação como dotação \emph{subestima} a discriminação, pois o acesso à
+ocupação é ele próprio discriminatório --- medido pelo GLMM adiante).
+\input{outputs/tables/ob_acesso.tex}
 
 \subsection{Regressão Quantílica e RIF-OB: teto de vidro e \emph{sticky floor}}
 A regressão quantílica estima o gap em cada ponto da distribuição de renda; a
-decomposição RIF-OB separa, por quantil, os componentes de dotação e de retorno.
-A Tabela~\ref{tab:qr_melhorias} evidencia que o gap residual cresce ao longo da
-distribuição (teto de vidro no gap bruto), ao passo que a
-Tabela~\ref{tab:rif_ob} revela o padrão complementar: o componente de retorno ---
-a discriminação de mercado proporcional --- é maior na base da distribuição e
-\emph{decresce} rumo ao topo (\emph{sticky floor}).
+RIF-OB separa, por quantil, dotação e retorno. A Tabela~\ref{tab:qr_melhorias}
+mostra o gap crescendo ao longo da distribuição (teto de vidro no gap bruto); a
+Tabela~\ref{tab:rif_ob} revela o padrão complementar: o componente de retorno
+(discriminação proporcional) é maior na base e \emph{decresce} rumo ao topo
+(\emph{sticky floor}). \emph{Como ler:} na Tabela~\ref{tab:rif_ob}, Dotações $+$
+Retornos $=100\%$ em cada quantil; siga a coluna Retornos caindo de $35{,}1\%$ (q10)
+a $12{,}9\%$ (q90) --- a discriminação de preço pesa mais na base.
 \input{outputs/tables/qr_melhorias.tex}
-\input{outputs/tables/rif_ob_decomposicao.tex}
+\input{outputs/tables/rif_decomp_tcc.tex}
 
 \subsection{GLMM Logístico: o teto de vidro no acesso}
 O GLMM logístico multinível estima a probabilidade de acesso a cargo qualificado
-e ao topo da renda, com efeito aleatório de UPA. A
-Tabela~\ref{tab:glmm_glassceil} sintetiza os \emph{odds ratios}, efeitos
-marginais médios e E-values dos três desfechos; a Tabela~\ref{tab:evalues_glmm}
-detalha a sensibilidade a confundidores não-observados. O padrão é consistente:
-o teto se aperta no extremo superior (top~10\%) e resiste a todos os controles.
+e ao topo da renda, com efeito aleatório de UPA. A Tabela~\ref{tab:glmm_glassceil}
+traz os \emph{odds ratios}, efeitos marginais e E-values dos três desfechos.
+\emph{Como ler:} OR $<1$ = menor chance de acesso para negros vs.\ brancos de mesmo
+perfil; quanto mais perto de zero, maior a barreira. O teto se aperta no top~10\%
+(OR menor) e o E-value $\geq 2{,}2$ (última coluna) indica robustez a confundidores
+não-observados.
 \input{outputs/tables/glmm_glassceil.tex}
-\input{outputs/tables/evalues_glmm.tex}
 
 \subsection{Interseccionalidade: raça e gênero no acesso e no topo}
+\input{outputs/tables/ob_interseccional_tcc.tex}
 \label{subsec:interseccional}
 
 Os modelos anteriores tratam raça e gênero de forma aditiva. Uma leitura
@@ -729,6 +747,7 @@ ocupação qualificada (CBO~1--4), renda no top~20\% e no top~10\%.
   mas torna-se a \emph{mais excluída} no topo da renda.}
   \label{fig:interseccional}
 \end{figure}
+\noindent\emph{Como ler a Figura~\ref{fig:interseccional}:} cada barra é um grupo raça$\times$gênero; a altura é o gap vs.\ o homem branco --- a mulher negra acumula as duas penalidades.
 
 O resultado revela uma \textbf{inversão} (Figura~\ref{fig:interseccional}). No
 \textbf{acesso à categoria} qualificada, a mulher negra tem OR~$=1,33$

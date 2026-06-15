@@ -1,0 +1,59 @@
+
+==========================================================================
+1. IDENTIDADES DE DECOMPOSIÇÃO (soma das partes == total)
+==========================================================================
+  [PASS] ob_decomposicao.csv: dotação+coef == gap  (0.1065+0.3226=0.4291 vs gap=0.4291)
+  [PASS] ob_acesso.csv: dotação+coef == gap  (0.3566+0.0689=0.4255 vs gap=0.4255)
+  [**FALHA**] RIF q10: threefold end+ret+inter==gap_rif  (soma3=0.3534 vs 0.5277; end+ret=0.5277)
+        -> 'inter'=-0.1743 é ÓRFÃO (end+ret já = gap_rif)
+  [**FALHA**] RIF q25: threefold end+ret+inter==gap_rif  (soma3=0.1888 vs 0.2546; end+ret=0.2546)
+        -> 'inter'=-0.0658 é ÓRFÃO (end+ret já = gap_rif)
+  [**FALHA**] RIF q50: threefold end+ret+inter==gap_rif  (soma3=0.2744 vs 0.2980; end+ret=0.2980)
+        -> 'inter'=-0.0235 é ÓRFÃO (end+ret já = gap_rif)
+  [**FALHA**] RIF q75: threefold end+ret+inter==gap_rif  (soma3=0.5418 vs 0.4818; end+ret=0.4818)
+        -> 'inter'=0.0600 é ÓRFÃO (end+ret já = gap_rif)
+  [**FALHA**] RIF q90: threefold end+ret+inter==gap_rif  (soma3=0.5617 vs 0.4203; end+ret=0.4203)
+        -> 'inter'=0.1414 é ÓRFÃO (end+ret já = gap_rif)
+  [PASS] OB4 Mulher Branca: end+ret+inter==gap  (soma3=0.3823 vs gap=0.3823)
+  [PASS] OB4 Mulher Branca: end%+ret%+inter% == 100  (=100.0%)
+  [**FALHA**] OB4 Homem Negro: end+ret+inter==gap  (soma3=0.2563 vs gap=0.3388)
+        -> 'inter'=-0.0826 ÓRFÃO (end+ret=0.3388=gap)
+  [**FALHA**] OB4 Homem Negro: end%+ret%+inter% == 100  (=75.6%)
+  [**FALHA**] OB4 Mulher Negra: end+ret+inter==gap  (soma3=0.6490 vs gap=0.6750)
+        -> 'inter'=-0.0260 ÓRFÃO (end+ret=0.6750=gap)
+  [**FALHA**] OB4 Mulher Negra: end%+ret%+inter% == 100  (=96.1%)
+
+==========================================================================
+2. CONSISTÊNCIA params.py  <->  TABELAS
+==========================================================================
+  [PASS] params[OR_OCP_M2] == glmm_glassceil_full  (params=0.7046 vs tabela=0.7046)
+  [PASS] params[OR_TOP20_M2] == glmm_glassceil_full  (params=0.6909 vs tabela=0.6909)
+  [PASS] params[OR_TOP10_M2] == glmm_glassceil_full  (params=0.6556 vs tabela=0.6556)
+  [PASS] params[OR_OCP_M1] == glmm_glassceil_full  (params=0.5551 vs tabela=0.5551)
+  [PASS] params[GAP_PCT] ~ ob_decomposicao gap_pct  (params=53.0 vs ob=53.6)
+
+==========================================================================
+3. DUPLICIDADE: gap_decomposicao vs gap_decomposicao_serie_completo
+==========================================================================
+  gap_decomposicao M1 Gap%        = -10.79
+  serie_completo   M1 Gap%        = -19.13
+  [**FALHA**] M1 coincide entre os dois arquivos  (se FALHA: são períodos/amostras distintos — exigem rótulo claro)
+
+==========================================================================
+4. ML: R² e overfit
+==========================================================================
+       Modelo     R²    MAE   RMSE  R2_treino  gap_overfit
+Random Forest 0.5735 0.4529 0.6030     0.5741       0.0006
+      XGBoost 0.6168 0.4287 0.5716     0.6174       0.0006
+  [PASS] Random Forest: overfit treino-teste < 0.05  (gap=0.0006)
+  [PASS] XGBoost: overfit treino-teste < 0.05  (gap=0.0006)
+
+==========================================================================
+5. HLM Nakagawa R² / LRT
+==========================================================================
+                Modelo  sigma2_f  sigma2_u  sigma2_e    R2m    R2c LRT_vs_prev      p_LRT
+ M3-equiv. (sem slope)  0.158657  0.000000  0.370467 0.2998 0.2998           —          —
+M4 (random slope educ)  0.286185  0.058415  0.369187 0.4009 0.4828        -inf 1.0000e+00
+  [**ATENÇÃO**] M4 (random slope educ): LRT=-inf p=1.0000e+00 (valor degenerado)
+
+=== AUDITORIA CONCLUÍDA ===

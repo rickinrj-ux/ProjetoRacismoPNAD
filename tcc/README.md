@@ -59,11 +59,29 @@ mas **não reescreve o restante da prosa autoral**. Revisar à mão no `relatori
    entram direto em Resultados — convém adicionar parágrafos de método para esses três.
 4. Ordem em Resultados: ML/SHAP (robustez) aparece antes do trio de núcleo; opcional movê-lo
    para depois.
-5. **Decomposição Oaxaca — ver `tcc/PERICIA.md` (F1, CRÍTICO)**: bug do intercepto já
-   corrigido (identidade fecha), mas o split agregado (24,8/75,2) está **distorcido** porque
-   usa `educ_missing` (educação desconhecida p/ ~69% → "discriminação" inflada), enquanto o
-   RIF (educação conhecida) dá dotações dominantes. **Decisão metodológica pendente do autor**
-   antes de fixar o número na narrativa. Resumo/abstract revertidos para qualitativo.
+5. **Decomposição Oaxaca — RESOLVIDO** (`tcc/PERICIA.md` F1): a divergência era de
+   **especificação** (ocupação dentro/fora), não de amostra. Tabela `ob_acesso.tex` (com
+   ocupação) → **dotações 83,8% / discriminação 16,2%**, reproduzindo o "84%". Resumo cita
+   o número; narrativa vindicada.
+
+## Tabelas de resultado e legendas "Como ler" (pedido do orientador)
+
+O relatório enxuto agora insere **6 tabelas de resultado** do núcleo (mediação M1→M4,
+Oaxaca de acesso, quantílica, RIF corrigido, GLMM, interseccional), cada uma com legenda
+``Como ler''; figuras (SHAP, interseccional) e tabelas de ML também receberam legendas.
+Geradores em `tcc/scripts/`: `gerar_tabela_mediacao.py`, `gerar_tabela_oaxaca.py`,
+`corrigir_tabela_rif.py`, `gerar_tabela_glmm.py`, `gerar_tabela_interseccional.py`.
+
+## Perícia cruzada (`tcc/PERICIA.md` seção 2 + `pericia_cruzada_resultado.txt`)
+
+Auditoria numérica (`tcc/scripts/pericia_cruzada.py`): identidades de decomposição +
+consistência params↔tabelas. Achados FC1–FC7 (coluna RIF dupla-contada, `inter` órfão no
+interseccional, `evalues` stale, LRT degenerado, gap_decomposicao duplicado). Os que afetam
+o relatório foram corrigidos; os de escopo estendido ficaram flagueados para o mestrado.
+
+## Pendências de revisão MANUAL remanescentes
+- Discussão/Conclusão ainda mencionam SNA/clustering/PO de passagem (remover/agendar).
+- Metodologia: adicionar parágrafos formais de Oaxaca/QR/GLMM.
 
 ## Núcleo de 4 (resumo)
 

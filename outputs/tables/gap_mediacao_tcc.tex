@@ -1,0 +1,25 @@
+\begin{table}[!ht]
+\centering
+\caption{Decomposição do gap salarial racial por mediação contextual e ocupacional
+(modelos HLM de três níveis, PNAD Contínua 2016--2025, população completa). Cada linha
+acrescenta um bloco de controles ao anterior; à medida que se adiciona contexto e ocupação,
+o gap encolhe e a mediação acumulada cresce.}
+\label{tab:mediacao}
+\begin{tabular}{lrrr}
+\toprule
+Modelo (controles acumulados) & $\beta_{\text{negro}}$ & Gap (\%) & Mediação acum. (\%) \\
+\midrule
+Individual (educ., idade, sexo) & −0,2123 & −19,1 & --- \\
++ contexto da UPA (vizinhança) & −0,1009 & −9,6 & 52,5 \\
++ efeito de UF (estado) & −0,1009 & −9,6 & 52,5 \\
++ ocupação e formalidade & −0,0641 & −6,2 & 69,8 \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize\emph{Como ler:} cada linha adiciona controles à anterior. $\beta_{\text{negro}}$
+é a penalidade racial em log-rendimento (mais próximo de zero = menor gap); ``Gap (\%)'' é a
+penalidade em \% de renda; ``Mediação acum.''\ é a fração do gap bruto (M1) já explicada pelos
+controles. Do M1 ao M4 o gap cai de $-19{,}1\%$ para $-6{,}2\%$: $69{,}8\%$ do gap é mediado por
+onde a pessoa mora e qual ocupação acessa --- e o residual de $-6{,}2\%$ persiste após todos os
+controles observáveis.
+\end{table}
