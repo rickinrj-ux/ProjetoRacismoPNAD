@@ -185,13 +185,26 @@ def oaxaca_blinder(
     coef_b = res_b.params.drop("Intercept", errors="ignore")
     coef_n = res_n.params.drop("Intercept", errors="ignore")
 
+    # O termo de intercepto (alpha_b - alpha_n) faz parte do componente NÃO
+    # explicado na decomposição twofold. Sem ele, ef_dotacao + ef_coef != gap_total
+    # (o intercepto absorve o nível-base das dummies, ex.: educ_missing) e o
+    # componente de discriminação sai com sinal/magnitude errados.
+    intercept_b  = float(res_b.params.get("Intercept", 0.0))
+    intercept_n  = float(res_n.params.get("Intercept", 0.0))
+
     gap_total    = df_b["log_renda"].mean() - df_n["log_renda"].mean()
     ef_dotacao   = float((mean_b - mean_n) @ coef_b)
-    ef_coef      = float(mean_n @ (coef_b - coef_n))
-    # Verificação: ef_dotacao + ef_coef ≈ gap_total (pequena diferença por intercepto)
+    ef_coef      = float(mean_n @ (coef_b - coef_n)) + (intercept_b - intercept_n)
+    # Identidade garantida: ef_dotacao + ef_coef == gap_total (a menos de erro num.)
 
     pct_dotacao  = ef_dotacao / gap_total * 100 if gap_total != 0 else np.nan
     pct_coef     = ef_coef   / gap_total * 100 if gap_total != 0 else np.nan
+
+    # Sanity-check: a soma dos componentes deve reconstituir o gap total.
+    _resid = gap_total - (ef_dotacao + ef_coef)
+    if abs(_resid) > 1e-6:
+        logger.warning(f"  [OB] identidade violada: resíduo={_resid:+.6f} "
+                       f"(dotação+coef != gap_total) — revisar tratamento do intercepto.")
 
     logger.info(f"  Gap total    : {gap_total:+.4f} ({(np.exp(gap_total)-1)*100:+.1f}%)")
     logger.info(f"  Efeito dotação (explicado)    : {ef_dotacao:+.4f} ({pct_dotacao:.1f}%)")
@@ -224,8 +237,10 @@ def oaxaca_blinder(
                 rn.model.exog[:, 1:].mean(axis=0),
                 index=rn.model.exog_names[1:],
             )
+            ib = float(rb.params.get("Intercept", 0.0))
+            inn = float(rn.params.get("Intercept", 0.0))
             boot_dot.append(float((mb - mn) @ cb))
-            boot_coef.append(float(mn @ (cb - cn)))
+            boot_coef.append(float(mn @ (cb - cn)) + (ib - inn))
         except Exception:
             continue
 

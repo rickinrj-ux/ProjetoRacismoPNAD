@@ -59,10 +59,13 @@ mas **não reescreve o restante da prosa autoral**. Revisar à mão no `relatori
    entram direto em Resultados — convém adicionar parágrafos de método para esses três.
 4. Ordem em Resultados: ML/SHAP (robustez) aparece antes do trio de núcleo; opcional movê-lo
    para depois.
-5. **Tabela Oaxaca-Blinder (`ob_decomposicao.tex`) inconsistente**: os componentes não somam
-   o gap (dotação +0,1065 e coeficiente −0,3910 ≠ gap +0,4291; 24,8\% + (−91,1\%) ≠ 100\%) e o
-   componente de discriminação sai negativo. **Verificar `run_oaxaca_blinder.py` antes de
-   entregar** — por isso o resumo cita Oaxaca como método, sem o percentual.
+5. **Tabela Oaxaca-Blinder (`ob_decomposicao.tex`) — BUG CORRIGIDO no código**: a versão
+   antiga não fechava (dotação +0,1065 e coeficiente −0,3910 ≠ gap +0,4291) porque
+   `src/analise_retornos_raciais.py` **dropava a diferença de interceptos** (α_b − α_n) do
+   componente não-explicado. Corrigido (estimativa pontual + bootstrap + sanity-check da
+   identidade). Valores corretos: **dotações 24,8% / discriminação 75,2%** (antes −91,1%).
+   **PENDENTE: re-rodar `run_analise_retornos_raciais.py`** para regenerar a tabela com SE
+   corretos. Só então atualizar o resumo para citar o percentual (hoje cita Oaxaca sem %).
 
 ## Núcleo de 4 (resumo)
 
