@@ -102,6 +102,91 @@ o teto se aperta no extremo superior (top~10\%) e resiste a todos os controles.
 
 """
 
+# Resumo (PT) e Abstract (EN) reescritos para o núcleo de 4 + robustez (SHAP).
+# Substituem os blocos do gerador completo (que descreve K-Means/SNA/TOPSIS) sem
+# tocar no gerador — sobrevivem à regeração. Nota: NÃO se cita % de Oaxaca-Blinder
+# porque a tabela atual (ob_decomposicao.tex) está internamente inconsistente
+# (componentes não somam o gap); a evidência de discriminação ancora-se no GLMM
+# e no sticky-floor do RIF. REVISAR a tabela OB antes da entrega.
+RESUMO_PT = r"""\begin{abstract}
+\noindent
+Este trabalho investiga o \textit{gap} salarial racial e as barreiras estruturais
+à progressão de carreira de profissionais negros no Brasil, combinando econometria
+multinível e métodos de decomposição salarial sobre a série histórica completa da
+Pesquisa Nacional por Amostra de Domicílios Contínua (PNAD Contínua) de 2016 a 2025
+(15,9~milhões de observações brutas). A estratégia empírica articula quatro métodos
+complementares --- modelo linear hierárquico (HLM), decomposição de Oaxaca--Blinder,
+regressão quantílica com decomposição RIF e modelo logístico multinível (GLMM) ---,
+validados por \textit{machine learning} interpretável (XGBoost + SHAP).
+
+Um modelo de regressão multinível de três níveis (indivíduo, UPA e Unidade da
+Federação) estima que profissionais negros recebem, em média, 19,1\% a menos que
+brancos comparáveis em escolaridade, sexo e idade. Desse diferencial bruto, 52,5\%
+é mediado pelo contexto de moradia (Nível~2), reduzindo o \textit{gap} líquido ---
+atribuível à discriminação direta --- a 9,6\%.
+
+A decomposição de Oaxaca--Blinder separa a parcela do gap explicada por dotações
+(capital humano e posição ocupacional) da parcela não explicada; a decomposição RIF
+por quantil revela um padrão de \textit{sticky floor}: o componente de discriminação
+de mercado é maior na base da distribuição (33,1\% no q10) e decresce rumo ao topo
+(11,2\% no q90).
+
+O GLMM logístico de acesso confirma o teto de vidro ocupacional: controlados
+escolaridade, sexo, idade e contexto, trabalhadores negros têm \textit{odds} de
+acesso a cargo qualificado de 0,70 (IC~95\% 0,70--0,71), que se apertam para 0,66 no
+topo~10\% da renda; o E-value de~2,2 indica robustez a confundidores não observados.
+O \textit{machine learning} (XGBoost + SHAP) corrobora, sem pressuposto de forma
+funcional, que a variável racial mantém contribuição negativa direta mesmo após todos
+os controles e que o contexto territorial figura entre os preditores de maior peso ---
+evidência de que a segregação residencial é um canal relevante da desigualdade, e não
+mero atributo individual. A penalidade recai de forma agravada sobre a mulher negra,
+na intersecção de raça e gênero.
+
+\bigskip
+\noindent\textbf{Palavras-chave:} gap salarial racial; discriminação estrutural;
+modelos hierárquicos lineares; decomposição de Oaxaca--Blinder; regressão quantílica;
+teto de vidro; SHAP values; PNAD Contínua.
+\end{abstract}"""
+
+ABSTRACT_EN = r"""\begin{abstract}
+\noindent
+This study investigates the racial wage gap and structural barriers to career
+progression for Black professionals in Brazil, combining multilevel econometrics and
+wage-decomposition methods on the full historical series of Brazil's Continuous
+National Household Sample Survey (PNAD Contínua) from 2016 to 2025 (15.9~million raw
+observations). The empirical strategy articulates four complementary methods --- a
+hierarchical linear model (HLM), the Oaxaca--Blinder decomposition, quantile
+regression with RIF decomposition, and a multilevel logistic model (GLMM) ---,
+validated by interpretable machine learning (XGBoost + SHAP).
+
+A three-level hierarchical linear model (individual, census tract, and state)
+estimates that Black workers earn 19.1\% less than comparable White workers after
+controlling for education, sex, and age. Of this gross differential, 52.5\% is
+mediated by residential context (Level~2), leaving a residual \textit{net gap} of
+9.6\% attributable to direct labour-market discrimination.
+
+The Oaxaca--Blinder decomposition separates the share of the gap explained by
+endowments (human capital and occupational position) from the unexplained share; the
+quantile RIF decomposition reveals a \textit{sticky floor} pattern: the
+market-discrimination component is largest at the bottom of the distribution (33.1\%
+at q10) and declines toward the top (11.2\% at q90).
+
+The multilevel logistic model confirms an occupational glass ceiling: controlling for
+education, sex, age, and context, Black workers face odds of accessing a qualified
+occupation of 0.70 (95\% CI 0.70--0.71), tightening to 0.66 in the top 10\% of income;
+an E-value of 2.2 indicates robustness to unobserved confounding. Interpretable
+machine learning (XGBoost + SHAP) corroborates --- with no functional-form assumption
+--- that race retains a direct negative contribution after all controls and that
+territorial context ranks among the strongest predictors, indicating that residential
+segregation is a relevant channel of inequality rather than a mere individual trait.
+The penalty falls most heavily on Black women, at the intersection of race and gender.
+
+\bigskip
+\noindent\textbf{Keywords:} racial wage gap; structural discrimination; hierarchical
+linear models; Oaxaca--Blinder decomposition; quantile regression; glass ceiling;
+SHAP values; PNAD Contínua.
+\end{abstract}"""
+
 NOTA_CABECALHO = (
     "% ╔══════════════════════════════════════════════════════════════════════╗\n"
     "% ║ VERSÃO ENXUTA DO TCC — núcleo de 4 métodos + robustez.                ║\n"
@@ -187,6 +272,18 @@ except ValueError:
     sys.exit("Âncora de núcleo não encontrada — abortando para não inserir no lugar errado.")
 
 texto = NOTA_CABECALHO + "\n".join(lines) + "\n"
+
+# Substitui resumo (PT) e abstract (EN) pelas versões alinhadas ao núcleo.
+# EN primeiro (ancorado no \renewcommand) para não confundir com o PT.
+print("Reescrevendo resumo (PT) e abstract (EN) para o núcleo…")
+texto, n_en = re.subn(
+    r"(\\renewcommand\{\\abstractname\}\{Abstract\}\s*)\\begin\{abstract\}.*?\\end\{abstract\}",
+    lambda m: m.group(1) + ABSTRACT_EN, texto, count=1, flags=re.S)
+texto, n_pt = re.subn(
+    r"\\begin\{abstract\}.*?\\end\{abstract\}",
+    lambda m: RESUMO_PT, texto, count=1, flags=re.S)
+if n_pt != 1 or n_en != 1:
+    print(f"  [AVISO] substituição inesperada (PT={n_pt}, EN={n_en}) — revisar manualmente.")
 
 # Checagem de \ref pendentes a rótulos removidos
 pendentes = []

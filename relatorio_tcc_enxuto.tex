@@ -102,52 +102,42 @@ E PESQUISA OPERACIONAL COM DADOS DA PNAD CONTÍNUA (2016--2025)}}
 % ══════════════════════════════════════════════════════════════════════════════
 \begin{abstract}
 \noindent
-Este trabalho investiga o \textit{gap} salarial racial e as barreiras
-estruturais à progressão de carreira de profissionais negros no Brasil,
-combinando econometria multinível, \textit{machine learning} e análise de
-redes sociais sobre a série histórica completa da Pesquisa Nacional por
-Amostra de Domicílios Contínua (PNAD Contínua) de 2016 a 2025, com
-15,9~milhões de observações brutas.
+Este trabalho investiga o \textit{gap} salarial racial e as barreiras estruturais
+à progressão de carreira de profissionais negros no Brasil, combinando econometria
+multinível e métodos de decomposição salarial sobre a série histórica completa da
+Pesquisa Nacional por Amostra de Domicílios Contínua (PNAD Contínua) de 2016 a 2025
+(15,9~milhões de observações brutas). A estratégia empírica articula quatro métodos
+complementares --- modelo linear hierárquico (HLM), decomposição de Oaxaca--Blinder,
+regressão quantílica com decomposição RIF e modelo logístico multinível (GLMM) ---,
+validados por \textit{machine learning} interpretável (XGBoost + SHAP).
 
-Um modelo de regressão multinível de três níveis (indivíduo, UPA e Unidade
-da Federação) estima que profissionais negros recebem, em média,
-19.1\% a menos que brancos comparáveis em escolaridade, sexo e faixa etária.
-Desse diferencial bruto, 52.5\% é mediado pelo contexto de moradia
-(\textit{networking} local, Nível~2), reduzindo o \textit{gap} líquido
---- atribuível à discriminação direta --- a 9.6\%.
+Um modelo de regressão multinível de três níveis (indivíduo, UPA e Unidade da
+Federação) estima que profissionais negros recebem, em média, 19,1\% a menos que
+brancos comparáveis em escolaridade, sexo e idade. Desse diferencial bruto, 52,5\%
+é mediado pelo contexto de moradia (Nível~2), reduzindo o \textit{gap} líquido ---
+atribuível à discriminação direta --- a 9,6\%.
 
-A análise de agrupamento (\textit{K-Means}, $k=3$) segrega a força de trabalho
-em três tipologias socioeconomicamente distintas e racialmente homogêneas,
-com trabalhadores negros concentrados nos grupos de menor rendimento e as
-mulheres negras formando um cluster de dupla desvantagem (raça \textit{e}
-gênero).
+A decomposição de Oaxaca--Blinder separa a parcela do gap explicada por dotações
+(capital humano e posição ocupacional) da parcela não explicada; a decomposição RIF
+por quantil revela um padrão de \textit{sticky floor}: o componente de discriminação
+de mercado é maior na base da distribuição (33,1\% no q10) e decresce rumo ao topo
+(11,2\% no q90).
 
-Modelos de \textit{Random Forest} e XGBoost com valores SHAP confirmam que
-a renda média da UPA é o preditor mais importante do rendimento individual
-($|\text{SHAP}| = 0.275$), seguida de gênero e escolaridade superior,
-com a variável racial ocupando o 11$^\circ$ lugar mesmo após
-controlar por todos os demais fatores.
-
-A análise de redes sociais revela que grupos negros possuem
-\textit{betweenness centrality} nula em todos os níveis educacionais,
-enquanto grupos brancos de escolaridade fundamental e pós-graduação
-funcionam como \textit{brokers} da rede de co-residência --- evidência
-de que a conversão de capital humano em renda depende de capital social
-estruturalmente negado a trabalhadores negros.
-
-A pesquisa operacional traduz esses achados em recomendações concretas:
-o método TOPSIS ranqueia seis políticas públicas avaliadas em cinco
-critérios simultâneos, apontando as Cotas Ocupacionais CBO~1--4 como
-política dominante (CC~$=0,8344$), seguida da
-Equidade Educacional (CC~$=0,5879$).
-A programação linear indica que uma alocação ótima de R\$5~bilhões,
-priorizando os três canais de maior efetividade, reduziria o
-\textit{gap} salarial racial em 25,1\%.
+O GLMM logístico de acesso confirma o teto de vidro ocupacional: controlados
+escolaridade, sexo, idade e contexto, trabalhadores negros têm \textit{odds} de
+acesso a cargo qualificado de 0,70 (IC~95\% 0,70--0,71), que se apertam para 0,66 no
+topo~10\% da renda; o E-value de~2,2 indica robustez a confundidores não observados.
+O \textit{machine learning} (XGBoost + SHAP) corrobora, sem pressuposto de forma
+funcional, que a variável racial mantém contribuição negativa direta mesmo após todos
+os controles e que o contexto territorial figura entre os preditores de maior peso ---
+evidência de que a segregação residencial é um canal relevante da desigualdade, e não
+mero atributo individual. A penalidade recai de forma agravada sobre a mulher negra,
+na intersecção de raça e gênero.
 
 \bigskip
-\noindent\textbf{Palavras-chave:} gap salarial racial; discriminação estrutural; modelos
-hierárquicos lineares; SHAP values; análise de redes sociais; pesquisa
-operacional; TOPSIS; programação linear; políticas públicas; PNAD Contínua.
+\noindent\textbf{Palavras-chave:} gap salarial racial; discriminação estrutural;
+modelos hierárquicos lineares; decomposição de Oaxaca--Blinder; regressão quantílica;
+teto de vidro; SHAP values; PNAD Contínua.
 \end{abstract}
 
 \newpage
@@ -159,46 +149,40 @@ operacional; TOPSIS; programação linear; políticas públicas; PNAD Contínua.
 \begin{abstract}
 \noindent
 This study investigates the racial wage gap and structural barriers to career
-progression for Black professionals in Brazil using a multilevel, machine
-learning, and social network analysis framework applied to the full historical
-series of Brazil's Continuous National Household Sample Survey (PNAD Contínua)
-from 2016 to 2025 (15.9~million raw observations).
+progression for Black professionals in Brazil, combining multilevel econometrics and
+wage-decomposition methods on the full historical series of Brazil's Continuous
+National Household Sample Survey (PNAD Contínua) from 2016 to 2025 (15.9~million raw
+observations). The empirical strategy articulates four complementary methods --- a
+hierarchical linear model (HLM), the Oaxaca--Blinder decomposition, quantile
+regression with RIF decomposition, and a multilevel logistic model (GLMM) ---,
+validated by interpretable machine learning (XGBoost + SHAP).
 
 A three-level hierarchical linear model (individual, census tract, and state)
-estimates that Black workers earn 19.1\% less than comparable White
-workers after controlling for education, sex, and age experience.
-Of this gross differential, 52.5\% is mediated by residential context
-(local networking, Level~2), leaving a residual \textit{net gap} of
-9.6\% attributable to direct labour market discrimination.
+estimates that Black workers earn 19.1\% less than comparable White workers after
+controlling for education, sex, and age. Of this gross differential, 52.5\% is
+mediated by residential context (Level~2), leaving a residual \textit{net gap} of
+9.6\% attributable to direct labour-market discrimination.
 
-K-Means clustering ($k=3$) reveals three racially homogeneous
-socioeconomic typologies, with Black workers concentrated in lower-income
-segments and Black women forming a dual-disadvantage cluster at the
-intersection of race and gender.
+The Oaxaca--Blinder decomposition separates the share of the gap explained by
+endowments (human capital and occupational position) from the unexplained share; the
+quantile RIF decomposition reveals a \textit{sticky floor} pattern: the
+market-discrimination component is largest at the bottom of the distribution (33.1\%
+at q10) and declines toward the top (11.2\% at q90).
 
-Random Forest and XGBoost models with SHAP values confirm that neighbourhood
-income is the most important predictor of individual earnings
-($|\text{SHAP}|=0.275$), while race ranks
-11$^\text{th}$ even after all controls.
-
-Social network analysis shows that Black groups have zero betweenness
-centrality regardless of education level, whereas White groups serve as
-brokers in the co-residence network, suggesting that the conversion of
-human capital into earnings depends on social capital that is structurally
-denied to Black workers.
-
-An operations research module translates these findings into policy
-recommendations. A TOPSIS multicriteria ranking of six public policies
-across five criteria identifies occupational quotas for CBO groups~1--4
-as the dominant policy (CC~$=0,8344$), followed by
-educational equity (CC~$=0,5879$). Linear programming
-shows that an optimal R\$5-billion allocation would reduce the racial
-wage gap by 25,1\%.
+The multilevel logistic model confirms an occupational glass ceiling: controlling for
+education, sex, age, and context, Black workers face odds of accessing a qualified
+occupation of 0.70 (95\% CI 0.70--0.71), tightening to 0.66 in the top 10\% of income;
+an E-value of 2.2 indicates robustness to unobserved confounding. Interpretable
+machine learning (XGBoost + SHAP) corroborates --- with no functional-form assumption
+--- that race retains a direct negative contribution after all controls and that
+territorial context ranks among the strongest predictors, indicating that residential
+segregation is a relevant channel of inequality rather than a mere individual trait.
+The penalty falls most heavily on Black women, at the intersection of race and gender.
 
 \bigskip
-\noindent\textbf{Keywords:} racial wage gap; structural discrimination;
-hierarchical linear models; SHAP values; social network analysis;
-operations research; TOPSIS; linear programming; public policy; PNAD Contínua.
+\noindent\textbf{Keywords:} racial wage gap; structural discrimination; hierarchical
+linear models; Oaxaca--Blinder decomposition; quantile regression; glass ceiling;
+SHAP values; PNAD Contínua.
 \end{abstract}
 
 \newpage

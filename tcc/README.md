@@ -48,17 +48,21 @@ definir `relatorio_tcc_enxuto.tex` como documento principal.
 
 ### Pendências de revisão MANUAL (prosa — não automatizadas)
 
-O pós-processador trata estrutura (seções, figuras, tabelas), mas **não reescreve a prosa
-autoral**. Revisar à mão no `relatorio_tcc_enxuto.tex`:
+O pós-processador trata estrutura (seções, figuras, tabelas) **e** reescreve o resumo/abstract,
+mas **não reescreve o restante da prosa autoral**. Revisar à mão no `relatorio_tcc_enxuto.tex`:
 
-1. **Resumo (PT) e Abstract (EN)** ainda descrevem K-Means, SNA e TOPSIS como parte da
-   metodologia — ajustar para o núcleo de 4 + robustez.
+1. ~~Resumo (PT) e Abstract (EN)~~ — **FEITO**: reescritos para o núcleo de 4 + robustez,
+   diretamente no pós-processador (sobrevivem à regeração).
 2. **Discussão/Conclusão** mencionam SNA/clustering/PO de passagem (ex.: "isolamento de
    redes", ranqueamento TOPSIS) — remover ou reposicionar como agenda futura.
 3. **Metodologia** descreve formalmente HLM e ML/SHAP, mas Oaxaca, Quantílica/RIF e GLMM
    entram direto em Resultados — convém adicionar parágrafos de método para esses três.
 4. Ordem em Resultados: ML/SHAP (robustez) aparece antes do trio de núcleo; opcional movê-lo
    para depois.
+5. **Tabela Oaxaca-Blinder (`ob_decomposicao.tex`) inconsistente**: os componentes não somam
+   o gap (dotação +0,1065 e coeficiente −0,3910 ≠ gap +0,4291; 24,8\% + (−91,1\%) ≠ 100\%) e o
+   componente de discriminação sai negativo. **Verificar `run_oaxaca_blinder.py` antes de
+   entregar** — por isso o resumo cita Oaxaca como método, sem o percentual.
 
 ## Núcleo de 4 (resumo)
 
