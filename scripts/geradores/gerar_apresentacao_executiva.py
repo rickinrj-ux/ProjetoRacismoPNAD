@@ -205,8 +205,8 @@ footer_exec(s, 2)
 # SLIDE 3 — ONDE VOCÊ MORA DETERMINA SUA RENDA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header(s, "Onde Você Mora Determina Sua Renda",
-       "A segregação residencial se converte diretamente em segregação de renda")
+header(s, "Onde Você Mora Pesa na Sua Renda",
+       "A segregação residencial é um canal relevante da segregação de renda")
 
 img(s, FIGURES / "hlm_justif_caterpillar.png", In(0.3), In(1.2), In(5.8), In(4.6))
 
@@ -215,7 +215,7 @@ text(s, "O que isso significa?", In(7.5), In(1.2), In(5.6), In(0.4),
 
 bullets = [
     "Dois trabalhadores idênticos — mesma idade, mesmo diploma, mesma função — ganham salários diferentes porque nasceram em bairros diferentes.",
-    "A renda média do bairro (UPA) é o MAIOR determinante individual de renda — mais do que a educação.",
+    "O contexto do bairro (UPA) media mais da metade do gap salarial — a segregação residencial pesa tanto quanto a escolaridade. (mediação, não determinante causal isolado)",
     "Negros são super-representados nas UPAs de menor renda: o racismo histórico na moradia amplia o racismo atual no trabalho.",
     "Políticas de emprego que ignoram a dimensão territorial atacam apenas parte do problema.",
 ]
@@ -226,8 +226,8 @@ for i, b in enumerate(bullets):
     text(s, "▸  " + b, In(7.65), In(1.77) + i * In(1.1), In(5.3), In(0.88),
          size=12, color=C_BLACK, name="Calibri")
 
-callout(s, "Em linguagem simples: se você mudar um negro do bairro mais pobre para o mais rico, "
-           "você explica mais da metade do gap salarial — sem mudar nenhuma característica individual.",
+callout(s, "Em linguagem simples: o contexto do bairro (UPA) media mais da metade do gap salarial — "
+           "ou seja, boa parte da diferença está associada ao território, não a características individuais.",
         In(0.3), In(6.08), In(12.7), In(0.62))
 footer_exec(s, 3)
 

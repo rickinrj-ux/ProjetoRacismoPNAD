@@ -238,17 +238,18 @@ figura("gini_raca.png",
        "interna; negros, comprimidos no piso — o reverso do teto de vidro, não equidade.", w=13)
 
 sub("Camada 2 — O território como eixo da desigualdade")
-par("Por que as dotações são desiguais? A segunda camada responde: pelo LUGAR. No modelo "
-    "hierárquico, mais da metade do gap salarial é mediada pelo contexto de moradia (UPA), e o "
-    "aprendizado de máquina confirma-o de forma independente e não-paramétrica: entre todos os "
-    "preditores do rendimento, a RENDA MÉDIA DO BAIRRO é o mais importante (Figura 3) — acima da "
-    "escolaridade e de qualquer atributo individual. A raça, isoladamente, tem peso preditivo "
-    "direto modesto justamente porque opera ATRAVÉS do território: a segregação residencial "
-    "histórica converte-se em segregação de renda atual. Em uma frase: o bairro prediz mais que "
-    "o diploma. É esse eixo territorial que dá unidade às demais camadas.")
+par("Por que as dotações são desiguais? A segunda camada responde: em parte, pelo LUGAR. No "
+    "modelo hierárquico, mais da metade do gap salarial é mediada pelo contexto de moradia "
+    "(UPA) — um achado robusto de mediação. A raça opera, em medida relevante, ATRAVÉS do "
+    "território: a segregação residencial histórica converte-se em segregação de renda atual. "
+    "Ressalva metodológica: a renda média da UPA é preditor parcialmente endógeno do rendimento "
+    "individual (problema do reflexo, Manski 1993), pois agrega o próprio indivíduo; por isso a "
+    "interpretamos como evidência de mediação territorial, e não como 'determinante' causal "
+    "isolado. É esse eixo territorial que dá unidade às demais camadas.")
 figura("shap_importance_xgb.png",
-       "Figura 3. Importância SHAP (XGBoost, R²≈0,62): a renda média da UPA (bairro) é o "
-       "principal determinante do rendimento, evidenciando o eixo territorial da desigualdade.", w=14)
+       "Figura 3. Importância SHAP (XGBoost, R²≈0,62): o contexto territorial (renda média da "
+       "UPA) está entre os preditores de maior peso, sinalizando o eixo territorial da "
+       "desigualdade — interpretado como mediação, não como determinante causal isolado.", w=14)
 par("Esse eixo territorial encontra corroboração externa no Índice de Progresso Social (IPS) municipal "
     "(Imazon e parceiros, 2026): as regiões de menor progresso social (Norte e Nordeste) coincidem com "
     "as de maior penalidade racial em nossos modelos. Ressalva metodológica: a integração fina com o "
