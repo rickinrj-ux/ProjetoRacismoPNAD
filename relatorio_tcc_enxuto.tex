@@ -117,12 +117,12 @@ brancos comparáveis em escolaridade, sexo e idade. Desse diferencial bruto, 52,
 é mediado pelo contexto de moradia (Nível~2), reduzindo o \textit{gap} líquido ---
 atribuível à discriminação direta --- a 9,6\%.
 
-A decomposição de Oaxaca--Blinder atribui 24,8\% do gap a diferenças de dotações
-(capital humano e posição ocupacional) e 75,2\% à parcela não explicada por
-características observáveis --- um limite inferior da discriminação. A decomposição RIF
-por quantil revela ainda um padrão de \textit{sticky floor}: o componente de
-discriminação de mercado é maior na base da distribuição (33,1\% no q10) e decresce
-rumo ao topo (11,2\% no q90).
+As decomposições de Oaxaca--Blinder e RIF por quantil separam a parcela do gap
+explicada por dotações (capital humano e posição ocupacional) da parcela não explicada
+por características observáveis --- limite inferior da discriminação. A análise por
+quantil revela um padrão de \textit{sticky floor}: o componente de discriminação de
+mercado é maior na base da distribuição (33,1\% no q10) e decresce rumo ao topo
+(11,2\% no q90).
 
 O GLMM logístico de acesso confirma o teto de vidro ocupacional: controlados
 escolaridade, sexo, idade e contexto, trabalhadores negros têm \textit{odds} de
@@ -164,12 +164,12 @@ controlling for education, sex, and age. Of this gross differential, 52.5\% is
 mediated by residential context (Level~2), leaving a residual \textit{net gap} of
 9.6\% attributable to direct labour-market discrimination.
 
-The Oaxaca--Blinder decomposition attributes 24.8\% of the gap to differences in
-endowments (human capital and occupational position) and 75.2\% to the component
+The Oaxaca--Blinder and quantile RIF decompositions separate the share of the gap
+explained by endowments (human capital and occupational position) from the share
 unexplained by observable characteristics --- a lower bound on discrimination. The
-quantile RIF decomposition further reveals a \textit{sticky floor} pattern: the
-market-discrimination component is largest at the bottom of the distribution (33.1\%
-at q10) and declines toward the top (11.2\% at q90).
+quantile analysis reveals a \textit{sticky floor} pattern: the market-discrimination
+component is largest at the bottom of the distribution (33.1\% at q10) and declines
+toward the top (11.2\% at q90).
 
 The multilevel logistic model confirms an occupational glass ceiling: controlling for
 education, sex, age, and context, Black workers face odds of accessing a qualified
@@ -649,9 +649,7 @@ Educ.: Pós-graduação & 0.00000 & 28 & 0.00000 & 29 \\
 \end{figure}
 
 A Tabela~\ref{tab:shap_importance} revela que a \textbf{renda média da UPA}
-é o preditor mais importante do rendimento individual
-($|\text{SHAP}| = 0.275$), com peso três vezes maior que
-a escolaridade superior e 2,5 vezes maior que o gênero.
+figura entre os preditores de maior peso do rendimento individual ($|\text{SHAP}| = 0.275$). Trata-se, porém, de preditor parcialmente endógeno (problema do reflexo, Manski 1993), pois agrega o próprio indivíduo, o que recomenda interpretá-lo como evidência de mediação territorial e não como determinante causal isolado.
 Esse resultado confirma computacionalmente a hipótese de Wilson~(\citeyear{wilson1987}):
 o \textit{onde se mora} supera em importância o \textit{quanto se estudou}.
 

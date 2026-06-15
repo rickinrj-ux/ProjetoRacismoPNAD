@@ -104,8 +104,9 @@ o teto se aperta no extremo superior (top~10\%) e resiste a todos os controles.
 
 # Resumo (PT) e Abstract (EN) reescritos para o núcleo de 4 + robustez (SHAP).
 # Substituem os blocos do gerador completo (que descreve K-Means/SNA/TOPSIS) sem
-# tocar no gerador — sobrevivem à regeração. O % de Oaxaca-Blinder (24,8%/75,2%)
-# já reflete a tabela corrigida (bug do intercepto sanado em commit 2f6b44d).
+# tocar no gerador — sobrevivem à regeração. NÃO se cita o % agregado de Oaxaca:
+# ver tcc/PERICIA.md F1 (ob_decomposicao usa educ_missing e dá 24,8/75,2, distorcido;
+# o RIF, em educação conhecida, dá dotações dominantes). Decisão pendente do autor.
 RESUMO_PT = r"""\begin{abstract}
 \noindent
 Este trabalho investiga o \textit{gap} salarial racial e as barreiras estruturais
@@ -123,12 +124,12 @@ brancos comparáveis em escolaridade, sexo e idade. Desse diferencial bruto, 52,
 é mediado pelo contexto de moradia (Nível~2), reduzindo o \textit{gap} líquido ---
 atribuível à discriminação direta --- a 9,6\%.
 
-A decomposição de Oaxaca--Blinder atribui 24,8\% do gap a diferenças de dotações
-(capital humano e posição ocupacional) e 75,2\% à parcela não explicada por
-características observáveis --- um limite inferior da discriminação. A decomposição RIF
-por quantil revela ainda um padrão de \textit{sticky floor}: o componente de
-discriminação de mercado é maior na base da distribuição (33,1\% no q10) e decresce
-rumo ao topo (11,2\% no q90).
+As decomposições de Oaxaca--Blinder e RIF por quantil separam a parcela do gap
+explicada por dotações (capital humano e posição ocupacional) da parcela não explicada
+por características observáveis --- limite inferior da discriminação. A análise por
+quantil revela um padrão de \textit{sticky floor}: o componente de discriminação de
+mercado é maior na base da distribuição (33,1\% no q10) e decresce rumo ao topo
+(11,2\% no q90).
 
 O GLMM logístico de acesso confirma o teto de vidro ocupacional: controlados
 escolaridade, sexo, idade e contexto, trabalhadores negros têm \textit{odds} de
@@ -164,12 +165,12 @@ controlling for education, sex, and age. Of this gross differential, 52.5\% is
 mediated by residential context (Level~2), leaving a residual \textit{net gap} of
 9.6\% attributable to direct labour-market discrimination.
 
-The Oaxaca--Blinder decomposition attributes 24.8\% of the gap to differences in
-endowments (human capital and occupational position) and 75.2\% to the component
+The Oaxaca--Blinder and quantile RIF decompositions separate the share of the gap
+explained by endowments (human capital and occupational position) from the share
 unexplained by observable characteristics --- a lower bound on discrimination. The
-quantile RIF decomposition further reveals a \textit{sticky floor} pattern: the
-market-discrimination component is largest at the bottom of the distribution (33.1\%
-at q10) and declines toward the top (11.2\% at q90).
+quantile analysis reveals a \textit{sticky floor} pattern: the market-discrimination
+component is largest at the bottom of the distribution (33.1\% at q10) and declines
+toward the top (11.2\% at q90).
 
 The multilevel logistic model confirms an occupational glass ceiling: controlling for
 education, sex, age, and context, Black workers face odds of accessing a qualified
@@ -284,6 +285,20 @@ texto, n_pt = re.subn(
     lambda m: RESUMO_PT, texto, count=1, flags=re.S)
 if n_pt != 1 or n_en != 1:
     print(f"  [AVISO] substituição inesperada (PT={n_pt}, EN={n_en}) — revisar manualmente.")
+
+# Neutraliza a afirmação "renda média da UPA é o preditor mais importante" (problema do
+# reflexo, Manski 1993) — sobrevive do gerador completo (não suavizado). Ver PERICIA F3.
+print("Neutralizando afirmação de 'preditor mais importante' (problema do reflexo)…")
+_repl_shap = (
+    "figura entre os preditores de maior peso do rendimento individual "
+    "($|\\text{SHAP}| = 0.275$). Trata-se, porém, de preditor parcialmente endógeno "
+    "(problema do reflexo, Manski 1993), pois agrega o próprio indivíduo, o que recomenda "
+    "interpretá-lo como evidência de mediação territorial e não como determinante causal isolado.")
+texto, n_shap = re.subn(
+    r"é o preditor mais importante do rendimento individual.*?2,5 vezes maior que o gênero\.",
+    lambda m: _repl_shap, texto, count=1, flags=re.S)
+if n_shap != 1:
+    print(f"  [AVISO] frase 'preditor mais importante' não neutralizada (n={n_shap}).")
 
 # Checagem de \ref pendentes a rótulos removidos
 pendentes = []

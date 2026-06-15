@@ -59,13 +59,11 @@ mas **não reescreve o restante da prosa autoral**. Revisar à mão no `relatori
    entram direto em Resultados — convém adicionar parágrafos de método para esses três.
 4. Ordem em Resultados: ML/SHAP (robustez) aparece antes do trio de núcleo; opcional movê-lo
    para depois.
-5. **Tabela Oaxaca-Blinder (`ob_decomposicao.tex`) — BUG CORRIGIDO no código**: a versão
-   antiga não fechava (dotação +0,1065 e coeficiente −0,3910 ≠ gap +0,4291) porque
-   `src/analise_retornos_raciais.py` **dropava a diferença de interceptos** (α_b − α_n) do
-   componente não-explicado. Corrigido (estimativa pontual + bootstrap + sanity-check da
-   identidade). Valores corretos: **dotações 24,8% / discriminação 75,2%** (antes −91,1%).
-   **PENDENTE: re-rodar `run_analise_retornos_raciais.py`** para regenerar a tabela com SE
-   corretos. Só então atualizar o resumo para citar o percentual (hoje cita Oaxaca sem %).
+5. **Decomposição Oaxaca — ver `tcc/PERICIA.md` (F1, CRÍTICO)**: bug do intercepto já
+   corrigido (identidade fecha), mas o split agregado (24,8/75,2) está **distorcido** porque
+   usa `educ_missing` (educação desconhecida p/ ~69% → "discriminação" inflada), enquanto o
+   RIF (educação conhecida) dá dotações dominantes. **Decisão metodológica pendente do autor**
+   antes de fixar o número na narrativa. Resumo/abstract revertidos para qualitativo.
 
 ## Núcleo de 4 (resumo)
 
