@@ -156,6 +156,26 @@ texto. O relatório usa rótulos legíveis nas tabelas inline e **não** carrega
 `siunitx`. **Ação:** as tabelas do núcleo geradas em `tcc/scripts/` usam rótulos legíveis (sem
 hazard); a interseccional foi reescrita limpa (`ob_interseccional_tcc.tex`, twofold correto).
 
+## 🟠 FC8 — Bibliografia inconsistente com o núcleo (CORRIGIDA)
+
+Auditoria de `relatorio_tcc.bib` (20 entradas) vs. citações do relatório enxuto:
+- **Faltavam as referências fundacionais de 3 dos 4 métodos do núcleo**, citadas em texto plano
+  nas tabelas mas ausentes do `.bib`: Oaxaca (1973), Blinder (1973), Oaxaca & Ransom (1999),
+  Koenker & Bassett (1978), Firpo-Fortin-Lemieux (2018), VanderWeele & Ding (2017), Crenshaw
+  (1989), Manski (1993), Becker (1957), Arrow (1973), Almeida (2019). **Adicionadas** (11
+  entradas) + `\nocite` no relatório (via pós-processador) para entrarem na lista de referências.
+- **Sobravam** (parqueadas, não citadas no enxuto): `burt2004` (SNA), `rousseeuw1987`,
+  `davies_bouldin1979`, `ketchen1996` (clustering), `stram1994` (random slope). **Mantidas** no
+  `.bib` (inócuas — o bibtex só lista as citadas) porque a versão estendida/mestrado as usa.
+- `granovetter1973` segue citada (contexto de vizinhança), mantida.
+
+## Roteiro da banca — alinhado ao núcleo
+`docs/roteiro_apresentacao_banca.md` reescrito: de "cinco metodologias + SNA + Estado + PO" para
+o **núcleo de 4** (HLM, Oaxaca, Quantílica/RIF, GLMM) + robustez. Números atualizados aos
+canônicos (gap bruto 53%; HLM M1 −19,1%→M4 −6,2%, mediação 69,8%; Oaxaca 83,8/16,2; QR teto
+q10 −8,0%→q95 −12,3%; RIF sticky floor 35,1%→12,9%; GLMM OR 0,705 AME −4,7pp E-value 2,2;
+interseccional +9,5pp). SNA/agrupamento/Estado/PO → "agenda futura".
+
 ## ✅ FC5 — Consistências que PASSARAM
 - `params.py` ↔ `glmm_glassceil_full`: todos os OR (ocp 0,705; top20 0,691; top10 0,656; M1
   0,555) batem exatamente.

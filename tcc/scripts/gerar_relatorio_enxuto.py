@@ -370,6 +370,16 @@ for label, fim, nota in LEGENDAS:
         print(f"  [AVISO] legenda não inserida para {label}")
 print(f"  tabela interseccional={n_it}, legendas inseridas={n_leg}/{len(LEGENDAS)}")
 
+# Bibliografia: as referências do núcleo são citadas como texto plano nas tabelas
+# (VanderWeele & Ding, Oaxaca & Ransom, Firpo et al., Crenshaw, Manski...). Um \nocite
+# garante que entrem na lista de referências. Ver tcc/PERICIA.md (bibliografia).
+print("Inserindo \\nocite das referências do núcleo…")
+NOCITE = (r"\nocite{oaxaca1973,blinder1973,oaxaca_ransom1999,koenker1978,firpo2018,"
+          r"vanderweele2017,crenshaw1989,manski1993,becker1957,arrow1973,almeida2019}")
+texto, n_nc = inserir_apos_linha(texto, r"\begin{document}", NOCITE)
+if n_nc != 1:
+    print(f"  [AVISO] \\nocite não inserido (n={n_nc}).")
+
 # Checagem de \ref pendentes a rótulos removidos
 pendentes = []
 for rot in set(rotulos_removidos):
