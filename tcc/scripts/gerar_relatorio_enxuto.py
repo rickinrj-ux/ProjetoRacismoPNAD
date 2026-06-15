@@ -104,10 +104,8 @@ o teto se aperta no extremo superior (top~10\%) e resiste a todos os controles.
 
 # Resumo (PT) e Abstract (EN) reescritos para o núcleo de 4 + robustez (SHAP).
 # Substituem os blocos do gerador completo (que descreve K-Means/SNA/TOPSIS) sem
-# tocar no gerador — sobrevivem à regeração. Nota: NÃO se cita % de Oaxaca-Blinder
-# porque a tabela atual (ob_decomposicao.tex) está internamente inconsistente
-# (componentes não somam o gap); a evidência de discriminação ancora-se no GLMM
-# e no sticky-floor do RIF. REVISAR a tabela OB antes da entrega.
+# tocar no gerador — sobrevivem à regeração. O % de Oaxaca-Blinder (24,8%/75,2%)
+# já reflete a tabela corrigida (bug do intercepto sanado em commit 2f6b44d).
 RESUMO_PT = r"""\begin{abstract}
 \noindent
 Este trabalho investiga o \textit{gap} salarial racial e as barreiras estruturais
@@ -125,11 +123,12 @@ brancos comparáveis em escolaridade, sexo e idade. Desse diferencial bruto, 52,
 é mediado pelo contexto de moradia (Nível~2), reduzindo o \textit{gap} líquido ---
 atribuível à discriminação direta --- a 9,6\%.
 
-A decomposição de Oaxaca--Blinder separa a parcela do gap explicada por dotações
-(capital humano e posição ocupacional) da parcela não explicada; a decomposição RIF
-por quantil revela um padrão de \textit{sticky floor}: o componente de discriminação
-de mercado é maior na base da distribuição (33,1\% no q10) e decresce rumo ao topo
-(11,2\% no q90).
+A decomposição de Oaxaca--Blinder atribui 24,8\% do gap a diferenças de dotações
+(capital humano e posição ocupacional) e 75,2\% à parcela não explicada por
+características observáveis --- um limite inferior da discriminação. A decomposição RIF
+por quantil revela ainda um padrão de \textit{sticky floor}: o componente de
+discriminação de mercado é maior na base da distribuição (33,1\% no q10) e decresce
+rumo ao topo (11,2\% no q90).
 
 O GLMM logístico de acesso confirma o teto de vidro ocupacional: controlados
 escolaridade, sexo, idade e contexto, trabalhadores negros têm \textit{odds} de
@@ -165,9 +164,10 @@ controlling for education, sex, and age. Of this gross differential, 52.5\% is
 mediated by residential context (Level~2), leaving a residual \textit{net gap} of
 9.6\% attributable to direct labour-market discrimination.
 
-The Oaxaca--Blinder decomposition separates the share of the gap explained by
-endowments (human capital and occupational position) from the unexplained share; the
-quantile RIF decomposition reveals a \textit{sticky floor} pattern: the
+The Oaxaca--Blinder decomposition attributes 24.8\% of the gap to differences in
+endowments (human capital and occupational position) and 75.2\% to the component
+unexplained by observable characteristics --- a lower bound on discrimination. The
+quantile RIF decomposition further reveals a \textit{sticky floor} pattern: the
 market-discrimination component is largest at the bottom of the distribution (33.1\%
 at q10) and declines toward the top (11.2\% at q90).
 
