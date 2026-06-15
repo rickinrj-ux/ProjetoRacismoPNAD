@@ -234,7 +234,7 @@ for i, item in enumerate([
     "✦ Variáveis CBO, vínculo e horas (VD4009/V4010/VD4031) extraídas dos ZIPs brutos do IBGE",
     "✦ Discriminação de ACESSO (logit)",
     "✦ Discriminação de REMUNERAÇÃO (HLM + QR)",
-    "✦ Convergência de 5 métodos independentes",
+    "✦ Convergência de 4 métodos do núcleo + robustez",
 ]):
     add_text(s, item, In(8.1), In(1.85)+i*In(0.65), In(4.7), In(0.6),
              font_size=13, color=C_BLACK if i > 0 else C_BLUE)
@@ -317,7 +317,7 @@ footer(s, 4)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
 header_bar(s, "4. Arquitetura Metodológica",
-           "5 metodologias complementares — convergência de evidências")
+           "Núcleo de 4 métodos + robustez (ML/SHAP) — convergência de evidências")
 
 metodos = [
     (C_DARK,  "HLM",            "Modelos Hierárquicos\nLineares (3 níveis)",        "Gap médio e\nmediação contextual"),
@@ -339,12 +339,12 @@ for i, (color, title, desc, purpose) in enumerate(metodos):
     add_text(s, purpose, x+In(0.1), In(2.95), In(2.25), In(0.7),
              font_size=12, bold=True, color=color, align=PP_ALIGN.CENTER)
 
-add_text(s, "↓ Convergência dos 5 métodos = robustez diagnóstica ↓",
+add_text(s, "↓ Convergência do núcleo de 4 métodos = robustez diagnóstica ↓",
          In(0.3), In(6.1), In(12.7), In(0.45),
          font_size=15, bold=True, color=C_DARK, align=PP_ALIGN.CENTER)
 add_rect(s, In(0.3), In(6.15), In(12.7), In(0.5),
          fill_rgb=RGBColor(0xE8,0xEA,0xF0), line_rgb=C_DARK, line_pt=0.5)
-add_text(s, "Discriminação de ACESSO (logit) + Discriminação de REMUNERAÇÃO (HLM + QR) + Exclusão de REDES (SNA)",
+add_text(s, "Discriminação de ACESSO (GLMM) + Discriminação de REMUNERAÇÃO (HLM + Quantílica/RIF) + Penalidade interseccional (raça×gênero)",
          In(0.4), In(6.2), In(12.5), In(0.4),
          font_size=13, bold=True, color=C_DARK, align=PP_ALIGN.CENTER)
 footer(s, 5)
@@ -659,43 +659,6 @@ for i, (color, titulo, resultado, interp) in enumerate(rob_blocks):
 footer(s, 14)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 15 — TENDÊNCIA TEMPORAL + HECKMAN + EVENT STUDY COVID
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header_bar(s, "14. Análises Temporais e Seleção — Chow, Heckman e Event Study COVID",
-           "Quebra estrutural 2020 | Seleção corrigida (Heckman) | COVID: convergência aparente de curto prazo")
-
-add_img(s, FIGURES / "tendencia_temporal.png",  In(0.3), In(1.2), In(4.1), In(3.5))
-add_img(s, FIGURES / "heckman_selecao.png",     In(4.6), In(1.2), In(4.1), In(3.5))
-add_img(s, FIGURES / "event_study_covid.png",   In(9.1), In(1.2), In(4.0), In(3.5))
-
-cap_blocks = [
-    (C_AMBER, "Chow test — Quebra 2020",
-     "F(2,6) = 7,012   p = 0,027\nQuebra estrutural detectada em 2020\n"
-     "Tendência geral: δ = 0,0008 log-pt/ano (estável, p=0,077)\n"
-     "Gap racial não convergiu espontaneamente em 10 anos"),
-    (C_RED,   "Heckman — Correção de Seleção",
-     "OLS: gap = −9,71%\nHeckman (com IMR): gap = −7,41%\n"
-     "Δ = +2,3 pp  |  λ = −1,985  (p < 0,001)\n"
-     "OLS superestima gap: negros empregados aceitam\nsalários inferiores (seleção por tolerância)"),
-    (C_BLUE,  "Event Study COVID (DiD)",
-     "τ = +0,015  (SE = 0,007,  p = 0,025)\nNegros sofreram MENOS com COVID\n"
-     "no curto prazo — convergência aparente\n"
-     "DiD corrigido: 0,015 vs. ingênuo: 0,023"),
-]
-for i, (color, titulo, corpo) in enumerate(cap_blocks):
-    x = In(0.3) + i * In(4.35)
-    add_rect(s, x, In(4.85), In(4.1), In(2.3),
-             fill_rgb=C_LGRAY, line_rgb=color, line_pt=1.5)
-    add_rect(s, x, In(4.85), In(4.1), In(0.48), fill_rgb=color)
-    add_text(s, titulo, x+In(0.12), In(4.88), In(3.86), In(0.45),
-             font_size=12, bold=True, color=C_WHITE)
-    add_text(s, corpo, x+In(0.12), In(5.42), In(3.86), In(1.65),
-             font_size=11, color=C_BLACK)
-
-footer(s, 15)
-
-# ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 10 — ML/SHAP
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
@@ -731,131 +694,6 @@ for i, (rank, feat, shap, note) in enumerate(ranking):
 footer(s, 16)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# SLIDE — CLUSTERING SOCIOECONÔMICO
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header_bar(s, f"16. Clustering Socioeconômico — K-Means (k=3) | N={fmtN(P['N_GLMM'])}",
-           "MiniBatchKMeans | 12 dimensões | k=3 adotado por interpretabilidade (k=2 trivialmente binário)")
-
-add_img(s, FIGURES / "kmeans_perfis_k3.png",    In(0.3),  In(1.2), In(6.2))
-add_img(s, FIGURES / "kmeans_gap_racial_k3.png", In(6.65), In(1.2), In(6.4))
-
-# Cluster profile table
-_rr = round((P["KM_C1_RENDA_BRL"] - P["KM_C2_RENDA_BRL"]) / P["KM_C1_RENDA_BRL"] * 100)
-cluster_rows = [
-    ("C0", fmtN(P["KM_C0_N"]), f"{fmt(P['KM_C0_PCT_TOTAL'],1)}%", f"{fmt(P['KM_C0_PCT_NEGRO'],1)}%", f"{fmt(P['KM_C0_PCT_MULHER'],0)}%", fmt(P["KM_C0_LOG_RENDA"],3), "Mulheres negras — vulnerabilidade dupla", C_RED),
-    ("C1", fmtN(P["KM_C1_N"]), f"{fmt(P['KM_C1_PCT_TOTAL'],1)}%", f"{fmt(P['KM_C1_PCT_NEGRO'],1)}%", f"{fmt(P['KM_C1_PCT_MULHER'],1)}%", fmt(P["KM_C1_LOG_RENDA"],3), "Brancos alta renda — menor escolaridade",  C_BLUE),
-    ("C2", fmtN(P["KM_C2_N"]), f"{fmt(P['KM_C2_PCT_TOTAL'],1)}%", f"{fmt(P['KM_C2_PCT_NEGRO'],1)}%", f"{fmt(P['KM_C2_PCT_MULHER'],0)}%", fmt(P["KM_C2_LOG_RENDA"],3), f"Homens negros — {fmt(P['KM_C2_PCT_SUP'],1)}% superior, renda {_rr}% < C1", C_DARK),
-]
-col_labels = ["Cluster","N","% total","% Negro","% Mulher","log_Renda","Perfil"]
-col_x      = [In(0.3), In(1.2), In(2.45), In(3.4), In(4.35), In(5.35), In(6.35)]
-col_w      = [In(0.85), In(1.15), In(0.9), In(0.85), In(0.85), In(0.9), In(6.6)]
-
-row_y0 = In(4.6)
-row_h  = In(0.42)
-# header
-for j, (lbl, x, w) in enumerate(zip(col_labels, col_x, col_w)):
-    add_rect(s, x, row_y0, w, row_h, fill_rgb=RGBColor(0x1F,0x38,0x64))
-    add_text(s, lbl, x+In(0.04), row_y0+In(0.04), w-In(0.08), row_h-In(0.08),
-             font_size=10, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
-for i, (c, n, pct, neg, fem, lr, desc, color) in enumerate(cluster_rows):
-    y = row_y0 + row_h + i * row_h
-    bg = RGBColor(0xFF,0xF5,0xF5) if i == 0 else (RGBColor(0xE3,0xF2,0xFD) if i == 1 else RGBColor(0xF5,0xF5,0xF5))
-    for j, (val, x, w) in enumerate(zip([c, n, pct, neg, fem, lr, desc], col_x, col_w)):
-        add_rect(s, x, y, w, row_h, fill_rgb=bg, line_rgb=C_GRAY, line_pt=0.3)
-        add_text(s, val, x+In(0.04), y+In(0.04), w-In(0.08), row_h-In(0.06),
-                 font_size=9.5, bold=(j == 0), color=color if j == 0 else C_BLACK,
-                 align=PP_ALIGN.CENTER if j < 6 else PP_ALIGN.LEFT)
-
-add_rect(s, In(0.3), In(6.22), In(12.7), In(0.55),
-         fill_rgb=RGBColor(0xFF,0xF9,0xE7), line_rgb=C_AMBER, line_pt=1)
-add_text(s, "Paradoxo de Simpson: dentro de cada cluster negros ganham mais que brancos — pois brancos nos "
-            "clusters negros são os piores-off de seu grupo.  "
-            f"H5 confirmado: C2 tem {fmt(P['KM_C2_PCT_SUP'],1)}% de superior vs {fmt(P['KM_C1_PCT_SUP'],1)}% em C1, mas renda 58% inferior.",
-         In(0.5), In(6.27), In(12.3), In(0.45),
-         font_size=11.5, color=C_DARK)
-footer(s, 17)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 11 — SNA
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header_bar(s, "17. Análise de Redes Sociais — Capital Social e Mobilidade",
-           "Betweenness centrality nula para negros em todos os níveis educacionais")
-
-add_img(s, FIGURES / "sna_rede_demografica.png", In(0.3), In(1.2), In(6.5))
-
-add_text(s, "O que é betweenness centrality?", In(7.2), In(1.2), In(5.9), In(0.4),
-         font_size=16, bold=True, color=C_DARK)
-bullet_box(s, [
-    "Mede quem 'conecta' grupos distintos na rede",
-    "Alta betweenness = broker = acesso antecipado a vagas, mentoria, promoções (Burt, 2004)",
-    "BRANCOS: betweenness elevada em todos os níveis educacionais",
-    "NEGROS: betweenness = 0 mesmo com pós-graduação",
-    "Implicação: credenciais educacionais de negros valem menos porque falta acesso às redes de conversão",
-], In(7.2), In(1.7), In(5.9), In(3.5), font_size=13, dot_color=C_DARK)
-
-add_rect(s, In(7.2), In(5.45), In(5.9), In(0.85),
-         fill_rgb=RGBColor(0xE3,0xF2,0xFD), line_rgb=C_DARK, line_pt=0.8)
-add_text(s, '"Negros enfrentam um duplo obstáculo ao retorno educacional: o gap direto mensurado pelo HLM e a exclusão das redes que convertem diplomas em empregos."',
-         In(7.35), In(5.5), In(5.6), In(0.8),
-         font_size=12, italic=True, color=C_DARK)
-footer(s, 18)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 12 — ESTADO E DESIGUALDADE (H1 / H2 / H3)
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header_bar(s, "18. Estado e Desigualdade — H1 / H2 / H3",
-           "Setor público reduz desigualdade geral mas gap racial persiste — e gap de gênero é MAIOR no público")
-
-add_img(s, FIGURES / "estado_h1_gini.png",   In(0.3), In(1.2), In(6.3))
-add_img(s, FIGURES / "estado_h2h3_gaps.png", In(6.8), In(1.2), In(6.2))
-
-kpi_box(s, "Gini setor público",    "0,466",   "vs privado 0,472 | total 0,488",      In(0.3),  In(4.6), w=In(2.8), val_color=C_BLUE)
-kpi_box(s, "Gap racial público",    "−28,1%",  "controlado | privado −34,3%",         In(3.3),  In(4.6), w=In(3.1), val_color=C_RED)
-kpi_box(s, "Gap gênero público",    "−21,2%",  "PIOR que privado −18,9% (paradoxo)",  In(6.6),  In(4.6), w=In(3.5), val_color=C_AMBER)
-kpi_box(s, "Prêmio salarial pub.",  "+99,6%",  "Theil entre setores: 7,8% do total",  In(10.3), In(4.6), w=In(2.7), val_color=C_GREEN)
-
-add_rect(s, In(0.3), In(6.05), In(12.7), In(0.50),
-         fill_rgb=RGBColor(0xE3,0xF2,0xFD), line_rgb=C_DARK, line_pt=0.8)
-add_text(s, "H1: Estado reduz levemente o Gini (0,466 vs 0,472) mas prêmio de +99,6% concentra renda entre servidores.  "
-            "H2: Racismo persiste no público (−28,1%) — atenuado vs privado (−34,3%).  "
-            "H3 (paradoxo): concurso iguala entrada, mas promoção/DAS favorece homens → gap de gênero maior no público.",
-         In(0.5), In(6.10), In(12.3), In(0.45),
-         font_size=11.5, color=C_DARK)
-add_text(s, "Contexto IBGE (2025): o Gini domiciliar per capita do país subiu a 0,491 (conceito distinto do Gini do "
-            "trabalho aqui, ~0,48); a POF mostra qualidade de vida em alta, mas o gap racial persiste (0,183 vs 0,122).",
-         In(0.5), In(6.62), In(12.3), In(0.45), font_size=10, color=RGBColor(0x55,0x55,0x55))
-
-footer(s, 19)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 13 — RENDA REAL, ARMADILHA E INCLUSÃO (H4 / H5)
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header_bar(s, "19. Renda Real, Armadilha e Inclusão — H4 / H5",
-           "Pleno emprego sem prosperidade + gap de qualificação quase inalterado em 10 anos")
-
-add_img(s, FIGURES / "estado_h4_tendencia.png", In(0.3), In(1.2), In(6.3))
-add_img(s, FIGURES / "estado_h5_armadilha.png", In(6.8), In(1.2), In(6.2))
-
-kpi_box(s, "Renda real 2025",     "R$1.283",  "vs pico R$1.345 em 2024",              In(0.3),  In(4.6), w=In(3.0), val_color=C_RED)
-kpi_box(s, "Emprego 2025",        "94,4%",    "máxima histórica da série (2016–2025)", In(3.5),  In(4.6), w=In(2.9), val_color=C_GREEN)
-kpi_box(s, "Alta qualif. negros", "11,0%",    "brancos: 22,4% — gap estável +11pp",   In(6.6),  In(4.6), w=In(3.5), val_color=C_RED)
-kpi_box(s, "Ganho de inclusão",   "+127,3%",  "renda negra se CBO = branco",          In(10.3), In(4.6), w=In(2.7), val_color=C_GREEN)
-
-add_rect(s, In(0.3), In(6.05), In(12.7), In(0.50),
-         fill_rgb=RGBColor(0xFF,0xF9,0xE7), line_rgb=C_AMBER, line_pt=1)
-add_text(s, "H4: Contradição do mercado atual — emprego em máxima histórica (94,4%) mas renda real recua em 2025 (−4,6% vs 2024).  "
-            "H5: Armadilha da renda média — gap de qualificação (11,0% vs 22,4%) praticamente inalterado após 10 anos. "
-            "Inclusão produtiva plena = simulação CBO: +127,3% renda negra; proxy agregado +74,3 p.p. (127,3% × participação ~58% — conservador, ver nota metodológica).",
-         In(0.5), In(6.10), In(12.3), In(0.45),
-         font_size=11.5, color=C_DARK)
-
-footer(s, 20)
-
-# ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 14 — JUSTIFICAÇÃO METODOLÓGICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
@@ -882,7 +720,7 @@ footer(s, 21)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
 header_bar(s, "21. Síntese — Triângulo de Evidências",
-           "5 métodos independentes apontam para o mesmo diagnóstico")
+           "Os métodos do núcleo apontam para o mesmo diagnóstico")
 
 # Três vértices do triângulo
 vertices = [
@@ -890,8 +728,8 @@ vertices = [
      [f"GLMM: OR={or_str(P['OR_M2'])} para ocp. qualificada", f"AME={ame(P['AME_M2_pp'])} residual (M2)", "Persiste após todos os controles observáveis"]),
     (In(6.9),  In(1.3),  C_BLUE,  "DISCRIMINAÇÃO\nDE REMUNERAÇÃO",
      ["HLM M4: gap residual 6,2%", "Quantile Reg.: cresce no topo (glass ceiling)", "SHAP: −2,5% efeito racial residual"]),
-    (In(3.6),  In(4.3),  C_DARK,  "EXCLUSÃO\nDAS REDES",
-     ["SNA: betweenness=0 para negros", "Diplomas valem menos sem acesso às redes", f"K-Means: C2 homens negros — {fmt(P['KM_C2_PCT_SUP'],1)}% superior mas 58% < renda C1"]),
+    (In(3.6),  In(4.3),  C_DARK,  "PENALIDADE\nINTERSECCIONAL",
+     ["Mulher Negra: gap de 96,4%", "Penalidade extra de +9,5 p.p. (não-aditiva)", "Raça×gênero como mecanismo próprio (Crenshaw)"]),
 ]
 for l, t, color, title, items in vertices:
     add_rect(s, l, t, In(5.8), In(2.6),
@@ -905,154 +743,10 @@ for l, t, color, title, items in vertices:
 
 add_rect(s, In(0.3), In(6.4), In(12.7), In(0.5),
          fill_rgb=RGBColor(0x1F,0x38,0x64), line_rgb=C_AMBER, line_pt=0)
-add_text(s, f"Oaxaca-Blinder une os três vértices: 84% do gap é de ACESSO (dotações) | 16% de REMUNERAÇÃO (retornos) | SNA explica por que o acesso é estruturalmente negado  |  GLMM: OR={fmt(P['OR_M2'],3)}",
+add_text(s, f"Oaxaca: 83,8% do gap é composição/ACESSO e 16,2% remuneração | GLMM mostra a barreira de acesso (OR={fmt(P['OR_OCP_M2'],3)}) | RIF: discriminação de preço maior na base (sticky floor)",
          In(0.5), In(6.45), In(12.3), In(0.45),
          font_size=12, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
 footer(s, 22)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 22 — PO: PESQUISA OPERACIONAL — PRIORIZAÇÃO DE POLÍTICAS
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header_bar(s, "22. Pesquisa Operacional — Priorização Multicritério Anti-Discriminação",
-           "TOPSIS + AHP (CR=0,004) + Programação Linear + Fronteira de Pareto | 6 políticas avaliadas")
-
-add_img(s, FIGURES / "po_politicas_topsis.png", In(0.3), In(1.2), In(7.2))
-
-add_text(s, "Ranking TOPSIS (6 intervenções)", In(8.0), In(1.2), In(5.1), In(0.4),
-         font_size=14, bold=True, color=C_DARK)
-
-topsis_rows = [
-    (1, "Cotas ocupacionais CBO 1–4",        f"CC = {fmt(P['TOPSIS_P1_CC'],3)}", C_RED),
-    (2, "Equidade educacional",               f"CC = {fmt(P['TOPSIS_P2_CC'],3)}", C_BLUE),
-    (3, "Mentoria e redes profissionais",     f"CC = {fmt(P['TOPSIS_P3_CC'],3)}", C_GREEN),
-    (4, "Transparência salarial obrigatória", f"CC = {fmt(P['TOPSIS_P4_CC'],3)}", C_AMBER),
-    (5, "Enforcement anti-discriminação",     f"CC = {fmt(P['TOPSIS_P5_CC'],3)}", C_GRAY),
-    (6, "Desegregação residencial",           f"CC = {fmt(P['TOPSIS_P6_CC'],3)}", C_GRAY),
-]
-for i, (rank, nome, cc, color) in enumerate(topsis_rows):
-    bg = RGBColor(0xFF,0xEB,0xEE) if rank == 1 else (RGBColor(0xE3,0xF2,0xFD) if rank == 2 else C_LGRAY)
-    add_rect(s, In(8.0), In(1.72)+i*In(0.8), In(5.1), In(0.74),
-             fill_rgb=bg, line_rgb=color, line_pt=0.8)
-    add_text(s, f"#{rank}", In(8.1), In(1.77)+i*In(0.8), In(0.4), In(0.6),
-             font_size=13, bold=True, color=color)
-    add_text(s, nome, In(8.55), In(1.77)+i*In(0.8), In(3.2), In(0.6),
-             font_size=12, bold=(rank <= 3), color=C_BLACK)
-    add_text(s, cc, In(11.8), In(1.77)+i*In(0.8), In(1.25), In(0.6),
-             font_size=12, bold=True, color=color, align=PP_ALIGN.RIGHT)
-
-add_rect(s, In(0.3), In(6.6), In(12.7), In(0.65),
-         fill_rgb=RGBColor(0x1F,0x38,0x64), line_rgb=C_AMBER, line_pt=0)
-add_text(s, f"84% do gap é de ACESSO → P1 (Cotas CBO) lidera com CC={fmt(P['TOPSIS_P1_CC'],3)} — 2,1× superior ao 2º colocado.  "
-            f"Pareto (λ=0,5): alocação ótima = P1+P5 (cotas + mentoria).  "
-            f"PL-1 (orçamento B=5): redução projetada de {fmt(P['PL1_B5_PCT'],1)}% do gap bruto.",
-         In(0.5), In(6.65), In(12.3), In(0.55),
-         font_size=12, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
-footer(s, 23)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 22b — PO REGIONALIZADA: FOCALIZAÇÃO TERRITORIAL (BLUP)
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header_bar(s, "23. Pesquisa Operacional Regionalizada — Focalização Territorial",
-           "BLUP do random slope por UF → alocação ótima do orçamento | ganho da focalização sobre a alocação uniforme")
-
-add_img(s, FIGURES / "mapa_po_regional.png", In(1.4), In(1.25), In(5.1))
-
-add_text(s, "Focalização territorial (base BLUP)", In(8.0), In(1.2), In(5.1), In(0.4),
-         font_size=14, bold=True, color=C_DARK)
-
-_rpo_cards = [
-    (f"Ganho da focalização: B=9 → +{fmt(P['RPO_GANHO_B9'],1)}%  |  B=3 → +{fmt(P['RPO_GANHO_B3'],1)}%",
-     "vs. alocação uniforme entre as 27 UFs", C_RED),
-    (f"UFs prioritárias: {P['RPO_TOP5']}",
-     "maior penalidade × maior população negra afetada", C_BLUE),
-    (f"Amplitude: {P['RPO_WORST_UF']} {fmt(P['RPO_WORST_GAP_PCT'],1)}%  →  {P['RPO_BEST_UF']} {fmt(P['RPO_BEST_GAP_PCT'],1)}%",
-     "penalidade racial por UF (BLUP do MixedLM)", C_GREEN),
-    (f"Base oficial: BLUP ≠ OLS+EB (Spearman ρ={fmt(P['RPO_SPEARMAN'],2)})",
-     "modelo misto completo, não a aproximação rápida", C_AMBER),
-]
-for i, (titulo, sub, color) in enumerate(_rpo_cards):
-    y = In(1.75) + i * In(1.18)
-    add_rect(s, In(8.0), y, In(5.1), In(1.05), fill_rgb=C_LGRAY, line_rgb=color, line_pt=1.2)
-    add_rect(s, In(8.0), y, In(0.12), In(1.05), fill_rgb=color)
-    add_text(s, titulo, In(8.25), y + In(0.08), In(4.75), In(0.6),
-             font_size=12.5, bold=True, color=C_BLACK)
-    add_text(s, sub, In(8.25), y + In(0.62), In(4.75), In(0.38),
-             font_size=10.5, color=C_DARK)
-
-add_rect(s, In(0.3), In(6.6), In(12.7), In(0.65),
-         fill_rgb=RGBColor(0x1F,0x38,0x64), line_rgb=C_AMBER, line_pt=0)
-add_text(s,
-         f"O random slope (LRT p<0,001) prova que a penalidade racial é geograficamente heterogênea → "
-         f"política federativa diferenciada supera a uniforme em até +{fmt(P['RPO_GANHO_B3'],1)}% com orçamento escasso.",
-         In(0.5), In(6.65), In(12.3), In(0.55),
-         font_size=12, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
-footer(s, 24)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 23b — RANDOM SLOPE GLMM: HETEROGENEIDADE GEOGRÁFICA DO ACESSO
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header_bar(s, "24. Random Slope no GLMM — A Barreira de Acesso Também é Geográfica",
-           "lme4::glmer, população completa | random slope de negro por UF em 3 desfechos + público × privado")
-add_img(s, FIGURES / "glmm_rs_real.png", In(0.3), In(1.25), In(12.7))
-add_rect(s, In(0.3), In(6.5), In(12.7), In(0.72),
-         fill_rgb=RGBColor(0x1F,0x38,0x64), line_rgb=C_AMBER, line_pt=0)
-add_text(s, f"LRT rejeita τ²=0 em TODOS os desfechos (p<0,001): o acesso varia entre estados, como o salário.  "
-            f"Contraste: gap salarial maior nos estados ricos (ρ=−0,37) vs acesso mais fácil neles (ρ={fmt(P['GRS_OCP_RHO'],2)}).  "
-            f"Setor público NÃO dissolve a barreira (OR púb={fmt(P['GRS_PUB_OR'],3)} ≈ priv={fmt(P['GRS_PRIV_OR'],3)}).",
-         In(0.5), In(6.56), In(12.3), In(0.62),
-         font_size=11, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
-footer(s, 25)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 24b — RANDOM SLOPE GLMM DE GÊNERO
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header_bar(s, "25. Random Slope GLMM de Gênero — Teto de Remuneração, não de Categoria",
-           "lme4, população completa | inclinação aleatória de sexo_fem por UF nos 3 desfechos")
-add_img(s, FIGURES / "glmm_genero_real.png", In(0.3), In(1.25), In(12.7))
-add_rect(s, In(0.3), In(6.5), In(12.7), In(0.72),
-         fill_rgb=RGBColor(0x7B,0x32,0x94), line_rgb=C_AMBER, line_pt=0)
-add_text(s, f"Mulheres: MAIS acesso a ocupações qualificadas (OR={fmt(P['GGE_OCP_OR'],2)}>1, profissões feminizadas) "
-            f"mas MUITO MENOS ao topo de renda (OR top10={fmt(P['GGE_TOP10_OR'],3)}). Teto de vidro de gênero = "
-            f"REMUNERAÇÃO, não categoria — e varia mais entre estados que o racial (~10x no topo).",
-         In(0.5), In(6.56), In(12.3), In(0.62),
-         font_size=11, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
-footer(s, 26)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SLIDE — INTERSECCIONALIDADE GLMM (grupo_rg)
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header_bar(s, "26. Interseccionalidade GLMM — O Teto de Vidro Recai sobre a Mulher Negra",
-           "grupo_rg (4 grupos, ref. homem branco) × 3 desfechos | alçada no acesso, a mais excluída no topo")
-add_img(s, FIGURES / "grupo_rg_interseccional.png", In(0.3), In(1.2), In(7.4))
-add_text(s, "A inversão acesso → topo", In(8.0), In(1.2), In(5.0), In(0.4),
-         font_size=15, bold=True, color=C_DARK)
-_int_boxes = [
-    (C_BLUE, "Acesso (CBO 1-4)",
-     f"Mulher negra OR={fmt(P['GRG_MN_OCP'],2)} (acima do homem branco)\n"
-     f"Mais penalizado: homem negro (OR={fmt(P['GRG_HN_OCP'],2)})\n"
-     f"Gênero positivo: profissões feminizadas"),
-    (C_RED, "Topo da renda (top 10%)",
-     f"Mulher negra é a MAIS excluída: OR={fmt(P['GRG_MN_TOP10'],2)}\n"
-     f"Abaixo da mulher branca ({fmt(P['GRG_MB_TOP10'],2)}) e do homem negro ({fmt(P['GRG_HN_TOP10'],2)})"),
-    (RGBColor(0x6A,0x00,0x8A), "Interação sub-aditiva",
-     f"OR={fmt(P['GRG_INT_OCP'],2)} no acesso: penalidade racial um pouco menor entre mulheres — "
-     f"mas a negra acumula raça + teto de gênero no topo"),
-]
-for i,(color,tit,desc) in enumerate(_int_boxes):
-    add_rect(s, In(8.0), In(1.72)+i*In(1.62), In(5.0), In(1.46), fill_rgb=C_LGRAY, line_rgb=color, line_pt=1.5)
-    add_rect(s, In(8.0), In(1.72)+i*In(1.62), In(5.0), In(0.44), fill_rgb=color)
-    add_text(s, tit, In(8.12), In(1.75)+i*In(1.62), In(4.75), In(0.42), font_size=13, bold=True, color=C_WHITE)
-    add_text(s, desc, In(8.12), In(2.22)+i*In(1.62), In(4.75), In(0.92), font_size=11, color=C_BLACK)
-add_rect(s, In(0.3), In(6.78), In(12.7), In(0.56), fill_rgb=RGBColor(0xE3,0xF2,0xFD), line_rgb=C_DARK, line_pt=0.8)
-add_text(s, "O teto de vidro não é racial nem sexualmente neutro: a mulher negra pode ENTRAR em ocupações "
-            "qualificadas, mas é barrada de CHEGAR AO TOPO da remuneração.",
-         In(0.5), In(6.83), In(12.3), In(0.45), font_size=12, color=C_DARK)
-footer(s, 27)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 13 — IMPLICAÇÕES DE POLÍTICA
@@ -1070,10 +764,10 @@ politicas = [
      ["Transparência salarial por raça/gênero\nobrigatória (empresas > 100 funcionários)",
       "Auditoria de igual pagamento por trabalho igual\ncom penalidades progressivas (gap HLM M4)",
       "Piso salarial indexado nas categorias com\nmaior gap racial residual (6,2% HLM M4)"]),
-    (C_GREEN, "Eixo 3 — Inclusão Produtiva",
-     ["Mentoria estruturada para elevar betweenness\nde negros nas redes profissionais (SNA: =0)",
-      "30% dos cargos DAS e liderança corporativa\npara negros até 2030 (inclusão nas redes)",
-      "Equalizar CBO = +127,3% renda negra\n(proxy agregado: ~74 p.p.; ver nota metodológica)"]),
+    (C_GREEN, "Eixo 3 — Acesso a Ocupações",
+     ["Mentoria e acesso a redes profissionais\nqualificadas para egressos negros",
+      "30% dos cargos DAS e liderança corporativa\npara negros até 2030",
+      "Ampliar acesso a ocupações qualificadas:\nprincipal canal do gap (Oaxaca + GLMM)"]),
 ]
 for i, (color, title, items) in enumerate(politicas):
     x = In(0.3) + i * In(4.35)
@@ -1103,7 +797,7 @@ add_text(s, "Limitações", In(0.4), In(1.25), In(6.0), In(0.4),
 bullet_box(s, [
     "PNAD não permite experimentos causais — coeficientes são associações condicionais, não efeitos causais no sentido de Rubin/Pearl",
     "UPA como proxy de bairro: unidade de amostragem ≠ bairro administrativo",
-    "GLMM logístico estimado na PEA completa via lme4::glmer (nAGQ=0, bobyqa, n=7,7M, 40,9k UPAs); random slope de negro estimado tanto no HLM (salário) quanto no GLMM (acesso, 1+negro|UF) — heterogeneidade geográfica confirmada (LRT p<0,001)",
+    "GLMM logístico estimado na PEA completa via lme4::glmer (nAGQ=0, bobyqa, n=7,7M, 40,9k UPAs), com efeito aleatório de UPA",
     "CBO auto-declarado pode ter viés de classificação por raça (deflation de ocupação)",
 ], In(0.4), In(1.75), In(6.2), In(3.8), font_size=13, dot_color=C_RED)
 

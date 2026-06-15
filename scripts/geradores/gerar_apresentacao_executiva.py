@@ -160,7 +160,7 @@ text(s, "Ricardo Calheiros  |  MBA Data Science & Analytics  |  USP/ESALQ  |  20
      In(0.6), In(4.45), In(12.0), In(0.4),
      size=13, color=RGBColor(0x90, 0xA4, 0xAE), align=PP_ALIGN.CENTER)
 
-text(s, "Dados: PNAD Contínua 2016–2025 (IBGE)  |  5 metodologias estatísticas  |  Período: 10 anos",
+text(s, "Dados: PNAD Contínua 2016–2025 (IBGE)  |  Núcleo de 4 métodos + robustez  |  Período: 10 anos",
      In(0.6), H - In(0.55), In(12.0), In(0.35),
      size=11, color=RGBColor(0x78, 0x90, 0x9C), align=PP_ALIGN.CENTER, italic=True)
 
@@ -337,76 +337,6 @@ callout(s, "O teto de vidro não é neutro: combina raça e gênero exatamente o
 footer_exec(s, 7)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 7 — A REDE QUE EXCLUI
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header(s, "A Rede que Exclui — Capital Social e Mobilidade",
-       "Negros ficam fora das redes que convertem diplomas em empregos")
-
-img(s, FIGURES / "sna_rede_demografica.png", In(0.3), In(1.2), In(6.2))
-
-text(s, "O que são as redes profissionais?", In(6.9), In(1.2), In(6.1), In(0.4),
-     size=16, bold=True, color=C_DARK)
-
-bullets = [
-    "Vagas nunca anunciadas são preenchidas por indicação — quem está na rede chega antes.",
-    "Mentores, referências e \"network\" determinam promoção tão quanto o desempenho.",
-    "A análise mostra: brancos atuam como conectores (brokers) em TODOS os níveis educacionais.",
-    "Negros ficam nas bordas da rede — mesmo com pós-graduação, sem acesso ao centro.",
-    "Resultado: o diploma negro vale menos porque falta a rede que o converte em oportunidade.",
-]
-for i, b in enumerate(bullets):
-    ico = "◆" if i < 2 else ("✗" if i == 3 else "▸")
-    c = C_RED if i == 3 else (C_BLUE if i < 2 else C_BLACK)
-    rect(s, In(6.9), In(1.72) + i * In(0.95), In(6.1), In(0.85),
-         fill=RGBColor(0xFF,0xEB,0xEE) if i == 3 else C_LGRAY,
-         line=C_RED if i == 3 else C_GRAY, lpt=0.5)
-    text(s, f"{ico}  {b}", In(7.05), In(1.77) + i * In(0.95), In(5.8), In(0.75),
-         size=12.5, color=c, name="Calibri")
-
-callout(s,
-        '"Mesmo que dois candidatos tenham o mesmo currículo, o que tem a rede certa chega primeiro. '
-        'Essa rede, historicamente, é majoritariamente branca."',
-        In(0.3), In(6.55), In(6.5), In(0.68), bg=RGBColor(0xE3,0xF2,0xFD), border=C_BLUE)
-footer_exec(s, 8)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 8 — O ESTADO AJUDA, MAS NÃO RESOLVE
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header(s, "O Estado Ajuda — Mas Não Resolve",
-       "Setor público reduz a desigualdade geral, mas o gap racial persiste e o de gênero é MAIOR")
-
-img(s, FIGURES / "estado_h1_gini.png",   In(0.3), In(1.2), In(6.0))
-img(s, FIGURES / "estado_h2h3_gaps.png", In(6.6), In(1.2), In(6.4))
-
-for i, (v, lbl, sub, color) in enumerate([
-    ("Sim",   "Gini público < privado",           "0,466 vs 0,472 — melhora marginal", C_GREEN),
-    ("Não",   "Gap racial não some no concurso",  "−28,1% público vs −34,3% privado",  C_AMBER),
-    ("Piora", "Gap de gênero é maior no público", "−21,2% público vs −18,9% privado",  C_RED),
-]):
-    x = In(0.3) + i * In(4.15)
-    rect(s, x, In(5.05), In(3.9), In(1.2),
-         fill=RGBColor(0xE8,0xF5,0xE9) if color == C_GREEN else
-              (RGBColor(0xFF,0xF9,0xE7) if color == C_AMBER else RGBColor(0xFF,0xEB,0xEE)),
-         line=color, lpt=1.5)
-    text(s, v, x + In(0.15), In(5.08), In(1.3), In(0.55),
-         size=26, bold=True, color=color, name="Calibri")
-    text(s, lbl, x + In(0.15), In(5.62), In(3.6), In(0.35),
-         size=12, bold=True, color=C_BLACK, name="Calibri")
-    text(s, sub, x + In(0.15), In(5.97), In(3.6), In(0.25),
-         size=10, color=C_GRAY, italic=True, name="Calibri")
-
-callout(s,
-        "O concurso público equaliza a entrada, mas a promoção às posições de liderança (DAS, chefia) "
-        "ainda reflete os vieses do setor privado — ou piores.",
-        In(0.3), In(6.33), In(12.7), In(0.5))
-text(s, "Contexto IBGE 2025: a qualidade de vida melhorou (POF), mas a desigualdade de renda voltou a subir "
-        "(Gini per capita 0,491) — o avanço agregado não fecha o gap racial.",
-     In(0.35), In(6.92), In(12.6), In(0.28), size=9.5, color=C_GRAY, italic=True, name="Calibri")
-footer_exec(s, 9)
-
-# ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 9 — O CUSTO PARA O BRASIL
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
@@ -442,47 +372,6 @@ for i, (color, title, body1, body2) in enumerate(cenarios):
          size=11, color=C_GRAY, italic=True, name="Calibri")
 
 footer_exec(s, 10)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 10 — O RACISMO TEM ENDEREÇO (VARIAÇÃO ENTRE ESTADOS)
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header(s, "O Racismo Tem Endereço — Varia Muito Entre Estados",
-       "A desvantagem racial é bem maior em alguns estados — e a política pode (e deve) focar onde mais dói")
-
-text(s, "A mesma injustiça, em tamanhos muito diferentes pelo país:",
-     In(0.4), In(1.15), In(12.5), In(0.4),
-     size=16, bold=True, color=C_DARK)
-
-# Mapa de calor do Brasil à esquerda
-img(s, FIGURES / "mapa_po_regional.png", In(0.5), In(1.55), In(4.3))
-
-# Três cartões empilhados à direita
-cards = [
-    (C_RED, "O gap muda de estado para estado",
-     f"Chega a ~{abs(P['RPO_WORST_GAP_PCT']):.0f}% ({P['RPO_WORST_UF']}) em alguns estados e cai a "
-     f"~{abs(P['RPO_BEST_GAP_PCT']):.0f}% ({P['RPO_BEST_UF']}) em outros. Não é o mesmo problema em todo lugar."),
-    (C_AMBER, "Maior onde há mais riqueza",
-     "As maiores desvantagens aparecem no Distrito Federal, no Rio e em São Paulo — crescimento "
-     "econômico, sozinho, não dissolve a barreira racial."),
-    (C_GREEN, "Focar onde dói rende muito mais",
-     f"Concentrar o orçamento nos estados de maior desvantagem entrega até +{P['RPO_GANHO_B9']:.0f}% "
-     f"mais resultado do que espalhar o dinheiro por igual."),
-]
-for i, (color, title, body) in enumerate(cards):
-    y = In(1.55) + i * In(1.62)
-    rect(s, In(5.4), y, In(7.6), In(1.5), fill=C_LGRAY, line=color, lpt=2)
-    rect(s, In(5.4), y, In(0.14), In(1.5), fill=color)
-    text(s, title, In(5.62), y + In(0.07), In(7.3), In(0.4),
-         size=13.5, bold=True, color=color, name="Calibri")
-    text(s, body, In(5.62), y + In(0.52), In(7.3), In(0.92),
-         size=12, color=C_BLACK, name="Calibri")
-
-callout(s,
-        "Em linguagem simples: tratar o país inteiro igual desperdiça recursos. Levar a política primeiro "
-        f"aos estados ★ ({P['RPO_TOP5']}) multiplica o impacto do mesmo orçamento.",
-        In(0.3), In(6.45), In(12.7), In(0.66))
-footer_exec(s, 11)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 11 — O QUE FUNCIONA: TRÊS EIXOS DE AÇÃO

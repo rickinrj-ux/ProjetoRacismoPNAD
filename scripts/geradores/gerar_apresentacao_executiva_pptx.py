@@ -224,14 +224,14 @@ barreiras = [
     (C_RED,    "BARREIRA I",   "Acesso e Segregacao",
      [f"Negros tem {fmt(P['OR_M2_menor_pct'],1)}% menos chance de obter\nocupacao qualificada (GLMM M2)",
       "Mesmo com educacao, sexo e bairro IDENTICOS",
-      "Causa: segregacao residencial e\nexclusao das redes profissionais"]),
+      "Causa: segregacao residencial e\nrestricao de acesso a ocupacoes qualificadas"]),
     (C_AMBER,  "BARREIRA II",  "Penalidade Salarial",
      ["Gap salarial residual de 6,2% dentro\nda mesma funcao e empresa",
       "Cresce para 15-18% para mulheres negras\n(interseccionalidade de Crenshaw, 1989)",
-      "Gap varia entre estados: SD = 5,0 log-pt\n(random slope HLM — N=7,7M)"]),
-    (C_DARK,   "BARREIRA III", "Isolamento Estrutural",
-     ["Betweenness centrality = 0 para negros\nem TODAS as faixas de escolaridade (SNA)",
-      "Diplomas negros valem menos porque\nfaltam redes para converte-los em empregos",
+      "Discriminacao de preco maior na base da\ndistribuicao (sticky floor, RIF)"]),
+    (C_DARK,   "BARREIRA III", "Teto de Vidro",
+     ["Gap cresce ao longo da renda: de -8,0%\nno q10 para -12,3% no q95 (quantilica)",
+      "Negros sao excluidos das posicoes\nmais rentaveis (glass ceiling por dotacao)",
       "Glass ceiling de progressao: gap cresce\nde 9,1% (jovens) para 37,5% (35-44 anos)"]),
 ]
 for i, (color, tag, title, items) in enumerate(barreiras):
@@ -395,54 +395,11 @@ add_text(s,
 add_rect(s, In(0.3), In(6.35), In(12.7), In(0.55),
          fill_rgb=RGBColor(0xF3,0xE5,0xF5), line_rgb=C_DARK, line_pt=1)
 add_text(s,
-    f"Genero (GLMM random slope): o teto de vidro feminino e de RENDA, nao de categoria — mulheres "
+    f"Genero (GLMM): o teto de vidro feminino e de RENDA, nao de categoria — mulheres "
     f"acessam ocupacoes qualificadas (OR={fmt(P['GGE_OCP_OR'],2)}) mas nao o topo de renda (OR top10={fmt(P['GGE_TOP10_OR'],3)}).",
     In(0.5), In(6.39), In(12.3), In(0.48),
     font_size=11, bold=True, color=C_DARK, align=PP_ALIGN.CENTER)
 footer(s, 6)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 7 — REDES E DISCRIMINACAO GEOGRAFICA
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header_bar(s, "6. Redes e Heterogeneidade Geografica — A Dimensao Invisivel",
-           "SNA: exclusao das redes | HLM Random Slope: discriminacao varia 5x entre estados (N=7,7M)")
-
-# Painel SNA (esquerdo)
-add_text(s, "Exclusao das Redes (SNA):",
-         In(0.3), In(1.12), In(6.2), In(0.42),
-         font_size=16, bold=True, color=C_DARK)
-
-add_img(s, FIGURES / "sna_rede_demografica.png", In(0.3), In(1.6), In(6.2), In(3.8))
-
-add_rect(s, In(0.3), In(5.5), In(6.2), In(1.1),
-         fill_rgb=RGBColor(0xFF,0xEB,0xEE), line_rgb=C_RED, line_pt=1)
-add_text(s,
-    "Betweenness centrality = 0 para negros\nem TODOS os niveis de escolaridade.\nDiplomas negros valem menos porque\nfaltam redes para converter titulos em empregos.",
-    In(0.45), In(5.55), In(5.9), In(1.0),
-    font_size=13, bold=True, color=C_RED)
-
-# Painel Random Slope (direito)
-add_text(s, "Discriminacao varia entre estados (HLM):",
-         In(6.9), In(1.12), In(6.1), In(0.42),
-         font_size=16, bold=True, color=C_DARK)
-
-rs_lr  = P.get("RS_LRT_LR", 7611.6)
-rs_lo  = P.get("RS_GAP_LO_PCT", -20.9)
-rs_hi  = P.get("RS_GAP_HI_PCT", -2.0)
-
-# Mapa de calor por estado (substitui os quadros de texto — mais visual e direto)
-add_img(s, FIGURES / "mapa_po_regional.png", In(7.55), In(1.5), In(4.3))
-
-add_rect(s, In(6.9), In(6.42), In(6.1), In(0.66),
-         fill_rgb=RGBColor(0xE3,0xF2,0xFD), line_rgb=C_DARK, line_pt=1)
-add_text(s,
-    f"Amplitude {rs_lo:.0f}% a {rs_hi:.0f}% entre UFs | LRT LR={rs_lr:.0f}, p<0,001*** — "
-    "maior penalidade nos estados mais ricos (DF, RJ, SP), nao nos mais pobres.",
-    In(7.0), In(6.46), In(5.9), In(0.58),
-    font_size=10.5, bold=True, color=C_DARK)
-
-footer(s, 7)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 8 — ROBUSTEZ: O GAP E REAL
@@ -496,7 +453,7 @@ footer(s, 8)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
 header_bar(s, "8. O Que Fazer — Tres Eixos de Politica Publica",
-           "TOPSIS + AHP + Programacao Linear — prioridade: atacar a porta de entrada, nao o salario")
+           "Prioridade: atacar a porta de entrada (acesso), nao apenas o salario")
 
 add_text(s, "84% do gap e de ACESSO. As politicas precisam refletir isso.",
          In(0.4), In(1.1), In(12.5), In(0.42),
@@ -505,11 +462,11 @@ add_text(s, "84% do gap e de ACESSO. As politicas precisam refletir isso.",
 eixos = [
     (C_RED,   "#1 — Acesso",
      [("Cotas CBO (Dirigente/Profissional)", "meta IR >= 0,80 ate 2030",
-       f"TOPSIS CC={fmt(P['TOPSIS_P1_CC'],3)} — 2,1x superior ao 2o colocado"),
+       "principal canal: 83,8% do gap e composicao/acesso (Oaxaca)"),
       ("PRONATEC c/ recorte racial", "subsidio de transporte em UPAs pobres",
        "ataca segregacao residencial (52% do gap)"),
       ("Residencias em empresas de alta renda", "bolsas para egressos negros",
-       "quebra a barreira de redes (betweenness=0)")]),
+       "amplia o acesso a ocupacoes qualificadas")]),
     (C_BLUE,  "#2 — Remuneracao",
      [("Transparencia salarial por raca/genero", "obrigatoria para empresas >100 func.",
        "visa o gap residual de 6,2% (HLM M4)"),
@@ -517,9 +474,9 @@ eixos = [
        "enforcement direto do sticky floor (q10=33%)"),
       ("Piso salarial nas categorias de maior gap", "indexado ao gap HLM M4",
        "protecao prioritaria para trabalhadores da base")]),
-    (C_DARK,  "#3 — Redes",
-     [("Mentoria estruturada por empresas", "elevacao da betweenness centrality",
-       "SNA: betweenness=0 anula retorno ao diploma"),
+    (C_DARK,  "#3 — Inclusao e Mentoria",
+     [("Mentoria estruturada por empresas", "acesso a redes profissionais qualificadas",
+       "converte o diploma negro em oportunidade de carreira"),
       ("30% DAS e liderancas corporativas", "reserva para negros ate 2030",
        "inclusao nas redes de decisao (glass ceiling)"),
       ("Equidade educacional de qualidade", "nao apenas de acesso",
@@ -581,7 +538,7 @@ numeros = [
     (f"{fmt(P.get('GB_HLM_M1_pct', 19.3),1)}%", "Gap bruto",       "sem controles (HLM M1)"),
     ("6,2%",          "Discriminacao pura",  "mesma funcao e empresa"),
     (or_str(P["OR_M2"]), "Odds Ratio GLMM", "acesso ocupacao qualificada"),
-    ("0",             "Betweenness negros",  "em todas as escolaridades (SNA)"),
+    ("+9,5 p.p.",     "Penalidade interseccional", "Mulher Negra (nao-aditiva)"),
 ]
 for i, (val, label, sub) in enumerate(numeros):
     x = In(0.4) + i * In(3.2)
@@ -600,10 +557,10 @@ mensagens = [
      "5 metodos independentes chegam ao mesmo diagnostico. Nao e artefato estatistico."),
     (C_AMBER, "Opera em duas etapas distintas",
      "84% na PORTA DE ENTRADA (acesso a funcoes qualificadas) + 16% no SALARIO dentro da funcao."),
-    (C_BLUE,  "E geograficamente heterogenea",
-     f"O gap varia de {P.get('RS_GAP_LO_PCT',-19.8):.1f}% a {P.get('RS_GAP_HI_PCT',-2.2):.1f}% entre estados (random slope HLM, N={fmtN(P.get('RS_N_OBS',7689426))}). Estados mais ricos (DF, RJ, SP) concentram a MAIOR penalidade."),
-    (C_GREEN, "Politicas precisam ser especificas e focalizadas",
-     f"Cotas ocupacionais (CBO) + mentoria atacam 84% do problema. E focalizar o orcamento nas UFs de maior penalidade rende +{fmt(P['RPO_GANHO_B9'],1)}% vs. distribuicao uniforme (DF, Norte primeiro)."),
+    (C_BLUE,  "Pesa mais na base da distribuicao",
+     "Sticky floor: a discriminacao de preco (retornos) vai de 35,1% no q10 a 12,9% no q90 (RIF) — quem esta na base sofre proporcionalmente mais."),
+    (C_GREEN, "Politicas precisam priorizar o acesso",
+     "Cotas ocupacionais (CBO) + mentoria atacam o principal canal: a porta de entrada, onde esta ~84% do gap (composicao/acesso)."),
 ]
 for i, (color, titulo, corpo) in enumerate(mensagens):
     add_rect(s, In(0.3), In(2.42)+i*In(1.02), In(12.7), In(0.94),
