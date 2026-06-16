@@ -155,6 +155,33 @@ def kpi_box(slide, label, value, unit, l, t, w=In(2.8), h=In(1.3),
     add_text(slide, unit, l+In(0.1), t+In(0.92), w-In(0.2), In(0.35),
              font_size=10, color=C_GRAY, italic=True, font_name="Calibri")
 
+def add_table_resumo(slide, headers, rows, l, t, w, h, col_w=None, font_size=12):
+    """Tabela OOXML real (editável) estilizada com a paleta."""
+    gf = slide.shapes.add_table(len(rows) + 1, len(headers), l, t, w, h)
+    tbl = gf.table
+    if col_w:
+        for j, cw in enumerate(col_w):
+            tbl.columns[j].width = cw
+    for j, htxt in enumerate(headers):
+        cell = tbl.cell(0, j)
+        cell.fill.solid(); cell.fill.fore_color.rgb = C_DARK
+        cell.vertical_anchor = 3  # MSO_ANCHOR.MIDDLE
+        p = cell.text_frame.paragraphs[0]; p.alignment = PP_ALIGN.LEFT
+        r = p.add_run(); r.text = htxt
+        r.font.bold = True; r.font.size = Pt(font_size); r.font.color.rgb = C_WHITE; r.font.name = "Calibri"
+    for i, row in enumerate(rows, start=1):
+        for j, val in enumerate(row):
+            cell = tbl.cell(i, j)
+            cell.fill.solid(); cell.fill.fore_color.rgb = C_WHITE if (i % 2) else C_LGRAY
+            cell.vertical_anchor = 3
+            p = cell.text_frame.paragraphs[0]; p.alignment = PP_ALIGN.LEFT
+            r = p.add_run(); r.text = str(val)
+            r.font.size = Pt(font_size); r.font.color.rgb = C_BLACK; r.font.name = "Calibri"
+            if j == 0:
+                r.font.bold = True; r.font.color.rgb = C_DARK
+    return tbl
+
+
 def footer(slide, slide_num, total=29):
     add_rect(slide, 0, H-In(0.28), W, In(0.28), fill_rgb=C_DARK)
     add_text(slide,
@@ -714,6 +741,34 @@ bullet_box(s, [
 ], In(0.3), In(5.95), In(12.7), In(1.15), font_size=13, dot_color=C_DARK)
 
 footer(s, 21)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SLIDE — RESUMO DOS RESULTADOS (tabela real)
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header_bar(s, "Resumo dos Resultados — Núcleo de 4 Métodos",
+           "Os quatro métodos convergem; a discriminação opera sobretudo no acesso às ocupações")
+add_table_resumo(
+    s,
+    ["Dimensão", "Método", "Resultado-chave"],
+    [["Gap e mediação", "HLM (3 níveis)",
+      "Gap −19,1% (M1) → −6,2% (M4); 69,8% mediado por contexto e ocupação"],
+     ["Composição × discriminação", "Oaxaca-Blinder",
+      "83,8% dotações (acesso/composição) / 16,2% não explicado"],
+     ["Teto de vidro (acesso)", "GLMM logístico",
+      f"OR {fmt(P['OR_OCP_M2'],3)} (cargo qualif.) → {fmt(P['OR_TOP10_M2'],3)} (top 10%); E-value ≥ 2,2"],
+     ["Distribuição da renda", "Quantílica / RIF",
+      "Gap −8,0% (q10) → −12,3% (q95); sticky floor: retornos 35% → 13%"],
+     ["Interseccionalidade", "Oaxaca 4 grupos",
+      "Mulher Negra: gap 96,4%; penalidade extra +9,5 p.p. (não-aditiva)"],
+     ["Robustez", "XGBoost + SHAP / E-value",
+      "R²=0,62; raça com efeito residual após controles; sem sobreajuste"]],
+    In(0.4), In(1.35), In(12.5), In(4.9),
+    col_w=[In(2.7), In(2.3), In(7.5)], font_size=12)
+add_text(s, "Leitura: cada linha é um método independente respondendo uma pergunta distinta; "
+            "OR < 1 indica menor acesso para negros de mesmo perfil.",
+         In(0.4), In(6.5), In(12.5), In(0.5), font_size=11, italic=True, color=C_GRAY)
+footer(s, 22)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 15 — SÍNTESE: TRIÂNGULO DE EVIDÊNCIAS
