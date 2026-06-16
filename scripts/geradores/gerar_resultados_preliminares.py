@@ -20,9 +20,11 @@ _sys.path.insert(0, _os.getcwd())
 
 import sys
 from pathlib import Path
+import pandas as pd
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
+from docx.enum.table import WD_TABLE_ALIGNMENT
 from params import P, fmt, fmtN, or_str, ame
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -80,6 +82,54 @@ def figura(nome, legenda, w=15):
     c = doc.add_paragraph(); c.alignment = WD_ALIGN_PARAGRAPH.CENTER
     rc = c.add_run(legenda); rc.font.size = Pt(10); rc.font.name = "Times New Roman"
     c.paragraph_format.space_after = Pt(10)
+
+
+def tabela(legenda, headers, rows):
+    """Tabela de resultado (pedido do orientador): legenda acima (ABNT), grade."""
+    cap = doc.add_paragraph(); cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    cap.paragraph_format.space_before = Pt(8)
+    rc = cap.add_run(legenda); rc.font.size = Pt(10); rc.bold = True; rc.font.name = "Times New Roman"
+    t = doc.add_table(rows=1, cols=len(headers)); t.style = "Table Grid"
+    t.alignment = WD_TABLE_ALIGNMENT.CENTER
+
+    def _cell(cell, txt, bold=False):
+        cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r = cell.paragraphs[0].add_run(str(txt))
+        r.font.size = Pt(10); r.bold = bold; r.font.name = "Times New Roman"
+
+    for j, h in enumerate(headers):
+        _cell(t.rows[0].cells[j], h, bold=True)
+    for row in rows:
+        cells = t.add_row().cells
+        for j, v in enumerate(row):
+            _cell(cells[j], v)
+    doc.add_paragraph().paragraph_format.space_after = Pt(8)
+
+
+# ── Carrega resultados dos CSV canônicos (para as tabelas) ─────────────────────
+TBL = ROOT / "outputs" / "tables"
+_med = pd.read_csv(TBL / "gap_decomposicao_serie_completo.csv")
+_oba = pd.read_csv(TBL / "ob_acesso.csv").iloc[0]
+_glm = pd.read_csv(TBL / "glmm_glassceil_full.csv")
+_ev  = pd.read_csv(TBL / "evalues_glmm.csv")
+_itx = pd.read_csv(TBL / "interseccional_ob4grupos.csv")
+
+def _glm_m2(des):
+    r = _glm[(_glm.desfecho == des) & (_glm.modelo == "M2")].iloc[0]
+    e = _ev[(_ev.Desfecho == des) & (_ev.Modelo == "M2")]
+    ev = fmt(float(e["E-value (OR)"].iloc[0]), 2) if len(e) else "---"
+    return [fmt(r.OR_negro, 3), fmt(r.AME_pp, 1), ev]
+
+_MEDLBL = {"M1_Individual": "M1 (individual)", "M2_Localidade": "M2 (+ contexto UPA)",
+           "M3_Completo": "M3 (+ UF)", "M4_Ocupacao": "M4 (+ ocupação)"}
+_med_rows = [[_MEDLBL.get(r["Modelo"], r["Modelo"]), fmt(r["b_negro"], 4), fmt(r["Gap%"], 1),
+              ("—" if pd.isna(r["Mediacao_total%"]) else fmt(r["Mediacao_total%"], 1))]
+             for r in _med.to_dict("records")]
+_oba_rows = [["Dotação (composição: capital humano e ocupação)", fmt(_oba["pct_dotacao"], 1)],
+             ["Coeficiente (não explicado / discriminação)", fmt(_oba["pct_coeficiente"], 1)]]
+_itx_rows = [[r["grupo"], fmt(r["gap_pct"], 1), fmt(r["end_pct"], 1), fmt(r["ret_pct"], 1),
+              ("—" if abs(r["penalidade_extra_pct"]) < 1e-6 else fmt(r["penalidade_extra_pct"], 1))]
+             for r in _itx.to_dict("records")]
 
 
 # ── Cabeçalho ─────────────────────────────────────────────────────────────────
@@ -214,6 +264,13 @@ par(f"A primeira camada é a exclusão da PORTA DE ENTRADA. O GLMM logístico mu
 figura("glmm_glassceil_forest.png",
        "Figura 2. GLMM — odds ratios de acesso por desfecho: o gradiente decrescente rumo ao "
        "topo da renda caracteriza o teto de vidro de acesso (OR < 1 = barreira).", w=14)
+tabela("Tabela 1. GLMM logístico (M2, população completa) — teto de vidro de acesso. "
+       "OR < 1 = menor chance de acesso para negros vs. brancos de mesmo perfil; AME em pontos "
+       "percentuais; E-value ≥ 2 indica robustez a confundidor não observado.",
+       ["Desfecho", "OR (negro)", "AME (p.p.)", "E-value"],
+       [["Cargo qualificado (CBO 1–4)"] + _glm_m2("ocp_qualif"),
+        ["Top 20% de renda"] + _glm_m2("y_top20"),
+        ["Top 10% de renda"] + _glm_m2("y_top10")])
 par(f"Uma leitura interseccional (quatro grupos raça×gênero, referência = homem branco) revela uma "
     f"inversão. No ACESSO à categoria, a mulher negra é alçada (OR={fmt(g('GRG_MN_OCP',1.33),2)}, "
     f"acima do homem branco, por profissões feminizadas em CBO 1–4) e o mais penalizado é o homem "
@@ -253,6 +310,17 @@ par("Esse eixo territorial encontra corroboração externa no Índice de Progres
     "proxy de bairro (UPA) é inviável — a PNAD não divulga o município e o IPS é municipal, mais "
     "agregado que a UPA —, de modo que o IPS entra como evidência convergente do caráter territorial, "
     "não como fonte de dados integrada.")
+tabela("Tabela 2. Decomposição do gap por mediação (HLM de três níveis, PNAD Contínua 2016–2025). "
+       "Cada modelo acrescenta controles ao anterior; o gap encolhe de −19,1% (M1) para −6,2% (M4), "
+       "com 69,8% mediado por contexto de moradia e ocupação.",
+       ["Modelo (controles acumulados)", "β negro", "Gap (%)", "Mediação acum. (%)"],
+       _med_rows)
+tabela("Tabela 3. Decomposição de Oaxaca-Blinder (especificação de acesso, com ocupação e contexto "
+       "como dotações; população completa). Dotações + Coeficiente = 100% do gap. Ressalva (Oaxaca & "
+       "Ransom, 1999): incluir ocupação como dotação subestima a discriminação — daí a complementaridade "
+       "com o GLMM de acesso (Tabela 1).",
+       ["Componente", "% do Gap"],
+       _oba_rows)
 
 sub("Camada 3 — A penalidade interseccional")
 par("As duas primeiras camadas — acesso e território — combinam-se de forma agravada na "
@@ -262,6 +330,11 @@ par("As duas primeiras camadas — acesso e território — combinam-se de forma
     "isoladas — a marca da interseccionalidade (Crenshaw, 1989). As camadas reforçam-se "
     "mutuamente: a barreira de acesso e o eixo territorial pesam de modo desigual sobre os "
     "diferentes grupos.")
+tabela("Tabela 4. Decomposição interseccional (raça × gênero) do gap vs. o Homem Branco. "
+       "Dotações + Retornos = 100% do gap. A Mulher Negra acumula o maior gap (96,4%) e uma "
+       "penalidade extra de 9,5 p.p. não redutível à soma dos eixos de raça e gênero (Crenshaw, 1989).",
+       ["Grupo", "Gap vs HB (%)", "Dotações (%)", "Retornos (%)", "Penal. extra (p.p.)"],
+       _itx_rows)
 figura("grupo_rg_interseccional.png",
        "Figura 4. Decomposição interseccional (raça × gênero): gap de renda vs. o Homem Branco; "
        "a Mulher Negra acumula as duas penalidades, com um resíduo interseccional próprio.", w=13)
