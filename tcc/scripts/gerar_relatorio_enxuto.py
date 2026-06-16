@@ -310,6 +310,20 @@ except ValueError:
 
 texto = NOTA_CABECALHO + "\n".join(lines) + "\n"
 
+# Declara caracteres Unicode usados em TEXTO pelas tabelas/prosa do núcleo que o
+# pdflatex (inputenc utf8) não conhece por padrão — evita "Unicode character not
+# set up for use with LaTeX". O preâmbulo já declara 2212 (−); acrescentamos os demais.
+print("Declarando caracteres Unicode adicionais (Δ, →, ²)…")
+_uni = ("\\DeclareUnicodeCharacter{0394}{$\\Delta$}\n"
+        "\\DeclareUnicodeCharacter{2192}{$\\rightarrow$}\n"
+        "\\DeclareUnicodeCharacter{00B2}{\\textsuperscript{2}}\n"
+        # \note é usado por qr_melhorias.tex (tabela estendida) mas não é definido
+        # no preâmbulo; define-se como nota de rodapé de tabela.
+        "\\providecommand{\\note}[1]{\\par\\smallskip{\\footnotesize\\textit{#1}}}")
+texto, _nu = inserir_apos_linha(texto, r"\DeclareUnicodeCharacter{2212}{$-$}", _uni)
+if _nu != 1:
+    print(f"  [AVISO] âncora 2212 não encontrada (n={_nu}) — declarações não inseridas.")
+
 # Substitui resumo (PT) e abstract (EN) pelas versões alinhadas ao núcleo.
 # EN primeiro (ancorado no \renewcommand) para não confundir com o PT.
 print("Reescrevendo resumo (PT) e abstract (EN) para o núcleo…")
