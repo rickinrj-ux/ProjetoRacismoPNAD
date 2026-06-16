@@ -61,6 +61,14 @@
 % ── Hiperlinks ───────────────────────────────────────────────────────────────
 \usepackage[colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue]{hyperref}
 
+% Fix abntex2cite+hyperref+article: reinjeta \abntnextkey (citações alf)
+\makeatletter
+\let\ABCIorig@lbibitem\@lbibitem
+\def\@lbibitem[#1]#2{\gdef\abntnextkey{#2}\ABCIorig@lbibitem[#1]{#2}}
+\let\ABCIorig@bibitem\@bibitem
+\def\@bibitem#1{\gdef\abntnextkey{#1}\ABCIorig@bibitem{#1}}
+\makeatother
+
 % ── Caminho das figuras ───────────────────────────────────────────────────────
 \graphicspath{{outputs/figures/}}
 

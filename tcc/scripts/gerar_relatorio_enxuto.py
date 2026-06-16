@@ -324,6 +324,22 @@ texto, _nu = inserir_apos_linha(texto, r"\DeclareUnicodeCharacter{2212}{$-$}", _
 if _nu != 1:
     print(f"  [AVISO] âncora 2212 não encontrada (n={_nu}) — declarações não inseridas.")
 
+# Fix abntex2cite+hyperref+article: o hyperref (carregado após abntex2cite)
+# sobrescreve \@lbibitem e perde o \gdef\abntnextkey, fazendo as citações alf
+# saírem "(??)". Reinjeta-se \abntnextkey envolvendo o \@lbibitem/\@bibitem vigentes.
+print("Corrigindo citações abntex2cite+hyperref (evita '(??)')…")
+_bibfix = (
+    "\n% Fix abntex2cite+hyperref+article: reinjeta \\abntnextkey (citações alf)\n"
+    "\\makeatletter\n"
+    "\\let\\ABCIorig@lbibitem\\@lbibitem\n"
+    "\\def\\@lbibitem[#1]#2{\\gdef\\abntnextkey{#2}\\ABCIorig@lbibitem[#1]{#2}}\n"
+    "\\let\\ABCIorig@bibitem\\@bibitem\n"
+    "\\def\\@bibitem#1{\\gdef\\abntnextkey{#1}\\ABCIorig@bibitem{#1}}\n"
+    "\\makeatother")
+texto, _nb = inserir_apos_linha(texto, r"]{hyperref}", _bibfix)
+if _nb != 1:
+    print(f"  [AVISO] âncora hyperref não encontrada (n={_nb}) — fix de citação não aplicado.")
+
 # Substitui resumo (PT) e abstract (EN) pelas versões alinhadas ao núcleo.
 # EN primeiro (ancorado no \renewcommand) para não confundir com o PT.
 print("Reescrevendo resumo (PT) e abstract (EN) para o núcleo…")
