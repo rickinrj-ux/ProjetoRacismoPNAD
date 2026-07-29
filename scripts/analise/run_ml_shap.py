@@ -91,10 +91,11 @@ SHAP_SAMPLE   = 50_000
 RANDOM_STATE  = 42
 
 # ── Validação cruzada (protocolo de robustez adicional ao hold-out 80/20) ──────
-# CV k-fold roda em subamostra (não na população completa): 5 folds × RF(200 árv.)
-# + XGB(300 iter.) na base inteira (7,69M) multiplicaria o custo computacional do
-# ajuste principal por ~5x. Uma subamostra representativa mantém a validação
-# tratável sem comprometer a estimativa de variância entre folds.
+# CV_SAMPLE_FRAC=0.20 é o default RÁPIDO usado quando este script roda por
+# inteiro (main(), que também refaz SHAP/bootstrap). A versão AUTORITATIVA em
+# população completa (7,69M obs., 5 folds x RF+XGB na base inteira) é gerada
+# por scripts/analise/run_ml_cv_fullpop.py (reaproveita estas mesmas funções,
+# sem refazer SHAP/bootstrap) e sobrescreve ml_performance_cv.csv.
 RUN_CV         = True
 N_CV_FOLDS     = 5
 CV_SAMPLE_FRAC = 0.20

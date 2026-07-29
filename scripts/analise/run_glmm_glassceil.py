@@ -264,21 +264,18 @@ for y_col, y_label in OUTCOMES:
         # Reajusta com (a) cluster-robusto sem peso e (b) peso + cluster, para
         # isolar o quanto da precisão reportada depende do desenho amostral.
         if has_v1028:
-            # Cada ajuste (HC1 já vivo, cluster, cluster+peso) é extraído e
-            # descartado antes do próximo. Mesmo assim, a covariância
-            # cluster-robusta do statsmodels (41.517 clusters de UPA × ~40
-            # parâmetros de M2) esgotou repetidamente os 16GB de RAM desta
-            # máquina mesmo com só 1 modelo vivo por vez — o cálculo em si
-            # (não um vazamento de memória) é caro nessa escala. Roda-se
-            # portanto numa subamostra representativa (ROBUSTEZ_SAMPLE_FRAC),
-            # documentado explicitamente como limitação computacional; HC1
-            # (b0/se0) continua vindo da população completa (m2 já ajustado).
-            ROBUSTEZ_SAMPLE_FRAC = 0.20
+            # Testado em população completa (2026-07-29): o ajuste cluster-robusto
+            # (statsmodels cov_type="cluster", 41.517 clusters de UPA x ~40 parâmetros
+            # de M2) NÃO esgota a RAM desta máquina quando é o único modelo vivo por
+            # vez (pico ~9,4GB de 16GB, ~473s) — a limitação de RAM que motivava a
+            # subamostra de 20% (ROBUSTEZ_SAMPLE_FRAC) documentada em versões
+            # anteriores não se confirmou com esta implementação; roda-se portanto em
+            # população completa (df diretamente, sem cópia/amostragem).
             print(f"  Robustez desenho amostral (peso V1028 + cluster UPA, "
-                  f"subamostra {ROBUSTEZ_SAMPLE_FRAC*100:.0f}%) — {y_col} ...",
+                  f"população completa) — {y_col} ...",
                   end="", flush=True)
             try:
-                df_rob = df.sample(frac=ROBUSTEZ_SAMPLE_FRAC, random_state=SEED)
+                df_rob = df
 
                 se_by_label = {}
 
