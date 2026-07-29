@@ -37,7 +37,7 @@ import warnings
 warnings.filterwarnings("ignore")
 from pathlib import Path
 
-ROOT    = Path(r"C:\Users\user\Documents\ProjetoRacismoPNAD")
+ROOT    = Path(__file__).resolve().parents[2]
 FIGURES = ROOT / "outputs" / "figures"
 TABLES  = ROOT / "outputs" / "tables"
 FIGURES.mkdir(parents=True, exist_ok=True)
@@ -160,7 +160,7 @@ def get_ame(m, data, var="negro"):
     if m is None or var not in m.params:
         return np.nan
     b_neg = m.params[var]
-    exog  = m.model.exog.copy()
+    exog  = m.model.exog  # somente leitura abaixo — copy() desnecessário (economiza ~2,3GB/chamada)
     idx_v = list(m.model.exog_names).index(var)
     lp0   = exog @ m.params.values - exog[:, idx_v] * b_neg
     p1    = 1 / (1 + np.exp(-(lp0 + b_neg)))
@@ -173,123 +173,202 @@ def stars(p):
 
 
 # ── Ajustar modelos ───────────────────────────────────────────────────────────
-results = {}
-for y_col, y_label in OUTCOMES:
-    sub = df[df[y_col].notna()].copy()
-    print(f"\n--- Desfecho: {y_col.upper()} (n={len(sub):,}) ---")
-    results[y_col] = {}
-    for m_name, formula_tpl in FORMULAS.items():
-        formula = formula_tpl.format(y=y_col)
-        print(f"  Ajustando {m_name} ...", end="", flush=True)
-        m = fit_logit(formula, sub)
-        results[y_col][m_name] = m
-        if m is not None:
-            or_, lo, hi = get_or_ci(m)
-            ame = get_ame(m, sub) * 100
-            p   = m.pvalues.get("negro", np.nan)
-            print(f" OR={or_:.3f} [{lo:.3f}–{hi:.3f}]{stars(p)} | AME={ame:+.2f}pp")
-        else:
-            print(" FALHOU")
+# M3 (interação negro×educação) não é usado na Tabela 1 do Resultados Preliminares
+# (que usa M2) nem em params.py. É também o modelo mais caro (interações + 26
+# dummies de UF em 7,7M obs.) e, no desfecho mais raro (y_top10), sofre
+# quase-separação (poucas observações de negros com pós-graduação no decil
+# superior por UF), com tempo de convergência do MLE via BFGS imprevisível
+# (minutos a mais de uma hora). Como M3 não é consumido por nenhuma
+# tabela/figura do núcleo atual, pulamos M3 nos 3 desfechos (linha "OR_negro":
+# NaN abaixo); M1/M2 não são afetados.
 
-# ── Tabela CSV ────────────────────────────────────────────────────────────────
+import gc
+import statsmodels.api as sm
+
+# Memória: ocp_qualif/y_top20/y_top10 são construídas sem NaN a partir de colunas
+# já completas (df[y_col].notna() é sempre 100%) — usar df diretamente evita
+# triplicar a base em memória com um .copy() por desfecho (7,7M linhas × ~20
+# colunas cada). Também só retemos o modelo M2 (único reusado depois, na seção
+# de robustez ponderada); M1 é descartado logo após extrair OR/CI/AME, e um
+# gc.collect() explícito libera a memória do ajuste anterior antes do próximo
+# — nesta máquina (16GB RAM) os ajustes com 26 dummies de UF em 7,7M linhas já
+# entram em swap sem esse cuidado, o que torna o tempo de execução imprevisível.
+most_common_uf = df["UF_str"].mode().iloc[0]
+mean_vals = {c: float(df[c].mean()) for c in
+             ["idade_c", "idade_sq", "media_renda_upa_z", "media_educ_upa_z",
+              "tx_desemprego_upa_z", "pct_negro_upa_z"]}
+emp_mean = float(df["emprego_formal"].mean())
+pub_mean = float(df["setor_publico"].mean())
+cp_mean  = float(df["conta_propria"].mean())
+td_mean  = float(df["trab_domestico"].mean())
+EDUC_CATS = [
+    ("Sem superior", dict(educ_medio_completo=1, educ_superior_completo=0, educ_pos_graduacao=0)),
+    ("Superior",     dict(educ_medio_completo=0, educ_superior_completo=1, educ_pos_graduacao=0)),
+    ("Pós-grad",     dict(educ_medio_completo=0, educ_superior_completo=0, educ_pos_graduacao=1)),
+]
+has_v1028 = "V1028" in df.columns and df["V1028"].notna().any()
+
 rows = []
+rows_pond = []
+pred_probs = {}   # y_col -> (probs_b, probs_n), usado na figura de predição
+
 for y_col, y_label in OUTCOMES:
-    for m_name in FORMULAS:
-        m = results[y_col].get(m_name)
-        or_, lo, hi = get_or_ci(m)
-        sub = df[df[y_col].notna()]
-        ame = get_ame(m, sub) * 100 if m is not None else np.nan
-        p   = m.pvalues.get("negro", np.nan) if m is not None else np.nan
-        inter_or = np.nan
-        if m_name == "M3" and m is not None:
-            nm = "negro:educ_superior_completo"
-            if nm in m.params:
-                inter_or = np.exp(m.params[nm])
-        rows.append({
-            "desfecho": y_col, "modelo": m_name,
-            "OR_negro": round(or_, 4), "CI95_lo": round(lo, 4), "CI95_hi": round(hi, 4),
-            "AME_pp":   round(ame, 3), "p_valor":  round(p,  4),
-            "OR_inter_negxedu": round(inter_or, 4) if not np.isnan(inter_or) else np.nan,
-        })
+    print(f"\n--- Desfecho: {y_col.upper()} (n={len(df):,}) ---")
+
+    # M1 — extrai os números para a tabela CSV e descarta o modelo imediatamente.
+    formula_m1 = FORMULAS["M1"].format(y=y_col)
+    print("  Ajustando M1 ...", end="", flush=True)
+    m1 = fit_logit(formula_m1, df)
+    or_, lo, hi = get_or_ci(m1)
+    ame = get_ame(m1, df) * 100 if m1 is not None else np.nan
+    p   = m1.pvalues.get("negro", np.nan) if m1 is not None else np.nan
+    rows.append({
+        "desfecho": y_col, "modelo": "M1",
+        "OR_negro": round(or_, 4), "CI95_lo": round(lo, 4), "CI95_hi": round(hi, 4),
+        "AME_pp": round(ame, 3) if not np.isnan(ame) else np.nan,
+        "p_valor": round(p, 4) if not np.isnan(p) else np.nan,
+        "OR_inter_negxedu": np.nan,
+    })
+    print(f" OR={or_:.3f} [{lo:.3f}–{hi:.3f}]{stars(p)} | AME={ame:+.2f}pp" if m1 is not None else " FALHOU")
+    del m1
+    gc.collect()
+
+    # M2 — usado também na robustez ponderada e na figura de predição, mantido
+    # vivo só até o fim deste bloco (nunca simultâneo ao M2 de outro desfecho).
+    formula_m2 = FORMULAS["M2"].format(y=y_col)
+    print("  Ajustando M2 ...", end="", flush=True)
+    m2 = fit_logit(formula_m2, df)
+    or_, lo, hi = get_or_ci(m2)
+    ame = get_ame(m2, df) * 100 if m2 is not None else np.nan
+    p   = m2.pvalues.get("negro", np.nan) if m2 is not None else np.nan
+    rows.append({
+        "desfecho": y_col, "modelo": "M2",
+        "OR_negro": round(or_, 4), "CI95_lo": round(lo, 4), "CI95_hi": round(hi, 4),
+        "AME_pp": round(ame, 3) if not np.isnan(ame) else np.nan,
+        "p_valor": round(p, 4) if not np.isnan(p) else np.nan,
+        "OR_inter_negxedu": np.nan,
+    })
+    print(f" OR={or_:.3f} [{lo:.3f}–{hi:.3f}]{stars(p)} | AME={ame:+.2f}pp" if m2 is not None else " FALHOU")
+
+    rows.append({
+        "desfecho": y_col, "modelo": "M3",
+        "OR_negro": np.nan, "CI95_lo": np.nan, "CI95_hi": np.nan,
+        "AME_pp": np.nan, "p_valor": np.nan, "OR_inter_negxedu": np.nan,
+    })
+    print("  Pulando M3 (quase-separação em y_top10 — ver nota acima)")
+
+    if m2 is not None:
+        # ── Robustez: desenho amostral complexo (peso V1028 + cluster UPA) ──
+        # O M2 usa SE robusto a heterocedasticidade (HC1), mas não pondera por
+        # V1028 nem trata o agrupamento por UPA (conglomerado) explicitamente.
+        # Reajusta com (a) cluster-robusto sem peso e (b) peso + cluster, para
+        # isolar o quanto da precisão reportada depende do desenho amostral.
+        if has_v1028:
+            # Cada ajuste (HC1 já vivo, cluster, cluster+peso) é extraído e
+            # descartado antes do próximo. Mesmo assim, a covariância
+            # cluster-robusta do statsmodels (41.517 clusters de UPA × ~40
+            # parâmetros de M2) esgotou repetidamente os 16GB de RAM desta
+            # máquina mesmo com só 1 modelo vivo por vez — o cálculo em si
+            # (não um vazamento de memória) é caro nessa escala. Roda-se
+            # portanto numa subamostra representativa (ROBUSTEZ_SAMPLE_FRAC),
+            # documentado explicitamente como limitação computacional; HC1
+            # (b0/se0) continua vindo da população completa (m2 já ajustado).
+            ROBUSTEZ_SAMPLE_FRAC = 0.20
+            print(f"  Robustez desenho amostral (peso V1028 + cluster UPA, "
+                  f"subamostra {ROBUSTEZ_SAMPLE_FRAC*100:.0f}%) — {y_col} ...",
+                  end="", flush=True)
+            try:
+                df_rob = df.sample(frac=ROBUSTEZ_SAMPLE_FRAC, random_state=SEED)
+
+                se_by_label = {}
+
+                b0, se0 = m2.params["negro"], m2.bse["negro"]
+                se_by_label["HC1 (atual, sem peso/cluster)"] = (b0, se0)
+                rows_pond.append({
+                    "desfecho": y_col, "especificacao": "HC1 (atual, sem peso/cluster)",
+                    "OR_negro": round(float(np.exp(b0)), 4), "SE_negro": round(float(se0), 4),
+                    "CI95_lo": round(float(np.exp(b0 - 1.96 * se0)), 4),
+                    "CI95_hi": round(float(np.exp(b0 + 1.96 * se0)), 4),
+                })
+
+                m_cluster = smf.logit(formula_m2, data=df_rob).fit(
+                    method="bfgs", maxiter=400, disp=False,
+                    cov_type="cluster", cov_kwds={"groups": df_rob["UPA"]},
+                )
+                b1, se1 = m_cluster.params["negro"], m_cluster.bse["negro"]
+                se_by_label["cluster UPA (sem peso)"] = (b1, se1)
+                rows_pond.append({
+                    "desfecho": y_col, "especificacao": "cluster UPA (sem peso)",
+                    "OR_negro": round(float(np.exp(b1)), 4), "SE_negro": round(float(se1), 4),
+                    "CI95_lo": round(float(np.exp(b1 - 1.96 * se1)), 4),
+                    "CI95_hi": round(float(np.exp(b1 + 1.96 * se1)), 4),
+                })
+                del m_cluster
+                gc.collect()
+
+                peso_norm = df_rob["V1028"] / df_rob["V1028"].mean()
+                m_pond = smf.glm(
+                    formula_m2, data=df_rob, family=sm.families.Binomial(),
+                    freq_weights=peso_norm,
+                ).fit(cov_type="cluster", cov_kwds={"groups": df_rob["UPA"]})
+                b2, se2 = m_pond.params["negro"], m_pond.bse["negro"]
+                se_by_label["cluster UPA + peso V1028"] = (b2, se2)
+                rows_pond.append({
+                    "desfecho": y_col, "especificacao": "cluster UPA + peso V1028",
+                    "OR_negro": round(float(np.exp(b2)), 4), "SE_negro": round(float(se2), 4),
+                    "CI95_lo": round(float(np.exp(b2 - 1.96 * se2)), 4),
+                    "CI95_hi": round(float(np.exp(b2 + 1.96 * se2)), 4),
+                })
+                del m_pond, df_rob
+                gc.collect()
+
+                print(
+                    f" HC1 SE={se0:.4f} | cluster SE={se1:.4f} | "
+                    f"cluster+peso SE={se2:.4f} (OR={np.exp(b2):.3f})"
+                )
+            except Exception as exc:
+                print(f" FALHOU robustez de desenho amostral — {exc}")
+            gc.collect()
+
+        # ── Figura: probabilidade predita por raça × escolaridade (usa M2) ──
+        probs_b, probs_n = [], []
+        for _, educ_vals in EDUC_CATS:
+            base = {
+                "sexo_fem": 0, "idade_c": mean_vals["idade_c"],
+                "idade_sq": mean_vals["idade_sq"],
+                "emprego_formal": emp_mean, "setor_publico": pub_mean,
+                "conta_propria": cp_mean, "trab_domestico": td_mean,
+                "media_renda_upa_z": mean_vals["media_renda_upa_z"],
+                "media_educ_upa_z": mean_vals["media_educ_upa_z"],
+                "tx_desemprego_upa_z": mean_vals["tx_desemprego_upa_z"],
+                "pct_negro_upa_z": mean_vals["pct_negro_upa_z"],
+                "UF_str": most_common_uf,
+                **educ_vals,
+            }
+            try:
+                pb = float(m2.predict(pd.DataFrame([{**base, "negro": 0}])).iloc[0]) * 100
+                pn = float(m2.predict(pd.DataFrame([{**base, "negro": 1}])).iloc[0]) * 100
+            except Exception:
+                pb, pn = np.nan, np.nan
+            probs_b.append(pb)
+            probs_n.append(pn)
+        pred_probs[y_col] = (probs_b, probs_n)
+
+    del m2
+    gc.collect()
+
 tbl = pd.DataFrame(rows)
 tbl.to_csv(TABLES / "glmm_glassceil_full.csv", index=False, encoding="utf-8")
 print("\nglmm_glassceil_full.csv salvo.")
 
-# ── Robustez: desenho amostral complexo (peso V1028 + cluster-robusto UPA) ────
-# O M2 acima (o modelo por trás da Tabela 1 do TCC) usa SE robusto a
-# heterocedasticidade (HC1), mas não pondera por V1028 nem trata o
-# agrupamento por UPA (conglomerado) explicitamente. Como checagem de
-# robustez ao desenho amostral complexo da PNAD, reajustamos o M2 com:
-#   (a) SE cluster-robusto por UPA, sem peso;
-#   (b) peso amostral V1028 (via freq_weights) + SE cluster-robusto por UPA.
-# Comparado contra o HC1 atual, isola o quanto da precisão reportada depende
-# do tratamento do desenho amostral.
-print("\n--- Robustez: desenho amostral (peso V1028 + cluster UPA) — M2 ---")
-if "V1028" in df.columns and df["V1028"].notna().any():
-    import statsmodels.api as sm
-
-    rows_pond = []
-    for y_col, y_label in OUTCOMES:
-        sub = df[df[y_col].notna() & df["V1028"].notna() & df["UPA"].notna()].copy()
-        formula_m2 = FORMULAS["M2"].format(y=y_col)
-
-        try:
-            m_hc1 = results[y_col].get("M2")
-            m_cluster = smf.logit(formula_m2, data=sub).fit(
-                method="bfgs", maxiter=400, disp=False,
-                cov_type="cluster", cov_kwds={"groups": sub["UPA"]},
-            )
-            peso_norm = sub["V1028"] / sub["V1028"].mean()
-            m_pond = smf.glm(
-                formula_m2, data=sub, family=sm.families.Binomial(),
-                freq_weights=peso_norm,
-            ).fit(cov_type="cluster", cov_kwds={"groups": sub["UPA"]})
-        except Exception as exc:
-            print(f"  {y_col}: FALHOU robustez de desenho amostral — {exc}")
-            continue
-
-        for label, m in [("HC1 (atual, sem peso/cluster)", m_hc1),
-                          ("cluster UPA (sem peso)", m_cluster),
-                          ("cluster UPA + peso V1028", m_pond)]:
-            if m is None or "negro" not in m.params:
-                continue
-            b, se = m.params["negro"], m.bse["negro"]
-            rows_pond.append({
-                "desfecho": y_col, "especificacao": label,
-                "OR_negro": round(float(np.exp(b)), 4),
-                "SE_negro": round(float(se), 4),
-                "CI95_lo": round(float(np.exp(b - 1.96 * se)), 4),
-                "CI95_hi": round(float(np.exp(b + 1.96 * se)), 4),
-            })
-        print(
-            f"  {y_col}: HC1 SE={m_hc1.bse['negro']:.4f} | "
-            f"cluster SE={m_cluster.bse['negro']:.4f} | "
-            f"cluster+peso SE={m_pond.bse['negro']:.4f} "
-            f"(OR={np.exp(m_pond.params['negro']):.3f})"
-        )
-
-    if rows_pond:
-        df_pond = pd.DataFrame(rows_pond)
-        df_pond.to_csv(TABLES / "glmm_glassceil_ponderado.csv", index=False, encoding="utf-8")
-        print("glmm_glassceil_ponderado.csv salvo.")
+if rows_pond:
+    df_pond = pd.DataFrame(rows_pond)
+    df_pond.to_csv(TABLES / "glmm_glassceil_ponderado.csv", index=False, encoding="utf-8")
+    print("glmm_glassceil_ponderado.csv salvo.")
+elif has_v1028:
+    print("Robustez de desenho amostral: nenhuma linha gerada (ver erros acima).")
 else:
     print("V1028 ausente — pulando robustez de desenho amostral.")
-
-# ── Interação negro × educação: variação do gap por nível de credencial ───────
-print("\n--- Efeito moderador de educação no gap (M3) ---")
-for y_col, y_label in OUTCOMES:
-    m = results[y_col].get("M3")
-    if m is None:
-        continue
-    print(f"\n  {y_col}:")
-    for educ_label, nm in [("Superior completo", "negro:educ_superior_completo"),
-                            ("Pós-graduação",    "negro:educ_pos_graduacao")]:
-        if "negro" not in m.params or nm not in m.params:
-            continue
-        b_negro = m.params["negro"]
-        b_inter = m.params.get(nm, 0)
-        or_comb = np.exp(b_negro + b_inter)
-        print(f"    {educ_label}: β_negro+inter={b_negro+b_inter:.4f} → OR={or_comb:.4f}")
 
 # ── Figura: Forest plot OR por desfecho e modelo ─────────────────────────────
 COLORS_M = {"M1": "#1565C0", "M2": "#B71C1C", "M3": "#2E7D32"}
@@ -302,14 +381,21 @@ if n_out == 1:
 for ax, (y_col, y_label) in zip(axes, OUTCOMES):
     x_m = np.arange(len(FORMULAS))
     for j, m_name in enumerate(FORMULAS):
-        m = results[y_col].get(m_name)
-        or_, lo, hi = get_or_ci(m)
-        p = m.pvalues.get("negro", np.nan) if m else np.nan
+        # Lê de `tbl` (já construída acima) em vez de `results`: M1 é
+        # descartado da memória logo após o ajuste (ver nota de memória),
+        # mas seus números já foram extraídos para a tabela CSV.
+        row_m = tbl[(tbl["desfecho"] == y_col) & (tbl["modelo"] == m_name)]
+        or_, lo, hi, p = np.nan, np.nan, np.nan, np.nan
+        if len(row_m):
+            or_ = row_m["OR_negro"].values[0]
+            lo  = row_m["CI95_lo"].values[0]
+            hi  = row_m["CI95_hi"].values[0]
+            p   = row_m["p_valor"].values[0]
         color = COLORS_M[m_name]
         ax.scatter(j, or_, s=120, color=color, zorder=5)
         ax.plot([j, j], [lo, hi], color=color, linewidth=2.5, zorder=4)
-        label = f"{or_:.3f}{stars(p)}"
-        ax.text(j, hi + 0.01, label, ha="center", va="bottom",
+        label = f"{or_:.3f}{stars(p)}" if not np.isnan(or_) else "—"
+        ax.text(j, (hi if not np.isnan(hi) else 1.0) + 0.01, label, ha="center", va="bottom",
                 fontsize=9, fontweight="bold", color=color)
     ax.axhline(1.0, color="gray", linewidth=1.2, linestyle="--")
     ax.set_xticks(x_m)
@@ -334,53 +420,19 @@ plt.close()
 print("glmm_glassceil_forest.png salvo.")
 
 # ── Figura: Probabilidade predita por raça × nível de escolaridade ────────────
+# Usa pred_probs, já coletado no loop principal (o modelo M2 de cada desfecho
+# foi descartado da memória logo em seguida — ver nota de memória acima).
 fig, axes = plt.subplots(1, n_out, figsize=(5 * n_out, 6), sharey=False)
 if n_out == 1:
     axes = [axes]
 
-most_common_uf = df["UF_str"].mode().iloc[0]
-mean_vals = {c: float(df[c].mean()) for c in
-             ["idade_c", "idade_sq", "media_renda_upa_z", "media_educ_upa_z",
-              "tx_desemprego_upa_z", "pct_negro_upa_z"]}
-emp_mean = float(df["emprego_formal"].mean())
-pub_mean  = float(df["setor_publico"].mean())
-cp_mean   = float(df["conta_propria"].mean())
-td_mean   = float(df["trab_domestico"].mean())
-
-# 4 education categories: none / secondary / superior / pos-grad
-EDUC_CATS = [
-    ("Sem superior", dict(educ_medio_completo=1, educ_superior_completo=0, educ_pos_graduacao=0)),
-    ("Superior",     dict(educ_medio_completo=0, educ_superior_completo=1, educ_pos_graduacao=0)),
-    ("Pós-grad",     dict(educ_medio_completo=0, educ_superior_completo=0, educ_pos_graduacao=1)),
-]
 x_pos = np.arange(len(EDUC_CATS))
 width = 0.35
 
 for ax, (y_col, y_label) in zip(axes, OUTCOMES):
-    m = results[y_col].get("M3") or results[y_col].get("M2")
-    if m is None:
+    if y_col not in pred_probs:
         continue
-    probs_b, probs_n = [], []
-    for _, educ_vals in EDUC_CATS:
-        base = {
-            "sexo_fem": 0, "idade_c": mean_vals["idade_c"],
-            "idade_sq": mean_vals["idade_sq"],
-            "emprego_formal": emp_mean, "setor_publico": pub_mean,
-            "conta_propria": cp_mean, "trab_domestico": td_mean,
-            "media_renda_upa_z": mean_vals["media_renda_upa_z"],
-            "media_educ_upa_z": mean_vals["media_educ_upa_z"],
-            "tx_desemprego_upa_z": mean_vals["tx_desemprego_upa_z"],
-            "pct_negro_upa_z": mean_vals["pct_negro_upa_z"],
-            "UF_str": most_common_uf,
-            **educ_vals,
-        }
-        try:
-            pb = float(m.predict(pd.DataFrame([{**base, "negro": 0}])).iloc[0]) * 100
-            pn = float(m.predict(pd.DataFrame([{**base, "negro": 1}])).iloc[0]) * 100
-        except Exception:
-            pb, pn = np.nan, np.nan
-        probs_b.append(pb)
-        probs_n.append(pn)
+    probs_b, probs_n = pred_probs[y_col]
 
     bars_b = ax.bar(x_pos - width/2, probs_b, width, color="#1565C0", alpha=0.85, label="Branco")
     bars_n = ax.bar(x_pos + width/2, probs_n, width, color="#B71C1C", alpha=0.85, label="Negro")
@@ -393,7 +445,7 @@ for ax, (y_col, y_label) in zip(axes, OUTCOMES):
     ax.spines["right"].set_visible(False)
 
 fig.suptitle("Teto de Vidro Racial — Probabilidade Predita por Nível de Escolaridade\n"
-             "Logit M3 com interação negro × credencial (população completa)",
+             "Logit M2 (+ contexto UPA, população completa)",
              fontsize=12, fontweight="bold")
 plt.tight_layout()
 plt.savefig(FIGURES / "glmm_glassceil_probpredita.png", dpi=150, bbox_inches="tight")
@@ -411,12 +463,10 @@ for y_col, y_label in OUTCOMES:
     print(f"\n  {lbl}")
     print(f"    Branco: {pb:.1f}%  |  Negro: {pn:.1f}%  |  Gap bruto: {pb-pn:.1f} p.p.")
     for m_name in FORMULAS:
-        m = results[y_col].get(m_name)
-        if m is not None:
-            or_, lo, hi = get_or_ci(m)
-            sub = df[df[y_col].notna()]
-            ame = get_ame(m, sub) * 100
-            p   = m.pvalues.get("negro", np.nan)
-            print(f"    {m_name}: OR={or_:.3f} [{lo:.3f}–{hi:.3f}]{stars(p)} | AME={ame:+.2f}pp")
+        row_m = tbl[(tbl["desfecho"] == y_col) & (tbl["modelo"] == m_name)]
+        if len(row_m) and not row_m["OR_negro"].isna().all():
+            r = row_m.iloc[0]
+            print(f"    {m_name}: OR={r['OR_negro']:.3f} [{r['CI95_lo']:.3f}–{r['CI95_hi']:.3f}]"
+                  f"{stars(r['p_valor'])} | AME={r['AME_pp']:+.2f}pp")
 print("\n" + "="*72)
 print("=== GLMM GLASS CEILING CONCLUÍDO ===")

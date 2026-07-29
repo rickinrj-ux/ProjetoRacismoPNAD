@@ -33,7 +33,7 @@ import statsmodels.formula.api as smf
 from pathlib import Path
 from params import fmt
 
-ROOT   = Path(r"C:\Users\user\Documents\ProjetoRacismoPNAD")
+ROOT   = Path(__file__).resolve().parents[2]
 TABLES = ROOT / "outputs" / "tables"
 N_BOOT = 200
 

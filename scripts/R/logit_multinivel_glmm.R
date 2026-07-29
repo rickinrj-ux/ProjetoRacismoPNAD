@@ -158,6 +158,12 @@ m1 <- glmer(f_m1, data = df, family = binomial(link = "logit"),
 
 cat(sprintf("    M1 concluído em %.1f min.\n", (proc.time() - t0)[3] / 60))
 
+# glmer com efeito aleatório de UPA (40.969 níveis) em 7,7M obs. já usa boa
+# parte da RAM só para o M1; um gc() explícito antes do M2 evitou um erro de
+# "vector memory exhausted" nesta máquina (16GB) quando os dois modelos
+# coexistiam sem coleta de lixo entre os ajustes.
+gc()
+
 cat("\n--- Estimando M2 (+ contexto UPA) ---\n")
 t0 <- proc.time()
 

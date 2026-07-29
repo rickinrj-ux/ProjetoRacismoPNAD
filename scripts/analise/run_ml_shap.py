@@ -100,6 +100,14 @@ N_CV_FOLDS     = 5
 CV_SAMPLE_FRAC = 0.20
 N_SHAP_BOOTSTRAP = 200   # reamostragens para IC da importância |SHAP| média
 
+# n_jobs=-1 no RandomForestRegressor usa multiprocessing (joblib/loky): cada worker
+# pode precisar de sua própria cópia da matriz de features, multiplicando o uso de
+# memória pelo nº de núcleos. Em máquinas com RAM limitada isso já causou swap
+# pesado (10-50x mais lento) em outros scripts deste pipeline — capado em 4 para
+# manter o uso de memória previsível. XGBoost usa threads (memória compartilhada),
+# sem esse risco, por isso mantém n_jobs=-1.
+N_JOBS_RF = 4
+
 # ── Features e target ─────────────────────────────────────────────────────────
 TARGET = "log_renda"
 
@@ -320,7 +328,7 @@ def fit_rf(X_tr, y_tr):
         n_estimators=200,
         max_depth=10,
         min_samples_leaf=50,
-        n_jobs=-1,
+        n_jobs=N_JOBS_RF,
         random_state=RANDOM_STATE,
     )
     rf.fit(X_tr, y_tr)

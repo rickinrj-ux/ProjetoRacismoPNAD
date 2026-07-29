@@ -21,7 +21,7 @@ import matplotlib.patches as mpatches
 import statsmodels.formula.api as smf
 from pathlib import Path
 
-ROOT    = Path(r"C:\Users\user\Documents\ProjetoRacismoPNAD")
+ROOT    = Path(__file__).resolve().parents[2]
 FIGURES = ROOT / "outputs" / "figures"
 TABLES  = ROOT / "outputs" / "tables"
 FIGURES.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,4 @@
+Modelo,R2_teste,MAE_teste,RMSE_teste,ganho_R2_vs_OLS
+OLS (baseline linear),0.5708,0.4578,0.6049,0.0
+Random Forest,0.5735,0.4529,0.603,0.0027
+XGBoost,0.6168,0.4287,0.5715,0.046

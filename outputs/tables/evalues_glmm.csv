@@ -1,7 +1,10 @@
 Desfecho,Modelo,OR,IC 95% lo,IC 95% hi,E-value (OR),E-value (CI),Interpretação
-ocp_qualif,M1,0.5508,0.5485,0.5531,3.032,3.017,Confounder precisaria ter ≥3.03× associação com raça E com ocp_qualif para zerar o efeito
-ocp_qualif,M2,0.7023,0.6991,0.7054,2.201,2.187,Confounder precisaria ter ≥2.20× associação com raça E com ocp_qualif para zerar o efeito
-y_top20,M1,0.5360,0.5337,0.5382,3.137,3.121,Confounder precisaria ter ≥3.14× associação com raça E com y_top20 para zerar o efeito
-y_top20,M2,0.6891,0.6859,0.6923,2.260,2.246,Confounder precisaria ter ≥2.26× associação com raça E com y_top20 para zerar o efeito
-y_top10,M1,0.4533,0.4507,0.4558,3.837,3.812,Confounder precisaria ter ≥3.84× associação com raça E com y_top10 para zerar o efeito
-y_top10,M2,0.6539,0.6498,0.6581,2.429,2.408,Confounder precisaria ter ≥2.43× associação com raça E com y_top10 para zerar o efeito
+ocp_qualif,M1,0.5551,0.5528,0.5574,3.003,2.988,Confounder precisaria ter ≥3.00× associação com raça E com ocp_qualif para zerar o efeito
+ocp_qualif,M2,0.7046,0.7015,0.7078,2.191,2.177,Confounder precisaria ter ≥2.19× associação com raça E com ocp_qualif para zerar o efeito
+ocp_qualif,M3,,,,,,Confounder precisaria ter ≥nan× associação com raça E com ocp_qualif para zerar o efeito
+y_top20,M1,0.5399,0.5376,0.5422,3.109,3.092,Confounder precisaria ter ≥3.11× associação com raça E com y_top20 para zerar o efeito
+y_top20,M2,0.6909,0.6876,0.6941,2.252,2.238,Confounder precisaria ter ≥2.25× associação com raça E com y_top20 para zerar o efeito
+y_top20,M3,,,,,,Confounder precisaria ter ≥nan× associação com raça E com y_top20 para zerar o efeito
+y_top10,M1,0.4568,0.4542,0.4593,3.803,3.778,Confounder precisaria ter ≥3.80× associação com raça E com y_top10 para zerar o efeito
+y_top10,M2,0.6556,0.6515,0.6598,2.42,2.4,Confounder precisaria ter ≥2.42× associação com raça E com y_top10 para zerar o efeito
+y_top10,M3,,,,,,Confounder precisaria ter ≥nan× associação com raça E com y_top10 para zerar o efeito

@@ -387,8 +387,15 @@ def _load() -> dict:
     _ml_base_path = _TAB / "ml_baseline_comparacao.csv"
     if _ml_base_path.exists():
         _mlb = pd.read_csv(_ml_base_path)
-        for _, row in _mlb.iterrows():
-            p[f"ML_BASE_{row['Modelo'].upper().replace(' ', '_')}_R2"] = round(float(row["R2_teste"]), 4)
+        _ols_row = _mlb.loc[_mlb["Modelo"].str.contains("OLS")]
+        if len(_ols_row):
+            p["ML_OLS_R2"] = round(float(_ols_row["R2_teste"].values[0]), 4)
+        _rf_row = _mlb.loc[_mlb["Modelo"] == "Random Forest"]
+        if len(_rf_row):
+            p["ML_RF_GANHO_VS_OLS"] = round(float(_rf_row["ganho_R2_vs_OLS"].values[0]), 4)
+        _xgb_row = _mlb.loc[_mlb["Modelo"] == "XGBoost"]
+        if len(_xgb_row):
+            p["ML_XGB_GANHO_VS_OLS"] = round(float(_xgb_row["ganho_R2_vs_OLS"].values[0]), 4)
 
     # ── SHAP — estabilidade RF × XGBoost (Spearman) ──────────────────────────
     _shap_path = _TAB / "shap_importance_comparada.csv"
@@ -460,9 +467,15 @@ def _load() -> dict:
         for des in ["ocp_qualif", "y_top20", "y_top10"]:
             sub = _gcp.loc[_gcp["desfecho"] == des]
             for _, row in sub.iterrows():
-                if "peso" in row["especificacao"]:
+                # A string "HC1 (atual, sem peso/cluster)" contém as
+                # substrings "peso" E "cluster" só para dizer que NÃO tem
+                # nenhum dos dois — por isso o teste de "HC1" vem primeiro.
+                espec = row["especificacao"]
+                if espec.startswith("HC1"):
+                    tag = "HC1"
+                elif "peso V1028" in espec:
                     tag = "POND"
-                elif "cluster" in row["especificacao"]:
+                elif "cluster" in espec:
                     tag = "CLUSTER"
                 else:
                     tag = "HC1"
@@ -476,8 +489,10 @@ def _load() -> dict:
         _itxb = pd.read_csv(_itx_boot_path)
         _row_mn = _itxb.loc[_itxb["grupo"] == "Mulher Negra"]
         if len(_row_mn):
+            p["ITX_PENAL_MEAN"]  = round(float(_row_mn["penalidade_mean"].values[0]), 2)
             p["ITX_PENAL_CI_LO"] = round(float(_row_mn["penalidade_ci_lo"].values[0]), 2)
             p["ITX_PENAL_CI_HI"] = round(float(_row_mn["penalidade_ci_hi"].values[0]), 2)
+            p["ITX_PENAL_B"]     = int(_row_mn["B_efetivo"].values[0])
 
     # ── Interseccionalidade — IC do termo de interação tripla (HLM, já disponível) ─
     _itxc_path = _TAB / "interseccional_coeficientes.csv"
