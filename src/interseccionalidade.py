@@ -26,6 +26,7 @@ Referências:
 """
 
 import logging
+import time
 import warnings
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -357,7 +358,11 @@ def plotar_interacoes_coeficientes(result_inter) -> None:
 
 # ── Pipeline principal ────────────────────────────────────────────────────────
 
-def run_interseccionalidade(sample_frac: Optional[float] = None) -> Dict:
+def run_interseccionalidade(
+    sample_frac: Optional[float] = None,
+    run_bootstrap: bool = True,
+    bootstrap_b: int = 200,
+) -> Dict:
     """
     Pipeline completo de análise interseccional.
 
@@ -419,33 +424,55 @@ def run_interseccionalidade(sample_frac: Optional[float] = None) -> Dict:
     print(df_4g[["grupo", "gap_pct", "end_pct", "ret_pct", "penalidade_extra_pct", "n_n"]].
           round(1).to_string(index=False))
 
+    # ── Bootstrap cluster (UPA) da penalidade interseccional — IC 95% ────
+    df_boot_ci = None
+    if run_bootstrap:
+        df_boot_ci = bootstrap_penalidade_interseccional(df, B=bootstrap_b)
+        print("\n── IC 95% da penalidade interseccional (bootstrap cluster UPA) ──")
+        print(df_boot_ci.to_string(index=False))
+
     return {
         "result_base":  result_base,
         "result_inter": result_inter,
         "eme":          df_eme,
         "coeficientes": tab_coef,
         "ob_4grupos":   df_4g,
+        "bootstrap_ci": df_boot_ci,
     }
 
 
 # ── OB 4 Grupos ───────────────────────────────────────────────────────────────
 
 def _ob_twofold(df_ref: pd.DataFrame, df_trt: pd.DataFrame,
-                formula: str) -> Optional[Dict]:
-    """Decomposição OB twofold entre grupo de referência e tratamento."""
+                formula: str, peso_col: Optional[str] = None) -> Optional[Dict]:
+    """
+    Decomposição OB twofold entre grupo de referência e tratamento.
+
+    peso_col: nome de uma coluna de peso/multiplicidade (usada pelo bootstrap
+    cluster por UPA — ver bootstrap_penalidade_interseccional). Quando None,
+    ajusta OLS simples (comportamento original).
+    """
     if len(df_ref) < 100 or len(df_trt) < 100:
         return None
     with warnings.catch_warnings(record=True):
         warnings.simplefilter("always")
-        m_ref = smf.ols(formula, data=df_ref).fit()
-        m_trt = smf.ols(formula, data=df_trt).fit()
+        if peso_col:
+            m_ref = smf.wls(formula, data=df_ref, weights=df_ref[peso_col]).fit()
+            m_trt = smf.wls(formula, data=df_trt, weights=df_trt[peso_col]).fit()
+            ybar_r = np.average(df_ref["log_renda"], weights=df_ref[peso_col])
+            ybar_t = np.average(df_trt["log_renda"], weights=df_trt[peso_col])
+        else:
+            m_ref = smf.ols(formula, data=df_ref).fit()
+            m_trt = smf.ols(formula, data=df_trt).fit()
+            ybar_r = df_ref["log_renda"].mean()
+            ybar_t = df_trt["log_renda"].mean()
 
     xbar_r = m_ref.model.exog.mean(axis=0)
     xbar_t = m_trt.model.exog.mean(axis=0)
     beta_r = m_ref.params.values
     beta_t = m_trt.params.values
 
-    gap   = df_ref["log_renda"].mean() - df_trt["log_renda"].mean()
+    gap   = ybar_r - ybar_t
     end   = (xbar_r - xbar_t) @ beta_r
     ret   = xbar_t @ (beta_r - beta_t)
     inter = (xbar_r - xbar_t) @ (beta_r - beta_t)
@@ -462,7 +489,7 @@ def _ob_twofold(df_ref: pd.DataFrame, df_trt: pd.DataFrame,
     }
 
 
-def decomposicao_ob_4grupos(df: pd.DataFrame) -> pd.DataFrame:
+def decomposicao_ob_4grupos(df: pd.DataFrame, peso_col: Optional[str] = None) -> pd.DataFrame:
     """
     Decompõe o gap salarial de cada grupo vs. Homem Branco (referência)
     em dotações e retornos (OB twofold).
@@ -474,6 +501,9 @@ def decomposicao_ob_4grupos(df: pd.DataFrame) -> pd.DataFrame:
 
     A diferença entre G3 e (G1 + G2) mede a penalidade interseccional
     adicional além dos efeitos aditivos de raça e gênero.
+
+    peso_col: repassado a _ob_twofold — usado pelo bootstrap cluster por UPA
+    (ver bootstrap_penalidade_interseccional).
     """
     formula = (
         "log_renda ~ idade_c + idade_sq"
@@ -492,7 +522,7 @@ def decomposicao_ob_4grupos(df: pd.DataFrame) -> pd.DataFrame:
 
     rows = []
     for nome, sub in grupos.items():
-        r = _ob_twofold(ref, sub, formula)
+        r = _ob_twofold(ref, sub, formula, peso_col=peso_col)
         if r:
             rows.append({"grupo": nome, **r})
 
@@ -511,6 +541,68 @@ def decomposicao_ob_4grupos(df: pd.DataFrame) -> pd.DataFrame:
     else:
         df_out["penalidade_extra_pct"] = 0.0
 
+    return df_out
+
+
+# ── Bootstrap cluster (UPA) da penalidade interseccional extra ──────────────
+
+def bootstrap_penalidade_interseccional(
+    df: pd.DataFrame, B: int = 200, seed: int = 42,
+) -> pd.DataFrame:
+    """
+    IC 95% (percentil) da penalidade interseccional extra (Mulher Negra vs.
+    Homem Branco, Tabela 4) via bootstrap CLUSTER por UPA — a penalidade é uma
+    função não-linear de 3 decomposições OB independentes e não tem erro-padrão
+    analítico direto.
+
+    Reamostra UPAs (não observações individuais) com reposição, preservando a
+    estrutura de conglomerado da PNAD (evita subestimar a variância ao tratar
+    observações da mesma UPA como independentes). Em vez de duplicar linhas
+    fisicamente a cada iteração (custoso em memória), atribui um peso de
+    multiplicidade por UPA e reajusta a decomposição via WLS (_ob_twofold com
+    peso_col) — matematicamente equivalente e muito mais rápido.
+    """
+    upas = df["UPA_str"].unique()
+    n_upas = len(upas)
+    rng = np.random.default_rng(seed)
+    logger.info(f"Bootstrap penalidade interseccional: B={B}, {n_upas:,} UPAs...")
+
+    penalidades = []
+    t0 = time.time()
+    for b in range(B):
+        sampled_upas = rng.choice(upas, size=n_upas, replace=True)
+        contagem = pd.Series(sampled_upas).value_counts()
+        peso = df["UPA_str"].map(contagem).fillna(0.0)
+        df_boot = df.loc[peso > 0].copy()
+        df_boot["_peso_boot"] = peso.loc[peso > 0].values
+
+        try:
+            df_4g_b = decomposicao_ob_4grupos(df_boot, peso_col="_peso_boot")
+            row = df_4g_b.loc[df_4g_b["grupo"] == "Mulher Negra"]
+            if len(row):
+                penalidades.append(float(row["penalidade_extra_pct"].values[0]))
+        except Exception as exc:
+            logger.warning(f"  Bootstrap iter {b+1}/{B} falhou: {exc}")
+
+        if (b + 1) % 50 == 0:
+            logger.info(f"  {b+1}/{B} iterações ({time.time()-t0:.0f}s)...")
+
+    penalidades = np.array(penalidades)
+    ci_lo, ci_hi = np.percentile(penalidades, [2.5, 97.5])
+    df_out = pd.DataFrame([{
+        "grupo":            "Mulher Negra",
+        "penalidade_mean":  round(float(penalidades.mean()), 3),
+        "penalidade_ci_lo": round(float(ci_lo), 3),
+        "penalidade_ci_hi": round(float(ci_hi), 3),
+        "B_efetivo":        len(penalidades),
+        "B_solicitado":     B,
+    }])
+    df_out.to_csv(OUT_TAB / "interseccional_bootstrap_ci.csv", index=False)
+    logger.info(
+        f"Penalidade interseccional (bootstrap, B={len(penalidades)}): "
+        f"média={df_out['penalidade_mean'].iloc[0]:.2f} p.p. "
+        f"IC95%=[{df_out['penalidade_ci_lo'].iloc[0]:.2f}; {df_out['penalidade_ci_hi'].iloc[0]:.2f}]"
+    )
     return df_out
 
 

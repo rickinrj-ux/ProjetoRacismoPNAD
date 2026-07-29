@@ -53,7 +53,7 @@ COLS = [
     "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
     "ocp_grupo_cbo",
     "log_renda", "renda_bruta", "pea",
-    "UF", "UPA",
+    "UF", "UPA", "V1028",
 ]
 
 print("Carregando dados — população completa ...")
@@ -214,6 +214,66 @@ for y_col, y_label in OUTCOMES:
 tbl = pd.DataFrame(rows)
 tbl.to_csv(TABLES / "glmm_glassceil_full.csv", index=False, encoding="utf-8")
 print("\nglmm_glassceil_full.csv salvo.")
+
+# ── Robustez: desenho amostral complexo (peso V1028 + cluster-robusto UPA) ────
+# O M2 acima (o modelo por trás da Tabela 1 do TCC) usa SE robusto a
+# heterocedasticidade (HC1), mas não pondera por V1028 nem trata o
+# agrupamento por UPA (conglomerado) explicitamente. Como checagem de
+# robustez ao desenho amostral complexo da PNAD, reajustamos o M2 com:
+#   (a) SE cluster-robusto por UPA, sem peso;
+#   (b) peso amostral V1028 (via freq_weights) + SE cluster-robusto por UPA.
+# Comparado contra o HC1 atual, isola o quanto da precisão reportada depende
+# do tratamento do desenho amostral.
+print("\n--- Robustez: desenho amostral (peso V1028 + cluster UPA) — M2 ---")
+if "V1028" in df.columns and df["V1028"].notna().any():
+    import statsmodels.api as sm
+
+    rows_pond = []
+    for y_col, y_label in OUTCOMES:
+        sub = df[df[y_col].notna() & df["V1028"].notna() & df["UPA"].notna()].copy()
+        formula_m2 = FORMULAS["M2"].format(y=y_col)
+
+        try:
+            m_hc1 = results[y_col].get("M2")
+            m_cluster = smf.logit(formula_m2, data=sub).fit(
+                method="bfgs", maxiter=400, disp=False,
+                cov_type="cluster", cov_kwds={"groups": sub["UPA"]},
+            )
+            peso_norm = sub["V1028"] / sub["V1028"].mean()
+            m_pond = smf.glm(
+                formula_m2, data=sub, family=sm.families.Binomial(),
+                freq_weights=peso_norm,
+            ).fit(cov_type="cluster", cov_kwds={"groups": sub["UPA"]})
+        except Exception as exc:
+            print(f"  {y_col}: FALHOU robustez de desenho amostral — {exc}")
+            continue
+
+        for label, m in [("HC1 (atual, sem peso/cluster)", m_hc1),
+                          ("cluster UPA (sem peso)", m_cluster),
+                          ("cluster UPA + peso V1028", m_pond)]:
+            if m is None or "negro" not in m.params:
+                continue
+            b, se = m.params["negro"], m.bse["negro"]
+            rows_pond.append({
+                "desfecho": y_col, "especificacao": label,
+                "OR_negro": round(float(np.exp(b)), 4),
+                "SE_negro": round(float(se), 4),
+                "CI95_lo": round(float(np.exp(b - 1.96 * se)), 4),
+                "CI95_hi": round(float(np.exp(b + 1.96 * se)), 4),
+            })
+        print(
+            f"  {y_col}: HC1 SE={m_hc1.bse['negro']:.4f} | "
+            f"cluster SE={m_cluster.bse['negro']:.4f} | "
+            f"cluster+peso SE={m_pond.bse['negro']:.4f} "
+            f"(OR={np.exp(m_pond.params['negro']):.3f})"
+        )
+
+    if rows_pond:
+        df_pond = pd.DataFrame(rows_pond)
+        df_pond.to_csv(TABLES / "glmm_glassceil_ponderado.csv", index=False, encoding="utf-8")
+        print("glmm_glassceil_ponderado.csv salvo.")
+else:
+    print("V1028 ausente — pulando robustez de desenho amostral.")
 
 # ── Interação negro × educação: variação do gap por nível de credencial ───────
 print("\n--- Efeito moderador de educação no gap (M3) ---")

@@ -49,6 +49,7 @@ import logging
 import time
 import warnings
 from pathlib import Path
+from typing import Dict, List
 
 sys.path.insert(0, "src")
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -74,8 +75,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import shap
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+import statsmodels.api as sm
 import xgboost as xgb
 
 FEATURES_PATH = Path("data/processed/features.parquet")
@@ -87,6 +89,16 @@ OUTPUTS_FIG.mkdir(parents=True, exist_ok=True)
 SAMPLE_FRAC   = None   # None = população completa (modelo treina em 7,69M; SHAP em subset p/ viz)
 SHAP_SAMPLE   = 50_000
 RANDOM_STATE  = 42
+
+# ── Validação cruzada (protocolo de robustez adicional ao hold-out 80/20) ──────
+# CV k-fold roda em subamostra (não na população completa): 5 folds × RF(200 árv.)
+# + XGB(300 iter.) na base inteira (7,69M) multiplicaria o custo computacional do
+# ajuste principal por ~5x. Uma subamostra representativa mantém a validação
+# tratável sem comprometer a estimativa de variância entre folds.
+RUN_CV         = True
+N_CV_FOLDS     = 5
+CV_SAMPLE_FRAC = 0.20
+N_SHAP_BOOTSTRAP = 200   # reamostragens para IC da importância |SHAP| média
 
 # ── Features e target ─────────────────────────────────────────────────────────
 TARGET = "log_renda"
@@ -186,6 +198,117 @@ def evaluate(name, y_true, y_pred):
     rmse = np.sqrt(mean_squared_error(y_true, y_pred))
     logger.info(f"  [{name}] R²={r2:.4f} | MAE={mae:.4f} | RMSE={rmse:.4f}")
     return {"Modelo": name, "R²": round(r2, 4), "MAE": round(mae, 4), "RMSE": round(rmse, 4)}
+
+
+# ── Validação cruzada k-fold (robustez do protocolo além do hold-out) ─────────
+
+def cross_validate_models(df: pd.DataFrame, k: int = N_CV_FOLDS,
+                           sample_frac: float = CV_SAMPLE_FRAC) -> pd.DataFrame:
+    """
+    K-fold CV para RF e XGBoost, complementando o hold-out 80/20 principal.
+
+    Reporta média ± DP de R²/MAE/RMSE entre os k folds — responde diretamente
+    à cobrança de robustez do protocolo de validação (não apenas um único
+    split treino/teste). Roda em subamostra (CV_SAMPLE_FRAC) por tratabilidade
+    computacional; ver nota em CV_SAMPLE_FRAC acima.
+    """
+    df_cv = df.sample(frac=sample_frac, random_state=RANDOM_STATE).reset_index(drop=True)
+    X = df_cv[FEATURES].values
+    y = df_cv[TARGET].values
+    logger.info(f"CV k={k} em subamostra de {len(df_cv):,} obs. ({sample_frac*100:.0f}% do total)...")
+
+    kf = KFold(n_splits=k, shuffle=True, random_state=RANDOM_STATE)
+    metrics = {"Random Forest": {"r2": [], "mae": [], "rmse": []},
+               "XGBoost":       {"r2": [], "mae": [], "rmse": []}}
+
+    for fold, (tr_idx, te_idx) in enumerate(kf.split(X), start=1):
+        X_tr, X_te = X[tr_idx], X[te_idx]
+        y_tr, y_te = y[tr_idx], y[te_idx]
+
+        rf_cv = fit_rf(X_tr, y_tr)
+        y_pred = rf_cv.predict(X_te)
+        metrics["Random Forest"]["r2"].append(r2_score(y_te, y_pred))
+        metrics["Random Forest"]["mae"].append(mean_absolute_error(y_te, y_pred))
+        metrics["Random Forest"]["rmse"].append(np.sqrt(mean_squared_error(y_te, y_pred)))
+
+        xgb_cv = fit_xgb(X_tr, y_tr)
+        y_pred = xgb_cv.predict(X_te)
+        metrics["XGBoost"]["r2"].append(r2_score(y_te, y_pred))
+        metrics["XGBoost"]["mae"].append(mean_absolute_error(y_te, y_pred))
+        metrics["XGBoost"]["rmse"].append(np.sqrt(mean_squared_error(y_te, y_pred)))
+
+        logger.info(
+            f"  [fold {fold}/{k}] RF R²={metrics['Random Forest']['r2'][-1]:.4f} | "
+            f"XGB R²={metrics['XGBoost']['r2'][-1]:.4f}"
+        )
+
+    rows = []
+    for name, m in metrics.items():
+        rows.append({
+            "Modelo": name, "k": k, "sample_frac": sample_frac,
+            "R2_mean": round(float(np.mean(m["r2"])), 4),
+            "R2_sd":   round(float(np.std(m["r2"])), 4),
+            "MAE_mean": round(float(np.mean(m["mae"])), 4),
+            "MAE_sd":   round(float(np.std(m["mae"])), 4),
+            "RMSE_mean": round(float(np.mean(m["rmse"])), 4),
+            "RMSE_sd":   round(float(np.std(m["rmse"])), 4),
+        })
+        logger.info(
+            f"  [{name}] CV R²={rows[-1]['R2_mean']:.4f}±{rows[-1]['R2_sd']:.4f}"
+        )
+    df_out = pd.DataFrame(rows)
+    df_out.to_csv(OUTPUTS_TB / "ml_performance_cv.csv", index=False)
+    return df_out
+
+
+# ── Baseline econométrico (OLS) na mesma partição — ganho real do ML ─────────
+
+def fit_ols_baseline(X_tr, y_tr, X_te, y_te) -> Dict:
+    """
+    OLS (equação de Mincer estendida, mesmas features do RF/XGBoost) ajustado
+    na MESMA partição treino/teste, para dimensionar o ganho real de R² do ML
+    frente à econometria linear tradicional — responde diretamente ao pedido
+    do orientador de comparar contra um baseline simples.
+    """
+    Xtr_c = sm.add_constant(X_tr)
+    Xte_c = sm.add_constant(X_te, has_constant="add")
+    model = sm.OLS(y_tr, Xtr_c).fit()
+    y_pred = model.predict(Xte_c)
+    r2   = r2_score(y_te, y_pred)
+    mae  = mean_absolute_error(y_te, y_pred)
+    rmse = np.sqrt(mean_squared_error(y_te, y_pred))
+    logger.info(f"  [OLS baseline] R²={r2:.4f} | MAE={mae:.4f} | RMSE={rmse:.4f}")
+    return {"Modelo": "OLS (baseline linear)", "R2_teste": round(r2, 4),
+            "MAE_teste": round(mae, 4), "RMSE_teste": round(rmse, 4)}
+
+
+# ── Bootstrap de estabilidade dos valores SHAP ────────────────────────────────
+
+def bootstrap_shap_ci(shap_values: np.ndarray, feature_names: List[str],
+                       B: int = N_SHAP_BOOTSTRAP, seed: int = RANDOM_STATE) -> pd.DataFrame:
+    """
+    IC 95% (percentil) da importância média |SHAP| por feature via reamostragem
+    (bootstrap) das observações já explicadas — não recalcula SHAP a cada
+    reamostragem (custo proibitivo), reamostra os valores SHAP já computados
+    para estimar a variabilidade amostral da média.
+    """
+    rng = np.random.default_rng(seed)
+    n = shap_values.shape[0]
+    abs_sv = np.abs(shap_values)
+    boot_means = np.empty((B, abs_sv.shape[1]))
+    for b in range(B):
+        idx = rng.integers(0, n, size=n)
+        boot_means[b] = abs_sv[idx].mean(axis=0)
+
+    df_boot = pd.DataFrame({
+        "Feature": feature_names,
+        "mean_abs_shap_mean": boot_means.mean(axis=0).round(5),
+        "ci_lo": np.percentile(boot_means, 2.5, axis=0).round(5),
+        "ci_hi": np.percentile(boot_means, 97.5, axis=0).round(5),
+    }).sort_values("mean_abs_shap_mean", ascending=False).reset_index(drop=True)
+    df_boot.to_csv(OUTPUTS_TB / "shap_bootstrap_ci.csv", index=False)
+    logger.info(f"  Bootstrap SHAP (B={B}) salvo: shap_bootstrap_ci.csv")
+    return df_boot
 
 
 # ── Random Forest ──────────────────────────────────────────────────────────────
@@ -473,6 +596,25 @@ def main():
     # Salva métricas
     pd.DataFrame(metrics).to_csv(OUTPUTS_TB / "ml_performance.csv", index=False)
 
+    # ── Baseline OLS (mesma partição) — ganho real do ML sobre a econometria ──
+    base_ols = fit_ols_baseline(X_tr, y_tr, X_te, y_te)
+    base_rows = [
+        base_ols,
+        {"Modelo": "Random Forest", "R2_teste": m_rf["R²"], "MAE_teste": m_rf["MAE"], "RMSE_teste": m_rf["RMSE"]},
+        {"Modelo": "XGBoost",       "R2_teste": m_xgb["R²"], "MAE_teste": m_xgb["MAE"], "RMSE_teste": m_xgb["RMSE"]},
+    ]
+    df_baseline = pd.DataFrame(base_rows)
+    df_baseline["ganho_R2_vs_OLS"] = (df_baseline["R2_teste"] - base_ols["R2_teste"]).round(4)
+    df_baseline.to_csv(OUTPUTS_TB / "ml_baseline_comparacao.csv", index=False)
+    logger.info(
+        f"  Ganho de R² sobre OLS: RF={df_baseline.loc[1,'ganho_R2_vs_OLS']:.4f} | "
+        f"XGB={df_baseline.loc[2,'ganho_R2_vs_OLS']:.4f}"
+    )
+
+    # ── Validação cruzada k-fold (robustez de protocolo além do hold-out) ─────
+    if RUN_CV:
+        cross_validate_models(df_full)
+
     # ── SHAP — Random Forest ───────────────────────────────────────────────────
     logger.info("--- SHAP: Random Forest ---")
     shap_rf, X_shap_rf, df_shap_rf, exp_rf = compute_shap(rf, X_tr, df_full, "RF")
@@ -489,6 +631,15 @@ def main():
     imp_xgb = plot_shap_bar(shap_xgb, X_shap_xgb, "XGB")
     plot_shap_dependence_negro(shap_xgb, X_shap_xgb, "XGB")
     plot_shap_waterfall_cases(xgb_model, exp_xgb, X_shap_xgb, df_shap_xgb, "XGB")
+
+    # ── Bootstrap de estabilidade dos valores SHAP (XGBoost) ──────────────────
+    feat_names = [FEATURE_LABELS.get(f, f) for f in FEATURES]
+    df_shap_boot = bootstrap_shap_ci(shap_xgb, feat_names, B=N_SHAP_BOOTSTRAP)
+    logger.info(
+        f"  SHAP bootstrap — top 3: "
+        + ", ".join(f"{r.Feature}=[{r.ci_lo:.4f}; {r.ci_hi:.4f}]"
+                     for _, r in df_shap_boot.head(3).iterrows())
+    )
 
     # ── Tabela comparada ───────────────────────────────────────────────────────
     imp_table = build_importance_table(imp_rf, imp_xgb)

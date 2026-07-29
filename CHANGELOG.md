@@ -225,6 +225,73 @@ KM_DB_K2, KM_DB_K3, KM_DB_K5
 
 ---
 
+## v4.4 — Rigor técnico do núcleo: protocolo ML, sensibilidade Oaxaca, IC e desenho amostral (2026-07-28)
+
+### Prompt do usuário
+> "Recebi os seguintes feedbacks do orientador para ajuste no trabalho: [avaliação dos Resultados
+> Preliminares — 5 pontos técnicos: (1) detalhar protocolo de validação do Random Forest/XGBoost
+> (hold-out vs. CV vs. in-sample, hiperparâmetros, comparação com baseline OLS/HLM); (2) aprofundar
+> estabilidade dos valores SHAP (reamostragem ou comparação RF×XGBoost); (3) explicitar tratamento
+> do desenho amostral complexo da PNAD (pesos, estratos, conglomerados) no HLM/GLMM e no ML; (4)
+> complementar a especificação de acesso do Oaxaca-Blinder/GLMM com análise de sensibilidade
+> com/sem ocupação como dotação, quantificando o intervalo de discriminação; (5) reportar
+> intervalos de confiança — não só pontos — para os OR do GLMM e para a penalidade interseccional]"
+
+### Diagnóstico
+Auditoria (sem re-rodar modelos) achou que boa parte do pedido já estava computada em rodadas
+anteriores, só não exposta no `Resultados_Preliminares_TCC.docx` entregue ao orientador:
+- `glmm_glassceil_full.csv` e `evalues_glmm.csv` já tinham `CI95_lo`/`CI95_hi`, não exibidos na
+  Tabela 1.
+- `ob_decomposicao.csv` (Mincer puro, sem ocupação/contexto = 24,8%/75,2%) e `ob_acesso.csv`
+  (com ocupação+contexto = 83,8%/16,2%) já documentavam a sensibilidade de especificação
+  (achado F1 de `tcc/PERICIA.md`), sem tabela comparativa no documento entregue.
+- `shap_importance_comparada.csv` já tinha ranking RF e XGBoost lado a lado, permitindo calcular
+  Spearman ρ=0,839 (10/10 overlap no top-10) sem dados novos — achado adicional: a variável
+  "negro" tem rank instável entre os dois modelos (25 no RF vs. 11 no XGBoost).
+- `run_ml_shap.py` já fazia hold-out 80/20 com R² treino vs. teste (gap≈0,0006), mas o protocolo
+  e os hiperparâmetros de regularização do XGBoost não apareciam no texto.
+- **Pesos amostrais (V1028/V1033) e desenho amostral complexo não entram em nenhum modelo do
+  núcleo** (HLM, GLMM, Oaxaca, RF/XGBoost) — usados só em análises descritivas (Gini, Mincer
+  OLS). Este é o ponto mais sério: exige código novo + rerun com dados reais.
+
+### Mudanças implementadas (quick wins — sem novos dados)
+#### `params.py`
+- Novo bloco lendo `ml_performance.csv` (R² teste/treino, gap overfitting), calculando Spearman
+  RF×XGBoost a partir de `shap_importance_comparada.csv`, lendo `ob_decomposicao.csv`/`ob_acesso.csv`
+  para a sensibilidade Oaxaca, e parseando o IC do termo `negro_x_mulher_x_superior` de
+  `interseccional_coeficientes.csv`.
+- Chaves preparadas (guardadas por `.exists()`) para consumir, quando disponíveis, os outputs dos
+  scripts de robustez ainda pendentes: `ml_performance_cv.csv`, `ml_baseline_comparacao.csv`,
+  `shap_bootstrap_ci.csv`, `oaxaca_ponderado.csv`, `glmm_ponderado.csv`,
+  `interseccional_bootstrap_ci.csv`.
+
+#### `scripts/geradores/gerar_resultados_preliminares.py`
+1. Tabela 1 (GLMM): nova coluna "IC 95%" (Wald, via broom.mixed/lme4::glmer).
+2. Material e Métodos: protocolo RF/XGBoost explícito — split 80/20 hold-out, R² teste vs.
+   treino, hiperparâmetros de regularização do XGBoost (reg_alpha, reg_lambda, subsample,
+   colsample, max_depth, learning_rate).
+3. Novo parágrafo de estabilidade SHAP (Figura 3): Spearman ρ=0,839, overlap 10/10 no top-10, e
+   nota transparente sobre a instabilidade de rank da variável "negro" entre RF e XGBoost.
+4. Limitações: parágrafo de sensibilidade Oaxaca-Blinder quantificando o intervalo de
+   discriminação (16,2% com ocupação como dotação a 75,2% sem ela).
+5. Tabela 4 (interseccionalidade): nota complementar com o IC do termo de interação tripla do
+   HLM interseccional (β=−0,0434; IC 95% [−0,0538; −0,0330]) como evidência adicional de
+   incerteza estatística, enquanto o bootstrap direto da penalidade OB de 4 grupos está pendente.
+
+### Pendências (exigem dados reais — código implementado, execução em andamento)
+- CV k-fold (k=5) para RF/XGBoost + baseline OLS/HLM (ganho real do ML).
+- Bootstrap dos valores SHAP (IC de importância por feature).
+- Refit ponderado por V1028 (Oaxaca WLS e GLMM) com SE cluster-robusto por UPA, como robustez
+  ao desenho amostral complexo (pesos), documentando a diferença de precisão/ICC frente aos
+  modelos não-ponderados. Multinível ponderado pleno (pacote R `WeMix`) fica como extensão
+  opcional caso o orientador exija o modelo completo.
+- Bootstrap cluster (por UPA) da penalidade interseccional (Tabela 4) para IC direto.
+- Reconstrução de `data/processed/features.parquet` nesta máquina (ingestão PNAD 2016-2025 do
+  zero) para viabilizar a execução dos itens acima sem depender da máquina Windows onde os
+  modelos rodavam antes.
+
+---
+
 ## Nota técnica sobre escolhas metodológicas
 
 ### Por que não usar Zero-Inflated Models?

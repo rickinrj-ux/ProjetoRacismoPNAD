@@ -36,7 +36,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from tqdm import tqdm
 
-ROOT          = Path(r"C:\Users\user\Documents\ProjetoRacismoPNAD")
+ROOT          = Path(__file__).resolve().parents[2]
 DATA_RAW      = ROOT / "data" / "raw"
 DATA_PROCESSED = ROOT / "data" / "processed"
 LAYOUT_CACHE  = DATA_RAW / "layout"

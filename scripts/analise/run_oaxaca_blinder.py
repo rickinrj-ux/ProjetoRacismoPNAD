@@ -33,7 +33,7 @@ COLS = ["negro", "sexo_fem", "idade_c", "idade_sq",
         "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
         "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
         "ocp_servicos", "ocp_agro", "ocp_operario", "ocp_operador", "ocp_ffaa",
-        "log_renda", "renda_bruta", "pea"]
+        "log_renda", "renda_bruta", "pea", "V1028", "UPA"]
 
 print("Carregando dados ...")
 df = pd.read_parquet(ROOT / "data/processed/features.parquet", columns=COLS)
@@ -229,3 +229,88 @@ print("\n=== OAXACA-BLINDER CONCLUIDO ===")
 print(f"Gap total: {gap_total:.4f} ({(np.exp(gap_total)-1)*100:.2f}%)")
 print(f"Dotacoes: {endowment:.4f} ({endowment/gap_total*100:.1f}%)")
 print(f"Retornos: {returns:.4f} ({returns/gap_total*100:.1f}%)")
+
+
+# ── Robustez: desenho amostral complexo (peso V1028 + cluster-robusto por UPA) ─
+def oaxaca_ponderado(df: pd.DataFrame, formula: str) -> pd.DataFrame | None:
+    """
+    Reajusta a decomposição de Oaxaca-Blinder com peso amostral (V1028) e
+    erro-padrão cluster-robusto por UPA, comparando contra a mesma especificação
+    sem ponderação — responde ao pedido do orientador sobre o tratamento do
+    desenho amostral complexo da PNAD (pesos, conglomerados).
+
+    Não pondera por Estrato explicitamente: statsmodels não estima variância
+    com estratificação nativa fora do módulo de survey; o cluster por UPA
+    captura o componente de conglomerado (unidade de seleção primária), que é
+    o efeito de desenho dominante da PNAD. Ausência de pesos é o ponto mais
+    sério do desenho amostral não tratado no núcleo do TCC — esta função
+    quantifica se isso muda a composição do gap ou apenas a precisão do SE.
+    """
+    if "V1028" not in df.columns or "UPA" not in df.columns:
+        print("V1028/UPA ausentes — pulando robustez de desenho amostral.")
+        return None
+
+    df_b = df[df["negro"] == 0].dropna(subset=["V1028", "UPA"]).copy()
+    df_n = df[df["negro"] == 1].dropna(subset=["V1028", "UPA"]).copy()
+
+    rows = []
+    for ponderado in (False, True):
+        if ponderado:
+            m_b_r = smf.wls(formula, data=df_b, weights=df_b["V1028"]).fit(
+                cov_type="cluster", cov_kwds={"groups": df_b["UPA"]})
+            m_n_r = smf.wls(formula, data=df_n, weights=df_n["V1028"]).fit(
+                cov_type="cluster", cov_kwds={"groups": df_n["UPA"]})
+            ybar_b_r = np.average(df_b["log_renda"], weights=df_b["V1028"])
+            ybar_n_r = np.average(df_n["log_renda"], weights=df_n["V1028"])
+        else:
+            m_b_r = smf.ols(formula, data=df_b).fit(
+                cov_type="cluster", cov_kwds={"groups": df_b["UPA"]})
+            m_n_r = smf.ols(formula, data=df_n).fit(
+                cov_type="cluster", cov_kwds={"groups": df_n["UPA"]})
+            ybar_b_r = df_b["log_renda"].mean()
+            ybar_n_r = df_n["log_renda"].mean()
+
+        xbar_b_r = m_b_r.model.exog.mean(axis=0)
+        xbar_n_r = m_n_r.model.exog.mean(axis=0)
+        beta_b_r = m_b_r.params.values
+        beta_n_r = m_n_r.params.values
+
+        gap_r  = ybar_b_r - ybar_n_r
+        end_r  = (xbar_b_r - xbar_n_r) @ beta_b_r
+        ret_r  = xbar_n_r @ (beta_b_r - beta_n_r)
+
+        # SE do efeito retornos via propagação linear (delta method):
+        # ret = xbar_n . (beta_b - beta_n); Var ~= xbar_n^2 . (Var(beta_b)+Var(beta_n))
+        # (aproximação conservadora que ignora a covariância entre beta_b e beta_n,
+        # que é zero de qualquer forma pois os dois grupos são amostras disjuntas)
+        var_b_r = np.diag(np.asarray(m_b_r.cov_params()))
+        var_n_r = np.diag(np.asarray(m_n_r.cov_params()))
+        se_ret_r = float(np.sqrt(np.sum((xbar_n_r ** 2) * (var_b_r + var_n_r))))
+
+        rows.append({
+            "ponderado":       ponderado,
+            "gap_total":       gap_r,
+            "pct_dotacao":     end_r / gap_r * 100,
+            "pct_coeficiente": ret_r / gap_r * 100,
+            "se_coeficiente":  se_ret_r,
+            "n_brancos":       len(df_b),
+            "n_negros":        len(df_n),
+        })
+
+    df_out = pd.DataFrame(rows)
+    df_out.to_csv(TABLES / "oaxaca_ponderado.csv", index=False, encoding="utf-8")
+
+    print("\n=== ROBUSTEZ: DESENHO AMOSTRAL (peso V1028 + cluster-robusto por UPA) ===")
+    print(df_out[["ponderado", "pct_dotacao", "pct_coeficiente", "se_coeficiente"]]
+          .round(4).to_string(index=False))
+    delta_se = (df_out.loc[df_out["ponderado"], "se_coeficiente"].values[0]
+                - df_out.loc[~df_out["ponderado"], "se_coeficiente"].values[0])
+    delta_pct = (df_out.loc[df_out["ponderado"], "pct_coeficiente"].values[0]
+                 - df_out.loc[~df_out["ponderado"], "pct_coeficiente"].values[0])
+    print(f"\nΔ SE do componente 'retornos' (ponderado − não-ponderado): {delta_se:+.4f}")
+    print(f"Δ % do gap atribuído a retornos (ponderado − não-ponderado): {delta_pct:+.2f} p.p.")
+    print("oaxaca_ponderado.csv salvo.")
+    return df_out
+
+
+oaxaca_ponderado(df, FORMULA)

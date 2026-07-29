@@ -11,7 +11,9 @@
 #                      "dplyr","ggplot2","writexl","glmmTMB"))
 # =============================================================================
 
-.libPaths(c("C:/Users/user/R/win-library/4.6", .libPaths()))
+.libPaths(c("C:/Users/user/R/win-library/4.6",
+            "/Users/dado/Library/R/x86_64/4.2/library",
+            .libPaths()))
 
 library(arrow)
 library(lme4)
@@ -21,7 +23,22 @@ library(dplyr)
 library(ggplot2)
 library(writexl)
 
-ROOT    <- "C:/Users/user/Documents/ProjetoRacismoPNAD"
+# ROOT portátil: deriva o diretório do projeto a partir da localização deste
+# script (2 níveis acima de scripts/R/) — funciona em Windows e Mac/Linux,
+# via Rscript de linha de comando ou RStudio interativo.
+.get_root <- function() {
+  args <- commandArgs(trailingOnly = FALSE)
+  file_arg <- sub("--file=", "", args[grepl("--file=", args)])
+  if (length(file_arg) > 0) {
+    script_dir <- dirname(normalizePath(file_arg))
+    return(normalizePath(file.path(script_dir, "..", "..")))
+  }
+  if (file.exists("C:/Users/user/Documents/ProjetoRacismoPNAD")) {
+    return("C:/Users/user/Documents/ProjetoRacismoPNAD")
+  }
+  getwd()
+}
+ROOT    <- .get_root()
 FIGURES <- file.path(ROOT, "outputs", "figures")
 TABLES  <- file.path(ROOT, "outputs", "tables")
 
@@ -209,6 +226,57 @@ write.csv(or_table,
           file.path(TABLES, "glmm_odds_ratios_full.csv"),
           row.names = FALSE)
 cat("\nglmm_odds_ratios_full.csv salvo.\n")
+
+# ── 8b. Robustez: desenho amostral complexo (peso V1028 + cluster-robusto UPA) ─
+# lme4::glmer nao suporta pesos de desenho amostral (probability weights) de
+# forma nativa. Como checagem de robustez, comparamos o GLMM multinivel atual
+# (sem peso) contra um GLM de nivel unico ponderado por V1028 com erro-padrao
+# cluster-robusto por UPA (sandwich::vcovCL) -- dimensiona se a ausencia do
+# peso amostral infla artificialmente a precisao (OR/SE) reportada no nucleo.
+cat("\n--- Robustez: GLM ponderado (V1028) + SE cluster-robusto (UPA) ---\n")
+if (requireNamespace("sandwich", quietly = TRUE) && requireNamespace("lmtest", quietly = TRUE)) {
+  library(sandwich)
+  library(lmtest)
+
+  f_glm_flat <- as.formula(paste(
+    "ocp_qualif ~ negro +", CTRL, "+ renda_media_upa_c + edu_media_upa_c"
+  ))
+
+  glm_npond <- glm(f_glm_flat, data = df, family = binomial(link = "logit"))
+  # peso normalizado (media 1) evita inflar/deflacionar artificialmente o N efetivo
+  df$peso_norm <- df$V1028 / mean(df$V1028, na.rm = TRUE)
+  glm_pond  <- glm(f_glm_flat, data = df, family = binomial(link = "logit"),
+                    weights = peso_norm)
+
+  extrair_or_cluster <- function(modelo, ponderado_flag) {
+    vcov_cl <- vcovCL(modelo, cluster = df$UPA, type = "HC1")
+    ct <- coeftest(modelo, vcov. = vcov_cl)
+    b  <- ct["negro", "Estimate"]
+    se <- ct["negro", "Std. Error"]
+    data.frame(
+      ponderado = ponderado_flag,
+      OR_negro  = exp(b),
+      SE_negro  = se,
+      CI95_lo   = exp(b - 1.96 * se),
+      CI95_hi   = exp(b + 1.96 * se)
+    )
+  }
+
+  glmm_pond_df <- rbind(
+    extrair_or_cluster(glm_npond, FALSE),
+    extrair_or_cluster(glm_pond, TRUE)
+  )
+  write.csv(glmm_pond_df, file.path(TABLES, "glmm_ponderado.csv"), row.names = FALSE)
+  cat("glmm_ponderado.csv salvo.\n")
+  print(glmm_pond_df)
+
+  delta_se <- glmm_pond_df$SE_negro[glmm_pond_df$ponderado] -
+              glmm_pond_df$SE_negro[!glmm_pond_df$ponderado]
+  cat(sprintf("\nDelta SE (ponderado - nao-ponderado): %+.4f\n", delta_se))
+} else {
+  cat("Pacotes 'sandwich'/'lmtest' ausentes -- pulando robustez de desenho amostral.\n")
+  cat("Instale com: install.packages(c('sandwich','lmtest'))\n")
+}
 
 # Resumo executivo — população completa PEA
 resumo <- data.frame(
