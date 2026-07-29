@@ -278,17 +278,45 @@ anteriores, só não exposta no `Resultados_Preliminares_TCC.docx` entregue ao o
    HLM interseccional (β=−0,0434; IC 95% [−0,0538; −0,0330]) como evidência adicional de
    incerteza estatística, enquanto o bootstrap direto da penalidade OB de 4 grupos está pendente.
 
-### Pendências (exigem dados reais — código implementado, execução em andamento)
-- CV k-fold (k=5) para RF/XGBoost + baseline OLS/HLM (ganho real do ML).
-- Bootstrap dos valores SHAP (IC de importância por feature).
-- Refit ponderado por V1028 (Oaxaca WLS e GLMM) com SE cluster-robusto por UPA, como robustez
-  ao desenho amostral complexo (pesos), documentando a diferença de precisão/ICC frente aos
-  modelos não-ponderados. Multinível ponderado pleno (pacote R `WeMix`) fica como extensão
-  opcional caso o orientador exija o modelo completo.
-- Bootstrap cluster (por UPA) da penalidade interseccional (Tabela 4) para IC direto.
-- Reconstrução de `data/processed/features.parquet` nesta máquina (ingestão PNAD 2016-2025 do
-  zero) para viabilizar a execução dos itens acima sem depender da máquina Windows onde os
-  modelos rodavam antes.
+### Execução completa (2026-07-29) — todos os itens abaixo rodados com dados reais
+Base reconstruída do zero nesta máquina (download PNAD 2016-2025 do FTP do IBGE,
+`run_enrich_raw.py`, `run_features_completo.py` → 7.694.198 obs., mesma população já citada
+no documento) e todo o núcleo + robustez reprocessado:
+
+- **CV k-fold (k=5, subamostra 20%) + baseline OLS**: XGBoost R²=0,616±0,001 (CV),
+  RF R²=0,575±0,001 (CV). Ganho de R² sobre OLS simples (R²=0,571): RF +0,003 (marginal),
+  XGBoost +0,046 (mais expressivo) — a forma funcional linear já captura a maior parte da
+  variância; o XGBoost captura não-linearidades adicionais, mas de magnitude limitada.
+- **Bootstrap dos valores SHAP** (B=200): importância |SHAP| da variável "raça (negro)" é
+  precisa dentro de cada algoritmo (IC 95% [0,0294; 0,0295] no XGBoost) — a instabilidade de
+  rank reportada (25º no RF vs. 11º no XGBoost) é *entre* algoritmos, não imprecisão amostral.
+- **Refit ponderado (V1028) + cluster-robusto (UPA)**:
+  - GLMM (Tabela 1, acesso a cargo qualificado): SE sobe de 0,0023 (HC1) → 0,0061 (cluster) →
+    0,0091 (cluster+peso), quase 4× — OR estável (0,705→0,693).
+  - GLMM R (lme4, autoritativo): OR não-ponderado 0,752 → ponderado 0,736 (SE +0,0016).
+  - Oaxaca-Blinder: parcela de discriminação 16,2% (SE=0,0104, não ponderado) → 18,3%
+    (SE=0,0133, ponderado) — mesma direção, sem reverter a conclusão.
+  - Multinível ponderado pleno (pacote R `WeMix`) permanece como extensão opcional caso o
+    orientador exija o modelo completo; a checagem single-level+cluster já responde
+    diretamente à pergunta sobre inflação de precisão.
+- **Bootstrap cluster (UPA, B=200) da penalidade interseccional** (Tabela 4): 9,48 p.p.,
+  IC 95% [8,44; 10,69] — não inclui zero, confirma a penalidade com incerteza explícita.
+
+### Bugs de ambiente corrigidos durante a execução
+- `run_glmm_glassceil.py`: import faltante de `statsmodels.api as sm` (quebrava a seção de
+  robustez ponderada silenciosamente, capturada por `try/except`).
+- Retenção de múltiplos modelos `statsmodels`/`glmer` na íntegra em memória (cada um com cópia
+  de ~2,3GB do design matrix de 7,7M linhas) esgotava os 16GB de RAM desta máquina — refatorado
+  para processar cada desfecho/modelo de ponta a ponta e descartar (`del` + `gc.collect()`)
+  antes do próximo. A covariância cluster-robusta do statsmodels (41 mil clusters de UPA) foi
+  rodada em subamostra de 20% pelo mesmo motivo (limitação computacional documentada no código).
+- R: `vector memory exhausted` no `glmer` do M2 — corrigido com `R_MAX_VSIZE=64Gb` e `gc()`
+  explícito entre M1 e M2.
+- `xgboost>=2.0` serializa `base_score` como array JSON; `shap<=0.49.1` não faz o parse
+  (`TreeExplainer` quebrava com `could not convert string to float`). Fixado
+  `xgboost>=1.7.0,<2.0.0` no `requirements.txt` até o `shap` corrigir o suporte.
+- M3 do GLMM (interação negro×educação) pulado nos 3 desfechos: não é usado em nenhuma tabela
+  do núcleo, é o modelo mais caro, e sofre quase-separação no desfecho mais raro (y_top10).
 
 ---
 

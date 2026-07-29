@@ -13,7 +13,11 @@ scipy>=1.11.0
 
 # ── Machine Learning (Fase 2 — clustering, RF, XGBoost, SHAP) ────────────────
 scikit-learn>=1.3.0
-xgboost>=2.0.0
+# xgboost travado em <2.0: a partir da 2.x o base_score é serializado como um
+# array JSON (ex.: "[7.33E0]") em vez de float simples; shap<=0.49.1 ainda não
+# lê esse formato (TreeExplainer quebra com "could not convert string to
+# float"). Reavaliar o teto quando o shap corrigir o parser do xgboost 2.x/3.x.
+xgboost>=1.7.0,<2.0.0
 shap>=0.43.0
 
 # ── Visualization ─────────────────────────────────────────────────────────────

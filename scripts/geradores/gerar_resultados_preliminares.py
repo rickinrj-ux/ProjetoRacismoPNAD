@@ -348,7 +348,12 @@ par(f"Estabilidade da hierarquia SHAP. A concordância entre os dois modelos de 
     f"qualitativa (efeito racial direto residual mesmo após os controles), mas indica que a "
     f"MAGNITUDE relativa desse efeito frente às demais variáveis, isoladamente pelo SHAP, é "
     f"sensível à escolha do algoritmo, reforçando por que o efeito racial é estimado "
-    f"primariamente pelos modelos econométricos (HLM, Oaxaca-Blinder, GLMM) e não pelo ML.")
+    f"primariamente pelos modelos econométricos (HLM, Oaxaca-Blinder, GLMM) e não pelo ML. Um "
+    f"bootstrap (B=200 reamostragens) da importância |SHAP| média do XGBoost mostra que essa "
+    f"estimativa é, em si, precisa — |SHAP|={fmt(g('SHAP_BOOT_NEGRO_MEAN',0.0295),4)} para 'raça "
+    f"(negro)', IC 95% [{fmt(g('SHAP_BOOT_NEGRO_CI_LO',0.0294),4)}; "
+    f"{fmt(g('SHAP_BOOT_NEGRO_CI_HI',0.0295),4)}] — a instabilidade relatada acima é entre "
+    f"algoritmos (RF vs. XGBoost), não uma imprecisão amostral dentro de cada um.")
 par("Esse eixo territorial encontra corroboração externa no Índice de Progresso Social (IPS) municipal "
     "(Imazon e parceiros, 2026): as regiões de menor progresso social (Norte e Nordeste) coincidem com "
     "as de maior penalidade racial em nossos modelos. Ressalva metodológica: a integração fina com o "
