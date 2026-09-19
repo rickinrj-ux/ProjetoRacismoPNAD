@@ -96,8 +96,8 @@ UNIVERSIDADE DE SÃO PAULO}}
 \vspace{3cm}
 
 {\LARGE \textbf{RACISMO ESTRUTURAL NO MERCADO DE TRABALHO BRASILEIRO:
-UMA ABORDAGEM MULTINÍVEL, DE MACHINE LEARNING, REDES SOCIAIS
-E PESQUISA OPERACIONAL COM DADOS DA PNAD CONTÍNUA (2016--2025)}}
+UMA ABORDAGEM MULTINÍVEL E DE DECOMPOSIÇÃO SALARIAL
+COM DADOS DA PNAD CONTÍNUA (2016--2025)}}
 
 \vspace{3cm}
 
@@ -128,7 +128,8 @@ Um modelo de regressão multinível de três níveis (indivíduo, UPA e Unidade 
 Federação) estima que profissionais negros recebem, em média, 19,1\% a menos que
 brancos comparáveis em escolaridade, sexo e idade. Desse diferencial bruto, 52,5\%
 é mediado pelo contexto de moradia (Nível~2), reduzindo o \textit{gap} líquido ---
-atribuível à discriminação direta --- a 9,6\%.
+não explicado por capital humano nem contexto, limite inferior da discriminação
+direta --- a 9,6\%.
 
 A decomposição de Oaxaca--Blinder (especificação de acesso, com ocupação e contexto
 como dotações) atribui 83,8\% do gap a diferenças de dotações e 16,2\% à parcela não
@@ -173,17 +174,18 @@ regression with RIF decomposition, and a multilevel logistic model (GLMM) ---,
 validated by interpretable machine learning (XGBoost + SHAP).
 
 A three-level hierarchical linear model (individual, census tract, and state)
-estimates that Black workers earn 19.1\% less than comparable White workers after
-controlling for education, sex, and age. Of this gross differential, 52.5\% is
-mediated by residential context (Level~2), leaving a residual \textit{net gap} of
-9.6\% attributable to direct labour-market discrimination.
+estimates that Black workers earn 19,1\% less than comparable White workers after
+controlling for education, sex, and age. Of this gross differential, 52,5\% is
+mediated by residential context (Level~2), leaving a \textit{net gap} of 9,6\%
+unexplained by human capital or context --- a lower bound on direct labour-market
+discrimination.
 
 The Oaxaca--Blinder decomposition (access specification, with occupation and context
-treated as endowments) attributes 83.8\% of the gap to endowment differences and 16.2\%
+treated as endowments) attributes 83,8\% of the gap to endowment differences and 16,2\%
 to the component unexplained by observable characteristics --- a lower bound on
 within-occupation wage discrimination. The quantile RIF decomposition reveals a
 \textit{sticky floor}: this returns component is largest at the bottom of the
-distribution (35.1\% at q10) and declines toward the top (12.9\% at q90). Discrimination
+distribution (35,1\% at q10) and declines toward the top (12,9\% at q90). Discrimination
 thus operates mainly on \emph{access} to occupations --- which the GLMM measures directly.
 
 The multilevel logistic model confirms an occupational glass ceiling: controlling for
@@ -213,11 +215,11 @@ SHAP values; PNAD Contínua.
 \label{sec:intro}
 
 \begin{quote}
-\textbf{Este trabalho comprova que o racismo no mercado de trabalho brasileiro
-não opera como um evento isolado de discriminação salarial --- opera como
-um sistema de barreiras em camadas que começa antes do primeiro salário,
-persiste ao longo de toda a trajetória profissional e se perpetua via
-exclusão das redes que convertem educação em mobilidade.
+\textbf{Este trabalho mostra que a desigualdade racial no mercado de trabalho
+brasileiro não se reduz a um desconto salarial isolado --- opera como um
+sistema de barreiras em camadas que começa antes do primeiro salário, na
+porta de entrada das ocupações qualificadas, e persiste ao longo de toda a
+trajetória profissional.
 Políticas baseadas apenas em aumento de escolaridade são, portanto,
 necessárias, mas estruturalmente insuficientes.}
 \end{quote}
@@ -258,9 +260,10 @@ sistêmica do capital humano negro, pela qual um dado nível de escolaridade
 gera retornos financeiros menores para trabalhadores negros do que para
 brancos~\cite{hasenbalg1979, pager2007}.
 
-Este trabalho avança sobre a literatura nacional ao integrar três
-metodologias complementares --- econometria multinível, \textit{machine learning}
-interpretável e análise de redes sociais --- sobre a maior base de dados
+Este trabalho avança sobre a literatura nacional ao integrar quatro métodos
+complementares --- modelo linear hierárquico, decomposição de Oaxaca--Blinder,
+regressão quantílica com decomposição RIF e modelo logístico de acesso ---,
+validados por \textit{machine learning} interpretável, sobre a maior base de dados
 longitudinal disponível no Brasil para este tema, a PNAD Contínua em sua
 série completa de 2016 a 2025.
 
@@ -280,21 +283,17 @@ série completa de 2016 a 2025.
     UPA, desemprego local, nível educacional médio do entorno) ---
     capturando os efeitos indiretos da segregação residencial sobre a renda.
 
-  \item[\textbf{H3}] \textbf{Tipologias de vulnerabilidade alinhadas com raça:}
-    Métodos de agrupamento não-supervisionados identificam clusters
-    socioeconômicos que se sobrepõem a fronteiras raciais, com trabalhadores
-    negros concentrados nos segmentos de maior vulnerabilidade.
+  \item[\textbf{H3}] \textbf{Barreira de acesso e teto de vidro:}
+    Trabalhadores negros têm menor chance de acesso a ocupações qualificadas
+    e ao topo da distribuição de renda do que brancos de mesmo perfil, e a
+    penalidade salarial condicional cresce ao longo da distribuição de renda
+    --- a discriminação não é um desconto uniforme, mas um teto.
 
   \item[\textbf{H4}] \textbf{Importância residual da raça nos modelos preditivos:}
     Mesmo após controlar por educação, experiência, gênero e contexto de
     moradia, a variável racial mantém relevância preditiva independente,
     conforme medida pelos valores SHAP dos modelos de \textit{gradient boosting}.
 
-  \item[\textbf{H5}] \textbf{Isolamento estrutural na rede de co-residência:}
-    Grupos negros ocupam posições periféricas na rede demográfica de
-    co-residência, com menor capacidade de corretagem (\textit{brokerage})
-    entre grupos do que seus pares brancos de mesma escolaridade, o que
-    limita a conversão do capital humano em rendimento.
 \end{enumerate}
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -442,38 +441,34 @@ calcular os valores de Shapley de cada feature.
 \section{Resultados}
 \label{sec:resultados}
 
-As evidências deste capítulo estão organizadas em três camadas de exclusão
---- três barreiras que operam em sequência e se reforçam mutuamente.
+As evidências deste capítulo estão organizadas em duas camadas de exclusão
+--- duas barreiras que operam em sequência e se reforçam mutuamente.
 O leitor não encontrará aqui um catálogo de modelos estatísticos:
 encontrará a trajetória de um trabalhador negro no mercado de trabalho
 brasileiro, documentada com rigor empírico em cada etapa.
 
 \begin{table}[ht]
 \centering
-\caption{Mapa das três camadas de exclusão racial --- guia de leitura}
+\caption{Mapa das duas camadas de exclusão racial --- guia de leitura}
 \label{tab:mapa_barreiras}
 \begin{tabularx}{\textwidth}{|l|X|}
 \hline
 \textbf{Camada} & \textbf{Pergunta central e evidência} \\
 \hline
 \textbf{BARREIRA I} & Por que negros raramente chegam às ocupações de \\
-\textbf{Acesso e Segregação} & prestígio? GLMM ($N=7.694.198$), HLM contextual e segregação \\
- & espacial mostram que a exclusão começa antes do salário. \\
+\textbf{Acesso e Segregação} & prestígio? O GLMM de acesso e o HLM contextual mostram \\
+ & que a exclusão começa antes do salário. \\
 \hline
 \textbf{BARREIRA II} & Para os que superam a barreira de entrada --- qual é o \\
-\textbf{Penalidade e Teto de Vidro} & custo de ser negro? Gap residual de -6.2\% após 23 controles, \\
- & crescendo nos quantis mais altos (KB-test $p<0{,}001$). \\
-\hline
-\textbf{BARREIRA III} & Por que educação, sozinha, não quebra o ciclo? \\
-\textbf{Isolamento Estrutural} & Redes sociais com betweenness nulo para todos os grupos \\
- & negros: capital social transita exclusivamente por atores brancos. \\
+\textbf{Penalidade e Teto de Vidro} & custo de ser negro? Gap líquido de 9,6\% (M3) e de 6,2\% dentro \\
+ & da mesma ocupação (M4), crescendo nos quantis mais altos ($Z=-5{,}57$, $p<0{,}001$). \\
 \hline
 \end{tabularx}
 \end{table}
 
 \medskip
 
-Cada seção a seguir prova empiricamente uma dessas camadas.
+Cada seção a seguir documenta empiricamente uma dessas camadas.
 Nenhum método isolado teria identificado o sistema como um todo.
 
 \noindent\rule{\textwidth}{1pt}
@@ -498,19 +493,19 @@ O modelo nulo (M0) estima $\hat{\rho}_{UF} = 0.0980$,
 indicando que aproximadamente 9,8\% da variância do log-rendimento é
 atribuível ao estado de residência, acima do limiar de 5\% sugerido
 por \citeonline{raudenbush2002} para justificar a inclusão do nível superior.
-A adição dos \textit{slopes contextuais} da UPA (M2) reduz o ICC para
-5,3\%, revelando que o contexto de bairro explica parte substancial
+A adição das covariáveis contextuais da UPA (M2) reduz o ICC para
+5,8\%, revelando que o contexto de bairro explica parte substancial
 da heterogeneidade interestadual.
 
 \paragraph{Gap salarial racial: bruto, contextual e líquido.}
 O modelo M1 estima $\hat{\beta}_1^{M1} = -0.2123$
 ($p<0{,}001$), indicando que profissionais negros recebem em média
-19.1\% a menos que brancos com mesma escolaridade, sexo e faixa
+19,1\% a menos que brancos com mesma escolaridade, sexo e faixa
 etária --- o \textbf{gap racial bruto}.
 
 Após a inclusão das variáveis de contexto da UPA (M2),
 $\hat{\beta}_1^{M2} = -0.1009$, redução que implica uma
-\textbf{mediação contextual de 52.5\%} do gap bruto pelo
+\textbf{mediação contextual de 52,5\%} do gap bruto pelo
 local de moradia. Esse resultado confirma a Hipótese~H2 e quantifica
 o \textit{duplo disadvantage}: a segregação residencial opera como canal
 independente de reprodução da desigualdade racial.
@@ -522,7 +517,7 @@ adicional de proporção de negros na UPA reduz o log-rendimento em
 --- a evidência mais direta do \textit{duplo disadvantage}.
 
 O modelo completo M3 produz $\hat{\beta}_1^{M3} = -0.1009$
-($p<0{,}001$): o \textbf{gap líquido de 9.6\%} representa a fração
+($p<0{,}001$): o \textbf{gap líquido de 9,6\%} representa a fração
 do diferencial salarial não explicável por capital humano individual
 nem pelo contexto de moradia --- o limite inferior da discriminação
 direta no mercado de trabalho.
@@ -578,20 +573,20 @@ sobre o conjunto de teste (\textit{hold-out} 20\%).
 \begin{table}[H]
 \centering
 \caption{Desempenho preditivo --- Random Forest e XGBoost.
-          \textit{Hold-out} 20\%, $N_\text{teste}=307.768$ observações.}
+          \textit{Hold-out} 20\% da população ($N_\text{teste}\approx 1{,}54$ milhão).}
 \label{tab:ml_perf}
-\begin{tabular}{lccc}
+\begin{tabular}{lcccc}
 \toprule
-\textbf{Modelo} & $R^2$ & \textbf{MAE} & \textbf{RMSE} \\
+\textbf{Modelo} & $R^2$ & \textbf{MAE} & \textbf{RMSE} & \textbf{Gap treino--teste} \\
 \midrule
-Random Forest  & 0.5735  & 0.4287 & --- \\
-\textbf{XGBoost}      & \textbf{0.6168} & \textbf{0.4287} & \textbf{0,6986} \\
+Random Forest & 0,5735 & 0,4529 & 0,6030 & 0,0006 \\
+\textbf{XGBoost} & \textbf{0,6168} & \textbf{0,4287} & \textbf{0,5716} & \textbf{0,0006} \\
 \bottomrule
 \end{tabular}
 \end{table}
 \noindent\emph{Como ler a Tabela~\ref{tab:ml_perf}:} R\textsuperscript{2} mais alto = melhor previsão; o \emph{gap} treino--teste próximo de zero indica ausência de sobreajuste.
 
-O $R^2 \approx 0{,}43$ é robusto para dados de rendimento individual,
+O $R^2$ de teste de 0,62 (XGBoost) é elevado para dados de rendimento individual,
 onde a variância não observada (setor, cargo, tempo de serviço) responde
 pela maior parte do resíduo.
 
@@ -699,6 +694,13 @@ a diferenças em educação, experiência, gênero ou contexto de moradia.
 \end{figure}
 
 % ── NÚCLEO: decomposições e acesso (inserido pela versão enxuta) ──
+\noindent\rule{\textwidth}{1pt}
+\textbf{\large BARREIRA II --- PENALIDADE SALARIAL E TETO DE VIDRO}
+\textit{Para quem supera a porta de entrada, qual é o custo de ser negro?}
+\noindent\rule{\textwidth}{1pt}
+
+\medskip
+
 \subsection{Decomposição do gap por mediação contextual e ocupacional}
 A Tabela~\ref{tab:mediacao} resume o resultado central dos modelos HLM: à medida
 que se adicionam controles de contexto (UPA) e ocupação, o gap racial encolhe de
@@ -780,18 +782,6 @@ Esse achado refina a tese central: o teto de vidro não é racial nem sexualment
 --- recai com força máxima sobre a mulher negra, que pode \emph{entrar} em ocupações
 qualificadas, mas é sistematicamente barrada de \emph{chegar ao topo} da remuneração.
 
-\noindent\rule{\textwidth}{1pt}
-\textbf{\large BARREIRA III --- ISOLAMENTO ESTRUTURAL E CAPITAL SOCIAL}
-\textit{Por que educação, sozinha, não quebra o ciclo}
-\noindent\rule{\textwidth}{1pt}
-
-\medskip
-
-\textit{As barreiras anteriores documentam exclusão mensurável por econometria.
-Esta seção documenta o mecanismo que as sustenta: o isolamento estrutural
-das redes de capital social, que explica por que trabalhadores negros com
-pós-graduação ainda não chegam ao topo.}
-
 \subsection{Multicolinearidade do Modelo M4: Análise VIF}
 \label{subsec:vif}
 
@@ -821,28 +811,20 @@ quanto da penalidade racial transita \textit{pelo} território.
 \textit{diferenças nas características observáveis} entre brancos e negros
 (escolaridade, ocupação, contexto), por oposição ao \textbf{efeito retornos}
 (preços diferenciais pagos às mesmas características).
-\textbf{Gap líquido} (ou residual) é o diferencial que \textit{persiste} após
-o controle exaustivo de todas as covariáveis (M4) --- o piso para a discriminação
-direta não explicada por observáveis. Em suma: a mediação contextual responde
+\textbf{Gap líquido} é o diferencial que \textit{persiste} após o controle de
+capital humano e contexto (M3): 9,6\%. \textbf{Gap residual pós-ocupação} é o
+que resta ao se controlar também ocupação e formalidade (M4): 6,2\% --- um limite
+inferior, pois a ocupação é ela própria resultado da barreira de acesso. Em suma: a mediação contextual responde
 ``por onde passa o gap''; a decomposição de dotações, ``de que ele é feito''; e o
 gap líquido, ``o que sobra sem explicação''.
 
-\paragraph{Da diagnose à prescrição.}
-O diagnóstico econométrico das três seções anteriores revela múltiplos
-gargalos simultâneos --- exclusão de acesso, penalidade salarial direta
-e isolamento de redes --- que se reforçam mutuamente.
-Essa estrutura multicausal implica uma consequência metodológica direta:
-nenhuma política pública unidimensional tem capacidade de romper um
-sistema de três barreiras interdependentes.
-A formulação de políticas eficazes exige priorização multi-critério
-e alocação ótima de recursos escassos --- exatamente o que a Pesquisa
-Operacional oferece: a tradução dos coeficientes de exclusão em uma
-função-objetivo de alocação ótima de recursos públicos.
-
-Os resultados das metodologias aplicadas convergem para um diagnóstico
-consistente: a desigualdade salarial racial no Brasil é um fenômeno
-multicausal, com componentes individuais, contextuais e estruturais
-que se reforçam mutuamente.
+\paragraph{Da diagnose às políticas.}
+O diagnóstico das duas barreiras revela gargalos simultâneos --- exclusão de
+acesso às ocupações qualificadas e penalidade salarial que persiste dentro delas
+--- que se reforçam mutuamente. A consequência para o desenho de políticas é
+direta: nenhuma intervenção unidimensional (só cotas de acesso, só fiscalização
+salarial, só escolaridade) atinge as duas barreiras ao mesmo tempo; a magnitude
+relativa de cada uma, estimada aqui, é o insumo para priorizá-las.
 
 \paragraph{O que este trabalho acrescenta ao debate.}
 \citeonline{hasenbalg1979} identificou a discriminação racial como estrutural,
@@ -855,13 +837,13 @@ Este trabalho, com dados de 2016--2025 e metodologias não disponíveis
 a Soares, decompõe essa \textit{caixa preta}: apenas 16,2\% do gap bruto
 são retornos diferenciais (potencialmente discriminação direta); 83,8\%
 são diferenças de dotações --- mas essas dotações são, elas mesmas,
-produto de barreiras de acesso (GLMM) e isolamento de redes (SNA)
-que este trabalho pela primeira vez quantifica de forma integrada.
+produto da barreira de acesso às ocupações qualificadas (GLMM), que este
+trabalho quantifica em conjunto com a penalidade salarial.
 A contribuição central não é mostrar que o gap existe --- isso a
 literatura já sabia desde \citeonline{hasenbalg1979} ---,
 mas demonstrar que ele é sustentado por um
 \textbf{sistema combinado} em que discriminação de acesso, segregação
-residencial e exclusão de redes se reforçam mutuamente, tornando
+residencial e penalidade salarial se reforçam mutuamente, tornando
 insuficientes políticas focadas em um único mecanismo.
 
 \paragraph{Diálogo com o quadro macro recente do IBGE.}
@@ -899,7 +881,7 @@ territorial da desigualdade --- não como fonte de dados integrada, e ressalvand
 o IPS mede progresso social geral, não desigualdade racial.
 
 \paragraph{A segregação residencial como multiplicador da desigualdade.}
-O achado mais robusto desta análise é que 52.5\% do gap salarial racial
+O achado mais robusto desta análise é que 52,5\% do gap salarial racial
 bruto é mediado pelo local de moradia --- muito além do que modelos
 cross-sectionais típicos, que ignoram a estrutura aninhada dos dados,
 seriam capazes de estimar. O coeficiente contextual
@@ -910,18 +892,20 @@ Isso sugere que políticas de redistribuição de renda que não enfrentem
 a segregação residencial terão eficácia limitada sobre o gap racial.
 
 \paragraph{Subvalorização do capital humano negro.}
-O Cluster~1 (trabalhadores negros de escolaridade superior à do Cluster~0)
-aufere rendimentos 8\% inferiores, e a SNA demonstra que grupos negros com
-pós-graduação têm betweenness nulo. Juntas, essas evidências indicam que
-negros enfrentam um duplo obstáculo ao retorno educacional: além do
-gap direto mensurado pelo HLM, perdem acesso às redes de indicação
-que convertem credenciais formais em mobilidade profissional.
-\citeonline{granovetter1973} antecipou esse mecanismo: sem \textit{laços fracos}
-que cruzem fronteiras sociais, o capital humano acumulado circula
-apenas na própria comunidade.
+A decomposição de Oaxaca--Blinder atribui 16,2\% do gap a \textit{retornos}
+diferenciais --- as mesmas características observáveis, incluindo a posição
+ocupacional, rendem menos a trabalhadores negros ---, e a decomposição RIF mostra
+que essa parcela chega a 35\% na base da distribuição. O GLMM acrescenta que a
+credencial educacional não neutraliza a barreira de acesso (OR de \texttt{negro}
+próximo de 0,7 mesmo entre os mais escolarizados). Juntas, essas evidências indicam
+um duplo obstáculo ao retorno educacional: além da penalidade direta mensurada
+pelo HLM, o acesso desigual às ocupações que convertem credenciais em renda.
+\citeonline{granovetter1973} oferece o mecanismo plausível --- redes de indicação
+que não cruzam fronteiras sociais ---, hipótese que este trabalho não testa
+diretamente e que fica como agenda.
 
 \paragraph{Persistência da discriminação direta.}
-O gap líquido de 9.6\%, estimado após controlar por todos os vetores
+O gap líquido de 9,6\%, estimado após controlar por todos os vetores
 de transmissão contextual, representa um piso para a discriminação direta
 não explicada por diferenças observáveis. Os valores SHAP reforçam essa
 interpretação: a variável racial mantém o 11$^\circ$ lugar
@@ -932,7 +916,7 @@ Essa evidência é consistente com os experimentos de auditoria de
 racial em processos seletivos.
 
 \paragraph{Lenta convergência racial.}
-A redução de apenas 2.4\%
+A redução de apenas 2,4\%
 do gap em dez anos --- equivalente a 0,001 ponto de log-rendimento por ano
 ($\delta = 0{,}000847$, $p = 0{,}077$, WLS 2016--2025)
 --- sugere que, ao ritmo atual, a convergência racial levaria mais de um
@@ -943,121 +927,94 @@ educação, sem intervenção simultânea nos mecanismos de segregação
 residencial e de acesso às redes profissionais, são insuficientes.
 
 \paragraph{Ancoragem em políticas públicas existentes.}
-As frentes priorizadas pela Pesquisa Operacional não são abstrações: cada uma
-corresponde a um instrumento jurídico-institucional já existente no Brasil, cuja
-intensificação ou aperfeiçoamento a análise recomenda.
-A frente de \textbf{cotas ocupacionais (CBO~1--4)} dialoga diretamente com a
-\textit{Lei~12.990/2014}, que reserva 20\% das vagas em concursos públicos
-federais a candidatos negros, e cujo escopo o diagnóstico de barreira de acesso
-(GLMM, OR~$=0,676$) sugere ampliar para níveis hierárquicos
-superiores --- onde o teto de vidro é mais severo
-(OR(top~10\%)~$=0,457$).
-A frente de \textbf{qualificação e acesso ao ensino superior} corresponde ao
-\textit{Prouni} e ao \textit{Fies}, bem como ao legado do \textit{PRONATEC};
-o achado de subvalorização do capital humano negro indica que tais programas
-precisam ser combinados a mecanismos de inserção em redes profissionais, sob pena
-de retorno marginal decrescente.
-A frente de \textbf{combate à discriminação direta} encontra base na
-\textit{Lei~9.029/1995} (que proíbe práticas discriminatórias na relação de
-trabalho) e no \textit{Estatuto da Igualdade Racial} (\textit{Lei~12.288/2010}),
-cuja fiscalização o gap líquido residual de 9.6\% justifica reforçar.
-Em conjunto, a contribuição da PO é traduzir a magnitude estimada de cada
-barreira em \textit{prioridade relativa} entre instrumentos que já integram o
-arcabouço legal brasileiro.
+As barreiras estimadas não são abstrações: cada uma corresponde a um instrumento
+jurídico-institucional já existente no Brasil, cuja intensificação ou
+aperfeiçoamento os resultados sugerem.
+A \textbf{barreira de acesso} (GLMM, OR~$=0,705$ para CBO~1--4 no modelo com
+contexto) dialoga diretamente com a \textit{Lei~12.990/2014}, que reserva 20\% das
+vagas em concursos públicos federais a candidatos negros, e cujo escopo o
+diagnóstico sugere ampliar para níveis hierárquicos superiores --- onde o teto de
+vidro é mais severo (OR(top~10\%)~$=0,656$).
+A \textbf{qualificação e o acesso ao ensino superior} correspondem ao
+\textit{Prouni} e ao \textit{Fies}, bem como ao legado do \textit{PRONATEC}; o
+achado de que as mesmas credenciais rendem menos a trabalhadores negros (efeito
+retornos da decomposição de Oaxaca--Blinder) indica que tais programas precisam ser
+combinados a mecanismos de inserção ocupacional, sob pena de retorno marginal
+decrescente.
+O \textbf{combate à discriminação direta} encontra base na \textit{Lei~9.029/1995}
+(que proíbe práticas discriminatórias na relação de trabalho) e no \textit{Estatuto
+da Igualdade Racial} (\textit{Lei~12.288/2010}), cuja fiscalização o gap líquido de
+9,6\% --- e a penalidade de 6,2\% que persiste dentro da mesma ocupação ---
+justifica reforçar.
 
 \section{Conclusão}
 \label{sec:conclusao}
 
-Este estudo comprova que a meritocracia baseada em capital humano falha
-sistematicamente em prever o sucesso profissional da população negra no Brasil.
-A exclusão não é um evento isolado na contratação, nem uma consequência automática
-de menor escolaridade --- é uma engrenagem de múltiplas camadas que opera ao longo
-de toda a trajetória do trabalhador: na porta de entrada das ocupações de prestígio,
-no salário dentro das mesmas ocupações, e nas redes invisíveis que determinam
-quem é indicado, promovido e reconhecido.
+Este estudo mostra que a meritocracia baseada em capital humano falha
+sistematicamente em explicar a trajetória profissional da população negra no
+Brasil. A exclusão não é um evento isolado na contratação, nem uma consequência
+automática de menor escolaridade --- é uma engrenagem de duas camadas que opera ao
+longo de toda a trajetória do trabalhador: na porta de entrada das ocupações de
+prestígio e no salário dentro das mesmas ocupações.
 Cada uma dessas camadas foi identificada, isolada e medida de forma independente;
 juntas, elas formam um sistema que nenhuma política unidimensional consegue desmontar.
 
-O achado mais desafiador para o debate de políticas públicas é o da terceira barreira:
-trabalhadores negros com alta escolaridade --- incluindo pós-graduados --- estão
-estruturalmente excluídos das posições de intermediação nas redes profissionais.
-Isso significa que aumentar a escolaridade da população negra, sem simultaneamente
-intervir nos mecanismos de segregação residencial e exclusão de redes, produz
-retorno marginal decrescente: os títulos existem, mas os canais que os convertem
-em mobilidade profissional permanecem bloqueados.
+O achado mais desafiador para o debate de políticas públicas é o da barreira de
+acesso: com a mesma escolaridade, idade, sexo e contexto de moradia, trabalhadores
+negros têm cerca de 30\% menos chance de ocupar um cargo qualificado e 34\% menos
+chance de chegar ao décimo superior da renda. Isso significa que aumentar a
+escolaridade da população negra, sem intervir simultaneamente nos mecanismos de
+seleção e promoção, produz retorno marginal decrescente: os títulos existem, mas
+os canais que os convertem em mobilidade profissional permanecem estreitos.
 Políticas baseadas apenas em educação são, portanto, necessárias, mas
 estruturalmente insuficientes.
 
-O ritmo de convergência observado na última década confirma a urgência.
+O ritmo de convergência observado na última década reforça a urgência.
 Ao passo atual, a eliminação do diferencial racial levaria mais de um século.
 Isso não é uma previsão pessimista --- é uma consequência aritmética da
 combinação entre a magnitude do gap e a velocidade atual de redução.
 Significa, concretamente, que reformas incrementais são insuficientes:
-é necessário atacar o sistema de barreiras de forma simultânea e com recursos
+é necessário atacar as duas barreiras de forma simultânea e com recursos
 proporcionais à magnitude do problema.
 
 \medskip
 
 \begin{quote}
-\textit{Mesmo após controle exaustivo de 24 covariáveis individuais,
-ocupacionais e contextuais, trabalhadores negros recebem sistematicamente
--6.2\% a menos que brancos equivalentes --- o mercado de
-trabalho brasileiro não é racialmente neutro.}
-\end{quote}
-
-\begin{quote}
-\textit{O principal mecanismo não é apenas discriminação salarial direta:
-é um sistema combinado de exclusão estrutural, em que negros são barrados
-na entrada das ocupações de prestígio, encontram teto de vidro na progressão
-salarial e são excluídos das redes que convertem credenciais em mobilidade.}
-\end{quote}
-
-\begin{quote}
-\textit{Educação, isoladamente, não rompe esse ciclo --- trabalhadores negros
-com pós-graduação têm betweenness nulo na rede de co-residência profissional.}
-\end{quote}
-
-\begin{quote}
-\textit{A convergência racial ao ritmo atual levaria mais de um século ---
-políticas focadas apenas em capital humano são necessárias, mas insuficientes.}
+\textit{Com a mesma escolaridade, idade, sexo e bairro, um trabalhador negro ganha
+9,6\% a menos que um branco --- e a barreira mais dura não é o salário, é a porta:
+30\% menos chance de chegar a um cargo qualificado. O mercado de trabalho
+brasileiro não é racialmente neutro, e educação sozinha não corrige isso.}
 \end{quote}
 
 \medskip
 
-Essas conclusões emergem da convergência de seis metodologias independentes
-sobre $N=7.694.198$ observações da PNAD Contínua 2016--2025.
-O gap bruto de 19.1\% (M1) decompõe-se em três camadas:
-(i)~mediação contextual de 52.5\% pela UPA
-($\hat{\gamma}_{01}=-0{,}269$);
-(ii)~mediação ocupacional de 17.3\% pelo acesso desigual a
-grupos CBO de alta remuneração;
-(iii)~gap residual de -6.2\% (M4), discriminação pura
-pós-ocupação.
-O GLMM logístico confirma a barreira de acesso:
-OR~$=0,676$ para CBO~1--4,
-com gradiente progressivo
-OR(top~20\%)~$=0,540$ $\to$ OR(top~10\%)~$=0,457$.
-A regressão quantílica formaliza o glass ceiling
-($Z=-5{,}25$, $p<0{,}001$).
+Essas conclusões emergem da convergência de quatro métodos e cinco análises
+de robustez sobre $N=7.694.198$ observações da PNAD Contínua 2016--2025.
+O gap condicional a capital humano, de 19,1\% (M1), decompõe-se em três parcelas:
+(i)~mediação contextual de 52,5\% pelo local de moradia
+($\hat{\gamma}_{01}=-0{,}269$), que leva ao \textbf{gap líquido de 9,6\%} (M3);
+(ii)~mediação ocupacional de 17,3\% pelo acesso desigual a grupos CBO de alta
+remuneração; e (iii)~penalidade de 6,2\% que persiste \emph{dentro} da mesma
+ocupação (M4) --- limite inferior descritivo, pois a própria ocupação é
+resultado da barreira de acesso.
+O GLMM logístico confirma essa barreira: OR~$=0,705$ para CBO~1--4 no modelo
+com contexto, com gradiente progressivo OR(top~20\%)~$=0,691$ $\to$
+OR(top~10\%)~$=0,656$. A regressão quantílica formaliza o teto de vidro no gap
+condicional ($Z=-5{,}57$, $p<0{,}001$), e a decomposição RIF mostra que a parcela
+de retornos é maior na base da distribuição incondicional.
 
-A pesquisa operacional fecha o ciclo diagnóstico-prescritivo.
-O ranqueamento TOPSIS aponta Cotas Ocupacionais CBO~1--4 como
-intervenção dominante (CC~$=0,8344$).
-A programação linear confirma que R\$5~bilhões alocados nas três
-frentes prioritárias reduziria o gap em 25,1\%
---- a convergência racial é fiscalmente viável, \textbf{desde que as
-políticas ataquem o sistema de barreiras em camadas, e não apenas uma delas}.
 
 \bigskip
 
 \noindent\textbf{Contribuição principal.}
-Este estudo oferece, ao nosso conhecimento, a primeira análise integrada
-de HLM multinível, clustering, SHAP, SNA e pesquisa operacional
-(TOPSIS + programação linear) sobre a série completa da PNAD Contínua.
+Este estudo oferece, ao nosso conhecimento, a primeira análise integrada de
+modelo hierárquico, decomposição de Oaxaca--Blinder, regressão quantílica com
+RIF e modelo logístico de acesso --- validados por SHAP --- sobre a série
+completa da PNAD Contínua.
 Mais do que confirmar a existência do gap racial --- resultado já documentado
 desde \citeonline{hasenbalg1979} ---, este trabalho identifica e quantifica os
 \textbf{mecanismos} que o sustentam em 2016--2025: discriminação de acesso,
-segregação residencial e exclusão de redes, em sistema combinado.
+segregação residencial e penalidade salarial dentro da ocupação, em sistema combinado.
 
 \bigskip
 
@@ -1066,7 +1023,7 @@ segregação residencial e exclusão de redes, em sistema combinado.
 \paragraph{Natureza inferencial \textit{vs.}\ preditiva dos modelos.}
 Os resultados devem ser lidos sob dois regimes epistemológicos distintos.
 Os modelos HLM, a decomposição de Oaxaca--Blinder, a regressão quantílica e
-a correção de Heckman produzem \textit{estimativas de associação condicional}:
+o modelo logístico de acesso produzem \textit{estimativas de associação condicional}:
 medem o diferencial racial que persiste após o controle de covariáveis
 observáveis, sob o pressuposto de seleção em observáveis. Não constituem, por
 si sós, prova de causalidade no sentido contrafactual, pois não derivam de
@@ -1093,8 +1050,9 @@ observada.
 O caráter transversal do painel público impede a análise de trajetórias
 individuais; o painel rotativo completo com microdado identificado e a extensão
 à RAIS permitiriam investigar mobilidade e o teto de vidro em cargos de liderança
-com identificação de firma. A SNA poderia ser refinada para grafos bipartidos
-UPA~$\times$~grupo, elevando a resolução espacial da medida de segregação.
+com identificação de firma. A análise de redes de co-residência, a tipologia
+por agrupamento e a priorização de políticas por pesquisa operacional,
+desenvolvidas em versão estendida deste trabalho, ficam como agenda.
 
 \bigskip
 

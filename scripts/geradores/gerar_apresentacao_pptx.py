@@ -689,7 +689,7 @@ footer(s, 14)
 # SLIDE 10 — ML/SHAP
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "15. ML/SHAP — O Que Mais Determina a Renda?",
+header_bar(s, "14. ML/SHAP — O Que Mais Determina a Renda?",
            "XGBoost R²=0,6162 | Horas + CBO + Formalidade emergem como top preditores")
 
 add_img(s, FIGURES / "shap_importance_xgb.png", In(0.3), In(1.2), In(6.8))
@@ -724,7 +724,7 @@ footer(s, 16)
 # SLIDE 14 — JUSTIFICAÇÃO METODOLÓGICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "20. Por Que Esses Modelos? — Justificação Estatística",
+header_bar(s, "15. Por Que Esses Modelos? — Justificação Estatística",
            f"LRT χ²=191.625 confirma hierarquia | ICC={fmt(P['ICC_HLM_M0_pct'],2)}% > limiar 5% | HLM supera OLS+FE em AIC")
 
 add_img(s, FIGURES / "modelos_loglik_aic.png", In(0.3), In(1.2), In(6.3))
@@ -774,7 +774,7 @@ footer(s, 22)
 # SLIDE 15 — SÍNTESE: TRIÂNGULO DE EVIDÊNCIAS
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "21. Síntese — Triângulo de Evidências",
+header_bar(s, "16. Síntese — Triângulo de Evidências",
            "Os métodos do núcleo apontam para o mesmo diagnóstico")
 
 # Três vértices do triângulo
@@ -807,7 +807,7 @@ footer(s, 22)
 # SLIDE 13 — IMPLICAÇÕES DE POLÍTICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "27. Implicações de Política",
+header_bar(s, "17. Implicações de Política",
            "Três eixos simultâneos — ações isoladas são insuficientes para romper a armadilha estrutural")
 
 politicas = [
@@ -844,7 +844,7 @@ footer(s, 28)
 # SLIDE 14 — LIMITAÇÕES E AGENDA FUTURA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "28. Limitações e Agenda Futura",
+header_bar(s, "18. Limitações e Agenda Futura",
            "Honestidade acadêmica: o que este trabalho não faz e por quê")
 
 add_text(s, "Limitações", In(0.4), In(1.25), In(6.0), In(0.4),

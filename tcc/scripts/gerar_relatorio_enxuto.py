@@ -70,6 +70,13 @@ PARA_RE = re.compile(r"^\\(paragraph|subsection|section)\*?\{")
 ANCORA_NUCLEO = r"\subsection{Interseccionalidade: raça e gênero no acesso e no topo}"
 
 BLOCO_NUCLEO = r"""% ── NÚCLEO: decomposições e acesso (inserido pela versão enxuta) ──
+\noindent\rule{\textwidth}{1pt}
+\textbf{\large BARREIRA II --- PENALIDADE SALARIAL E TETO DE VIDRO}
+\textit{Para quem supera a porta de entrada, qual é o custo de ser negro?}
+\noindent\rule{\textwidth}{1pt}
+
+\medskip
+
 \subsection{Decomposição do gap por mediação contextual e ocupacional}
 A Tabela~\ref{tab:mediacao} resume o resultado central dos modelos HLM: à medida
 que se adicionam controles de contexto (UPA) e ocupação, o gap racial encolhe de
@@ -134,7 +141,8 @@ Um modelo de regressão multinível de três níveis (indivíduo, UPA e Unidade 
 Federação) estima que profissionais negros recebem, em média, 19,1\% a menos que
 brancos comparáveis em escolaridade, sexo e idade. Desse diferencial bruto, 52,5\%
 é mediado pelo contexto de moradia (Nível~2), reduzindo o \textit{gap} líquido ---
-atribuível à discriminação direta --- a 9,6\%.
+não explicado por capital humano nem contexto, limite inferior da discriminação
+direta --- a 9,6\%.
 
 A decomposição de Oaxaca--Blinder (especificação de acesso, com ocupação e contexto
 como dotações) atribui 83,8\% do gap a diferenças de dotações e 16,2\% à parcela não
@@ -175,8 +183,9 @@ validated by interpretable machine learning (XGBoost + SHAP).
 A three-level hierarchical linear model (individual, census tract, and state)
 estimates that Black workers earn 19.1\% less than comparable White workers after
 controlling for education, sex, and age. Of this gross differential, 52.5\% is
-mediated by residential context (Level~2), leaving a residual \textit{net gap} of
-9.6\% attributable to direct labour-market discrimination.
+mediated by residential context (Level~2), leaving a \textit{net gap} of 9.6\%
+unexplained by human capital or context --- a lower bound on direct labour-market
+discrimination.
 
 The Oaxaca--Blinder decomposition (access specification, with occupation and context
 treated as endowments) attributes 83.8\% of the gap to endowment differences and 16.2\%
@@ -409,6 +418,46 @@ NOCITE = (r"\nocite{oaxaca1973,blinder1973,oaxaca_ransom1999,koenker1978,firpo20
 texto, n_nc = inserir_apos_linha(texto, r"\begin{document}", NOCITE)
 if n_nc != 1:
     print(f"  [AVISO] \\nocite não inserido (n={n_nc}).")
+
+# Patches de escopo, números e linguagem (tcc/scripts/enxuto_patches.py —
+# TODO_revisao blocos 0/1/6/7.1). Cada patch avisa se não casar.
+print("Aplicando patches de escopo/números (enxuto_patches.py)…")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import enxuto_patches
+texto = enxuto_patches.aplicar(texto)
+
+# Tabela de desempenho ML gerada a partir de outputs/tables/ml_performance.csv
+# (fonte única — os valores manuais do gerador completo estavam desatualizados).
+print("Regerando tabela de desempenho ML a partir do csv…")
+import csv as _csv
+_mlp = Path("outputs/tables/ml_performance.csv")
+if _mlp.exists():
+    with _mlp.open(encoding="utf-8", newline="") as _f:
+        _rows = list(_csv.DictReader(_f))
+
+    def _fmt(v):
+        return f"{float(v):.4f}".replace(".", ",")
+
+    _linhas = []
+    for r in _rows:
+        nome = r["Modelo"]
+        cel = [_fmt(r["R²"]), _fmt(r["MAE"]), _fmt(r["RMSE"]), _fmt(r["gap_overfit"])]
+        if nome == "XGBoost":
+            nome = r"\textbf{XGBoost}"
+            cel = [r"\textbf{" + c + "}" for c in cel]
+        _linhas.append(f"{nome} & " + " & ".join(cel) + r" \\")
+    _tab = ("\\begin{tabular}{lcccc}\n\\toprule\n"
+            "\\textbf{Modelo} & $R^2$ & \\textbf{MAE} & \\textbf{RMSE} & "
+            "\\textbf{Gap treino--teste} \\\\\n"
+            "\\midrule\n" + "\n".join(_linhas) + "\n\\bottomrule\n\\end{tabular}")
+    texto, _nml = re.subn(
+        r"\\begin\{tabular\}\{lccc\}\s*\\toprule\s*\\textbf\{Modelo\} & \$R\^2\$ & "
+        r"\\textbf\{MAE\} & \\textbf\{RMSE\} \\\\.*?\\end\{tabular\}",
+        lambda m: _tab, texto, count=1, flags=re.S)
+    if _nml != 1:
+        print(f"  [AVISO] tabela ML não substituída (n={_nml}).")
+else:
+    print("  [AVISO] ml_performance.csv não encontrado — tabela ML mantida.")
 
 # Checagem de \ref pendentes a rótulos removidos
 pendentes = []
