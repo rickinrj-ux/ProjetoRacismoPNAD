@@ -36,23 +36,25 @@ Legenda: ⏱ estimativa · 🖥 exige reestimação de modelo · ✍ só texto/g
       M4 (−6,2 %). Corrigir l.464 ("−6,2 % após 23 controles"), l.924, l.963, l.1004, l.1034
 - [x] 1.5 "ICC cai para 5,3 %" (l.502) → 5,8 % (tabela: 0,0581)
 - [x] 1.6 Convenção de sinal única para gaps em % (penalidade positiva OU β negativo)
-- [ ] 1.7 (depende do Bloco 2: os SE vêm de hlm_serie_completo.csv) Substituir `(0.0000)` por notação com mais casas; trocar asteriscos por IC 95 % nas
+- [ ] 1.7 (restam 2 células `(0.0000)` — idade; resolver na tabela nova do Bloco 3) Substituir `(0.0000)` por notação com mais casas; trocar asteriscos por IC 95 % nas
       tabelas do núcleo (MHE-85)
 
-## Bloco 2 — Erros-padrão (🖥, ⏱ ½ dia de máquina + 1 h)
+## Bloco 2 — Erros-padrão (🖥, ⏱ ½ dia de máquina + 1 h) — ✅ concluído em 2026-09-20
 
-- [ ] 2.1 `run_hlm_serie_completa.py`: OLS M1–M4 com `cov_type="cluster"` por **UPA** (além do
+Lições: rodar UM job pesado por vez (o watchdog de memória do ambiente mata processos com >~20 GB somados); OLS em forma fechada (X'X) e resultados leves em vez de objetos do statsmodels; bootstrap de QR em paralelo (joblib).
+
+- [x] 2.1 `run_hlm_serie_completa.py`: OLS M1–M4 com `cov_type="cluster"` por **UPA** (além do
       cluster-UF já existente); remover `_UF` das fórmulas OLS que têm `C(UF_str)` (colinearidade
       → intercepto 5,5e7 em `hlm_serie_completo.csv`)
-- [ ] 2.2 Tabela HLM: coluna de SE cluster-UPA ao lado do SE do modelo; para cluster-UF (27 < 42)
+- [x] 2.2 Tabela HLM: coluna de SE cluster-UPA ao lado do SE do modelo; para cluster-UF (27 < 42)
       wild-cluster bootstrap ou t com g−k g.l.; nota na Metodologia (MHE-81/82)
-- [ ] 2.3 `run_oaxaca_blinder.py`: OLS por grupo com `cov_type="cluster"` (UPA); bootstrap em
+- [x] 2.3 (SE via bootstrap em blocos por UPA sobre estatísticas suficientes, 500 réplicas; OB em duas especificações) `run_oaxaca_blinder.py`: OLS por grupo com `cov_type="cluster"` (UPA); bootstrap em
       blocos por UPA (B=200) para dotação/retorno — conferir de onde vêm os SE de `ob_acesso.tex`
       e citar o script certo
-- [ ] 2.4 `run_regressao_quantilica.py`: bootstrap em blocos por UPA para β(τ) e para o contraste
+- [x] 2.4 (bootstrap em blocos por UPA, m-de-n, 200 réplicas em paralelo; SE de β(τ) na tabela; Z=−16,95 escalado / −2,94 bruto) `run_regressao_quantilica.py`: bootstrap em blocos por UPA para β(τ) e para o contraste
       q90−q10 (hoje: 5 % da amostra) — ou declarar no texto que o SE é conservador
-- [ ] 2.5 `run_glmm_glassceil.py`: `cov_type="cluster"` por UPA nos logits; IC recalculado
-- [ ] 2.6 Robustez com peso amostral: M3 OLS cluster-UPA com `weights=V1028`; frase na Metodologia
+- [x] 2.5 `run_glmm_glassceil.py`: `cov_type="cluster"` por UPA nos logits; IC recalculado
+- [x] 2.6 (WLS V1028: β=−0,0967 vs −0,1009; gap 9,2% vs 9,6%) Robustez com peso amostral: M3 OLS cluster-UPA com `weights=V1028`; frase na Metodologia
       dizendo que os demais modelos são não ponderados (MHE-30/FAV-09)
 
 ## Bloco 3 — HLM honesto (🖥, ⏱ 1 dia) — decisão: qual das duas?
@@ -81,10 +83,15 @@ Legenda: ⏱ estimativa · 🖥 exige reestimação de modelo · ✍ só texto/g
 
 ## Bloco 5 — Bad control e reflexo (🖥, ⏱ ½ dia)
 
-- [ ] 5.1 OB **sem** ocupação/formalidade/horas (especificação M3) ao lado da OB de acesso; comparar
+- [x] 5.1 (tabela OB com (A) sem ocupação: 28,4% não explicado / (B) acesso: 16,2%; Resumo, Abstract, subseção e comparação com Soares atualizados) OB **sem** ocupação/formalidade/horas (especificação M3) ao lado da OB de acesso; comparar
       com Soares (2009) só nessa versão (l.852–859)
 - [ ] 5.2 Nomear M4/OB-acesso como "limite inferior descritivo" em Resultados, Discussão e Conclusão
 - [ ] 5.3 XGBoost sem `media_renda_upa` ou com média leave-one-out; novo ranking SHAP
+- [ ] 5.3b `run_glmm_glassceil.py`: o logit também usa `media_renda_upa_z` (reflexo — pior nos
+      desfechos de renda top-20/top-10, que são função da própria renda) e `emprego_formal`,
+      `setor_publico`, `conta_propria`, `trab_domestico` já no M1 (bad controls para o desfecho
+      de acesso). Decidir: retirar `media_renda_upa_z` (ou leave-one-out) e mover formalidade
+      para um M-extra explicitamente rotulado "dentro do vínculo"
 - [ ] 5.4 Retirar/reescrever "onde se mora supera quanto se estudou" (l.670–671) conforme 5.3
 - [ ] 5.5 Limitações: parágrafo COP (renda > 0 condiciona no desfecho; direção do viés; Heckman
       λ = −1,96 no branch extenso) (MHE-32)

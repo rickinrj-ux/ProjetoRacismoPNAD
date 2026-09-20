@@ -18,6 +18,23 @@ ESTRATEGIA COMPUTACIONAL (41.517 UPAs):
 
     ICC_UF = tau^2_UF / (tau^2_UF + sigma^2)
 
+ERROS-PADRAO (Angrist & Pischke, cap. 8 — Moulton):
+    Regressores que variam no nivel do grupo (contexto de UPA, dummies de UF)
+    tem SE subestimado se as observacoes da mesma UPA forem tratadas como
+    independentes. Para os modelos OLS-FE (mesmos coeficientes do HLM quando
+    ICC_UF -> 0) reportam-se tres SEs a partir de um unico ajuste:
+        - convencional (referencia);
+        - cluster por UPA (41.517 clusters; SE principal do relatorio);
+        - cluster por UF (27 clusters < 42: inferencia com t de G-1 g.l.,
+          df_correction — Cameron, Gelbach & Miller, 2008).
+    Saida: hlm_serie<sufixo>_se.csv (formato longo: variavel x modelo x tipo de SE).
+    Os z-scores de UF (_UF) sao colineares com C(UF_str) e ficam FORA dos OLS-FE.
+
+ROBUSTEZ COM PESO AMOSTRAL (V1028):
+    M3 reestimado por WLS com o peso da PNAD e SE cluster-UPA
+    (hlm_serie<sufixo>_ponderado.csv). Os demais modelos sao nao ponderados
+    (regressao amostral), o que o texto deve declarar.
+
 AMOSTRA:
     População completa (7.69M obs.). Para amostra 20%, definir SAMPLE_FRAC=0.20.
 """
@@ -87,13 +104,19 @@ FORMULAS = {
     "M4_Ocupacao":   f"log_renda ~ {_IND} + {_UPA} + {_UF} + {_OCC}",
 }
 
-# OLS com UF como efeito fixo (dummies) — robusto quando ICC_UF -> 0
+# OLS com UF como efeito fixo (dummies) — robusto quando ICC_UF -> 0.
+# Os z-scores de UF (_UF) NAO entram: sao combinacao linear exata das dummies
+# C(UF_str) (colinearidade perfeita -> intercepto ~5e7 na rodada anterior).
+# M3_OLS = M2_OLS + efeitos fixos de UF ja absorvendo o contexto estadual.
 FORMULAS_OLS = {
     "M1_Individual_OLS": f"log_renda ~ {_IND} + C(UF_str)",
     "M2_Localidade_OLS": f"log_renda ~ {_IND} + {_UPA} + C(UF_str)",
-    "M3_Completo_OLS":   f"log_renda ~ {_IND} + {_UPA} + {_UF} + C(UF_str)",
-    "M4_Ocupacao_OLS":   f"log_renda ~ {_IND} + {_UPA} + {_UF} + {_OCC} + C(UF_str)",
+    "M3_Completo_OLS":   f"log_renda ~ {_IND} + {_UPA} + C(UF_str)",
+    "M4_Ocupacao_OLS":   f"log_renda ~ {_IND} + {_UPA} + {_OCC} + C(UF_str)",
 }
+
+# Peso amostral da PNAD Continua (pessoa, com pos-estratificacao)
+PESO_COL = "V1028"
 
 MODEL_VARS = [
     "log_renda", "negro", "sexo_fem", "idade_c", "idade_sq",
@@ -132,6 +155,16 @@ def load_data(sample_frac=None):
     if "urbano" not in df.columns:
         df["urbano"] = (df["V1022"] == 1).astype("int8") if "V1022" in df.columns else 1
         logger.warning("urbano reconstruído")
+
+    # Peso amostral (robustez ponderada); ausente -> 1 (nao ponderado) com aviso
+    if PESO_COL in df.columns:
+        df[PESO_COL] = pd.to_numeric(df[PESO_COL], errors="coerce")
+        n_na_peso = int(df[PESO_COL].isna().sum())
+        if n_na_peso:
+            logger.warning(f"{PESO_COL} ausente em {n_na_peso:,} obs. — preenchido com a mediana")
+            df[PESO_COL] = df[PESO_COL].fillna(df[PESO_COL].median())
+    else:
+        logger.warning(f"{PESO_COL} nao existe em features.parquet — WLS ponderado sera pulado")
 
     n_before = len(df)
     df = df.dropna(subset=MODEL_VARS).reset_index(drop=True)
@@ -193,28 +226,141 @@ def fit_hlm(name, formula, df):
         f"[HLM | {name}] {status} em {elapsed:.0f}s | "
         f"ICC_UF={icc_uf:.4f} | tau2_UF={var_uf:.5f} | sigma2={var_resid:.4f}"
     )
-    return result, var_uf, var_resid, icc_uf, singular
+    # Guarda só o que a tabela usa; o MixedLMResults retém a matriz de desenho
+    # (7,7 M x k) e, com 5 modelos vivos, esgota a RAM antes do WLS.
+    light = _light_result(result)
+    del result, model
+    return light, var_uf, var_resid, icc_uf, singular
 
 
-# ── Ajuste OLS com UF FE (SE clusterizado por UF) ────────────────────────────
+class _Res:
+    """Resultado leve (params/bse/pvalues por nome + escalares) — interface mínima
+    usada por coef_cell/build_table/print_summary/lrt_re."""
+    pass
 
-def fit_ols_uf_fe(name, formula, df):
+
+def _light_result(res, bse=None, pvalues=None):
+    names = list(res.params.index) if hasattr(res.params, "index") else list(res.model.exog_names)
+    r = _Res()
+    r.params    = pd.Series(np.asarray(res.params), index=names)
+    r.bse       = pd.Series(np.asarray(bse if bse is not None else res.bse), index=names)
+    r.pvalues   = pd.Series(np.asarray(pvalues if pvalues is not None else res.pvalues), index=names)
+    r.nobs      = float(res.nobs)
+    r.llf       = float(res.llf) if np.isfinite(getattr(res, "llf", np.nan)) else np.nan
+    r.aic       = float(res.aic) if np.isfinite(getattr(res, "aic", np.nan)) else np.nan
+    r.mse_resid = float(getattr(res, "mse_resid", np.nan)) if hasattr(res, "mse_resid") else np.nan
+    return r
+
+
+# ── Ajuste OLS com UF FE (SE convencional / cluster-UPA / cluster-UF) ─────────
+
+def _cluster_meat(Xe, groups):
+    """Σ_g s_g s_g', com s_g = Σ_{i∈g} x_i e_i  (soma por grupo via reduceat)."""
+    order = np.argsort(groups, kind="stable")
+    Xe_s, g_s = Xe[order], groups[order]
+    starts = np.concatenate([[0], np.flatnonzero(np.diff(g_s)) + 1])
+    S = np.add.reduceat(Xe_s, starts, axis=0)          # G x k
+    return S.T @ S, len(starts)
+
+
+def fit_ols_uf_fe(name, formula, df, weights=None):
     """
-    OLS com UF como efeito fixo (dummies) + HC3 clusterizado por UF.
-    Equivalente ao HLM quando ICC_UF -> 0.
-    Coeficientes identicos ao within-UF estimator; SE corretos para clustering.
+    OLS (ou WLS, se `weights`) com UF como efeito fixo (dummies), em FORMA FECHADA
+    a partir de X'X e X'y — sem a SVD do statsmodels, que precisa de ~3x a matriz de
+    desenho (7,7 M x k) em RAM e estourava a memória no M4/WLS.
+    Equivalente ao HLM quando ICC_UF -> 0 (coeficientes identicos ao within-UF).
+
+    Tres matrizes de covariancia:
+      conv   - sigma^2 (X'X)^-1                          -> referencia (MHE-22: regra do maximo)
+      cl_upa - sanduiche com blocos por UPA (G ~ 41.5k)  -> SE PRINCIPAL (Moulton, MHE-81)
+      cl_uf  - sanduiche com blocos por UF (G = 27 < 42) -> p-valor com t(G-1) (MHE-82)
+    Correcao de amostra finita igual a do statsmodels (use_correction=True):
+      G/(G-1) * (N-1)/(N-k).  Com pesos w: X -> sqrt(w) X, y -> sqrt(w) y (WLS).
+    Retorna (resultado_leve, dict_se) com coef e os tres SEs/p por variavel.
     """
-    logger.info(f"[OLS | {name}] Ajustando ...")
+    import patsy, gc
+    logger.info(f"[{'WLS' if weights is not None else 'OLS'} | {name}] Ajustando ...")
     t0 = time.time()
-    model  = smf.ols(formula=formula, data=df)
-    result = model.fit(cov_type="cluster", cov_kwds={"groups": df["UF_str"]})
+
+    y, X = patsy.dmatrices(formula, df, NA_action="raise")   # DesignMatrix (ndarray)
+    names = list(X.design_info.column_names)
+    X = np.ascontiguousarray(X, dtype=np.float64)
+    y = np.ascontiguousarray(y, dtype=np.float64).ravel()
+    n, k = X.shape
+    if weights is not None:
+        sw = np.sqrt(np.asarray(weights, dtype=np.float64))
+        X *= sw[:, None]
+        y *= sw
+        del sw
+
+    XtX = X.T @ X
+    Xty = X.T @ y
+    XtX_inv = np.linalg.pinv(XtX)                       # pinv: tolera colinearidade residual
+    beta = XtX_inv @ Xty
+    e = y - X @ beta
+    rss = float(e @ e)
+    sigma2 = rss / (n - k)
+    V_conv = sigma2 * XtX_inv
+    del y
+
+    X *= e[:, None]                                     # X <- X * e (in place; economiza 3,7 GB)
+    out = {}
+    for lab, gcol, use_t in (("cl_upa", "UPA_str", False), ("cl_uf", "UF_str", True)):
+        g = pd.factorize(df[gcol])[0]
+        meat, G = _cluster_meat(X, g)
+        corr = (G / (G - 1)) * ((n - 1) / (n - k))
+        V = corr * XtX_inv @ meat @ XtX_inv
+        se_ = np.sqrt(np.clip(np.diag(V), 0, None))
+        t = beta / se_
+        p = (2 * stats.t.sf(np.abs(t), df=G - 1)) if use_t else (2 * stats.norm.sf(np.abs(t)))
+        out[lab] = (se_, p)
+    del X, e
+    gc.collect()
+
+    se_conv = np.sqrt(np.clip(np.diag(V_conv), 0, None))
+    se = {}
+    for i, v in enumerate(names):
+        se[v] = {
+            "coef":      float(beta[i]),
+            "se_conv":   float(se_conv[i]),
+            "se_cl_upa": float(out["cl_upa"][0][i]),
+            "p_cl_upa":  float(out["cl_upa"][1][i]),
+            "se_cl_uf":  float(out["cl_uf"][0][i]),
+            "p_cl_uf_t": float(out["cl_uf"][1][i]),
+        }
+
+    llf = -0.5 * n * (np.log(2 * np.pi * rss / n) + 1)
+    r = _Res()
+    r.params    = pd.Series(beta, index=names)
+    r.bse       = pd.Series(out["cl_upa"][0], index=names)
+    r.pvalues   = pd.Series(out["cl_upa"][1], index=names)
+    r.nobs      = float(n)
+    r.llf       = float(llf)
+    r.aic       = float(-2 * llf + 2 * k)
+    r.mse_resid = float(sigma2)
+    r.cov_type  = "cluster (UPA)"
+
     elapsed = time.time() - t0
-    b_negro = result.params.get("negro", np.nan)
+    b = se.get("negro", {})
     logger.info(
-        f"[OLS | {name}] OK em {elapsed:.0f}s | "
-        f"b_negro={b_negro:.4f} (SE={result.bse.get('negro', np.nan):.4f})"
+        f"[OLS | {name}] OK em {elapsed:.0f}s | b_negro={b.get('coef', np.nan):.4f} | "
+        f"SE conv={b.get('se_conv', np.nan):.4f} | cl-UPA={b.get('se_cl_upa', np.nan):.4f} | "
+        f"cl-UF(t)={b.get('se_cl_uf', np.nan):.4f}"
     )
-    return result
+    return r, se
+
+
+def se_long_table(se_por_modelo):
+    """{modelo: {var: {...}}} -> DataFrame longo (modelo, variavel, coef, se_conv, ...)."""
+    rows = []
+    for mname, d in se_por_modelo.items():
+        for var, v in d.items():
+            if var.startswith("C(") and var not in KEY_VARS:
+                continue                      # dummies de UF/Ano: fora da tabela longa
+            rows.append({"modelo": mname, "variavel": var, **v,
+                         "razao_upa_conv": v["se_cl_upa"] / v["se_conv"] if v["se_conv"] else np.nan,
+                         "razao_uf_conv":  v["se_cl_uf"] / v["se_conv"] if v["se_conv"] else np.nan})
+    return pd.DataFrame(rows)
 
 
 # ── LRT (apenas para modelos HLM REML comparaveis em estrutura RE) ───────────
@@ -334,7 +480,8 @@ def build_table(hlm_results, ols_results):
 
 # ── Sumario ────────────────────────────────────────────────────────────────────
 
-def print_summary(ols_m1, ols_m2, ols_m3, ols_m4, hlm_m0, df, icc_uf_m0):
+def print_summary(ols_m1, ols_m2, ols_m3, ols_m4, hlm_m0, df, icc_uf_m0, se3=None):
+    se3 = se3 or {}
     b1_m1 = ols_m1.params.get("negro", np.nan)
     b1_m2 = ols_m2.params.get("negro", np.nan)
     b1_m3 = ols_m3.params.get("negro", np.nan)
@@ -388,6 +535,8 @@ def print_summary(ols_m1, ols_m2, ols_m3, ols_m4, hlm_m0, df, icc_uf_m0):
   MODELO COMPLETO (M3) -- Gap Racial Liquido (3 niveis):
     b_negro = {b1_m3:.4f}  -> gap persiste em {abs(gap_liquido):.1f}% apos controlar
              por contexto de moradia (UPA) e macrorregional (UF).
+    SE(b_negro, M3): conv={se3.get('se_conv', float('nan')):.4f} | cluster-UPA={se3.get('se_cl_upa', float('nan')):.4f} | cluster-UF t(26)={se3.get('se_cl_uf', float('nan')):.4f}
+    Moulton: ignorar a UPA subestima o SE por {se3.get('se_cl_upa', float('nan'))/max(se3.get('se_conv', float('nan')),1e-12):.1f}x.
 
   DECOMPOSICAO DO GAP RACIAL:
     Gap bruto (M1):             {abs(gap_bruto):.1f}%
@@ -438,10 +587,10 @@ def main():
             hlm_results[name] = (r, vu, vr, icc, sing)
 
         # ── Passo 3: OLS com UF FE (robusto, SE clusterizado) ────────────────────
-        logger.info("--- Passo 3: OLS com UF FE + SE clusterizado ---")
-        ols_results = {}
+        logger.info("--- Passo 3: OLS com UF FE + SE (conv / cluster-UPA / cluster-UF) ---")
+        ols_results, se_por_modelo = {}, {}
         for name, formula in FORMULAS_OLS.items():
-            ols_results[name] = fit_ols_uf_fe(name, formula, df)
+            ols_results[name], se_por_modelo[name] = fit_ols_uf_fe(name, formula, df)
 
         ols_m1 = ols_results["M1_Individual_OLS"]
         ols_m2 = ols_results["M2_Localidade_OLS"]
@@ -476,13 +625,45 @@ def main():
         table.to_csv(OUTPUTS / f"hlm_serie{suffix}.csv")
         decomp_df.to_csv(OUTPUTS / f"gap_decomposicao_serie{suffix}.csv", index=False)
 
+        # Tabela longa de SEs (conv / cluster-UPA / cluster-UF) por variavel e modelo
+        se_df = se_long_table(se_por_modelo)
+        se_df.to_csv(OUTPUTS / f"hlm_serie{suffix}_se.csv", index=False)
+
+        # ── Passo 3b: robustez ponderada (WLS com V1028) no M3 — DEPOIS de salvar tudo,
+        #    porque o WLS duplica a matriz de desenho (exog + wexog) e pode esgotar a RAM.
+        wls_m3 = None
+        if PESO_COL in df.columns:
+            logger.info("--- Passo 3b: M3 ponderado pelo peso amostral (WLS + cluster-UPA) ---")
+            try:
+                wls_m3, se_por_modelo["M3_Completo_WLS_V1028"] = fit_ols_uf_fe(
+                    "M3_Completo_WLS_V1028", FORMULAS_OLS["M3_Completo_OLS"], df,
+                    weights=df[PESO_COL].astype(float))
+                se_long_table(se_por_modelo).to_csv(OUTPUTS / f"hlm_serie{suffix}_se.csv", index=False)
+            except MemoryError:
+                logger.error("WLS ponderado: MemoryError — pulado (rode isolado com mais RAM livre)")
+
+        # Robustez ponderada: b_negro OLS vs WLS (V1028), SE cluster-UPA
+        if wls_m3 is not None:
+            b_ols, b_wls = se_por_modelo["M3_Completo_OLS"]["negro"], se_por_modelo["M3_Completo_WLS_V1028"]["negro"]
+            pond = pd.DataFrame([
+                {"Modelo": "M3_OLS (nao ponderado)", "b_negro": b_ols["coef"], "se_cl_upa": b_ols["se_cl_upa"],
+                 "Gap%": (np.exp(b_ols["coef"]) - 1) * 100},
+                {"Modelo": "M3_WLS (peso V1028)",   "b_negro": b_wls["coef"], "se_cl_upa": b_wls["se_cl_upa"],
+                 "Gap%": (np.exp(b_wls["coef"]) - 1) * 100},
+            ])
+            pond["dif_pp"] = pond["Gap%"] - pond["Gap%"].iloc[0]
+            pond.to_csv(OUTPUTS / f"hlm_serie{suffix}_ponderado.csv", index=False)
+            log_metrics({"beta_negro_m3_wls": b_wls["coef"], "se_cl_upa_m3": b_ols["se_cl_upa"],
+                         "se_cl_uf_m3": b_ols["se_cl_uf"]})
+
         try:
             import jinja2  # noqa: F401
             latex_str = table.to_latex(
                 caption=(
                     "Modelos de Determinantes do Log-Rendimento por Raca -- "
                     "PNAD Continua 2016-2025. "
-                    "Coeficientes com SE clusterizado por UF entre parenteses. "
+                    "Coeficientes com SE entre parenteses: HLM = SE do modelo; "
+                    "OLS = SE clusterizado por UPA (ver hlm_serie_se.csv para conv./cluster-UF). "
                     "*** p<0,001; ** p<0,01; * p<0,05. "
                     "HLM: efeito aleatorio por UF (REML). "
                     "OLS: UF como efeito fixo (dummies)."
@@ -499,7 +680,8 @@ def main():
         logger.info(f"Outputs salvos em: {OUTPUTS}")
 
         # ── Sumario narrativo ──────────────────────────────────────────────────────
-        print_summary(ols_m1, ols_m2, ols_m3, ols_m4, res_m0, df, icc_uf_m0)
+        print_summary(ols_m1, ols_m2, ols_m3, ols_m4, res_m0, df, icc_uf_m0,
+                      se3=se_por_modelo["M3_Completo_OLS"].get("negro"))
 
         # ── Tabela reduzida no console ─────────────────────────────────────────────
         print("\n--- Coeficientes Selecionados (HLM e OLS) ---")

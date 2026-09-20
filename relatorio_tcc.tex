@@ -587,7 +587,7 @@ nem pelo contexto de moradia --- o limite inferior da discriminação
 direta no mercado de trabalho.
 
 \begin{longtable}{lcccc}
-\caption{Modelos HLM de Três Níveis --- Determinantes do Log-Rendimento Mensal por Raça no Brasil (PNAD Contínua, 2016--2025). Coeficientes com erro-padrão entre parênteses; SE clusterizado por UF nos modelos OLS. $^{***}$\,$p<0{,}001$; $^{**}$\,$p<0{,}01$; $^{*}$\,$p<0{,}05$.}\label{tab:hlm_resultados}\\
+\caption{Modelos HLM de Três Níveis --- Determinantes do Log-Rendimento Mensal por Raça no Brasil (PNAD Contínua, 2016--2025). Coeficientes com erro-padrão do modelo entre parênteses e, entre colchetes, erro-padrão agrupado por UPA (41.517 clusters; Moulton) do OLS com efeitos fixos de UF, que tem os mesmos coeficientes. $^{***}$\,$p<0{,}001$; $^{**}$\,$p<0{,}01$; $^{*}$\,$p<0{,}05$.}\label{tab:hlm_resultados}\\
 \toprule
 \textbf{Variável} & \textbf{M0} & \textbf{M1} & \textbf{M2} & \textbf{M3} \\
 \midrule \endfirsthead
@@ -596,22 +596,22 @@ direta no mercado de trabalho.
 \midrule \endhead
 \midrule \multicolumn{5}{r}{\textit{continua}} \\ \endfoot
 \bottomrule \endlastfoot
-Intercepto & 7.2694$^{***}$ (0.0555) & 4.2052$^{***}$ (0.0387) & 4.2469$^{***}$ (0.0335) & 4.2042$^{***}$ (0.0253) \\
-\textbf{Raça (negro)} & - & -0.2123$^{***}$ (0.0006) & -0.1009$^{***}$ (0.0006) & -0.1009$^{***}$ (0.0006) \\
-Gênero (feminino) & - & -0.1844$^{***}$ (0.0005) & -0.1852$^{***}$ (0.0005) & -0.1852$^{***}$ (0.0005) \\
-Idade (centralizada) & - & 0.0121$^{***}$ (0.0000) & 0.0106$^{***}$ (0.0000) & 0.0106$^{***}$ (0.0000) \\
-Idade$^2$ (experiência) & - & -0.0005$^{***}$ (0.0000) & -0.0005$^{***}$ (0.0000) & -0.0005$^{***}$ (0.0000) \\
+Intercepto & 7.2694$^{***}$ (0.0555) & 4.2052$^{***}$ (0.0387) [0.0125] & 4.2469$^{***}$ (0.0335) [0.0119] & 4.2042$^{***}$ (0.0253) [0.0119] \\
+\textbf{Raça (negro)} & - & -0.2123$^{***}$ (0.0006) [0.0020] & -0.1009$^{***}$ (0.0006) [0.0011] & -0.1009$^{***}$ (0.0006) [0.0011] \\
+Gênero (feminino) & - & -0.1844$^{***}$ (0.0005) [0.0011] & -0.1852$^{***}$ (0.0005) [0.0010] & -0.1852$^{***}$ (0.0005) [0.0010] \\
+Idade (centralizada) & - & 0.0121$^{***}$ (0.0000) [0.0001] & 0.0106$^{***}$ (0.0000) [0.0001] & 0.0106$^{***}$ (0.0000) [0.0001] \\
+Idade$^2$ (experiência) & - & -0.0005$^{***}$ (0.0000) [0.0000] & -0.0005$^{***}$ (0.0000) [0.0000] & -0.0005$^{***}$ (0.0000) [0.0000] \\
 \addlinespace[3pt]
 \multicolumn{5}{l}{\textit{Controles educacionais}} \\
-Educ.: Fundamental & - & -0.2631$^{***}$ (0.0041) & -0.2540$^{***}$ (0.0040) & -0.2540$^{***}$ (0.0040) \\
-Educ.: Médio & - & -0.0685$^{***}$ (0.0029) & -0.0652$^{***}$ (0.0028) & -0.0652$^{***}$ (0.0028) \\
-Educ.: Superior & - & 0.0735$^{***}$ (0.0027) & 0.0703$^{***}$ (0.0027) & 0.0703$^{***}$ (0.0027) \\
-Educ.: Pós-graduação & - & -0.0020 (0.0040) & 0.0038 (0.0039) & 0.0038 (0.0039) \\
+Educ.: Fundamental & - & -0.2631$^{***}$ (0.0041) [0.0068] & -0.2540$^{***}$ (0.0040) [0.0067] & -0.2540$^{***}$ (0.0040) [0.0067] \\
+Educ.: Médio & - & -0.0685$^{***}$ (0.0029) [0.0048] & -0.0652$^{***}$ (0.0028) [0.0048] & -0.0652$^{***}$ (0.0028) [0.0048] \\
+Educ.: Superior & - & 0.0735$^{***}$ (0.0027) [0.0046] & 0.0703$^{***}$ (0.0027) [0.0045] & 0.0703$^{***}$ (0.0027) [0.0045] \\
+Educ.: Pós-graduação & - & -0.0020 (0.0040) [0.0059] & 0.0038 (0.0039) [0.0059] & 0.0038 (0.0039) [0.0059] \\
 \addlinespace[3pt]
 \multicolumn{5}{l}{\textit{Contexto de localidade (Nível 2 --- UPA)}} \\
-\% Negro na UPA ($z$) & - & - & -0.2689$^{***}$ (0.0005) & -0.2689$^{***}$ (0.0005) \\
-Desemprego UPA ($z$) & - & - & -0.0403$^{***}$ (0.0004) & -0.0403$^{***}$ (0.0004) \\
-Educ. média UPA ($z$) & - & - & -0.0041$^{***}$ (0.0003) & -0.0041$^{***}$ (0.0003) \\
+\% Negro na UPA ($z$) & - & - & -0.2689$^{***}$ (0.0005) [0.0039] & -0.2689$^{***}$ (0.0005) [0.0039] \\
+Desemprego UPA ($z$) & - & - & -0.0403$^{***}$ (0.0004) [0.0019] & -0.0403$^{***}$ (0.0004) [0.0019] \\
+Educ. média UPA ($z$) & - & - & -0.0041$^{***}$ (0.0003) [0.0020] & -0.0041$^{***}$ (0.0003) [0.0020] \\
 \addlinespace[3pt]
 \multicolumn{5}{l}{\textit{Contexto macrorregional (Nível 3 --- UF)}} \\
 \% Negro no Estado ($z$) & - & - & - & 0.0645 (0.0336) \\

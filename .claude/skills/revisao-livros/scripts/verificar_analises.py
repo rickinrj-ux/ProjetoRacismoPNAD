@@ -168,13 +168,15 @@ def check_qr(tex: str) -> None:
     if not rows:
         return
     z = num(rows[0]["z_stat"])
+    z_raw = num(rows[0].get("z_stat_raw", "") or "")          # versão conservadora (sem escala m/G)
+    validos = [x for x in (z, z_raw) if x is not None]
     for c in re.findall(r"Z\s*=\s*\$?\s*(-?\d[\d{},.]*)", tex):
         v = num(c)
-        if v is not None and z is not None and not close(v, z, 0.05):
-            add("ALTO", "FAV-91", "relatorio", f"Teste de heterogeneidade quantílica: texto cita Z = {v}, csv = {z}.",
+        if v is not None and validos and not any(close(v, x, 0.05) for x in validos):
+            add("ALTO", "FAV-91", "relatorio", f"Teste de heterogeneidade quantílica: texto cita Z = {v}, csv = {validos}.",
                 "Alinhar ao qr_kb_test.csv.")
     frac = num(rows[0].get("boot_frac", "") or "")
-    if frac is not None and frac < 1:
+    if frac is not None and frac < 1 and rows[0].get("boot_blocos", "") != "UPA":
         add("MÉDIO", "MHE-75/MHE-84", "run_regressao_quantilica / qr_kb_test.csv",
             f"SE do contraste q90−q10 por bootstrap em {frac:.0%} da amostra, sem blocos por UPA.",
             "Bootstrap em blocos (UPA) ou, no mínimo, declarar no texto que o SE é conservador por vir de subamostra.")
@@ -196,7 +198,9 @@ def check_hlm(tex: str) -> None:
                     "Regerar tabelas/texto a partir de hlm_serie_completo.csv.")
         se_hlm = re.search(r"\((\d+\.\d+)\)", negro["M1_Individual"])
         se_ols = re.search(r"\((\d+\.\d+)\)", negro["M1_Individual_OLS"])
-        if se_hlm and se_ols and float(se_ols.group(1)) > 3 * float(se_hlm.group(1)):
+        linha_negro = next((l for l in tex.splitlines() if "textbf{Raça (negro)}" in l and "&" in l), "")
+        publica_cluster = "[" in linha_negro          # tabela do relatório já traz SE agrupado entre colchetes
+        if se_hlm and se_ols and float(se_ols.group(1)) > 3 * float(se_hlm.group(1)) and not publica_cluster:
             add("ALTO", "MHE-81/MHE-04", "hlm_serie_completo.csv",
                 f"SE de β_negro: HLM (RE de UF) = {se_hlm.group(1)} vs OLS cluster-UF = {se_ols.group(1)} "
                 f"({float(se_ols.group(1))/float(se_hlm.group(1)):.0f}×). O relatório publica só o menor (Moulton).",

@@ -40,6 +40,10 @@ def load_results():
     gap = pd.read_csv(TABLES / "gap_decomposicao_serie_completo.csv")
     r["gap"] = gap
 
+    # SEs alternativos (conv / cluster-UPA / cluster-UF) dos OLS-FE — Moulton (MHE cap. 8)
+    se_path = TABLES / "hlm_serie_completo_se.csv"
+    r["hlm_se"] = pd.read_csv(se_path) if se_path.exists() else None
+
     lrt = pd.read_csv(TABLES / "lrt_serie_s20pct.csv")  # LRT NaN estrutural
     r["lrt"] = lrt
 
@@ -187,7 +191,9 @@ def hlm_table_latex(r):
     lines.append(r"\begin{longtable}{l" + "c" * len(cols_hlm) + "}")
     lines.append(r"\caption{Modelos HLM de Três Níveis --- Determinantes do Log-Rendimento Mensal "
                  r"por Raça no Brasil (PNAD Contínua, 2016--2025). "
-                 r"Coeficientes com erro-padrão entre parênteses; SE clusterizado por UF nos modelos OLS. "
+                 r"Coeficientes com erro-padrão do modelo entre parênteses e, entre colchetes, "
+                 r"erro-padrão agrupado por UPA (41.517 clusters; Moulton) do OLS com efeitos fixos de UF, "
+                 r"que tem os mesmos coeficientes. "
                  r"$^{***}$\,$p<0{,}001$; $^{**}$\,$p<0{,}01$; $^{*}$\,$p<0{,}05$.}"
                  r"\label{tab:hlm_resultados}\\")
     lines.append(r"\toprule")
@@ -222,6 +228,13 @@ def hlm_table_latex(r):
                 n = len(m.group())
                 return r"$^{***}$" if n==3 else (r"$^{**}$" if n==2 else r"$^{*}$")
             val = _re.sub(r"\*{1,3}", _star, str(val))
+            # SE agrupado por UPA (do OLS-FE equivalente) entre colchetes — Moulton
+            se_df = r.get("hlm_se")
+            if se_df is not None and col != "M0_Nulo" and row_key in se_df["variavel"].values:
+                m_ols = col + "_OLS"
+                hit = se_df[(se_df["modelo"] == m_ols) & (se_df["variavel"] == row_key)]
+                if len(hit):
+                    val = f"{val} [{float(hit['se_cl_upa'].iloc[0]):.4f}]"
             cells.append(val)
         lines.append(" & ".join(cells) + r" \\")
 

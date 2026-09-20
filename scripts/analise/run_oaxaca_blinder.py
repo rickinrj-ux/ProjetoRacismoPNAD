@@ -33,7 +33,7 @@ COLS = ["negro", "sexo_fem", "idade_c", "idade_sq",
         "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
         "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
         "ocp_servicos", "ocp_agro", "ocp_operario", "ocp_operador", "ocp_ffaa",
-        "log_renda", "renda_bruta", "pea"]
+        "log_renda", "renda_bruta", "pea", "UPA"]
 
 print("Carregando dados ...")
 df = pd.read_parquet(ROOT / "data/processed/features.parquet", columns=COLS)
@@ -76,9 +76,12 @@ else:
 df_b = df[df["negro"] == 0].copy()
 df_n = df[df["negro"] == 1].copy()
 
-print("Ajustando OLS por grupo racial ...")
-m_b = smf.ols(FORMULA, data=df_b).fit()
-m_n = smf.ols(FORMULA, data=df_n).fit()
+print("Ajustando OLS por grupo racial (SE cluster por UPA — Moulton, MHE cap. 8) ...")
+# Regressores de contexto variam no nível da UPA: SE convencional seria subestimado.
+m_b = smf.ols(FORMULA, data=df_b).fit(cov_type="cluster",
+                                      cov_kwds={"groups": pd.factorize(df_b["UPA"])[0]})
+m_n = smf.ols(FORMULA, data=df_n).fit(cov_type="cluster",
+                                      cov_kwds={"groups": pd.factorize(df_n["UPA"])[0]})
 
 # ── Decomposição two-fold (referência: coeficientes do grupo branco) ───────
 xbar_b = m_b.model.exog.mean(axis=0)

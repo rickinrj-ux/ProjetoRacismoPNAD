@@ -25,6 +25,7 @@ $Nucleo = @(
     "run_hlm_m4.py",               #    HLM M4 (gap residual)
     "run_oaxaca_blinder.py",       # 2. Oaxaca-Blinder
     "run_regressao_quantilica.py", # 3. Quantílica
+    "run_ob_qr_melhorias.py",      #    QR por sexo + KB test (bootstrap em blocos por UPA) -> qr_melhorias.tex
     "run_rif_decomp.py",           #    RIF-OB (decomposição por quantil)
     "run_glmm_glassceil.py",       # 4. GLMM logístico (teto de vidro)
     "run_composicao_ocupacional.py" # apoio descritivo do núcleo
@@ -55,9 +56,13 @@ function Invoke-Etapa([string[]]$Scripts, [string]$Titulo) {
 
 function Build-Relatorio {
     Write-Host "`n===== RELATÓRIO ENXUTO =====" -ForegroundColor Cyan
-    # 1. tabela-síntese do GLMM (núcleo)
-    Write-Host "  -> tcc/scripts/gerar_tabela_glmm.py" -ForegroundColor Green
-    & $Python (Join-Path $PSScriptRoot "scripts\gerar_tabela_glmm.py")
+    # 1. tabelas-síntese do núcleo (GLMM, Oaxaca em duas especificações, mediação, interseccional)
+    foreach ($g in @("gerar_tabela_glmm.py", "gerar_tabela_oaxaca.py",
+                     "gerar_tabela_mediacao.py", "gerar_tabela_interseccional.py")) {
+        Write-Host "  -> tcc/scripts/$g" -ForegroundColor Green
+        & $Python (Join-Path $PSScriptRoot "scripts\$g")
+        if ($LASTEXITCODE -ne 0) { throw "Falha em $g (exit $LASTEXITCODE)" }
+    }
     # 2. relatório completo (fonte) — necessário para o pós-processador
     Write-Host "  -> scripts/geradores/gerar_relatorio_tcc.py" -ForegroundColor Green
     & $Python (Join-Path $Root "scripts\geradores\gerar_relatorio_tcc.py")

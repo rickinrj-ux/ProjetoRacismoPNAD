@@ -97,7 +97,7 @@ justifica reforçar.
     ("0.2/1.4 mapa: linha Barreira II com gap líquido e residual",
      r"custo de ser negro\? Gap residual de -6\.2\\% após 23 controles, \\\\\n & crescendo nos quantis mais altos \(KB-test \$p<0\{,\}001\$\)\. \\\\",
      "custo de ser negro? Gap líquido de 9,6\\% (M3) e de 6,2\\% dentro \\\\\n"
-     " & da mesma ocupação (M4), crescendo nos quantis mais altos ($Z=-5{,}57$, $p<0{,}001$). \\\\", 0),
+     " & da mesma ocupação (M4), crescendo nos quantis mais altos ($Z=@@QR_Z@@$, $p<0{,}001$). \\\\", 0),
 
     ("0.2 mapa: remover linha Barreira III",
      r"\\hline\n\\textbf\{BARREIRA III\} & Por que educação, sozinha, não quebra o ciclo\? \\\\\n.*?\n & negros: capital social transita exclusivamente por atores brancos\. \\\\\n",
@@ -117,6 +117,14 @@ justifica reforçar.
      "são diferenças de dotações --- mas essas dotações são, elas mesmas,\n"
      "produto da barreira de acesso às ocupações qualificadas (GLMM), que este\n"
      "trabalho quantifica em conjunto com a penalidade salarial.", 0),
+    ("5.1 Discussão: comparação com Soares na especificação comparável",
+     r"a Soares, decompõe essa \\textit\{caixa preta\}: apenas 16,2\\% do gap bruto\nsão retornos diferenciais \(potencialmente discriminação direta\); 83,8\\%\nsão diferenças de dotações",
+     "a Soares, decompõe essa \\textit{caixa preta}. Na especificação comparável à dele\n"
+     "(capital humano e contexto, sem ocupação), @@OB_A_COEF@@\\% do gap bruto são retornos\n"
+     "diferenciais --- limite inferior da discriminação direta --- e @@OB_A_DOT@@\\% são\n"
+     "diferenças de dotações; quando a ocupação é tratada como dotação, o não explicado\n"
+     "cai para @@OB_B_COEF@@\\%, e @@OB_B_DOT@@\\% passam a ser dotações", 0),
+
     ("0.2 Discussão: sistema combinado sem redes",
      r"\\textbf\{sistema combinado\} em que discriminação de acesso, segregação\nresidencial e exclusão de redes se reforçam mutuamente, tornando",
      "\\textbf{sistema combinado} em que discriminação de acesso, segregação\n"
@@ -125,10 +133,11 @@ justifica reforçar.
     ("0.2/0.3 Discussão: subvalorização do capital humano (sem cluster/SNA)",
      r"\\paragraph\{Subvalorização do capital humano negro\.\}.*?(?=\n\\paragraph\{Persistência da discriminação direta)",
      r"""\paragraph{Subvalorização do capital humano negro.}
-A decomposição de Oaxaca--Blinder atribui 16,2\% do gap a \textit{retornos}
-diferenciais --- as mesmas características observáveis, incluindo a posição
-ocupacional, rendem menos a trabalhadores negros ---, e a decomposição RIF mostra
-que essa parcela chega a 35\% na base da distribuição. O GLMM acrescenta que a
+A decomposição de Oaxaca--Blinder atribui @@OB_A_COEF@@\% do gap a \textit{retornos}
+diferenciais --- as mesmas características de capital humano e contexto rendem
+menos a trabalhadores negros --- e ainda @@OB_B_COEF@@\% quando a própria posição
+ocupacional é descontada; a decomposição RIF mostra que essa parcela chega a 35\%
+na base da distribuição. O GLMM acrescenta que a
 credencial educacional não neutraliza a barreira de acesso (OR de \texttt{negro}
 próximo de 0,7 mesmo entre os mais escolarizados). Juntas, essas evidências indicam
 um duplo obstáculo ao retorno educacional: além da penalidade direta mensurada
@@ -193,7 +202,7 @@ resultado da barreira de acesso.
 O GLMM logístico confirma essa barreira: OR~$=0,705$ para CBO~1--4 no modelo
 com contexto, com gradiente progressivo OR(top~20\%)~$=0,691$ $\to$
 OR(top~10\%)~$=0,656$. A regressão quantílica formaliza o teto de vidro no gap
-condicional ($Z=-5{,}57$, $p<0{,}001$), e a decomposição RIF mostra que a parcela
+condicional ($Z=@@QR_Z@@$, $p<0{,}001$), e a decomposição RIF mostra que a parcela
 de retornos é maior na base da distribuição incondicional.""", S),
 
     ("0.4 Contribuição principal (só núcleo)",

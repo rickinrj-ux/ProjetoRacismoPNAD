@@ -2,27 +2,28 @@
 \centering
 \caption{Regressão quantílica: coeficiente $\hat{\beta}_{\text{negro}}$ por quantil e sexo.
          Gap~(\%) $= (e^{\hat{\beta}}-1)\times 100$.
-         M3: controles individuais + contexto UPA + UF efeito fixo.
+         M3: controles individuais + contexto UPA + UF efeito fixo. População completa.
+         Entre parênteses (coluna Global): erro-padrão por bootstrap em blocos por UPA.
          $^{***}p<0{,}001$ em todos os quantis e grupos.}
 \label{tab:qr_melhorias}
 \small
-\begin{tabular}{lrrrrrrr}
+\begin{tabular}{lrrrrrr}
 \toprule
 & \multicolumn{2}{c}{Global} & \multicolumn{2}{c}{Homens} & \multicolumn{2}{c}{Mulheres} \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
-Quantil & $\hat{\beta}$ & Gap~(\%) & $\hat{\beta}$ & Gap~(\%) & $\hat{\beta}$ & Gap~(\%) \\
+Quantil & $\hat{\beta}$ (SE) & Gap~(\%) & $\hat{\beta}$ & Gap~(\%) & $\hat{\beta}$ & Gap~(\%) \\
 \midrule
-$\tau=0.10$ & $-0.0832$ & $-8.0\%$ & $-0.0608$ & $-5.9\%$ & $-0.1160$ & $-11.0\%$ \\
-$\tau=0.25$ & $-0.0734$ & $-7.1\%$ & $-0.0605$ & $-5.9\%$ & $-0.0915$ & $-8.7\%$ \\
-$\tau=0.50$ & $-0.0813$ & $-7.8\%$ & $-0.0739$ & $-7.1\%$ & $-0.0899$ & $-8.6\%$ \\
-$\tau=0.75$ & $-0.1039$ & $-9.9\%$ & $-0.1012$ & $-9.6\%$ & $-0.1049$ & $-10.0\%$ \\
-$\tau=0.90$ & $-0.1235$ & $-11.6\%$ & $-0.1244$ & $-11.7\%$ & $-0.1155$ & $-10.9\%$ \\
-$\tau=0.95$ & $-0.1317$ & $-12.3\%$ & $-0.1327$ & $-12.4\%$ & $-0.1244$ & $-11.7\%$ \\
+$\tau=0.10$ & $-0.0832$ (0.0019) & $-8.0\%$ & $-0.0608$ & $-5.9\%$ & $-0.1160$ & $-11.0\%$ \\
+$\tau=0.25$ & $-0.0734$ (0.0013) & $-7.1\%$ & $-0.0605$ & $-5.9\%$ & $-0.0915$ & $-8.7\%$ \\
+$\tau=0.50$ & $-0.0813$ (0.0012) & $-7.8\%$ & $-0.0739$ & $-7.1\%$ & $-0.0899$ & $-8.6\%$ \\
+$\tau=0.75$ & $-0.1039$ (0.0013) & $-9.9\%$ & $-0.1012$ & $-9.6\%$ & $-0.1049$ & $-10.0\%$ \\
+$\tau=0.90$ & $-0.1235$ (0.0019) & $-11.6\%$ & $-0.1244$ & $-11.7\%$ & $-0.1155$ & $-10.9\%$ \\
+$\tau=0.95$ & $-0.1317$ (0.0024) & $-12.3\%$ & $-0.1327$ & $-12.4\%$ & $-0.1244$ & $-11.7\%$ \\
 \midrule
-\textbf{Δ (q90−q10)} & $\mathbf{-4.03\text{pp}}***$ & \multicolumn{2}{c}{$Z = -5.57$} & \multicolumn{2}{c}{$p = 2.52e-08$} & \\
+\textbf{Δ (q90−q10)} & $\mathbf{-4.03\text{pp}}***$ (0.0024) & \multicolumn{2}{c}{$Z = -16.95$} & \multicolumn{2}{c}{$p = 1.84e-64$} \\
 \bottomrule
 \end{tabular}
 \note{Teste de heterogeneidade quantílica (Koenker-Bassett style):
       $H_0$: $\hat{\beta}(q)$ constante para todo $q$.
-      SE do contraste via bootstrap ($B=200$, $5\%$ da amostra, $\text{SEED}=42$).}
+      SE por bootstrap em blocos por UPA, ``$m$ de $n$'' ($B=200$; $m=1.229$ das $40.969$ UPAs por réplica; SE escalado por $\sqrt{m/G}$, Bickel \& Sakov, 2008). Sem a escala (conservador): $Z=-2.94$, $p=3.3e-03$.}
 \end{table}

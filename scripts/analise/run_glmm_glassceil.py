@@ -13,7 +13,7 @@ Modelos estimados para cada desfecho:
   M2 — M1 + contexto UPA (renda média, educação média)
   M3 — M2 + interações negro × educ_superior_completo + negro × educ_pos_graduacao  (teto de credencial)
 
-Estimação: logit statsmodels com SE robusto (HC1).
+Estimação: logit statsmodels com SE agrupado por UPA (cluster; antes HC1).
 Nota: efeito aleatório de UPA via lme4 (R) estimado em logit_multinivel_glmm.R.
       Resultados R (full pop) já em outputs/tables/glmm_resumo_full.csv.
 """
@@ -134,15 +134,20 @@ OUTCOMES = [
 
 
 def fit_logit(formula_str: str, data: pd.DataFrame):
+    """Logit com UF como efeito fixo e SE agrupado por UPA (Moulton — Angrist &
+    Pischke, cap. 8): as covariáveis de contexto variam só no nível da UPA e as
+    pessoas da mesma UPA são correlacionadas; HC1 (robusto a heterocedasticidade)
+    subestimaria o SE. 41.517 clusters: sem problema de poucos clusters."""
+    cov = dict(cov_type="cluster", cov_kwds={"groups": pd.factorize(data["UPA"])[0]})
     try:
         return smf.logit(formula_str, data=data).fit(
-            method="bfgs", maxiter=400, disp=False, cov_type="HC1"
+            method="bfgs", maxiter=400, disp=False, **cov
         )
     except Exception as e:
         print(f"    bfgs falhou ({e}), tentando newton ...")
         try:
             return smf.logit(formula_str, data=data).fit(
-                method="newton", maxiter=400, disp=False, cov_type="HC1"
+                method="newton", maxiter=400, disp=False, **cov
             )
         except Exception as e2:
             print(f"    FALHOU: {e2}")
@@ -156,9 +161,32 @@ def get_or_ci(m, var="negro"):
     return np.exp(b), np.exp(b - 1.96 * se), np.exp(b + 1.96 * se)
 
 
+class _LightLogit:
+    """Resultado leve do logit: coeficientes, SE (cluster-UPA), p, AME e predict().
+    O LogitResults do statsmodels retém a matriz de desenho (7,7 M x k); manter três
+    desfechos x três modelos vivos esgotava a RAM. Guarda-se só o design_info (patsy)
+    para reconstruir predições em novos dados."""
+    def __init__(self, m, ame):
+        self.params  = m.params.copy()
+        self.bse     = m.bse.copy()
+        self.pvalues = m.pvalues.copy()
+        self.nobs    = float(m.nobs)
+        self.llf     = float(m.llf)
+        self.ame     = float(ame)
+        self._design_info = m.model.data.design_info
+
+    def predict(self, new_df):
+        import patsy
+        X = patsy.build_design_matrices([self._design_info], new_df)[0]
+        lp = np.asarray(X) @ self.params.values
+        return pd.Series(1 / (1 + np.exp(-lp)))
+
+
 def get_ame(m, data, var="negro"):
     if m is None or var not in m.params:
         return np.nan
+    if hasattr(m, "ame"):                 # já calculado (resultado leve)
+        return m.ame
     b_neg = m.params[var]
     exog  = m.model.exog.copy()
     idx_v = list(m.model.exog_names).index(var)
@@ -182,14 +210,17 @@ for y_col, y_label in OUTCOMES:
         formula = formula_tpl.format(y=y_col)
         print(f"  Ajustando {m_name} ...", end="", flush=True)
         m = fit_logit(formula, sub)
-        results[y_col][m_name] = m
         if m is not None:
+            ame_frac = get_ame(m, sub)
+            m = _LightLogit(m, ame_frac)          # libera a matriz de desenho
+            import gc; gc.collect()
             or_, lo, hi = get_or_ci(m)
-            ame = get_ame(m, sub) * 100
+            ame = ame_frac * 100
             p   = m.pvalues.get("negro", np.nan)
             print(f" OR={or_:.3f} [{lo:.3f}–{hi:.3f}]{stars(p)} | AME={ame:+.2f}pp")
         else:
             print(" FALHOU")
+        results[y_col][m_name] = m
 
 # ── Tabela CSV ────────────────────────────────────────────────────────────────
 rows = []
@@ -266,7 +297,7 @@ patches_legend = [mpatches.Patch(color=COLORS_M[m], label=MODEL_LABELS[m]) for m
 fig.legend(handles=patches_legend, loc="lower center", ncol=3, fontsize=9,
            bbox_to_anchor=(0.5, -0.05))
 fig.suptitle("Teto de Vidro Racial — Odds Ratios (população completa)\n"
-             "Logit com UF efeito fixo e SE robusto (HC1)",
+             "Logit com UF efeito fixo e SE agrupado por UPA",
              fontsize=12, fontweight="bold")
 plt.tight_layout()
 plt.savefig(FIGURES / "glmm_glassceil_forest.png", dpi=150, bbox_inches="tight")
