@@ -79,8 +79,8 @@ BLOCO_NUCLEO = r"""% ── NÚCLEO: decomposições e acesso (inserido pela ver
 
 \subsection{Decomposição do gap por mediação contextual e ocupacional}
 A Tabela~\ref{tab:mediacao} resume o resultado central dos modelos HLM: à medida
-que se adicionam controles de contexto (UPA) e ocupação, o gap racial encolhe de
-$-19{,}1\%$ (M1) para $-6{,}2\%$ (M4). \emph{Como ler:} acompanhe a coluna
+que se adiciona o bairro (intercepto aleatório e contexto da UPA), o estado e a ocupação,
+o gap racial encolhe de @@HLM_GAP_POOL@@\% (agregado) para @@HLM_GAP4@@\% (M4). \emph{Como ler:} acompanhe a coluna
 $\beta_{\text{negro}}$ aproximando-se de zero linha a linha --- a fração do gap já
 explicada aparece em ``Mediação acum.''; o que resta no M4 é a penalidade que
 nenhum atributo observável explica.
@@ -116,6 +116,7 @@ a $12{,}9\%$ (q90) --- a discriminação de preço pesa mais na base.
 \input{outputs/tables/rif_decomp_tcc.tex}
 
 \subsection{GLMM Logístico: o teto de vidro no acesso}
+\label{subsec:glmm_resultados}
 O GLMM logístico multinível estima a probabilidade de acesso a cargo qualificado
 e ao topo da renda, com efeito aleatório de UPA. A Tabela~\ref{tab:glmm_glassceil}
 traz os \emph{odds ratios}, efeitos marginais e E-values dos três desfechos.
@@ -143,12 +144,13 @@ complementares --- modelo linear hierárquico (HLM), decomposição de Oaxaca--B
 regressão quantílica com decomposição RIF e modelo logístico multinível (GLMM) ---,
 validados por \textit{machine learning} interpretável (XGBoost + SHAP).
 
-Um modelo de regressão multinível de três níveis (indivíduo, UPA e Unidade da
-Federação) estima que profissionais negros recebem, em média, 19,1\% a menos que
-brancos comparáveis em escolaridade, sexo e idade. Desse diferencial bruto, 52,5\%
-é mediado pelo contexto de moradia (Nível~2), reduzindo o \textit{gap} líquido ---
-não explicado por capital humano nem contexto, limite inferior da discriminação
-direta --- a 9,6\%.
+Um modelo linear hierárquico de dois níveis (indivíduos em bairros --- UPA ---, com
+efeitos fixos de estado) mostra que @@HLM_ICC0_PCT@@\% da variância do log-rendimento está
+entre bairros e estima que profissionais negros recebem, em média, @@HLM_GAP_POOL@@\% a menos
+que brancos comparáveis em escolaridade, sexo e idade. Desse diferencial, @@HLM_MED_BAIRRO@@\%
+é mediado pelo contexto de moradia (nível~2), reduzindo o \textit{gap} líquido --- não
+explicado por capital humano, bairro nem estado, limite inferior da discriminação
+direta --- a @@HLM_GAP3@@\%.
 
 A decomposição de Oaxaca--Blinder atribui @@OB_A_COEF@@\% do gap bruto a retornos
 diferenciais não explicados por capital humano e contexto; quando a ocupação e a
@@ -187,10 +189,12 @@ hierarchical linear model (HLM), the Oaxaca--Blinder decomposition, quantile
 regression with RIF decomposition, and a multilevel logistic model (GLMM) ---,
 validated by interpretable machine learning (XGBoost + SHAP).
 
-A three-level hierarchical linear model (individual, census tract, and state)
-estimates that Black workers earn 19.1\% less than comparable White workers after
-controlling for education, sex, and age. Of this gross differential, 52.5\% is
-mediated by residential context (Level~2), leaving a \textit{net gap} of 9.6\%
+A two-level hierarchical linear model (individuals nested in neighbourhoods --- census
+tracts ---, with state fixed effects) shows that @@HLM_ICC0_PCT_EN@@\% of the variance of
+log earnings lies between neighbourhoods and estimates that Black workers earn
+@@HLM_GAP_POOL_EN@@\% less than comparable White workers after controlling for education,
+sex, and age. Of this differential, @@HLM_MED_BAIRRO_EN@@\% is
+mediated by residential context (level~2), leaving a \textit{net gap} of @@HLM_GAP3_EN@@\%
 unexplained by human capital or context --- a lower bound on direct labour-market
 discrimination.
 
@@ -541,7 +545,7 @@ if _sep.exists():
     def _pt(x, d=4):
         return f"{x:.{d}f}".replace(".", ",")
     _txt_num = (
-        r"No modelo M3, o erro-padrão de $\hat\beta_{\text{negro}}$ passa de "
+        r"No OLS com efeitos fixos de UF (especificação do M3), o erro-padrão de $\hat\beta_{\text{negro}}$ passa de "
         f"{_pt(_sc)} (convencional) para {_pt(_su)} (agrupado por UPA) e {_pt(_sf)} (agrupado por UF); "
         r"para o regressor de contexto $\overline{\%\text{Negro}}_{\text{UPA}}$, que varia apenas no nível "
         f"da UPA, a razão é de {_pt(_gu/_gc, 1)}$\\times$ (UPA) e {_pt(_gf/_gc, 1)}$\\times$ (UF) --- "
@@ -579,15 +583,97 @@ _SUBSEC = (
     r"regressão quantílica, por bootstrap em blocos de UPA. O agrupamento por UF é mais "
     r"conservador, mas com 27 clusters ($<42$) a inferência assintótica é pouco confiável "
     r"\cite{angrist2009}; quando reportado, usa a distribuição $t$ com $G-1$ graus de liberdade. "
-    r"No HLM, o erro-padrão do modelo já incorpora a correlação intraestado via o efeito aleatório "
-    r"de UF, mas não a correlação intra-UPA; a tabela de resultados traz, por isso, o erro-padrão "
-    r"agrupado por UPA entre colchetes ao lado do erro-padrão do modelo. "
+    r"No HLM, o intercepto aleatório de UPA modela explicitamente a correlação intra-bairro, de modo "
+    r"que o erro-padrão do modelo já a incorpora (sob a hipótese de efeitos aleatórios); como "
+    r"contraprova, os coeficientes do HLM são comparados aos do OLS com efeitos fixos de UF e "
+    r"erro-padrão agrupado por UPA, que coincidem em sinal, magnitude e significância. "
     + _txt_num + "\n\n" + _txt_peso + "\n\n"
 )
 texto, _ni = re.subn(r"(?=\\subsection\{Random Forest, XGBoost e SHAP Values\})",
                      lambda m: _SUBSEC, texto, count=1)
 if _ni != 1:
     print(f"  [AVISO] subseção de inferência não inserida (n={_ni}).")
+
+# Números do HLM step-up (bloco 3) e do logit — placeholders @@HLM_...@@ / @@GLMM_...@@
+print("Preenchendo números do HLM step-up e do logit…")
+def _rd(name):
+    _p = Path("outputs/tables") / name
+    if not _p.exists():
+        return []
+    with _p.open(encoding="utf-8", newline="") as _f:
+        return list(_csv.DictReader(_f))
+_gap = {r["Modelo"]: r for r in _rd("gap_decomposicao_stepup.csv")}
+_fit = {r["modelo"]: r for r in _rd("hlm_stepup_fit.csv")}
+_coef = {(r["modelo"], r["variavel"]): r for r in _rd("hlm_stepup_coefs.csv")}
+_konf = {r["modelo"]: r for r in _rd("hlm_stepup_konfound.csv")}
+_glm = {(r["desfecho"], r["modelo"]): r for r in _rd("glmm_glassceil_full.csv")}
+def _pt(x, d=1):
+    return f"{float(x):.{d}f}".replace(".", ",").replace("-", "−")
+def _pten(x, d=1):
+    return f"{float(x):.{d}f}"
+_V = {}
+if _gap and _fit and _coef:
+    import math as _math
+    _b = {m: float(_gap[m]["b_negro"]) for m in ("M1", "M2", "M3", "M4")}
+    _V.update({
+        "@@HLM_B1@@": _pt(_b["M1"], 4), "@@HLM_B2@@": _pt(_b["M2"], 4),
+        "@@HLM_B3@@": _pt(_b["M3"], 4), "@@HLM_B4@@": _pt(_b["M4"], 4),
+        "@@HLM_B1_IC@@": f"[{_pt(_gap['M1']['ci_lo'], 4)}; {_pt(_gap['M1']['ci_hi'], 4)}]",
+        "@@HLM_B3_IC@@": f"[{_pt(_gap['M3']['ci_lo'], 4)}; {_pt(_gap['M3']['ci_hi'], 4)}]",
+        "@@HLM_GAP1@@": _pt(abs(float(_gap["M1"]["Gap%"]))), "@@HLM_GAP3@@": _pt(abs(float(_gap["M3"]["Gap%"]))),
+        "@@HLM_GAP4@@": _pt(abs(float(_gap["M4"]["Gap%"]))),
+        "@@HLM_GAP1_EN@@": _pten(abs(float(_gap["M1"]["Gap%"]))), "@@HLM_GAP3_EN@@": _pten(abs(float(_gap["M3"]["Gap%"]))),
+        "@@HLM_MED_BAIRRO@@": _pt(_gap["M2"]["Mediacao_acum%"]), "@@HLM_MED_BAIRRO_EN@@": _pten(_gap["M2"]["Mediacao_acum%"]),
+        "@@HLM_MED_OCC@@": "---",   # preenchido abaixo, em relação ao gap agregado
+        "@@HLM_TAU0@@": _pt(_fit["M0"]["tau2_upa"], 4), "@@HLM_SIG0@@": _pt(_fit["M0"]["sigma2"], 4),
+        "@@HLM_ICC0@@": _pt(_fit["M0"]["icc_upa"], 3), "@@HLM_ICC0_PCT@@": _pt(float(_fit["M0"]["icc_upa"]) * 100),
+        "@@HLM_ICC0_PCT_EN@@": _pten(float(_fit["M0"]["icc_upa"]) * 100),
+        "@@HLM_ICC3@@": _pt(_fit["M3"]["icc_upa"], 3),
+        "@@HLM_TAU_EXPL_M1@@": _pt(_fit["M1"]["pct_tau2_explicada_vs_M0"]),
+        "@@HLM_TAU_EXPL_M2@@": _pt(_fit["M2"]["pct_tau2_explicada_vs_M0"]),
+        "@@HLM_TAU_EXPL_M3@@": _pt(_fit["M3"]["pct_tau2_explicada_vs_M0"]),
+        "@@HLM_LR2@@": f"{float(_fit['M2']['lr_vs_anterior']):,.0f}".replace(",", "."),
+        "@@HLM_LR_RS@@": f"{float(_fit['M3_RS']['lr_vs_anterior']):,.0f}".replace(",", "."),
+        "@@HLM_TAU1@@": _pt(_fit["M3_RS"]["tau2_slope_negro"], 4),
+        "@@HLM_SD1@@": _pt(_fit["M3_RS"]["sd_slope_negro"], 3),
+        "@@HLM_COV01@@": _pt(_fit["M3_RS"]["cov_int_slope"], 4),
+        "@@HLM_COV01_TXT@@": "maior" if float(_fit["M3_RS"]["cov_int_slope"]) < 0 else "menor",
+        "@@HLM_RS_LO@@": _pt(float(_coef[("M3_RS", "negro")]["coef"]) - float(_fit["M3_RS"]["sd_slope_negro"]), 3),
+        "@@HLM_RS_HI@@": _pt(float(_coef[("M3_RS", "negro")]["coef"]) + float(_fit["M3_RS"]["sd_slope_negro"]), 3),
+        "@@HLM_G01@@": _pt(_coef[("M2", "pct_negro_upa_z")]["coef"], 4),
+        "@@HLM_G01_SE@@": _pt(_coef[("M2", "pct_negro_upa_z")]["se"], 4),
+        "@@HLM_G01_ABS@@": _pt(abs(float(_coef[("M2", "pct_negro_upa_z")]["coef"])), 2),
+        "@@HLM_KONF3@@": _pt(_konf["M3"]["pct_vies_para_invalidar"]) if "M3" in _konf else "---",
+        "@@HLM_TAU_M1@@": _pt(_fit["M1"]["tau2_upa"], 4), "@@HLM_TAU_M2@@": _pt(_fit["M2"]["tau2_upa"], 4),
+        "@@HLM_TAU_EXPL_M2_REL@@": _pt((float(_fit["M1"]["tau2_upa"]) - float(_fit["M2"]["tau2_upa"]))
+                                       / float(_fit["M1"]["tau2_upa"]) * 100),
+    })
+    # gap agregado (OLS com efeitos fixos de UF, sem efeito de bairro) vs. dentro do bairro (HLM M1)
+    _se_rows = _rd("hlm_serie_completo_se.csv")
+    _pool = next((r for r in _se_rows if r["modelo"] == "M1_Individual_OLS" and r["variavel"] == "negro"), None)
+    if _pool:
+        _bp = float(_pool["coef"])
+        _medb = (abs(_bp) - abs(_b["M1"])) / abs(_bp) * 100
+        _V.update({"@@HLM_B_POOL@@": _pt(_bp, 4),
+                   "@@HLM_GAP_POOL@@": _pt(abs((_math.exp(_bp) - 1) * 100)),
+                   "@@HLM_GAP_POOL_EN@@": _pten(abs((_math.exp(_bp) - 1) * 100)),
+                   "@@HLM_MED_BAIRRO@@": _pt(_medb), "@@HLM_MED_BAIRRO_EN@@": _pten(_medb),
+                   "@@HLM_MED_OCC@@": _pt((abs(_b["M3"]) - abs(_b["M4"])) / abs(_bp) * 100),
+                   "@@HLM_RESID_PCT@@": _pt(abs(_b["M4"]) / abs(_bp) * 100)})
+if _glm:
+    _or = lambda d, m: float(_glm[(d, m)]["OR_negro"])
+    _V.update({
+        "@@GLMM_OR_CBO_M2@@": _pt(_or("ocp_qualif", "M2"), 3),
+        "@@GLMM_OR_TOP20_M2@@": _pt(_or("y_top20", "M2"), 3),
+        "@@GLMM_OR_TOP10_M2@@": _pt(_or("y_top10", "M2"), 3),
+        "@@GLMM_PCT_CBO_M2@@": f"{(1 - _or('ocp_qualif', 'M2')) * 100:.0f}",
+        "@@GLMM_PCT_TOP10_M2@@": f"{(1 - _or('y_top10', 'M2')) * 100:.0f}",
+    })
+for _k, _v in _V.items():
+    texto = texto.replace(_k, _v)
+_rest = sorted(set(re.findall(r"@@(HLM|GLMM)_[A-Z0-9_]+@@", texto)))
+if _rest:
+    print(f"  [AVISO] placeholders não preenchidos: {sorted(set(re.findall(r'@@(?:HLM|GLMM)_[A-Z0-9_]+@@', texto)))[:10]}")
 
 # Checagem de \ref pendentes a rótulos removidos
 pendentes = []

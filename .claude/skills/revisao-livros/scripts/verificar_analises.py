@@ -30,7 +30,7 @@ ROOT = Path(__file__).resolve().parents[4]          # raiz do projeto
 TEX = ROOT / "relatorio_tcc_enxuto.tex"
 TABLES = ROOT / "outputs" / "tables"
 NUCLEO = [                                          # tcc/run_tcc.ps1
-    "run_hlm_serie_completa.py", "run_hlm_m4.py", "run_oaxaca_blinder.py",
+    "run_hlm_serie_completa.py", "run_hlm_stepup.py", "run_oaxaca_blinder.py",
     "run_regressao_quantilica.py", "run_rif_decomp.py", "run_glmm_glassceil.py",
 ]
 ROBUSTEZ = [
@@ -183,6 +183,19 @@ def check_qr(tex: str) -> None:
 
 
 def check_hlm(tex: str) -> None:
+    # Bloco 3: se o HLM step-up (indivíduo em UPA) existir, ele é a fonte do relatório
+    stepup = csv_rows("gap_decomposicao_stepup.csv")
+    if stepup:
+        for r in stepup:
+            b = float(r["b_negro"])
+            if f"{b:.4f}" not in tex and f"{b:.4f}".replace(".", ",") not in tex                     and f"{b:.4f}".replace("-", "−").replace(".", ",") not in tex:
+                add("ALTO", "FAV-91", "relatorio", f"β_negro {r['Modelo']} (step-up) = {b:.4f} não aparece no relatório.",
+                    "Regerar o relatório (gerar_relatorio_tcc → gerar_relatorio_enxuto).")
+        fit = csv_rows("hlm_stepup_fit.csv")
+        if fit and any(r["modelo"] in ("M2", "M3") and r.get("converged", "True") == "False" for r in fit):
+            add("INFO", "FAV-71", "hlm_stepup_fit.csv", "BFGS reportou converged=False em M2/M3 (tolerância de gradiente).",
+                "Conferir estabilidade dos coeficientes (variam <0,1% entre degraus) ou aumentar maxiter.")
+        return
     rows = csv_rows("hlm_serie_completo.csv")
     if not rows:
         return

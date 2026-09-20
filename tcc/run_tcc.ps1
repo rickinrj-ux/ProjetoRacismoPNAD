@@ -21,8 +21,8 @@ $Analise = Join-Path $Root "scripts\analise"
 
 # Núcleo de 4 — corpo do TCC (ordem de dependência: features -> métodos)
 $Nucleo = @(
-    "run_hlm_serie_completa.py",   # 1. HLM 3 níveis
-    "run_hlm_m4.py",               #    HLM M4 (gap residual)
+    "run_hlm_serie_completa.py",   # 1a. OLS-FE de UF (SE conv/cluster-UPA/cluster-UF) + WLS; gap agregado
+    "run_hlm_stepup.py",           # 1b. HLM 2 níveis (indivíduo em UPA, UF fixo): step-up M0-M4, RS, BLUPs
     "run_oaxaca_blinder.py",       # 2. Oaxaca-Blinder
     "run_regressao_quantilica.py", # 3. Quantílica
     "run_ob_qr_melhorias.py",      #    QR por sexo + KB test (bootstrap em blocos por UPA) -> qr_melhorias.tex

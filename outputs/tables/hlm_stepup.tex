@@ -1,0 +1,64 @@
+\begin{longtable}{lccccc}
+\caption{HLM de dois níveis (indivíduo em UPA) com efeitos fixos de UF --- estratégia \emph{step-up}, PNAD Contínua 2016--2025, população completa ($N = 7.689.426$; 40.295~UPAs; 27~UFs). Coeficientes com erro-padrão do modelo entre parênteses (a correlação intra-UPA já está no efeito aleatório). Estimação por máxima verossimilhança (ML), para os testes LR entre degraus; REML coincide (Tabela de componentes). Todos os coeficientes com $|t| > 10$; a inferência relevante está nos intervalos de confiança, não nos asteriscos (MHE, cap.~8).}\label{tab:hlm_resultados}\\
+\toprule
+\textbf{Variável} & \textbf{M0} & \textbf{M1} & \textbf{M2} & \textbf{M3} & \textbf{M4} \\
+\midrule \endfirsthead
+\toprule
+\textbf{Variável} & \textbf{M0} & \textbf{M1} & \textbf{M2} & \textbf{M3} & \textbf{M4} \\
+\midrule \endhead
+\midrule \multicolumn{6}{r}{\textit{continua}} \\ \endfoot
+\bottomrule \endlastfoot
+Intercepto & 7,3022 (0,0029) & 4,2579 (0,0051) & 4,2885 (0,0046) & 4,5545 (0,0123) & 4,7525 (0,0093) \\
+\textbf{Raça (negro)} & --- & −0,1124 (0,0006) & −0,1076 (0,0006) & −0,1077 (0,0006) & −0,0724 (0,0005) \\
+Sexo feminino & --- & −0,1944 (0,0005) & −0,1945 (0,0005) & −0,1945 (0,0005) & −0,2190 (0,0005) \\
+Idade (centrada) & --- & 0,0087 (2,1e-05) & 0,0087 (2,1e-05) & 0,0087 (2,0e-05) & 0,0092 (1,9e-05) \\
+Idade$^2$ & --- & −0,0005 (1,2e-06) & −0,0005 (1,2e-06) & −0,0005 (1,2e-06) & −0,0004 (1,1e-06) \\
+\addlinespace[3pt]
+\multicolumn{6}{l}{\textit{Escolaridade (ref.: fundamental incompleto)}} \\
+Educ.: fundamental completo & --- & −0,2007 (0,0038) & −0,2002 (0,0038) & −0,1982 (0,0038) & −0,1821 (0,0034) \\
+Educ.: médio completo & --- & −0,0537 (0,0027) & −0,0545 (0,0027) & −0,0547 (0,0027) & −0,0438 (0,0024) \\
+Educ.: superior completo & --- & 0,0521 (0,0025) & 0,0521 (0,0025) & 0,0523 (0,0025) & 0,0537 (0,0023) \\
+Educ.: pós-graduação & --- & −0,0034 (0,0036) & −0,0033 (0,0036) & −0,0030 (0,0036) & −0,0043 (0,0033) \\
+Educ.: não registrada & --- & 0,4228 (0,0025) & 0,4233 (0,0025) & 0,4233 (0,0025) & 0,2194 (0,0023) \\
+\addlinespace[3pt]
+\multicolumn{6}{l}{\textit{Inserção}} \\
+log(horas) & --- & 0,6823 (0,0006) & 0,6818 (0,0006) & 0,6814 (0,0006) & 0,5979 (0,0006) \\
+Urbano & --- & 0,4348 (0,0045) & 0,3771 (0,0036) & 0,3347 (0,0035) & 0,2026 (0,0026) \\
+\addlinespace[3pt]
+\multicolumn{6}{l}{\textit{Contexto de bairro --- nível 2 (UPA)}} \\
+\% negro na UPA ($z$) & --- & --- & −0,2189 (0,0017) & −0,2504 (0,0027) & −0,1812 (0,0020) \\
+Desemprego na UPA ($z$) & --- & --- & −0,0542 (0,0016) & −0,0338 (0,0016) & −0,0275 (0,0012) \\
+Educ. média na UPA ($z$) & --- & --- & 0,0055 (0,0013) & −0,0052 (0,0013) & 0,0054 (0,0010) \\
+\addlinespace[3pt]
+\multicolumn{6}{l}{\textit{Ocupação e vínculo (M4; \emph{bad controls})}} \\
+Emprego formal & --- & --- & --- & --- & 0,1776 (0,0006) \\
+Conta própria & --- & --- & --- & --- & −0,1725 (0,0007) \\
+Trab. doméstico & --- & --- & --- & --- & −0,1272 (0,0010) \\
+CBO: dirigente & --- & --- & --- & --- & 0,7777 (0,0013) \\
+CBO: profissional & --- & --- & --- & --- & 0,8720 (0,0010) \\
+CBO: técnico & --- & --- & --- & --- & 0,5009 (0,0010) \\
+CBO: administrativo & --- & --- & --- & --- & 0,2639 (0,0010) \\
+CBO: serviços & --- & --- & --- & --- & 0,1832 (0,0008) \\
+CBO: agropecuária & --- & --- & --- & --- & 0,0892 (0,0011) \\
+CBO: operário & --- & --- & --- & --- & 0,1976 (0,0009) \\
+CBO: operador & --- & --- & --- & --- & 0,2294 (0,0010) \\
+CBO: FFAA & --- & --- & --- & --- & 0,9199 (0,0024) \\
+\addlinespace[2pt]
+IC 95\% de $\beta_{\text{negro}}$ & --- & [−0,1135; −0,1113] & [−0,1087; −0,1065] & [−0,1088; −0,1066] & [−0,0734; −0,0714] \\
+Gap (\%) $= e^{\beta}-1$ & --- & −10,6 & −10,2 & −10,2 & −7,0 \\
+Efeitos fixos de UF & não & não & não & sim & sim \\
+\addlinespace[2pt] \midrule
+\multicolumn{6}{l}{\textit{Componentes de variância e ajuste}} \\
+$\hat\tau^2_{\text{UPA}}$ (nível 2) & 0,3370 & 0,1509 & 0,0903 & 0,0812 & 0,0430 \\
+$\hat\sigma^2$ (nível 1) & 0,5759 & 0,4244 & 0,4244 & 0,4242 & 0,3440 \\
+ICC$_{\text{UPA}}$ & 0,369 & 0,262 & 0,175 & 0,161 & 0,111 \\
+$\tau^2$ explicada vs.\ M0 (\%) & --- & 55,2 & 73,2 & 75,9 & 87,2 \\
+$-2\,$LL (deviance) & 17.751.140 & 15.384.825 & 15.365.289 & 15.356.737 & 13.729.450 \\
+AIC & 17.751.146 & 15.384.871 & 15.365.341 & 15.356.841 & 13.729.578 \\
+BIC & 17.751.187 & 15.385.190 & 15.365.702 & 15.357.561 & 13.730.465 \\
+LR vs.\ degrau anterior ($\chi^2$, g.l.) & --- & 2.366.315 (20) & 19.536 (3) & 8.552 (26) & 1.627.287 (12) \\
+$p$ do LR & --- & $<0{,}001$ & $<0{,}001$ & $<0{,}001$ & $<0{,}001$ \\
+\end{longtable}
+
+\noindent\footnotesize\emph{Inclinação aleatória de \texttt{negro} por UPA (M3 + $u_{1j}$):} $\hat\tau^2_{1} = 0,0293$ (DP $= 0,171$ em log-pontos), cov$(u_0,u_1) = −0,0245$; LR $= 38.943$ (2 g.l.), $p<0{,}001$: a penalidade racial varia entre bairros; $\hat\beta_{\text{negro}}$ médio $= −0,1085$.
+\normalsize

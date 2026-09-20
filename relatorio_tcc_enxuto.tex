@@ -124,12 +124,13 @@ complementares --- modelo linear hierárquico (HLM), decomposição de Oaxaca--B
 regressão quantílica com decomposição RIF e modelo logístico multinível (GLMM) ---,
 validados por \textit{machine learning} interpretável (XGBoost + SHAP).
 
-Um modelo de regressão multinível de três níveis (indivíduo, UPA e Unidade da
-Federação) estima que profissionais negros recebem, em média, 19,1\% a menos que
-brancos comparáveis em escolaridade, sexo e idade. Desse diferencial bruto, 52,5\%
-é mediado pelo contexto de moradia (Nível~2), reduzindo o \textit{gap} líquido ---
-não explicado por capital humano nem contexto, limite inferior da discriminação
-direta --- a 9,6\%.
+Um modelo linear hierárquico de dois níveis (indivíduos em bairros --- UPA ---, com
+efeitos fixos de estado) mostra que 36,9\% da variância do log-rendimento está
+entre bairros e estima que profissionais negros recebem, em média, 19,1\% a menos
+que brancos comparáveis em escolaridade, sexo e idade. Desse diferencial, 47,0\%
+é mediado pelo contexto de moradia (nível~2), reduzindo o \textit{gap} líquido --- não
+explicado por capital humano, bairro nem estado, limite inferior da discriminação
+direta --- a 10,2\%.
 
 A decomposição de Oaxaca--Blinder atribui 28,4\% do gap bruto a retornos
 diferenciais não explicados por capital humano e contexto; quando a ocupação e a
@@ -174,10 +175,12 @@ hierarchical linear model (HLM), the Oaxaca--Blinder decomposition, quantile
 regression with RIF decomposition, and a multilevel logistic model (GLMM) ---,
 validated by interpretable machine learning (XGBoost + SHAP).
 
-A three-level hierarchical linear model (individual, census tract, and state)
-estimates that Black workers earn 19,1\% less than comparable White workers after
-controlling for education, sex, and age. Of this gross differential, 52,5\% is
-mediated by residential context (Level~2), leaving a \textit{net gap} of 9,6\%
+A two-level hierarchical linear model (individuals nested in neighbourhoods --- census
+tracts ---, with state fixed effects) shows that 36.9\% of the variance of
+log earnings lies between neighbourhoods and estimates that Black workers earn
+19.1\% less than comparable White workers after controlling for education,
+sex, and age. Of this differential, 47.0\% is
+mediated by residential context (level~2), leaving a \textit{net gap} of 10.2\%
 unexplained by human capital or context --- a lower bound on direct labour-market
 discrimination.
 
@@ -368,72 +371,64 @@ de desigualdade racial no Brasil: \textit{negro} = preto (código~2) +
 pardo (código~4); \textit{branco} = branco (código~1), ambos da variável
 V2010 (cor ou raça autodeclarada).
 
-\subsection{Modelo Linear Hierárquico de Três Níveis}
+\subsection{Modelo Linear Hierárquico: indivíduos em bairros (UPA), com efeitos fixos de UF}
 \label{subsec:hlm}
 
-O modelo parte da equação de Mincer estendida para o log-rendimento
-mensal de trabalho, estruturada em três níveis:
+A PNAD Contínua é amostrada por conglomerados: pessoas dentro de unidades primárias de
+amostragem (UPA, o proxy de bairro), dentro de estados. A hipótese substantiva do
+trabalho (H2) é que o \emph{bairro} media parte do gap racial; o modelo, portanto, coloca
+a UPA no nível~2 e trata a UF como conjunto de efeitos fixos --- 27 unidades são poucas para
+um terceiro nível aleatório \cite{angrist2009}, e os 26 \emph{dummies} absorvem todo o
+contexto estadual sem hipóteses distribucionais. O modelo de dois níveis é:
 
-\paragraph{Nível 1 --- Indivíduo ($i$) dentro da UPA ($j$) no Estado ($k$):}
+\paragraph{Nível 1 --- indivíduo $i$ na UPA $j$:}
 \begin{equation}
-  \ln(W)_{ijk} = \beta_{0jk}
-    + \beta_1 \cdot \text{Negro}_{ijk}
-    + \beta_2 \cdot \text{Sexo}_{ijk}
-    + \beta_3 \cdot X_{ijk}
-    + \beta_4 \cdot X^2_{ijk}
-    + \sum_{e=1}^{4} \beta_{e+4} \cdot \text{Educ}_e
-    + \varepsilon_{ijk}, \quad \varepsilon \sim \mathcal{N}(0,\sigma^2)
+  \ln(W)_{ij} = \beta_{0j} + \beta_1\,\text{Negro}_{ij} + \beta_2\,\text{Sexo}_{ij}
+  + \beta_3\,X_{ij} + \beta_4\,X^2_{ij} + \sum_{e}\beta_{e}\,\text{Educ}_{e,ij}
+  + \boldsymbol{\beta}_{5}'\mathbf{Z}_{ij} + \varepsilon_{ij},
+  \qquad \varepsilon_{ij}\sim\mathcal{N}(0,\sigma^2)
   \label{eq:nivel1}
 \end{equation}
+em que $\mathbf{Z}$ reúne horas, situação urbana e ano (e, no M4, vínculo e grupo CBO).
 
-\paragraph{Nível 2 --- Localidade ($j$, proxy de bairro via UPA):}
+\paragraph{Nível 2 --- bairro $j$ (UPA):}
 \begin{equation}
-  \beta_{0jk} = \gamma_{00k}
-    + \gamma_{01} \cdot \overline{\%\text{Negro}}_{jk}
-    + \gamma_{02} \cdot \overline{\text{Desemprego}}_{jk}
-    + \gamma_{03} \cdot \overline{\text{Educ}}_{jk}
-    + u_{0jk}, \quad u_{0j} \sim \mathcal{N}(0, \tau^2_u)
+  \beta_{0j} = \gamma_{00} + \gamma_{01}\,\overline{\%\text{Negro}}_{j}
+  + \gamma_{02}\,\overline{\text{Desemprego}}_{j} + \gamma_{03}\,\overline{\text{Educ}}_{j}
+  + \sum_{k=2}^{27}\delta_k\,\text{UF}_{k(j)} + u_{0j},
+  \qquad u_{0j}\sim\mathcal{N}(0,\tau^2_{\text{UPA}})
   \label{eq:nivel2}
 \end{equation}
-
-O coeficiente $\gamma_{01} < 0$ constitui evidência de \textit{duplo disadvantage}:
-morar em bairros com maior concentração de negros reduz o rendimento
-\textit{independentemente} da raça individual.
-
-\paragraph{Nível 3 --- Estado ($k$, UF):}
+O coeficiente $\gamma_{01}<0$ é a evidência de \textit{duplo disadvantage}: morar em
+bairros com maior concentração de negros reduz o rendimento \emph{independentemente}
+da raça individual. A correlação intraclasse
 \begin{equation}
-  \gamma_{00k} = \delta_{000}
-    + \delta_1 \cdot Z_k^{\%\text{negro}}
-    + \delta_2 \cdot Z_k^{\text{desemprego}}
-    + \delta_3 \cdot Z_k^{\text{educ}}
-    + v_{00k}, \quad v_{00k} \sim \mathcal{N}(0, \tau^2_v)
-  \label{eq:nivel3}
-\end{equation}
-
-Em um modelo de três níveis, o ICC completo é:
-\begin{equation}
-  \rho_{UF} = \frac{\tau^2_{UF}}{\tau^2_{UF} + \tau^2_{UPA} + \sigma^2}
+  \rho_{\text{UPA}} = \frac{\tau^2_{\text{UPA}}}{\tau^2_{\text{UPA}} + \sigma^2}
   \label{eq:icc}
 \end{equation}
-onde $\tau^2_{UF}$ é a variância entre estados, $\tau^2_{UPA}$ a variância
-entre UPAs e $\sigma^2$ a variância residual intraindividual.
-Valores $\rho_{UF} > 0{,}05$ justificam a inclusão do nível~3 no modelo
-\cite{raudenbush2002}.
+mede a fração da variância do log-rendimento que está \emph{entre} bairros; valores
+acima de 5\% justificam o modelo multinível \cite{raudenbush2002}.
 
-Os efeitos de localidade (UPA) são modelados como \textit{interceptos fixos}
---- estratégia computacionalmente viável para 41.517 grupos e apropriada quando
-o interesse reside em controlar heterogeneidade não observada de cada UPA,
-sem necessidade de estimar a distribuição dos efeitos aleatórios de UPA.
-Nessa especificação, $\tau^2_{UPA}$ não é estimado separadamente e a
-fórmula do ICC de Nível~3 reduz-se a $\rho_{UF} = \tau^2_{UF} / (\tau^2_{UF} + \sigma^2)$,
-reportada nas tabelas deste trabalho.
-A estimação utiliza REML com método de Powell
-para evitar colapso de variância na fronteira $\tau^2=0$.
+\paragraph{Estratégia \emph{step-up}.} Seguindo \citeonline{raudenbush2002}, os modelos
+são estimados em degraus aninhados: M0 (nulo: só o intercepto aleatório, que dá o ICC);
+M1 (+ capital humano e demografia); M2 (+ contexto do bairro, nível~2); M3 (+ efeitos
+fixos de UF) --- o modelo principal, que produz o \textbf{gap líquido}; e M4 (+ vínculo
+e grupo ocupacional), reportado como \emph{limite inferior} porque ocupação e formalidade
+são desfechos da própria discriminação (\emph{bad controls}, \citeonline{angrist2009}).
+Cada degrau é comparado ao anterior por teste de razão de verossimilhança (LR), e a
+redução de $\tau^2_{\text{UPA}}$ em relação ao M0 mede a variância entre bairros explicada
+pelos controles. Testa-se ainda uma \emph{inclinação aleatória} de \texttt{negro} por UPA
+(M3 + $u_{1j}\text{Negro}_{ij}$, com covariância não estruturada) --- a penalidade racial
+varia entre bairros? --- por LR com dois graus de liberdade. Todos os modelos são
+estimados por máxima verossimilhança (ML), necessária para comparar efeitos fixos entre
+degraus; com $N=7{,}7$~milhões, REML e ML produzem os mesmos componentes de variância
+(diferença $<0{,}3\%$ no M0), como registra a Tabela~\ref{tab:hlm_resultados}. A
+inferência sobre erros-padrão e pesos é discutida na Subseção~\ref{subsec:inferencia}.
 
 \subsection{Inferência: erros-padrão agrupados, poucos clusters e pesos}
 \label{subsec:inferencia}
 
-A PNAD Contínua é uma amostra por conglomerados: pessoas da mesma unidade primária de amostragem (UPA, proxy de bairro) compartilham choques não observados, e os regressores de contexto variam apenas no nível da UPA. Tratar as $7{,}7$~milhões de observações como independentes subestima os erros-padrão pelo fator de Moulton $\sqrt{1+(\bar n-1)\rho}$ \cite{angrist2009}. Por isso, todos os modelos de regressão (OLS com efeitos fixos de UF, decomposição de Oaxaca--Blinder, regressão quantílica e logit) reportam erros-padrão \emph{agrupados por UPA} (41.517 clusters) --- para a OB e a regressão quantílica, por bootstrap em blocos de UPA. O agrupamento por UF é mais conservador, mas com 27 clusters ($<42$) a inferência assintótica é pouco confiável \cite{angrist2009}; quando reportado, usa a distribuição $t$ com $G-1$ graus de liberdade. No HLM, o erro-padrão do modelo já incorpora a correlação intraestado via o efeito aleatório de UF, mas não a correlação intra-UPA; a tabela de resultados traz, por isso, o erro-padrão agrupado por UPA entre colchetes ao lado do erro-padrão do modelo. No modelo M3, o erro-padrão de $\hat\beta_{\text{negro}}$ passa de 0,0006 (convencional) para 0,0011 (agrupado por UPA) e 0,0035 (agrupado por UF); para o regressor de contexto $\overline{\%\text{Negro}}_{\text{UPA}}$, que varia apenas no nível da UPA, a razão é de 7,3$\times$ (UPA) e 51,9$\times$ (UF) --- a assinatura do efeito Moulton. Como $|\hat\beta_{\text{negro}}|/\text{SE}$ permanece acima de 29 mesmo no agrupamento mais conservador, nenhuma conclusão sobre o gap racial depende da escolha do erro-padrão; a correção importa para os coeficientes contextuais e para as variáveis de UF. 
+A PNAD Contínua é uma amostra por conglomerados: pessoas da mesma unidade primária de amostragem (UPA, proxy de bairro) compartilham choques não observados, e os regressores de contexto variam apenas no nível da UPA. Tratar as $7{,}7$~milhões de observações como independentes subestima os erros-padrão pelo fator de Moulton $\sqrt{1+(\bar n-1)\rho}$ \cite{angrist2009}. Por isso, todos os modelos de regressão (OLS com efeitos fixos de UF, decomposição de Oaxaca--Blinder, regressão quantílica e logit) reportam erros-padrão \emph{agrupados por UPA} (41.517 clusters) --- para a OB e a regressão quantílica, por bootstrap em blocos de UPA. O agrupamento por UF é mais conservador, mas com 27 clusters ($<42$) a inferência assintótica é pouco confiável \cite{angrist2009}; quando reportado, usa a distribuição $t$ com $G-1$ graus de liberdade. No HLM, o intercepto aleatório de UPA modela explicitamente a correlação intra-bairro, de modo que o erro-padrão do modelo já a incorpora (sob a hipótese de efeitos aleatórios); como contraprova, os coeficientes do HLM são comparados aos do OLS com efeitos fixos de UF e erro-padrão agrupado por UPA, que coincidem em sinal, magnitude e significância. No OLS com efeitos fixos de UF (especificação do M3), o erro-padrão de $\hat\beta_{\text{negro}}$ passa de 0,0006 (convencional) para 0,0011 (agrupado por UPA) e 0,0035 (agrupado por UF); para o regressor de contexto $\overline{\%\text{Negro}}_{\text{UPA}}$, que varia apenas no nível da UPA, a razão é de 7,3$\times$ (UPA) e 51,9$\times$ (UF) --- a assinatura do efeito Moulton. Como $|\hat\beta_{\text{negro}}|/\text{SE}$ permanece acima de 29 mesmo no agrupamento mais conservador, nenhuma conclusão sobre o gap racial depende da escolha do erro-padrão; a correção importa para os coeficientes contextuais e para as variáveis de UF. 
 
 \paragraph{Pesos amostrais.} Os modelos são estimados sem o peso amostral da PNAD (V1028), isto é, descrevem a regressão na amostra, não a regressão populacional \cite{angrist2009}. Como robustez, o M3 foi reestimado por mínimos quadrados ponderados com V1028 e erro-padrão agrupado por UPA: $\hat\beta_{\text{negro}}$ passa de -0,1009 para -0,0967 (gap de 9,6\% para 9,2\%), diferença sem relevância econômica; os demais resultados são não ponderados. 
 
@@ -469,7 +464,7 @@ brasileiro, documentada com rigor empírico em cada etapa.
  & que a exclusão começa antes do salário. \\
 \hline
 \textbf{BARREIRA II} & Para os que superam a barreira de entrada --- qual é o \\
-\textbf{Penalidade e Teto de Vidro} & custo de ser negro? Gap líquido de 9,6\% (M3) e de 6,2\% dentro \\
+\textbf{Penalidade e Teto de Vidro} & custo de ser negro? Gap líquido de 10,2\% (M3) e de 7,0\% dentro \\
  & da mesma ocupação (M4), crescendo nos quantis mais altos ($Z=-16{,}95$, $p<0{,}001$). \\
 \hline
 \end{tabularx}
@@ -489,89 +484,99 @@ Nenhum método isolado teria identificado o sistema como um todo.
 \label{subsec:hlm_resultados}
 
 \textit{Esta seção documenta como o território amplifica o gap racial:
-o CEP de moradia não é apenas contexto --- é parte do mecanismo de exclusão.}
+o bairro de moradia não é apenas contexto --- é parte do mecanismo de exclusão.}
 
-A Tabela~\ref{tab:hlm_resultados} apresenta os quatro modelos HLM
-ajustados sequencialmente, do modelo nulo (M0) ao modelo completo de
-três níveis (M3). Os modelos foram estimados por REML com complementação
-por OLS com efeitos fixos de UF e erros-padrão clusterizados por UF
-para verificação de robustez.
+A Tabela~\ref{tab:hlm_resultados} apresenta os cinco degraus da estratégia
+\emph{step-up}, do modelo nulo (M0) ao modelo com ocupação (M4), todos com intercepto
+aleatório por UPA e estimados por máxima verossimilhança sobre a população completa.
+\emph{Como ler:} acompanhe a linha \textbf{Raça (negro)} da esquerda para a direita ---
+cada coluna acrescenta um bloco de controles e o coeficiente se aproxima de zero; as
+linhas de baixo dizem quanto da variância entre bairros cada bloco explica e se o degrau
+melhora o ajuste (LR).
 
-\paragraph{ICC e justificativa do modelo multinível.}
-O modelo nulo (M0) estima $\hat{\rho}_{UF} = 0.0980$,
-indicando que aproximadamente 9,8\% da variância do log-rendimento é
-atribuível ao estado de residência, acima do limiar de 5\% sugerido
-por \citeonline{raudenbush2002} para justificar a inclusão do nível superior.
-A adição das covariáveis contextuais da UPA (M2) reduz o ICC para
-5,8\%, revelando que o contexto de bairro explica parte substancial
-da heterogeneidade interestadual.
+\paragraph{Quanto da renda é ``bairro'': o modelo nulo.}
+O M0 estima $\hat\tau^2_{\text{UPA}} = 0,3370$ e $\hat\sigma^2 = 0,5759$,
+ou seja, ICC$_{\text{UPA}} = 0,369$: \textbf{36,9\% da variância do
+log-rendimento está entre bairros}, muito acima do limiar de 5\% de
+\citeonline{raudenbush2002} e da parcela entre estados (cerca de 10\%, no modelo
+alternativo com UF aleatória usado como robustez). A estrutura aninhada não é um detalhe
+técnico: ignorá-la trataria como independentes pessoas que compartilham o mesmo mercado
+de trabalho local.
 
-\paragraph{Gap salarial racial: bruto, contextual e líquido.}
-O modelo M1 estima $\hat{\beta}_1^{M1} = -0.2123$
-($p<0{,}001$), indicando que profissionais negros recebem em média
-19,1\% a menos que brancos com mesma escolaridade, sexo e faixa
-etária --- o \textbf{gap racial bruto}.
+\paragraph{Gap agregado \emph{vs.} gap dentro do bairro (M1).}
+Com escolaridade, idade, sexo, horas, situação urbana e ano, mas \emph{sem} nenhum
+efeito de bairro (OLS com efeitos fixos de UF, Subseção~\ref{subsec:inferencia}),
+trabalhadores negros recebem 19,1\% a menos que brancos comparáveis
+($\hat\beta = −0,2123$). O M1 acrescenta o intercepto aleatório de UPA e passa a
+comparar negros e brancos \emph{do mesmo bairro}: $\hat\beta_{\text{negro}}^{M1} =
+−0,1124$ (IC~95\%: [−0,1135; −0,1113]), ou \textbf{10,6\% a menos}. A diferença
+entre os dois --- \textbf{47,0\% do gap agregado} --- é a parcela do gap
+racial que transita pela segregação residencial: negros e brancos com o mesmo capital
+humano não moram nos mesmos bairros, e os bairros pagam diferente. Esse é o teste da
+Hipótese~H2. Os controles individuais explicam, além disso, 55,2\% da
+variância entre bairros do M0: parte do que parecia ``bairro'' é composição de quem mora
+nele.
 
-Após a inclusão das variáveis de contexto da UPA (M2),
-$\hat{\beta}_1^{M2} = -0.1009$, redução que implica uma
-\textbf{mediação contextual de 52,5\%} do gap bruto pelo
-local de moradia. Esse resultado confirma a Hipótese~H2 e quantifica
-o \textit{duplo disadvantage}: a segregação residencial opera como canal
-independente de reprodução da desigualdade racial.
+\paragraph{O que faz de um bairro um bairro (M2).}
+As três covariáveis de nível~2 explicam 40,1\% da variância entre
+bairros que restava no M1 ($\hat\tau^2$ de 0,1509 para 0,0903; LR $=$
+19.536, 3 g.l., $p<0{,}001$). O coeficiente de composição racial,
+$\hat\gamma_{01} = −0,2189$ (SE 0,0017), indica que um desvio-padrão a mais
+na proporção de negros da UPA reduz o log-rendimento de \emph{todos} os moradores em
+0,22 pontos --- da mesma ordem da penalidade individual --- a evidência mais
+direta do \textit{duplo disadvantage}. O coeficiente individual mal se move
+($\hat\beta_{\text{negro}}^{M2} = −0,1076$): dentro do bairro, a penalidade racial
+não depende de quem são os vizinhos; o bairro opera pela \emph{porta de entrada}
+(onde se consegue morar), não pelo salário de quem já está lá.
 
-O coeficiente de composição racial da UPA,
-$\hat{\gamma}_{01} = -0{,}2689$ ($p<0{,}001$), indica que um desvio-padrão
-adicional de proporção de negros na UPA reduz o log-rendimento em
-0{,}29 pontos, efeito equivalente à penalidade individual de ser negro
---- a evidência mais direta do \textit{duplo disadvantage}.
+\paragraph{Gap líquido (M3).}
+Com os efeitos fixos de UF, $\hat\beta_{\text{negro}}^{M3} = −0,1077$
+(IC~95\%: [−0,1088; −0,1066]): o \textbf{gap líquido de 10,2\%} é o diferencial que
+capital humano, contexto de bairro e estado não explicam --- limite inferior da
+discriminação direta sob seleção em observáveis. O ICC cai para 0,161 e os
+controles explicam 75,9\% da variância entre bairros do M0.
 
-O modelo completo M3 produz $\hat{\beta}_1^{M3} = -0.1009$
-($p<0{,}001$): o \textbf{gap líquido de 9,6\%} representa a fração
-do diferencial salarial não explicável por capital humano individual
-nem pelo contexto de moradia --- o limite inferior da discriminação
-direta no mercado de trabalho.
+\paragraph{Dentro da mesma ocupação (M4).}
+Acrescentar vínculo e grupo CBO leva a $\hat\beta_{\text{negro}}^{M4} = −0,0724$
+(7,0\%). A queda adicional --- 16,6\% do gap agregado --- não é
+``explicação'', é \emph{canal}: a ocupação é ela própria resultado da barreira de acesso
+(Seção~\ref{subsec:glmm_resultados}), por isso o M4 é um limite inferior descritivo.
 
-\begin{longtable}{lcccc}
-\caption{Modelos HLM de Três Níveis --- Determinantes do Log-Rendimento Mensal por Raça no Brasil (PNAD Contínua, 2016--2025). Coeficientes com erro-padrão do modelo entre parênteses e, entre colchetes, erro-padrão agrupado por UPA (41.517 clusters; Moulton) do OLS com efeitos fixos de UF, que tem os mesmos coeficientes. $^{***}$\,$p<0{,}001$; $^{**}$\,$p<0{,}01$; $^{*}$\,$p<0{,}05$.}\label{tab:hlm_resultados}\\
-\toprule
-\textbf{Variável} & \textbf{M0} & \textbf{M1} & \textbf{M2} & \textbf{M3} \\
-\midrule \endfirsthead
-\toprule
-\textbf{Variável} & \textbf{M0} & \textbf{M1} & \textbf{M2} & \textbf{M3} \\
-\midrule \endhead
-\midrule \multicolumn{5}{r}{\textit{continua}} \\ \endfoot
-\bottomrule \endlastfoot
-Intercepto & 7.2694$^{***}$ (0.0555) & 4.2052$^{***}$ (0.0387) [0.0125] & 4.2469$^{***}$ (0.0335) [0.0119] & 4.2042$^{***}$ (0.0253) [0.0119] \\
-\textbf{Raça (negro)} & - & -0.2123$^{***}$ (0.0006) [0.0020] & -0.1009$^{***}$ (0.0006) [0.0011] & -0.1009$^{***}$ (0.0006) [0.0011] \\
-Gênero (feminino) & - & -0.1844$^{***}$ (0.0005) [0.0011] & -0.1852$^{***}$ (0.0005) [0.0010] & -0.1852$^{***}$ (0.0005) [0.0010] \\
-Idade (centralizada) & - & 0.0121$^{***}$ (0.0000) [0.0001] & 0.0106$^{***}$ (0.0000) [0.0001] & 0.0106$^{***}$ (0.0000) [0.0001] \\
-Idade$^2$ (experiência) & - & -0.0005$^{***}$ (0.0000) [0.0000] & -0.0005$^{***}$ (0.0000) [0.0000] & -0.0005$^{***}$ (0.0000) [0.0000] \\
-\addlinespace[3pt]
-\multicolumn{5}{l}{\textit{Controles educacionais}} \\
-Educ.: Fundamental & - & -0.2631$^{***}$ (0.0041) [0.0068] & -0.2540$^{***}$ (0.0040) [0.0067] & -0.2540$^{***}$ (0.0040) [0.0067] \\
-Educ.: Médio & - & -0.0685$^{***}$ (0.0029) [0.0048] & -0.0652$^{***}$ (0.0028) [0.0048] & -0.0652$^{***}$ (0.0028) [0.0048] \\
-Educ.: Superior & - & 0.0735$^{***}$ (0.0027) [0.0046] & 0.0703$^{***}$ (0.0027) [0.0045] & 0.0703$^{***}$ (0.0027) [0.0045] \\
-Educ.: Pós-graduação & - & -0.0020 (0.0040) [0.0059] & 0.0038 (0.0039) [0.0059] & 0.0038 (0.0039) [0.0059] \\
-\addlinespace[3pt]
-\multicolumn{5}{l}{\textit{Contexto de localidade (Nível 2 --- UPA)}} \\
-\% Negro na UPA ($z$) & - & - & -0.2689$^{***}$ (0.0005) [0.0039] & -0.2689$^{***}$ (0.0005) [0.0039] \\
-Desemprego UPA ($z$) & - & - & -0.0403$^{***}$ (0.0004) [0.0019] & -0.0403$^{***}$ (0.0004) [0.0019] \\
-Educ. média UPA ($z$) & - & - & -0.0041$^{***}$ (0.0003) [0.0020] & -0.0041$^{***}$ (0.0003) [0.0020] \\
-\addlinespace[3pt]
-\multicolumn{5}{l}{\textit{Contexto macrorregional (Nível 3 --- UF)}} \\
-\% Negro no Estado ($z$) & - & - & - & 0.0645 (0.0336) \\
-Desemprego Estado ($z$) & - & - & - & -0.0543 (0.0282) \\
-Educ. média Estado ($z$) & - & - & - & 0.0819$^{***}$ (0.0210) \\
-\addlinespace[3pt]
-\addlinespace[2pt] \midrule
-\multicolumn{5}{l}{\textit{Componentes de variância e ajuste}} \\
-$\hat{\sigma}^2$ (Nível 1) & 0.7665 & 0.5101 & 0.4844 & 0.4844 \\
-$\hat{\tau}^2_{UF}$ (Nível 3) & 0.08327 & 0.04002 & 0.02990 & 0.01478 \\
-$\text{ICC}_{UF}$ & 0.0980 & 0.0727 & 0.0581 & 0.0296 \\
-$N$ (observações) & 7,689,426 & 7,689,426 & 7,689,426 & 7,689,426 \\
-AIC & N/D & N/D & N/D & N/D \\
-\end{longtable}
+\paragraph{A penalidade varia entre bairros.}
+A inclinação aleatória de \texttt{negro} por UPA é significativa (LR $=$ 38.943,
+2 g.l., $p<0{,}001$): $\hat\tau^2_1 = 0,0293$, desvio-padrão de 0,171
+log-pontos. Em bairros a um desvio-padrão da média a penalidade vai de
+−0,280 a 0,063 log-pontos --- a discriminação salarial tem geografia, e a
+covariância intercepto--inclinação de −0,0245 indica que a penalidade é
+maior nos bairros de renda-base mais alta.
 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{hlm_efeitos_uf_blup_upa}
+  \caption{A variação entre bairros supera a variação entre estados. À esquerda, os
+  efeitos fixos de UF do M3 com IC~95\% (referência: primeira UF); à direita, a
+  distribuição dos interceptos aleatórios das UPAs ($u_{0j}$, BLUPs do M3).}
+  \label{fig:hlm_blups}
+\end{figure}
+\noindent\emph{Como ler a Figura~\ref{fig:hlm_blups}:} cada ponto à esquerda é um estado;
+a largura do histograma à direita é o quanto a renda-base muda de um bairro para outro,
+já descontados capital humano, contexto e estado.
+
+\paragraph{Viés de variável omitida e sensibilidade.}
+O coeficiente racial é uma associação condicional: pela fórmula do viés de variável
+omitida \cite{angrist2009}, o coeficiente ``curto'' iguala o ``longo'' mais o efeito do
+omitido vezes sua relação com a raça. Qualidade da escola, habilidade não observada e
+redes de contato correlacionam-se negativamente com ser negro e positivamente com a
+renda: omiti-las \emph{superestima} a penalidade --- o que faz do M3 um limite superior
+para o efeito de tratamento diferencial condicional a essas características. Na direção
+oposta, os controles que são desfechos (ocupação no M4) \emph{subestimam}. O gap líquido
+deve ser lido entre esses dois limites. Para anular $\hat\beta^{M3}_{\text{negro}}$ seria
+preciso um viés de 99,0\% do coeficiente (Konfound, \citeonline{frank2013}), e o
+E-value do modelo de acesso (Tabela~\ref{tab:glmm_glassceil}) exige um confundidor
+associado à raça e ao desfecho com razão de risco $\geq 2{,}2$ --- mais forte que qualquer
+covariável observada.
+
+\input{outputs/tables/hlm_stepup.tex}
 
 \subsection{Modelos de Machine Learning e SHAP Values}
 \label{subsec:ml}
@@ -712,8 +717,8 @@ a diferenças em educação, experiência, gênero ou contexto de moradia.
 
 \subsection{Decomposição do gap por mediação contextual e ocupacional}
 A Tabela~\ref{tab:mediacao} resume o resultado central dos modelos HLM: à medida
-que se adicionam controles de contexto (UPA) e ocupação, o gap racial encolhe de
-$-19{,}1\%$ (M1) para $-6{,}2\%$ (M4). \emph{Como ler:} acompanhe a coluna
+que se adiciona o bairro (intercepto aleatório e contexto da UPA), o estado e a ocupação,
+o gap racial encolhe de 19,1\% (agregado) para 7,0\% (M4). \emph{Como ler:} acompanhe a coluna
 $\beta_{\text{negro}}$ aproximando-se de zero linha a linha --- a fração do gap já
 explicada aparece em ``Mediação acum.''; o que resta no M4 é a penalidade que
 nenhum atributo observável explica.
@@ -749,6 +754,7 @@ a $12{,}9\%$ (q90) --- a discriminação de preço pesa mais na base.
 \input{outputs/tables/rif_decomp_tcc.tex}
 
 \subsection{GLMM Logístico: o teto de vidro no acesso}
+\label{subsec:glmm_resultados}
 O GLMM logístico multinível estima a probabilidade de acesso a cargo qualificado
 e ao topo da renda, com efeito aleatório de UPA. A Tabela~\ref{tab:glmm_glassceil}
 traz os \emph{odds ratios}, efeitos marginais e E-values dos três desfechos.
@@ -827,8 +833,8 @@ quanto da penalidade racial transita \textit{pelo} território.
 (escolaridade, ocupação, contexto), por oposição ao \textbf{efeito retornos}
 (preços diferenciais pagos às mesmas características).
 \textbf{Gap líquido} é o diferencial que \textit{persiste} após o controle de
-capital humano e contexto (M3): 9,6\%. \textbf{Gap residual pós-ocupação} é o
-que resta ao se controlar também ocupação e formalidade (M4): 6,2\% --- um limite
+capital humano e contexto (M3): 10,2\%. \textbf{Gap residual pós-ocupação} é o
+que resta ao se controlar também ocupação e formalidade (M4): 7,0\% --- um limite
 inferior, pois a ocupação é ela própria resultado da barreira de acesso. Em suma: a mediação contextual responde
 ``por onde passa o gap''; a decomposição de dotações, ``de que ele é feito''; e o
 gap líquido, ``o que sobra sem explicação''.
@@ -898,13 +904,14 @@ territorial da desigualdade --- não como fonte de dados integrada, e ressalvand
 o IPS mede progresso social geral, não desigualdade racial.
 
 \paragraph{A segregação residencial como multiplicador da desigualdade.}
-O achado mais robusto desta análise é que 52,5\% do gap salarial racial
-bruto é mediado pelo local de moradia --- muito além do que modelos
+O achado mais robusto desta análise é que 47,0\% do gap salarial racial
+condicional a capital humano é mediado pelo bairro de moradia --- muito além do que modelos
 cross-sectionais típicos, que ignoram a estrutura aninhada dos dados,
 seriam capazes de estimar. O coeficiente contextual
-$\hat{\gamma}_{01} = -0{,}269$ para a proporção de negros na UPA
-indica que a penalidade de viver em bairro segregado equivale,
-em magnitude, à própria penalidade individual de ser negro.
+$\hat{\gamma}_{01} = −0,2189$ para a proporção de negros na UPA
+indica que a penalidade de viver em bairro segregado é da mesma ordem
+de grandeza da própria penalidade individual de ser negro --- e que 36,9\%
+da variância do rendimento está entre bairros, não entre pessoas.
 Isso sugere que políticas de redistribuição de renda que não enfrentem
 a segregação residencial terão eficácia limitada sobre o gap racial.
 
@@ -923,7 +930,7 @@ que não cruzam fronteiras sociais ---, hipótese que este trabalho não testa
 diretamente e que fica como agenda.
 
 \paragraph{Persistência da discriminação direta.}
-O gap líquido de 9,6\%, estimado após controlar por todos os vetores
+O gap líquido de 10,2\%, estimado após controlar por todos os vetores
 de transmissão contextual, representa um piso para a discriminação direta
 não explicada por diferenças observáveis. Os valores SHAP reforçam essa
 interpretação: a variável racial mantém o 11$^\circ$ lugar
@@ -962,7 +969,7 @@ decrescente.
 O \textbf{combate à discriminação direta} encontra base na \textit{Lei~9.029/1995}
 (que proíbe práticas discriminatórias na relação de trabalho) e no \textit{Estatuto
 da Igualdade Racial} (\textit{Lei~12.288/2010}), cuja fiscalização o gap líquido de
-9,6\% --- e a penalidade de 6,2\% que persiste dentro da mesma ocupação ---
+10,2\% --- e a penalidade de 7,0\% que persiste dentro da mesma ocupação ---
 justifica reforçar.
 
 \section{Conclusão}
@@ -999,7 +1006,7 @@ proporcionais à magnitude do problema.
 
 \begin{quote}
 \textit{Com a mesma escolaridade, idade, sexo e bairro, um trabalhador negro ganha
-9,6\% a menos que um branco --- e a barreira mais dura não é o salário, é a porta:
+10,2\% a menos que um branco --- e a barreira mais dura não é o salário, é a porta:
 30\% menos chance de chegar a um cargo qualificado. O mercado de trabalho
 brasileiro não é racialmente neutro, e educação sozinha não corrige isso.}
 \end{quote}
@@ -1008,11 +1015,12 @@ brasileiro não é racialmente neutro, e educação sozinha não corrige isso.}
 
 Essas conclusões emergem da convergência de quatro métodos e cinco análises
 de robustez sobre $N=7.694.198$ observações da PNAD Contínua 2016--2025.
-O gap condicional a capital humano, de 19,1\% (M1), decompõe-se em três parcelas:
-(i)~mediação contextual de 52,5\% pelo local de moradia
-($\hat{\gamma}_{01}=-0{,}269$), que leva ao \textbf{gap líquido de 9,6\%} (M3);
-(ii)~mediação ocupacional de 17,3\% pelo acesso desigual a grupos CBO de alta
-remuneração; e (iii)~penalidade de 6,2\% que persiste \emph{dentro} da mesma
+O gap condicional a capital humano, de 19,1\% (sem efeito de bairro),
+decompõe-se em três parcelas: (i)~mediação de 47,0\% pela segregação
+residencial --- comparando negros e brancos do mesmo bairro ($\hat{\gamma}_{01}=−0,2189$
+para a composição racial do bairro), chega-se ao \textbf{gap líquido de 10,2\%} (M3);
+(ii)~mediação ocupacional de 16,6\% pelo acesso desigual a grupos CBO de alta
+remuneração; e (iii)~penalidade de 7,0\% que persiste \emph{dentro} da mesma
 ocupação (M4) --- limite inferior descritivo, pois a própria ocupação é
 resultado da barreira de acesso.
 O GLMM logístico confirma essa barreira: OR~$=0,705$ para CBO~1--4 no modelo

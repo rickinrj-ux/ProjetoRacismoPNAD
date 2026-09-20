@@ -36,7 +36,7 @@ Legenda: ⏱ estimativa · 🖥 exige reestimação de modelo · ✍ só texto/g
       M4 (−6,2 %). Corrigir l.464 ("−6,2 % após 23 controles"), l.924, l.963, l.1004, l.1034
 - [x] 1.5 "ICC cai para 5,3 %" (l.502) → 5,8 % (tabela: 0,0581)
 - [x] 1.6 Convenção de sinal única para gaps em % (penalidade positiva OU β negativo)
-- [ ] 1.7 (restam 2 células `(0.0000)` — idade; resolver na tabela nova do Bloco 3) Substituir `(0.0000)` por notação com mais casas; trocar asteriscos por IC 95 % nas
+- [x] 1.7 (restam 2 células `(0.0000)` — idade; resolver na tabela nova do Bloco 3) Substituir `(0.0000)` por notação com mais casas; trocar asteriscos por IC 95 % nas
       tabelas do núcleo (MHE-85)
 
 ## Bloco 2 — Erros-padrão (🖥, ⏱ ½ dia de máquina + 1 h) — ✅ concluído em 2026-09-20
@@ -57,20 +57,22 @@ Lições: rodar UM job pesado por vez (o watchdog de memória do ambiente mata p
 - [x] 2.6 (WLS V1028: β=−0,0967 vs −0,1009; gap 9,2% vs 9,6%) Robustez com peso amostral: M3 OLS cluster-UPA com `weights=V1028`; frase na Metodologia
       dizendo que os demais modelos são não ponderados (MHE-30/FAV-09)
 
-## Bloco 3 — HLM honesto (🖥, ⏱ 1 dia) — decisão: qual das duas?
+## Bloco 3 — HLM honesto (🖥, ⏱ 1 dia) — ✅ concluído em 2026-09-20
 
-- [ ] 3.1 **Escolher**: (a) reescrever como 2 níveis (indivíduo/UF) + contexto de UPA, usando
+Resultado-chave: ICC_UPA = 0,369 (37% da variância entre bairros); gap agregado 19,1% → dentro do mesmo bairro 10,6% (mediação pela segregação residencial = 47,0%); gap líquido M3 = 10,2%; M4 = 7,0%; a penalidade varia entre bairros (DP 0,17).
+
+- [x] 3.1 (opção a, implementada como HLM de 2 níveis indivíduo→UPA com efeitos fixos de UF — `run_hlm_stepup.py`; o antigo RE-UF fica como robustez) **Escolher**: (a) reescrever como 2 níveis (indivíduo/UF) + contexto de UPA, usando
       `run_hlm_m4.py` (groups=UPA) como modelo de UPA; ou (b) estimar 3 níveis em lme4
       `(1|UF/UPA)` (infra R já existe)
-- [ ] 3.2 Reescrever `subsec:hlm` (l.370–433): equações, "interceptos fixos de UPA" sai, ICC por
+- [x] 3.2 Reescrever `subsec:hlm` (l.370–433): equações, "interceptos fixos de UPA" sai, ICC por
       nível conforme o modelo escolhido
-- [ ] 3.3 Step-up completo: −2LL, AIC, BIC e LR test M0→M1→M2→M3 (refit ML para efeitos fixos;
+- [x] 3.3 Step-up completo: −2LL, AIC, BIC e LR test M0→M1→M2→M3 (refit ML para efeitos fixos;
       REML só para componentes de variância) — preencher "AIC N/D"
-- [ ] 3.4 Teste de inclinação aleatória de `negro` por UF (LR, `run_hlm_m3_random_slope.py` já existe)
-- [ ] 3.5 Gráfico dos BLUPs de UF (caterpillar) — vira uma das figuras do núcleo
-- [ ] 3.6 Parágrafo OVB: o que M1 omite (qualidade da escola, habilidade, redes), direção provável
+- [x] 3.4 (inclinação aleatória de `negro` por UPA, não por UF: τ²₁=0,029, DP 0,17, LR=38.943) Teste de inclinação aleatória de `negro` por UF (LR, `run_hlm_m3_random_slope.py` já existe)
+- [x] 3.5 (figura `hlm_efeitos_uf_blup_upa.png`: efeitos fixos de UF + histograma dos BLUPs de UPA) Gráfico dos BLUPs de UF (caterpillar) — vira uma das figuras do núcleo
+- [x] 3.6 Parágrafo OVB: o que M1 omite (qualidade da escola, habilidade, redes), direção provável
       do viés; incluir `konfound_hlm_vs_ols.tex` (já rodado, ausente do relatório)
-- [ ] 3.7 Padronizar rótulos de educação entre tabelas HLM e OB
+- [x] 3.7 Padronizar rótulos de educação entre tabelas HLM e OB
 
 ## Bloco 4 — GLMM de verdade (🖥, ⏱ ½ dia)
 

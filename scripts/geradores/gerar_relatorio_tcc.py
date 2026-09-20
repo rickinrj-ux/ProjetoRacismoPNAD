@@ -38,7 +38,23 @@ def load_results():
     r["hlm"] = hlm_raw
 
     gap = pd.read_csv(TABLES / "gap_decomposicao_serie_completo.csv")
+    # Bloco 3: se o HLM step-up (indivíduo em UPA, UF fixo) existir, ele é a fonte dos KPIs
+    stepup = TABLES / "gap_decomposicao_stepup.csv"
+    if stepup.exists():
+        su = pd.read_csv(stepup).set_index("Modelo")
+        med = su["Mediacao_acum%"]
+        gap = pd.DataFrame({
+            "Modelo": ["M1_Individual", "M2_Localidade", "M3_Completo", "M4_Ocupacao"],
+            "b_negro": [su.loc[m, "b_negro"] for m in ("M1", "M2", "M3", "M4")],
+            "Gap%": [su.loc[m, "Gap%"] for m in ("M1", "M2", "M3", "M4")],
+            "Mediacao_UPA%": [float("nan"), med["M2"], med["M2"], med["M2"]],
+            "Mediacao_UF%": [float("nan"), float("nan"), med["M3"] - med["M2"], med["M3"] - med["M2"]],
+            "Mediacao_occ%": [float("nan"), float("nan"), float("nan"), med["M4"] - med["M3"]],
+            "Mediacao_total%": [float("nan"), med["M2"], med["M3"], med["M4"]],
+        })
     r["gap"] = gap
+    fit = TABLES / "hlm_stepup_fit.csv"
+    r["stepup_fit"] = pd.read_csv(fit).set_index("modelo") if fit.exists() else None
 
     # SEs alternativos (conv / cluster-UPA / cluster-UF) dos OLS-FE — Moulton (MHE cap. 8)
     se_path = TABLES / "hlm_serie_completo_se.csv"
@@ -100,6 +116,9 @@ def extract_kpis(r):
 
     k["icc_uf_m0"] = hlm_val("ICC_UF", "M0_Nulo")
     k["icc_uf_m3"] = hlm_val("ICC_UF", "M3_Completo")
+    if r.get("stepup_fit") is not None:          # bloco 3: ICC do nível 2 = UPA
+        k["icc_uf_m0"] = f"{r['stepup_fit'].loc['M0', 'icc_upa']:.4f}"
+        k["icc_uf_m3"] = f"{r['stepup_fit'].loc['M3', 'icc_upa']:.4f}"
     k["n_obs"]     = hlm_val("N (obs.)", "M1_Individual")
 
     # K-Means

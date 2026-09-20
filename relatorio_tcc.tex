@@ -105,10 +105,10 @@ Amostra de Domicílios Contínua (PNAD Contínua) de 2016 a 2025, com
 
 Um modelo de regressão multinível de três níveis (indivíduo, UPA e Unidade
 da Federação) estima que profissionais negros recebem, em média,
-19.1\% a menos que brancos comparáveis em escolaridade, sexo e faixa etária.
-Desse diferencial bruto, 52.5\% é mediado pelo contexto de moradia
+10.6\% a menos que brancos comparáveis em escolaridade, sexo e faixa etária.
+Desse diferencial bruto, 4.2\% é mediado pelo contexto de moradia
 (\textit{networking} local, Nível~2), reduzindo o \textit{gap} líquido
---- atribuível à discriminação direta --- a 9.6\%.
+--- atribuível à discriminação direta --- a 10.2\%.
 
 A análise de agrupamento (\textit{K-Means}, $k=3$) segrega a força de trabalho
 em três tipologias socioeconomicamente distintas e racialmente homogêneas,
@@ -159,11 +159,11 @@ series of Brazil's Continuous National Household Sample Survey (PNAD Contínua)
 from 2016 to 2025 (15.9~million raw observations).
 
 A three-level hierarchical linear model (individual, census tract, and state)
-estimates that Black workers earn 19.1\% less than comparable White
+estimates that Black workers earn 10.6\% less than comparable White
 workers after controlling for education, sex, and age experience.
-Of this gross differential, 52.5\% is mediated by residential context
+Of this gross differential, 4.2\% is mediated by residential context
 (local networking, Level~2), leaving a residual \textit{net gap} of
-9.6\% attributable to direct labour market discrimination.
+10.2\% attributable to direct labour market discrimination.
 
 K-Means clustering ($k=3$) reveals three racially homogeneous
 socioeconomic typologies, with Black workers concentrated in lower-income
@@ -520,7 +520,7 @@ brasileiro, documentada com rigor empírico em cada etapa.
  & espacial mostram que a exclusão começa antes do salário. \\
 \hline
 \textbf{BARREIRA II} & Para os que superam a barreira de entrada --- qual é o \\
-\textbf{Penalidade e Teto de Vidro} & custo de ser negro? Gap residual de -6.2\% após 23 controles, \\
+\textbf{Penalidade e Teto de Vidro} & custo de ser negro? Gap residual de -7.0\% após 23 controles, \\
  & crescendo nos quantis mais altos (KB-test $p<0{,}001$). \\
 \hline
 \textbf{BARREIRA III} & Por que educação, sozinha, não quebra o ciclo? \\
@@ -553,7 +553,7 @@ por OLS com efeitos fixos de UF e erros-padrão clusterizados por UF
 para verificação de robustez.
 
 \paragraph{ICC e justificativa do modelo multinível.}
-O modelo nulo (M0) estima $\hat{\rho}_{UF} = 0.0980$,
+O modelo nulo (M0) estima $\hat{\rho}_{UF} = 0.3692$,
 indicando que aproximadamente 9,8\% da variância do log-rendimento é
 atribuível ao estado de residência, acima do limiar de 5\% sugerido
 por \citeonline{raudenbush2002} para justificar a inclusão do nível superior.
@@ -562,14 +562,14 @@ A adição dos \textit{slopes contextuais} da UPA (M2) reduz o ICC para
 da heterogeneidade interestadual.
 
 \paragraph{Gap salarial racial: bruto, contextual e líquido.}
-O modelo M1 estima $\hat{\beta}_1^{M1} = -0.2123$
+O modelo M1 estima $\hat{\beta}_1^{M1} = -0.1124$
 ($p<0{,}001$), indicando que profissionais negros recebem em média
-19.1\% a menos que brancos com mesma escolaridade, sexo e faixa
+10.6\% a menos que brancos com mesma escolaridade, sexo e faixa
 etária --- o \textbf{gap racial bruto}.
 
 Após a inclusão das variáveis de contexto da UPA (M2),
-$\hat{\beta}_1^{M2} = -0.1009$, redução que implica uma
-\textbf{mediação contextual de 52.5\%} do gap bruto pelo
+$\hat{\beta}_1^{M2} = -0.1076$, redução que implica uma
+\textbf{mediação contextual de 4.3\%} do gap bruto pelo
 local de moradia. Esse resultado confirma a Hipótese~H2 e quantifica
 o \textit{duplo disadvantage}: a segregação residencial opera como canal
 independente de reprodução da desigualdade racial.
@@ -580,8 +580,8 @@ adicional de proporção de negros na UPA reduz o log-rendimento em
 0{,}29 pontos, efeito equivalente à penalidade individual de ser negro
 --- a evidência mais direta do \textit{duplo disadvantage}.
 
-O modelo completo M3 produz $\hat{\beta}_1^{M3} = -0.1009$
-($p<0{,}001$): o \textbf{gap líquido de 9.6\%} representa a fração
+O modelo completo M3 produz $\hat{\beta}_1^{M3} = -0.1077$
+($p<0{,}001$): o \textbf{gap líquido de 10.2\%} representa a fração
 do diferencial salarial não explicável por capital humano individual
 nem pelo contexto de moradia --- o limite inferior da discriminação
 direta no mercado de trabalho.
@@ -1154,7 +1154,7 @@ territorial da desigualdade --- não como fonte de dados integrada, e ressalvand
 o IPS mede progresso social geral, não desigualdade racial.
 
 \paragraph{A segregação residencial como multiplicador da desigualdade.}
-O achado mais robusto desta análise é que 52.5\% do gap salarial racial
+O achado mais robusto desta análise é que 4.2\% do gap salarial racial
 bruto é mediado pelo local de moradia --- muito além do que modelos
 cross-sectionais típicos, que ignoram a estrutura aninhada dos dados,
 seriam capazes de estimar. O coeficiente contextual
@@ -1176,7 +1176,7 @@ que cruzem fronteiras sociais, o capital humano acumulado circula
 apenas na própria comunidade.
 
 \paragraph{Persistência da discriminação direta.}
-O gap líquido de 9.6\%, estimado após controlar por todos os vetores
+O gap líquido de 10.2\%, estimado após controlar por todos os vetores
 de transmissão contextual, representa um piso para a discriminação direta
 não explicada por diferenças observáveis. Os valores SHAP reforçam essa
 interpretação: a variável racial mantém o 11$^\circ$ lugar
@@ -1215,7 +1215,7 @@ de retorno marginal decrescente.
 A frente de \textbf{combate à discriminação direta} encontra base na
 \textit{Lei~9.029/1995} (que proíbe práticas discriminatórias na relação de
 trabalho) e no \textit{Estatuto da Igualdade Racial} (\textit{Lei~12.288/2010}),
-cuja fiscalização o gap líquido residual de 9.6\% justifica reforçar.
+cuja fiscalização o gap líquido residual de 10.2\% justifica reforçar.
 Em conjunto, a contribuição da PO é traduzir a magnitude estimada de cada
 barreira em \textit{prioridade relativa} entre instrumentos que já integram o
 arcabouço legal brasileiro.
@@ -1279,7 +1279,7 @@ proporcionais à magnitude do problema.
 \begin{quote}
 \textit{Mesmo após controle exaustivo de 24 covariáveis individuais,
 ocupacionais e contextuais, trabalhadores negros recebem sistematicamente
--6.2\% a menos que brancos equivalentes --- o mercado de
+-7.0\% a menos que brancos equivalentes --- o mercado de
 trabalho brasileiro não é racialmente neutro.}
 \end{quote}
 
@@ -1304,12 +1304,12 @@ políticas focadas apenas em capital humano são necessárias, mas insuficientes
 
 Essas conclusões emergem da convergência de seis metodologias independentes
 sobre $N=7.694.198$ observações da PNAD Contínua 2016--2025.
-O gap bruto de 19.1\% (M1) decompõe-se em três camadas:
-(i)~mediação contextual de 52.5\% pela UPA
+O gap bruto de 10.6\% (M1) decompõe-se em três camadas:
+(i)~mediação contextual de 4.2\% pela UPA
 ($\hat{\gamma}_{01}=-0{,}269$);
-(ii)~mediação ocupacional de 17.3\% pelo acesso desigual a
+(ii)~mediação ocupacional de 31.4\% pelo acesso desigual a
 grupos CBO de alta remuneração;
-(iii)~gap residual de -6.2\% (M4), discriminação pura
+(iii)~gap residual de -7.0\% (M4), discriminação pura
 pós-ocupação.
 O GLMM logístico confirma a barreira de acesso:
 OR~$=0,676$ para CBO~1--4,

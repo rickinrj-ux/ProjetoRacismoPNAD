@@ -1,7 +1,8 @@
 \begin{table}[!ht]
 \centering
 \caption{Decomposição do gap salarial racial por mediação contextual e ocupacional
-(modelos HLM de três níveis, PNAD Contínua 2016--2025, população completa). Cada linha
+(HLM de dois níveis, indivíduos em UPA, com efeitos fixos de UF; PNAD Contínua
+2016--2025, população completa). Cada linha
 acrescenta um bloco de controles ao anterior; à medida que se adiciona contexto e ocupação,
 o gap encolhe e a mediação acumulada cresce.}
 \label{tab:mediacao}
@@ -9,17 +10,19 @@ o gap encolhe e a mediação acumulada cresce.}
 \toprule
 Modelo (controles acumulados) & $\beta_{\text{negro}}$ & Gap (\%) & Mediação acum. (\%) \\
 \midrule
-Individual (educ., idade, sexo) & −0,2123 & −19,1 & --- \\
-+ contexto da UPA (vizinhança) & −0,1009 & −9,6 & 52,5 \\
-+ efeito de UF (estado) & −0,1009 & −9,6 & 52,5 \\
-+ ocupação e formalidade & −0,0641 & −6,2 & 69,8 \\
+Agregado: individual + UF, sem efeito de bairro (OLS) & −0,2123 & −19,1 & --- \\
+M1: + intercepto aleatório de bairro (UPA) & −0,1124 & −10,6 & 47,0 \\
+M2: + contexto do bairro (UPA) & −0,1076 & −10,2 & 49,3 \\
+M3: + efeitos fixos de UF (gap líquido) & −0,1077 & −10,2 & 49,3 \\
+M4: + ocupação e formalidade (limite inferior) & −0,0724 & −7,0 & 65,9 \\
 \bottomrule
 \end{tabular}
 \par\smallskip
-\footnotesize\emph{Como ler:} cada linha adiciona controles à anterior. $\beta_{\text{negro}}$
+\footnotesize\emph{Como ler:} cada linha adiciona algo à anterior. $\beta_{\text{negro}}$
 é a penalidade racial em log-rendimento (mais próximo de zero = menor gap); ``Gap (\%)'' é a
-penalidade em \% de renda; ``Mediação acum.''\ é a fração do gap bruto (M1) já explicada pelos
-controles. Do M1 ao M4 o gap cai de $-19{,}1\%$ para $-6{,}2\%$: $69{,}8\%$ do gap é mediado por
-onde a pessoa mora e qual ocupação acessa --- e o residual de $-6{,}2\%$ persiste após todos os
-controles observáveis.
+penalidade em \% de renda; ``Mediação acum.''\ é a fração do gap agregado (primeira linha) já
+explicada. O salto da primeira para a segunda linha é a mediação pela segregação residencial:
+comparar negros e brancos \emph{do mesmo bairro} reduz o gap quase à metade. Do M1 ao M4 o gap cai de {fmt(abs(g1),1)}\% para {fmt(abs(g4),1)}\%: {fmt(m4,1)}\% do gap é mediado por
+onde a pessoa mora, o estado e a ocupação que acessa --- e a penalidade de {fmt(abs(g4),1)}\% persiste
+dentro da mesma ocupação (limite inferior, pois a ocupação é ela própria resultado da barreira de acesso).
 \end{table}
