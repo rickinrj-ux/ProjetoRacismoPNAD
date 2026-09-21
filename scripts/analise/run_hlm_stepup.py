@@ -361,20 +361,21 @@ def write_tex(R, seq, fit_df, gap_df, n_upa, n_uf, lr_rs, p_rs):
         return f"{fmt(c, 4)} ({s_txt.replace('.', ',')})"
     cols = seq
     L = []
-    L.append(r"\begin{longtable}{l" + "c" * len(cols) + "}")
+    L.append(r"\begin{table}[htbp]")
+    L.append(r"\centering")
     L.append(r"\caption{HLM de dois níveis (indivíduo em UPA) com efeitos fixos de UF --- estratégia "
              r"\emph{step-up}, PNAD Contínua 2016--2025, população completa "
              rf"($N = {fmtN(R['M0'].n)}$; {fmtN(n_upa)}~UPAs; {n_uf}~UFs). "
              r"Coeficientes com erro-padrão do modelo entre parênteses (a correlação intra-UPA já está "
              r"no efeito aleatório). Estimação por máxima verossimilhança (ML), para os testes LR entre "
-             r"degraus; REML coincide (Tabela de componentes). Todos os coeficientes com $|t| > 10$; "
-             r"a inferência relevante está nos intervalos de confiança, não nos asteriscos (MHE, cap.~8).}"
-             r"\label{tab:hlm_resultados}\\")
+             r"degraus; REML coincide. Todos os coeficientes com $|t| > 10$; "
+             r"a inferência relevante está nos intervalos de confiança, não nos asteriscos (MHE, cap.~8).}")
+    L.append(r"\label{tab:hlm_resultados}")
+    L.append(r"\resizebox{\textwidth}{!}{%")
+    L.append(r"\begin{tabular}{l" + "c" * len(cols) + "}")
     L.append(r"\toprule")
     hdr = " & ".join([r"\textbf{Variável}"] + [r"\textbf{" + c + "}" for c in cols])
-    L += [hdr + r" \\", r"\midrule \endfirsthead", r"\toprule", hdr + r" \\", r"\midrule \endhead",
-          r"\midrule \multicolumn{" + str(len(cols) + 1) + r"}{r}{\textit{continua}} \\ \endfoot",
-          r"\bottomrule \endlastfoot"]
+    L += [hdr + r" \\", r"\midrule"]
     grupos = [("", ["Intercept", "negro", "sexo_fem", "idade_c", "idade_sq"]),
               (r"\textit{Escolaridade (ref.: fundamental incompleto)}",
                ["educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao", "educ_missing"]),
@@ -420,7 +421,8 @@ def write_tex(R, seq, fit_df, gap_df, n_upa, n_uf, lr_rs, p_rs):
                          for c in cols]) + r" \\")
     L.append(" & ".join([r"$p$ do LR"] + ["---" if c == "M0" else ("$<0{,}001$" if f.loc[c, "p_lr"] < 0.001 else fmt(f.loc[c, "p_lr"], 3))
                                            for c in cols]) + r" \\")
-    L.append(r"\end{longtable}")
+    L.append(r"\bottomrule")
+    L.append(r"\end{tabular}}")
     rs = R["M3_RS"]
     L.append("")
     L.append(r"\noindent\footnotesize\emph{Inclinação aleatória de \texttt{negro} por UPA (M3 + $u_{1j}$):} "
@@ -429,6 +431,7 @@ def write_tex(R, seq, fit_df, gap_df, n_upa, n_uf, lr_rs, p_rs):
              + ("$p<0{,}001$" if p_rs < 0.001 else f"$p = {fmt(p_rs, 3)}$") +
              rf": a penalidade racial varia entre bairros; $\hat\beta_{{\text{{negro}}}}$ médio $= {fmt(rs.params['negro'], 4)}$.")
     L.append(r"\normalsize")
+    L.append(r"\end{table}")
     (TABLES / "hlm_stepup.tex").write_text("\n".join(L) + "\n", encoding="utf-8")
     logger.info(f"Tabela LaTeX: {TABLES / 'hlm_stepup.tex'}")
 

@@ -1,0 +1,26 @@
+\begin{table}[!ht]
+\centering
+\caption{GLMM logístico --- ajuste e desempenho de classificação por degrau. LR vs.\ pooled: teste de razão de verossimilhança do M2 contra o logit sem efeito aleatório (fronteira, $p/2$); AUC com efeitos aleatórios (ajuste na amostra) e só com efeitos fixos; \emph{cutoff} de Youden (maximiza sensibilidade $+$ especificidade) com as taxas correspondentes; Hosmer--Lemeshow em 10 decis. Com $N = 7{,}7$~milhões qualquer desvio de calibração é ``significativo'' --- o $\chi^2$ deve ser lido como magnitude relativa entre degraus, não como teste (MHE, cap.~8).}
+\label{tab:glmm_ajuste}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccccccc}
+\toprule
+Desfecho & Modelo & $-2\,$LL & AIC & LR vs.\ pooled & AUC (RE) & AUC (FE) & Cutoff & Sens./Espec. & HL $\chi^2$ \\
+\midrule
+Cargo qualificado (CBO 1--4) & M1 individual + UF & 7.068.424 & 7.068.498 & --- & 0,831 & 0,766 & 0,30 & 0,82/0,68 & 8.378 \\
+ & M2 + contexto do bairro & 7.059.978 & 7.060.058 & 411.007 & 0,831 & 0,790 & 0,30 & 0,82/0,68 & 8.576 \\
+ & M3 + vínculo (limite inf.) & 6.089.887 & 6.089.975 & --- & 0,882 & 0,856 & 0,31 & 0,83/0,77 & 5.269 \\
+ & M4 + negro$\times$credencial & 6.089.819 & 6.089.911 & --- & 0,882 & 0,856 & 0,31 & 0,83/0,77 & 5.178 \\
+\midrule
+Top 20\% de renda & M1 individual + UF & 6.104.884 & 6.104.958 & --- & 0,844 & 0,770 & 0,22 & 0,78/0,74 & 4.038 \\
+ & M2 + contexto do bairro & 6.094.129 & 6.094.209 & 469.691 & 0,844 & 0,798 & 0,22 & 0,78/0,74 & 4.070 \\
+ & M3 + vínculo (limite inf.) & 5.779.565 & 5.779.653 & --- & 0,862 & 0,821 & 0,22 & 0,79/0,76 & 1.584 \\
+ & M4 + negro$\times$credencial & 5.779.560 & 5.779.652 & --- & 0,862 & 0,821 & 0,23 & 0,78/0,77 & 1.597 \\
+\midrule
+Top 10\% de renda & M1 individual + UF & 3.713.826 & 3.713.900 & --- & 0,878 & 0,788 & 0,10 & 0,82/0,77 & 4.049 \\
+ & M2 + contexto do bairro & 3.702.360 & 3.702.440 & 337.418 & 0,878 & 0,830 & 0,10 & 0,82/0,77 & 3.949 \\
+ & M3 + vínculo (limite inf.) & 3.502.169 & 3.502.257 & --- & 0,893 & 0,852 & 0,11 & 0,82/0,80 & 1.934 \\
+ & M4 + negro$\times$credencial & 3.502.075 & 3.502.167 & --- & 0,893 & 0,852 & 0,11 & 0,82/0,80 & 1.869 \\
+\bottomrule
+\end{tabular}}
+\end{table}

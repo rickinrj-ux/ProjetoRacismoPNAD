@@ -115,16 +115,52 @@ a $12{,}9\%$ (q90) --- a discriminação de preço pesa mais na base.
 \input{outputs/tables/qr_melhorias.tex}
 \input{outputs/tables/rif_decomp_tcc.tex}
 
-\subsection{GLMM Logístico: o teto de vidro no acesso}
+\subsection{GLMM logístico: o teto de vidro no acesso}
 \label{subsec:glmm_resultados}
-O GLMM logístico multinível estima a probabilidade de acesso a cargo qualificado
-e ao topo da renda, com efeito aleatório de UPA. A Tabela~\ref{tab:glmm_glassceil}
-traz os \emph{odds ratios}, efeitos marginais e E-values dos três desfechos.
-\emph{Como ler:} OR $<1$ = menor chance de acesso para negros vs.\ brancos de mesmo
-perfil; quanto mais perto de zero, maior a barreira. O teto se aperta no top~10\%
-(OR menor) e o E-value $\geq 2{,}2$ (última coluna) indica robustez a confundidores
-não-observados.
+O modelo logístico multinível (\texttt{lme4::glmer}, intercepto aleatório de UPA e
+efeitos fixos de UF, estimado por Laplace na população completa) modela a probabilidade
+de três desfechos --- cargo qualificado (CBO~1--4), renda no top~20\% e no top~10\% ---
+em quatro degraus paralelos aos do HLM: M1 individual, M2 + contexto do bairro, M3 +
+vínculo (formalidade, setor público, conta própria, doméstico --- \emph{bad controls},
+logo limite inferior) e M4 + interação \texttt{negro}$\times$credencial. A
+Tabela~\ref{tab:glmm_glassceil} traz \emph{odds ratios}, efeitos marginais, ICC e
+E-values; a Tabela~\ref{tab:glmm_ajuste}, o ajuste e o desempenho de classificação.
+
+\paragraph{O acesso também é ``bairro''.} No M1, a correlação intraclasse latente é de
+@@G_ICC_CBO_M1@@ para o cargo qualificado e @@G_ICC_T10_M1@@ para o top~10\%: entre
+@@G_ICC_CBO_M1_PCT@@\% e @@G_ICC_T10_M1_PCT@@\% da variância latente do acesso está entre
+bairros. O teste de razão de verossimilhança do M2 contra o logit sem efeito aleatório
+(LR $=$ @@G_LR_CBO@@ para o cargo; @@G_LR_T10@@ para o top~10\%, 1~g.l., $p<0{,}001$)
+mostra que o efeito aleatório de UPA é indispensável --- o logit \emph{pooled} trataria
+como independentes pessoas do mesmo mercado local.
+
+\paragraph{A porta é mais estreita para negros --- e mais ainda no topo.} No M2,
+controlados escolaridade, sexo, idade, horas, estado e contexto do bairro, a chance de
+um trabalhador negro ocupar cargo qualificado é OR~$=$~@@G_OR_CBO_M2@@ (IC~95\%
+@@G_CI_CBO_M2@@) da de um branco do mesmo bairro --- \textbf{@@G_PCT_CBO_M2@@\% menos
+chance}, ou @@G_AME_CBO_M2@@ pontos percentuais de probabilidade. No top~20\% da renda o
+OR é @@G_OR_T20_M2@@ e no top~10\%, @@G_OR_T10_M2@@ (@@G_PCT_T10_M2@@\% menos chance): o
+teto se aperta à medida que se sobe. \emph{Como ler:} OR $<1$ é desvantagem; o AME traduz
+o OR em probabilidade e é a medida a reter (MHE, cap.~3).
+
+\paragraph{Vínculo e credencial não desfazem a barreira.} Descontar o vínculo
+empregatício (M3) muda pouco o OR do cargo qualificado (@@G_OR_CBO_M3@@) e do top~10\%
+(@@G_OR_T10_M3@@): a barreira não é um artefato da informalidade. No M4, a interação com
+a credencial é OR~$=$~@@G_ORI_SUP_CBO@@ para o superior completo e @@G_ORI_POS_CBO@@ para
+a pós-graduação: o diploma @@G_INTER_TXT@@, e o OR combinado do negro com superior
+completo é @@G_OR_CBO_SUP@@ --- a credencial não neutraliza a barreira de acesso.
+
+\paragraph{Ajuste e classificação.} O M2 discrimina bem os desfechos: AUC de
+@@G_AUC_CBO_M2@@ (com efeitos aleatórios) e @@G_AUCFE_CBO_M2@@ (só efeitos fixos) para o
+cargo qualificado; no \emph{cutoff} de Youden (@@G_CUT_CBO_M2@@) a sensibilidade é
+@@G_SENS_CBO_M2@@ e a especificidade @@G_ESP_CBO_M2@@. O teste de Hosmer--Lemeshow
+rejeita a calibração perfeita em todos os degraus --- inevitável com $N=7{,}7$~milhões
+(MHE, cap.~8) ---, mas a estatística cai a cerca de metade quando se acrescenta o
+vínculo (M3), sinal de calibração melhor; entre M1 e M2 ela praticamente não muda. O logit com efeitos fixos de UF e erro-padrão agrupado por UPA (última coluna
+da Tabela~\ref{tab:glmm_glassceil}) reproduz os OR do GLMM: a conclusão não depende da
+hipótese de efeitos aleatórios.
 \input{outputs/tables/glmm_glassceil.tex}
+\input{outputs/tables/glmm_ajuste.tex}
 
 """
 
@@ -161,10 +197,12 @@ limite inferior da discriminação salarial \emph{dentro} da ocupação, pois o 
 (35,1\% no q10) e decresce rumo ao topo (12,9\% no q90). A discriminação opera,
 portanto, sobretudo no \emph{acesso} às ocupações --- canal que o GLMM mede diretamente.
 
-O GLMM logístico de acesso confirma o teto de vidro ocupacional: controlados
-escolaridade, sexo, idade e contexto, trabalhadores negros têm \textit{odds} de
-acesso a cargo qualificado de 0,70 (IC~95\% 0,70--0,71), que se apertam para 0,66 no
-topo~10\% da renda; o E-value de~2,2 indica robustez a confundidores não observados.
+O GLMM logístico de acesso (intercepto aleatório de UPA) confirma o teto de vidro
+ocupacional: controlados escolaridade, sexo, idade, estado e contexto do bairro,
+trabalhadores negros têm \textit{odds} de acesso a cargo qualificado de @@G_OR_CBO_M2@@
+(IC~95\% @@G_CI_CBO_M2_EN@@) das de brancos do mesmo bairro, que se apertam para
+@@G_OR_T10_M2@@ no topo~10\% da renda; o E-value de~@@G_EV_CBO_M2@@ indica robustez a
+confundidores não observados.
 O \textit{machine learning} (XGBoost + SHAP) corrobora, sem pressuposto de forma
 funcional, que a variável racial mantém contribuição negativa direta mesmo após todos
 os controles e que o contexto territorial figura entre os preditores de maior peso ---
@@ -207,10 +245,12 @@ unequal. The quantile RIF decomposition reveals a
 distribution (35.1\% at q10) and declines toward the top (12.9\% at q90). Discrimination
 thus operates mainly on \emph{access} to occupations --- which the GLMM measures directly.
 
-The multilevel logistic model confirms an occupational glass ceiling: controlling for
-education, sex, age, and context, Black workers face odds of accessing a qualified
-occupation of 0.70 (95\% CI 0.70--0.71), tightening to 0.66 in the top 10\% of income;
-an E-value of 2.2 indicates robustness to unobserved confounding. Interpretable
+The multilevel logistic model (random intercept by census tract) confirms an
+occupational glass ceiling: controlling for education, sex, age, state, and neighbourhood
+context, Black workers face odds of accessing a qualified occupation of @@G_OR_CBO_M2_EN@@
+(95\% CI @@G_CI_CBO_M2_EN@@) relative to White workers from the same neighbourhood,
+tightening to @@G_OR_T10_M2_EN@@ in the top 10\% of income; an E-value of
+@@G_EV_CBO_M2_EN@@ indicates robustness to unobserved confounding. Interpretable
 machine learning (XGBoost + SHAP) corroborates --- with no functional-form assumption
 --- that race retains a direct negative contribution after all controls and that
 territorial context ranks among the strongest predictors, indicating that residential
@@ -660,8 +700,10 @@ if _gap and _fit and _coef:
                    "@@HLM_MED_BAIRRO@@": _pt(_medb), "@@HLM_MED_BAIRRO_EN@@": _pten(_medb),
                    "@@HLM_MED_OCC@@": _pt((abs(_b["M3"]) - abs(_b["M4"])) / abs(_bp) * 100),
                    "@@HLM_RESID_PCT@@": _pt(abs(_b["M4"]) / abs(_bp) * 100)})
-if _glm:
-    _or = lambda d, m: float(_glm[(d, m)]["OR_negro"])
+_glmer = {(r["desfecho"], r["modelo"]): r for r in _rd("glmm_glassceil_glmer.csv")}
+_src = _glmer if _glmer else _glm            # bloco 4: o glmer é a fonte; logit-FE é robustez
+if _src:
+    _or = lambda d, m: float(_src[(d, m)]["OR_negro"])
     _V.update({
         "@@GLMM_OR_CBO_M2@@": _pt(_or("ocp_qualif", "M2"), 3),
         "@@GLMM_OR_TOP20_M2@@": _pt(_or("y_top20", "M2"), 3),
@@ -669,11 +711,49 @@ if _glm:
         "@@GLMM_PCT_CBO_M2@@": f"{(1 - _or('ocp_qualif', 'M2')) * 100:.0f}",
         "@@GLMM_PCT_TOP10_M2@@": f"{(1 - _or('y_top10', 'M2')) * 100:.0f}",
     })
+if _glmer:
+    import math as _m2
+    def _ev(o):
+        o = 1 / o if o < 1 else o
+        return o + _m2.sqrt(o * (o - 1))
+    _g = lambda d, m, c: float(_glmer[(d, m)][c])
+    _ci = lambda d, m, sep: f"{_pt(_g(d, m, 'CI95_lo'), 3)}{sep}{_pt(_g(d, m, 'CI95_hi'), 3)}"
+    _oi_sup, _oi_pos = _g("ocp_qualif", "M4", "OR_inter_superior"), _g("ocp_qualif", "M4", "OR_inter_pos")
+    _V.update({
+        "@@G_ICC_CBO_M1@@": _pt(_g("ocp_qualif", "M1", "ICC_UPA"), 3),
+        "@@G_ICC_T10_M1@@": _pt(_g("y_top10", "M1", "ICC_UPA"), 3),
+        "@@G_ICC_CBO_M1_PCT@@": _pt(_g("ocp_qualif", "M1", "ICC_UPA") * 100, 0),
+        "@@G_ICC_T10_M1_PCT@@": _pt(_g("y_top10", "M1", "ICC_UPA") * 100, 0),
+        "@@G_LR_CBO@@": f"{_g('ocp_qualif', 'M2', 'LR_vs_pooled'):,.0f}".replace(",", "."),
+        "@@G_LR_T10@@": f"{_g('y_top10', 'M2', 'LR_vs_pooled'):,.0f}".replace(",", "."),
+        "@@G_OR_CBO_M2@@": _pt(_g("ocp_qualif", "M2", "OR_negro"), 3),
+        "@@G_OR_CBO_M2_EN@@": _pten(_g("ocp_qualif", "M2", "OR_negro"), 3),
+        "@@G_CI_CBO_M2@@": _ci("ocp_qualif", "M2", "--"),
+        "@@G_CI_CBO_M2_EN@@": f"{_pten(_g('ocp_qualif', 'M2', 'CI95_lo'), 3)}--{_pten(_g('ocp_qualif', 'M2', 'CI95_hi'), 3)}",
+        "@@G_PCT_CBO_M2@@": f"{(1 - _g('ocp_qualif', 'M2', 'OR_negro')) * 100:.0f}",
+        "@@G_AME_CBO_M2@@": _pt(abs(_g("ocp_qualif", "M2", "AME_pp")), 1),
+        "@@G_OR_T20_M2@@": _pt(_g("y_top20", "M2", "OR_negro"), 3),
+        "@@G_OR_T10_M2@@": _pt(_g("y_top10", "M2", "OR_negro"), 3),
+        "@@G_OR_T10_M2_EN@@": _pten(_g("y_top10", "M2", "OR_negro"), 3),
+        "@@G_PCT_T10_M2@@": f"{(1 - _g('y_top10', 'M2', 'OR_negro')) * 100:.0f}",
+        "@@G_OR_CBO_M3@@": _pt(_g("ocp_qualif", "M3", "OR_negro"), 3),
+        "@@G_OR_T10_M3@@": _pt(_g("y_top10", "M3", "OR_negro"), 3),
+        "@@G_ORI_SUP_CBO@@": _pt(_oi_sup, 3), "@@G_ORI_POS_CBO@@": _pt(_oi_pos, 3),
+        "@@G_INTER_TXT@@": ("atenua a penalidade sem eliminá-la" if _oi_sup > 1 else "não atenua a penalidade"),
+        "@@G_OR_CBO_SUP@@": _pt(_g("ocp_qualif", "M4", "OR_negro") * _oi_sup, 3),
+        "@@G_AUC_CBO_M2@@": _pt(_g("ocp_qualif", "M2", "AUC_com_RE"), 3),
+        "@@G_AUCFE_CBO_M2@@": _pt(_g("ocp_qualif", "M2", "AUC_so_FE"), 3),
+        "@@G_CUT_CBO_M2@@": _pt(_g("ocp_qualif", "M2", "cutoff_youden"), 2),
+        "@@G_SENS_CBO_M2@@": _pt(_g("ocp_qualif", "M2", "sens"), 2),
+        "@@G_ESP_CBO_M2@@": _pt(_g("ocp_qualif", "M2", "espec"), 2),
+        "@@G_EV_CBO_M2@@": _pt(_ev(_g("ocp_qualif", "M2", "OR_negro")), 1),
+        "@@G_EV_CBO_M2_EN@@": _pten(_ev(_g("ocp_qualif", "M2", "OR_negro")), 1),
+    })
 for _k, _v in _V.items():
     texto = texto.replace(_k, _v)
-_rest = sorted(set(re.findall(r"@@(HLM|GLMM)_[A-Z0-9_]+@@", texto)))
+_rest = sorted(set(re.findall(r"@@(?:HLM|GLMM|G)_[A-Z0-9_]+@@", texto)))
 if _rest:
-    print(f"  [AVISO] placeholders não preenchidos: {sorted(set(re.findall(r'@@(?:HLM|GLMM)_[A-Z0-9_]+@@', texto)))[:10]}")
+    print(f"  [AVISO] placeholders não preenchidos: {_rest[:12]}")
 
 # Checagem de \ref pendentes a rótulos removidos
 pendentes = []

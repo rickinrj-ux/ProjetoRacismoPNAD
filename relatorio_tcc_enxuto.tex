@@ -141,10 +141,12 @@ limite inferior da discriminação salarial \emph{dentro} da ocupação, pois o 
 (35,1\% no q10) e decresce rumo ao topo (12,9\% no q90). A discriminação opera,
 portanto, sobretudo no \emph{acesso} às ocupações --- canal que o GLMM mede diretamente.
 
-O GLMM logístico de acesso confirma o teto de vidro ocupacional: controlados
-escolaridade, sexo, idade e contexto, trabalhadores negros têm \textit{odds} de
-acesso a cargo qualificado de 0,70 (IC~95\% 0,70--0,71), que se apertam para 0,66 no
-topo~10\% da renda; o E-value de~2,2 indica robustez a confundidores não observados.
+O GLMM logístico de acesso (intercepto aleatório de UPA) confirma o teto de vidro
+ocupacional: controlados escolaridade, sexo, idade, estado e contexto do bairro,
+trabalhadores negros têm \textit{odds} de acesso a cargo qualificado de 0,699
+(IC~95\% 0.696--0.702) das de brancos do mesmo bairro, que se apertam para
+0,654 no topo~10\% da renda; o E-value de~2,2 indica robustez a
+confundidores não observados.
 O \textit{machine learning} (XGBoost + SHAP) corrobora, sem pressuposto de forma
 funcional, que a variável racial mantém contribuição negativa direta mesmo após todos
 os controles e que o contexto territorial figura entre os preditores de maior peso ---
@@ -193,10 +195,12 @@ unequal. The quantile RIF decomposition reveals a
 distribution (35,1\% at q10) and declines toward the top (12,9\% at q90). Discrimination
 thus operates mainly on \emph{access} to occupations --- which the GLMM measures directly.
 
-The multilevel logistic model confirms an occupational glass ceiling: controlling for
-education, sex, age, and context, Black workers face odds of accessing a qualified
-occupation of 0.70 (95\% CI 0.70--0.71), tightening to 0.66 in the top 10\% of income;
-an E-value of 2.2 indicates robustness to unobserved confounding. Interpretable
+The multilevel logistic model (random intercept by census tract) confirms an
+occupational glass ceiling: controlling for education, sex, age, state, and neighbourhood
+context, Black workers face odds of accessing a qualified occupation of 0.699
+(95\% CI 0.696--0.702) relative to White workers from the same neighbourhood,
+tightening to 0.654 in the top 10\% of income; an E-value of
+2.2 indicates robustness to unobserved confounding. Interpretable
 machine learning (XGBoost + SHAP) corroborates --- with no functional-form assumption
 --- that race retains a direct negative contribution after all controls and that
 territorial context ranks among the strongest predictors, indicating that residential
@@ -475,9 +479,9 @@ brasileiro, documentada com rigor empírico em cada etapa.
 Cada seção a seguir documenta empiricamente uma dessas camadas.
 Nenhum método isolado teria identificado o sistema como um todo.
 
-\noindent\rule{\textwidth}{1pt}
-\textbf{\large BARREIRA I --- ACESSO E SEGREGAÇÃO ESTRUTURAL}
-\textit{Como a exclusão começa antes do primeiro salário}
+\noindent\rule{\textwidth}{1pt}\par
+\textbf{\large BARREIRA I --- ACESSO E SEGREGAÇÃO ESTRUTURAL}\par
+\textit{Como a exclusão começa antes do primeiro salário}\par
 \noindent\rule{\textwidth}{1pt}
 
 \subsection{Modelos Hierárquicos Lineares --- Mediação Contextual do Gap}
@@ -573,8 +577,8 @@ oposta, os controles que são desfechos (ocupação no M4) \emph{subestimam}. O 
 deve ser lido entre esses dois limites. Para anular $\hat\beta^{M3}_{\text{negro}}$ seria
 preciso um viés de 99,0\% do coeficiente (Konfound, \citeonline{frank2013}), e o
 E-value do modelo de acesso (Tabela~\ref{tab:glmm_glassceil}) exige um confundidor
-associado à raça e ao desfecho com razão de risco $\geq 2{,}2$ --- mais forte que qualquer
-covariável observada.
+associado à raça e ao desfecho com razão de risco $\geq 2,2$ --- mais forte que
+qualquer covariável observada.
 
 \input{outputs/tables/hlm_stepup.tex}
 
@@ -708,9 +712,9 @@ a diferenças em educação, experiência, gênero ou contexto de moradia.
 \end{figure}
 
 % ── NÚCLEO: decomposições e acesso (inserido pela versão enxuta) ──
-\noindent\rule{\textwidth}{1pt}
-\textbf{\large BARREIRA II --- PENALIDADE SALARIAL E TETO DE VIDRO}
-\textit{Para quem supera a porta de entrada, qual é o custo de ser negro?}
+\noindent\rule{\textwidth}{1pt}\par
+\textbf{\large BARREIRA II --- PENALIDADE SALARIAL E TETO DE VIDRO}\par
+\textit{Para quem supera a porta de entrada, qual é o custo de ser negro?}\par
 \noindent\rule{\textwidth}{1pt}
 
 \medskip
@@ -753,16 +757,52 @@ a $12{,}9\%$ (q90) --- a discriminação de preço pesa mais na base.
 \input{outputs/tables/qr_melhorias.tex}
 \input{outputs/tables/rif_decomp_tcc.tex}
 
-\subsection{GLMM Logístico: o teto de vidro no acesso}
+\subsection{GLMM logístico: o teto de vidro no acesso}
 \label{subsec:glmm_resultados}
-O GLMM logístico multinível estima a probabilidade de acesso a cargo qualificado
-e ao topo da renda, com efeito aleatório de UPA. A Tabela~\ref{tab:glmm_glassceil}
-traz os \emph{odds ratios}, efeitos marginais e E-values dos três desfechos.
-\emph{Como ler:} OR $<1$ = menor chance de acesso para negros vs.\ brancos de mesmo
-perfil; quanto mais perto de zero, maior a barreira. O teto se aperta no top~10\%
-(OR menor) e o E-value $\geq 2{,}2$ (última coluna) indica robustez a confundidores
-não-observados.
+O modelo logístico multinível (\texttt{lme4::glmer}, intercepto aleatório de UPA e
+efeitos fixos de UF, estimado por Laplace na população completa) modela a probabilidade
+de três desfechos --- cargo qualificado (CBO~1--4), renda no top~20\% e no top~10\% ---
+em quatro degraus paralelos aos do HLM: M1 individual, M2 + contexto do bairro, M3 +
+vínculo (formalidade, setor público, conta própria, doméstico --- \emph{bad controls},
+logo limite inferior) e M4 + interação \texttt{negro}$\times$credencial. A
+Tabela~\ref{tab:glmm_glassceil} traz \emph{odds ratios}, efeitos marginais, ICC e
+E-values; a Tabela~\ref{tab:glmm_ajuste}, o ajuste e o desempenho de classificação.
+
+\paragraph{O acesso também é ``bairro''.} No M1, a correlação intraclasse latente é de
+0,198 para o cargo qualificado e 0,350 para o top~10\%: entre
+20\% e 35\% da variância latente do acesso está entre
+bairros. O teste de razão de verossimilhança do M2 contra o logit sem efeito aleatório
+(LR $=$ 411.007 para o cargo; 337.418 para o top~10\%, 1~g.l., $p<0{,}001$)
+mostra que o efeito aleatório de UPA é indispensável --- o logit \emph{pooled} trataria
+como independentes pessoas do mesmo mercado local.
+
+\paragraph{A porta é mais estreita para negros --- e mais ainda no topo.} No M2,
+controlados escolaridade, sexo, idade, horas, estado e contexto do bairro, a chance de
+um trabalhador negro ocupar cargo qualificado é OR~$=$~0,699 (IC~95\%
+0,696--0,702) da de um branco do mesmo bairro --- \textbf{30\% menos
+chance}, ou 5,5 pontos percentuais de probabilidade. No top~20\% da renda o
+OR é 0,688 e no top~10\%, 0,654 (35\% menos chance): o
+teto se aperta à medida que se sobe. \emph{Como ler:} OR $<1$ é desvantagem; o AME traduz
+o OR em probabilidade e é a medida a reter (MHE, cap.~3).
+
+\paragraph{Vínculo e credencial não desfazem a barreira.} Descontar o vínculo
+empregatício (M3) muda pouco o OR do cargo qualificado (0,691) e do top~10\%
+(0,656): a barreira não é um artefato da informalidade. No M4, a interação com
+a credencial é OR~$=$~1,069 para o superior completo e 1,060 para
+a pós-graduação: o diploma atenua a penalidade sem eliminá-la, e o OR combinado do negro com superior
+completo é 0,735 --- a credencial não neutraliza a barreira de acesso.
+
+\paragraph{Ajuste e classificação.} O M2 discrimina bem os desfechos: AUC de
+0,831 (com efeitos aleatórios) e 0,790 (só efeitos fixos) para o
+cargo qualificado; no \emph{cutoff} de Youden (0,30) a sensibilidade é
+0,82 e a especificidade 0,68. O teste de Hosmer--Lemeshow
+rejeita a calibração perfeita em todos os degraus --- inevitável com $N=7{,}7$~milhões
+(MHE, cap.~8) ---, mas a estatística cai a cerca de metade quando se acrescenta o
+vínculo (M3), sinal de calibração melhor; entre M1 e M2 ela praticamente não muda. O logit com efeitos fixos de UF e erro-padrão agrupado por UPA (última coluna
+da Tabela~\ref{tab:glmm_glassceil}) reproduz os OR do GLMM: a conclusão não depende da
+hipótese de efeitos aleatórios.
 \input{outputs/tables/glmm_glassceil.tex}
+\input{outputs/tables/glmm_ajuste.tex}
 
 \subsection{Interseccionalidade: raça e gênero no acesso e no topo}
 \input{outputs/tables/ob_interseccional_tcc.tex}
@@ -955,11 +995,11 @@ residencial e de acesso às redes profissionais, são insuficientes.
 As barreiras estimadas não são abstrações: cada uma corresponde a um instrumento
 jurídico-institucional já existente no Brasil, cuja intensificação ou
 aperfeiçoamento os resultados sugerem.
-A \textbf{barreira de acesso} (GLMM, OR~$=0,705$ para CBO~1--4 no modelo com
+A \textbf{barreira de acesso} (GLMM, OR~$=0,699$ para CBO~1--4 no modelo com
 contexto) dialoga diretamente com a \textit{Lei~12.990/2014}, que reserva 20\% das
 vagas em concursos públicos federais a candidatos negros, e cujo escopo o
 diagnóstico sugere ampliar para níveis hierárquicos superiores --- onde o teto de
-vidro é mais severo (OR(top~10\%)~$=0,656$).
+vidro é mais severo (OR(top~10\%)~$=0,654$).
 A \textbf{qualificação e o acesso ao ensino superior} correspondem ao
 \textit{Prouni} e ao \textit{Fies}, bem como ao legado do \textit{PRONATEC}; o
 achado de que as mesmas credenciais rendem menos a trabalhadores negros (efeito
@@ -986,7 +1026,7 @@ juntas, elas formam um sistema que nenhuma política unidimensional consegue des
 
 O achado mais desafiador para o debate de políticas públicas é o da barreira de
 acesso: com a mesma escolaridade, idade, sexo e contexto de moradia, trabalhadores
-negros têm cerca de 30\% menos chance de ocupar um cargo qualificado e 34\% menos
+negros têm cerca de 30\% menos chance de ocupar um cargo qualificado e 35\% menos
 chance de chegar ao décimo superior da renda. Isso significa que aumentar a
 escolaridade da população negra, sem intervir simultaneamente nos mecanismos de
 seleção e promoção, produz retorno marginal decrescente: os títulos existem, mas
@@ -1023,9 +1063,9 @@ para a composição racial do bairro), chega-se ao \textbf{gap líquido de 10,2\
 remuneração; e (iii)~penalidade de 7,0\% que persiste \emph{dentro} da mesma
 ocupação (M4) --- limite inferior descritivo, pois a própria ocupação é
 resultado da barreira de acesso.
-O GLMM logístico confirma essa barreira: OR~$=0,705$ para CBO~1--4 no modelo
-com contexto, com gradiente progressivo OR(top~20\%)~$=0,691$ $\to$
-OR(top~10\%)~$=0,656$. A regressão quantílica formaliza o teto de vidro no gap
+O GLMM logístico confirma essa barreira: OR~$=0,699$ para CBO~1--4 no modelo
+com contexto, com gradiente progressivo OR(top~20\%)~$=0,688$ $\to$
+OR(top~10\%)~$=0,654$. A regressão quantílica formaliza o teto de vidro no gap
 condicional ($Z=-16{,}95$, $p<0{,}001$), e a decomposição RIF mostra que a parcela
 de retornos é maior na base da distribuição incondicional.
 

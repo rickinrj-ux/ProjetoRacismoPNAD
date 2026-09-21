@@ -1,101 +1,136 @@
 """
 gerar_tabela_glmm.py
 ====================
-Gera a tabela-síntese do GLMM logístico (teto de vidro ocupacional e salarial)
-para o NÚCLEO do TCC, em LaTeX (booktabs), população COMPLETA.
+Tabela-síntese do GLMM logístico (teto de vidro ocupacional e salarial) do NÚCLEO do TCC.
 
-Fontes:
-  outputs/tables/glmm_glassceil_full.csv  — OR, IC95%, AME por desfecho e modelo
-  outputs/tables/evalues_glmm.csv         — E-values (sensibilidade a confundidor)
+Fonte principal (bloco 4): outputs/tables/glmm_glassceil_glmer.csv — lme4::glmer com
+intercepto aleatório de UPA (scripts/R/glmm_glassceil.R): OR e IC de negro, AME, ICC_UPA,
+LR vs. logit pooled, AUC, cutoff de Youden (sens./espec.), Hosmer-Lemeshow.
+Robustez: outputs/tables/glmm_glassceil_full.csv — logit com efeitos fixos de UF e SE
+agrupado por UPA (run_glmm_glassceil.py). E-value calculado aqui (VanderWeele & Ding,
+2017): para OR<1, OR* = 1/OR e E = OR* + sqrt(OR*(OR*-1)); idem para o limite do IC.
 
-Saída:
-  outputs/tables/glmm_glassceil.tex
-
-Desfechos: ocp_qualif (cargo qualificado, CBO 1-4), y_top20, y_top10.
-Modelos: M1 (controles individuais + UF FE), M2 (+contexto UPA),
-         M3 (+interação negro×credencial).
+Saídas: outputs/tables/glmm_glassceil.tex (tabela principal, tab:glmm_glassceil)
+        outputs/tables/glmm_ajuste.tex   (ajuste/classificação, tab:glmm_ajuste)
+        outputs/tables/evalues_glmm.csv  (E-values, para o texto)
 """
-
 # --- bootstrap raiz do projeto ---
 import os as _os, sys as _sys
 from pathlib import Path as _Path
 _os.chdir(_Path(__file__).resolve().parents[2])
 _sys.path.insert(0, _os.getcwd())
 # --- fim bootstrap ---
-
 import sys
 try:
     sys.stdout.reconfigure(encoding="utf-8")
 except Exception:
     pass
+import math
 import pandas as pd
 from pathlib import Path
-from params import fmt
+from params import fmt, fmtN
 
 TABLES = Path("outputs") / "tables"
+g = pd.read_csv(TABLES / "glmm_glassceil_glmer.csv")
+fe_path = TABLES / "glmm_glassceil_full.csv"
+fe = pd.read_csv(fe_path) if fe_path.exists() else None
 
-gc = pd.read_csv(TABLES / "glmm_glassceil_full.csv")
-ev = pd.read_csv(TABLES / "evalues_glmm.csv")
+DESF = {"ocp_qualif": r"Cargo qualificado (CBO 1--4)", "y_top20": r"Top 20\% de renda", "y_top10": r"Top 10\% de renda"}
+MOD = {"M1": r"M1 individual + UF", "M2": r"M2 + contexto do bairro", "M3": r"M3 + vínculo (limite inf.)",
+       "M4": r"M4 + negro$\times$credencial"}
+# correspondência com os modelos do logit-FE (robustez): M1 ~ M1; M2 ~ M2; M3/M4 ~ M3 (com vínculo e interação)
+FE_MAP = {"M1": "M1", "M2": "M2", "M3": "M2", "M4": "M3"}
 
-# E-value por (desfecho, modelo) — só M1/M2 disponíveis
-ev_map = {(row["Desfecho"], row["Modelo"]): row["E-value (OR)"]
-          for _, row in ev.iterrows()}
 
-DESF_LABEL = {
-    "ocp_qualif": r"Cargo qualificado (CBO 1--4)",
-    "y_top20":    r"Top 20\% de renda",
-    "y_top10":    r"Top 10\% de renda",
-}
-MOD_LABEL = {
-    "M1": r"M1 (indiv.\ + UF)",
-    "M2": r"M2 (+ contexto UPA)",
-    "M3": r"M3 (+ interação credencial)",
-}
+def evalue(or_):
+    o = 1 / or_ if or_ < 1 else or_
+    return o + math.sqrt(o * (o - 1))
 
-def or_cell(orv, lo, hi):
-    return f"{fmt(orv,3)} [{fmt(lo,3)}; {fmt(hi,3)}]"
 
-lines = []
-lines.append(r"\begin{table}[!ht]")
-lines.append(r"\centering")
-lines.append(r"\caption{GLMM Logístico --- Teto de Vidro Ocupacional e Salarial. "
-             r"Odds ratio do coeficiente \emph{negro} (IC 95\% entre colchetes), efeito "
-             r"marginal médio (AME, em pontos percentuais) e E-value "
-             r"(VanderWeele \& Ding, 2017). População completa da PEA "
-             r"($N=7{,}69$ milhões). Desfechos binários estimados por logit multinível "
-             r"com efeito aleatório de UPA. Todos os coeficientes com $p<0{,}001$.}")
-lines.append(r"\label{tab:glmm_glassceil}")
-lines.append(r"\begin{tabular}{llccc}")
-lines.append(r"\toprule")
-lines.append(r"Desfecho & Modelo & OR (IC 95\%) & AME (p.p.) & E-value \\")
-lines.append(r"\midrule")
+def evalue_ci(or_, lo, hi):
+    """E-value do limite do IC mais próximo de 1 (0 se o IC contém 1)."""
+    if lo <= 1 <= hi:
+        return 1.0
+    return evalue(hi if or_ < 1 else lo)
 
-for desf in ["ocp_qualif", "y_top20", "y_top10"]:
-    sub = gc[gc["desfecho"] == desf]
+
+g["E_value"] = g["OR_negro"].map(evalue)
+g["E_value_CI"] = [evalue_ci(o, lo, hi) for o, lo, hi in zip(g["OR_negro"], g["CI95_lo"], g["CI95_hi"])]
+g[["desfecho", "modelo", "OR_negro", "CI95_lo", "CI95_hi", "E_value", "E_value_CI"]].rename(
+    columns={"desfecho": "Desfecho", "modelo": "Modelo", "OR_negro": "OR", "CI95_lo": "IC 95% lo",
+             "CI95_hi": "IC 95% hi", "E_value": "E-value (OR)", "E_value_CI": "E-value (CI)"}
+).to_csv(TABLES / "evalues_glmm.csv", index=False, encoding="utf-8")
+
+N = int(g["N"].iloc[0]); G = int(g["n_upa"].iloc[0])
+
+
+def or_cell(o, lo, hi):
+    return f"{fmt(o, 3)} [{fmt(lo, 3)}; {fmt(hi, 3)}]"
+
+
+# ── Tabela principal ─────────────────────────────────────────────────────────
+L = [r"\begin{table}[!ht]", r"\centering",
+     r"\caption{GLMM logístico (lme4::\texttt{glmer}, intercepto aleatório de UPA e efeitos fixos de UF) "
+     r"--- teto de vidro ocupacional e salarial. \emph{Odds ratio} do coeficiente \texttt{negro} com IC~95\%, "
+     r"efeito marginal médio (AME: diferença média de probabilidade predita, em pontos percentuais), "
+     r"ICC da UPA $=\tau^2/(\tau^2+\pi^2/3)$ e E-value (VanderWeele \& Ding, 2017). Coluna final: "
+     r"OR do logit com efeitos fixos de UF e erro-padrão agrupado por UPA (robustez). População completa "
+     rf"da PEA com renda positiva ($N = {fmtN(N)}$; {fmtN(G)}~UPAs). M3 acrescenta o vínculo "
+     r"(formalidade, setor público, conta própria, doméstico), que é desfecho da própria discriminação: "
+     r"limite inferior. Todos os OR com $p<0{,}001$; com $N$ desta ordem, a inferência relevante está "
+     r"nos IC e nos E-values.}",
+     r"\label{tab:glmm_glassceil}", r"\resizebox{\textwidth}{!}{%", r"\begin{tabular}{llcccccc}", r"\toprule",
+     r"Desfecho & Modelo & OR (IC 95\%) & AME (p.p.) & ICC$_{\text{UPA}}$ & E-value & E-value (IC) & OR logit-FE \\",
+     r"\midrule"]
+for d in DESF:
+    sub = g[g["desfecho"] == d]
     first = True
-    for _, row in sub.iterrows():
-        mod = row["modelo"]
-        desf_col = DESF_LABEL[desf] if first else ""
+    for _, r in sub.iterrows():
+        m = r["modelo"]
+        fe_or = "---"
+        if fe is not None:
+            fr = fe[(fe["desfecho"] == d) & (fe["modelo"] == FE_MAP[m])]
+            if len(fr):
+                fe_or = fmt(float(fr["OR_negro"].iloc[0]), 3)
+        L.append(f"{DESF[d] if first else ''} & {MOD[m]} & {or_cell(r['OR_negro'], r['CI95_lo'], r['CI95_hi'])} & "
+                 f"{fmt(r['AME_pp'], 2)} & {fmt(r['ICC_UPA'], 3)} & {fmt(r['E_value'], 2)} & "
+                 f"{fmt(r['E_value_CI'], 2)} & {fe_or} \\\\")
         first = False
-        ev_val = ev_map.get((desf, mod))
-        ev_str = fmt(ev_val, 2) if pd.notna(ev_val) else "---"
-        lines.append(
-            f"{desf_col} & {MOD_LABEL[mod]} & {or_cell(row['OR_negro'], row['CI95_lo'], row['CI95_hi'])} "
-            f"& {fmt(row['AME_pp'],2)} & {ev_str} \\\\"
-        )
-    lines.append(r"\midrule")
+    L.append(r"\midrule")
+L[-1] = r"\bottomrule"
+L += [r"\end{tabular}}", r"\par\smallskip",
+      r"\footnotesize\emph{Como ler:} OR $<1$ = menor chance de acesso para trabalhadores negros do que "
+      r"para brancos de mesmo perfil \emph{e do mesmo bairro}; quanto mais perto de zero, maior a barreira. "
+      r"O E-value é a força mínima de associação (razão de risco) que um confundidor não observado precisaria "
+      r"ter com a raça \emph{e} com o desfecho para anular o OR; o E-value (IC) faz o mesmo para o limite do "
+      r"intervalo. A coluna logit-FE mostra que a conclusão não depende da hipótese de efeitos aleatórios.",
+      r"\end{table}"]
+(TABLES / "glmm_glassceil.tex").write_text("\n".join(L) + "\n", encoding="utf-8")
 
-lines[-1] = r"\bottomrule"  # troca o último \midrule
-lines.append(r"\end{tabular}")
-lines.append(r"\par\smallskip")
-lines.append(r"\footnotesize\emph{Leitura:} OR $<1$ indica menor chance de acesso para "
-             r"trabalhadores negros vs.\ brancos de mesmo perfil. O teto se aperta no extremo "
-             r"superior (top 10\%) e o E-value $\geq 2{,}2$ no M2 indica que um confundidor "
-             r"não-observado precisaria de associação $\geq 2{,}2\times$ com raça \emph{e} com o "
-             r"desfecho para anular o efeito.")
-lines.append(r"\end{table}")
-
-out = TABLES / "glmm_glassceil.tex"
-out.write_text("\n".join(lines) + "\n", encoding="utf-8")
-print(f"OK -> {out}")
-print("\n".join(lines))
+# ── Tabela de ajuste e classificação (Fávero: LR, AUC, cutoff, Hosmer-Lemeshow) ──
+A = [r"\begin{table}[!ht]", r"\centering",
+     r"\caption{GLMM logístico --- ajuste e desempenho de classificação por degrau. LR vs.\ pooled: "
+     r"teste de razão de verossimilhança do M2 contra o logit sem efeito aleatório (fronteira, $p/2$); "
+     r"AUC com efeitos aleatórios (ajuste na amostra) e só com efeitos fixos; \emph{cutoff} de Youden "
+     r"(maximiza sensibilidade $+$ especificidade) com as taxas correspondentes; Hosmer--Lemeshow em "
+     r"10 decis. Com $N = 7{,}7$~milhões qualquer desvio de calibração é ``significativo'' --- o "
+     r"$\chi^2$ deve ser lido como magnitude relativa entre degraus, não como teste (MHE, cap.~8).}",
+     r"\label{tab:glmm_ajuste}", r"\resizebox{\textwidth}{!}{%", r"\begin{tabular}{llcccccccc}", r"\toprule",
+     r"Desfecho & Modelo & $-2\,$LL & AIC & LR vs.\ pooled & AUC (RE) & AUC (FE) & Cutoff & Sens./Espec. & HL $\chi^2$ \\",
+     r"\midrule"]
+for d in DESF:
+    sub = g[g["desfecho"] == d]
+    first = True
+    for _, r in sub.iterrows():
+        lr = "---" if pd.isna(r["LR_vs_pooled"]) else fmtN(int(round(r["LR_vs_pooled"])))
+        A.append(f"{DESF[d] if first else ''} & {MOD[r['modelo']]} & {fmtN(int(round(-2 * r['LL'])))} & "
+                 f"{fmtN(int(round(r['AIC'])))} & {lr} & {fmt(r['AUC_com_RE'], 3)} & {fmt(r['AUC_so_FE'], 3)} & "
+                 f"{fmt(r['cutoff_youden'], 2)} & {fmt(r['sens'], 2)}/{fmt(r['espec'], 2)} & "
+                 f"{fmtN(int(round(r['HL_chi2'])))} \\\\")
+        first = False
+    A.append(r"\midrule")
+A[-1] = r"\bottomrule"
+A += [r"\end{tabular}}", r"\end{table}"]
+(TABLES / "glmm_ajuste.tex").write_text("\n".join(A) + "\n", encoding="utf-8")
+print("OK -> glmm_glassceil.tex, glmm_ajuste.tex, evalues_glmm.csv")
+print(g[["desfecho", "modelo", "OR_negro", "AME_pp", "ICC_UPA", "AUC_com_RE", "E_value"]].round(3).to_string(index=False))

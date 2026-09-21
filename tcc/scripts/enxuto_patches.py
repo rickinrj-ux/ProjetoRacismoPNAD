@@ -373,8 +373,8 @@ oposta, os controles que são desfechos (ocupação no M4) \emph{subestimam}. O 
 deve ser lido entre esses dois limites. Para anular $\hat\beta^{M3}_{\text{negro}}$ seria
 preciso um viés de @@HLM_KONF3@@\% do coeficiente (Konfound, \citeonline{frank2013}), e o
 E-value do modelo de acesso (Tabela~\ref{tab:glmm_glassceil}) exige um confundidor
-associado à raça e ao desfecho com razão de risco $\geq 2{,}2$ --- mais forte que qualquer
-covariável observada.
+associado à raça e ao desfecho com razão de risco $\geq @@G_EV_CBO_M2@@$ --- mais forte que
+qualquer covariável observada.
 
 \input{outputs/tables/hlm_stepup.tex}
 
@@ -436,6 +436,9 @@ def aplicar(texto: str, verbose: bool = True) -> str:
         texto, n = re.subn(pat, lambda m, r=rep: r, texto, count=1, flags=flags)
         if n != 1:
             falhas.append(pid)
+    # cabeçalhos "BARREIRA": régua + título + subtítulo no mesmo parágrafo estouravam a largura
+    _hdr = re.compile(r"(\\noindent\\rule\{\\textwidth\}\{1pt\})\n(\\textbf\{\\large BARREIRA[^\n]*\})\n(\\textit\{[^\n]*\})\n(\\noindent\\rule)")
+    texto = _hdr.sub(lambda m: m.group(1) + "\\par\n" + m.group(2) + "\\par\n" + m.group(3) + "\\par\n" + m.group(4), texto)
     # 1.6 — separador decimal: percentuais na prosa com vírgula (ABNT), ex.: 19.1\% → 19,1\%
     texto, n_pct = re.subn(r"(\d)\.(\d+)\\%", r"\1,\2\\%", texto)
     if verbose:

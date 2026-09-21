@@ -16,6 +16,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $Python = "C:\Users\user\AppData\Local\spyder-6\python.exe"
+$Rscript = "C:\Program Files\R\R-4.6.0\bin\Rscript.exe"
 $Root   = Split-Path -Parent $PSScriptRoot
 $Analise = Join-Path $Root "scripts\analise"
 
@@ -27,7 +28,8 @@ $Nucleo = @(
     "run_regressao_quantilica.py", # 3. Quantílica
     "run_ob_qr_melhorias.py",      #    QR por sexo + KB test (bootstrap em blocos por UPA) -> qr_melhorias.tex
     "run_rif_decomp.py",           #    RIF-OB (decomposição por quantil)
-    "run_glmm_glassceil.py",       # 4. GLMM logístico (teto de vidro)
+    "run_glmm_glassceil.py",       # 4a. logit com efeitos fixos de UF + SE cluster-UPA (robustez)
+    "R:scripts/R/glmm_glassceil.R", # 4b. GLMM de verdade (glmer, RE de UPA): fonte da tab:glmm_glassceil
     "run_composicao_ocupacional.py" # apoio descritivo do núcleo
 )
 
@@ -43,6 +45,13 @@ $Robustez = @(
 function Invoke-Etapa([string[]]$Scripts, [string]$Titulo) {
     Write-Host "`n===== $Titulo =====" -ForegroundColor Cyan
     foreach ($s in $Scripts) {
+        if ($s.StartsWith("R:")) {                     # script R (lme4::glmer)
+            $rpath = Join-Path $Root ($s.Substring(2))
+            Write-Host "  -> $($s.Substring(2)) [Rscript]" -ForegroundColor Green
+            & $Rscript $rpath
+            if ($LASTEXITCODE -ne 0) { throw "Falha em $s (exit $LASTEXITCODE)" }
+            continue
+        }
         $path = Join-Path $Analise $s
         if (-not (Test-Path $path)) {
             Write-Host "  [PULADO] não encontrado: $s" -ForegroundColor Yellow

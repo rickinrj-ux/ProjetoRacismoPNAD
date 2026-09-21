@@ -143,8 +143,9 @@ def check_glmm(tex: str) -> None:
         return
     ors = {num(r["OR_negro"]) for r in rows}
     extras = set()
-    for f in ("grupo_rg_glmm_ocp.csv", "grupo_rg_glmm_rs_interacao.csv", "glmm_odds_ratios_full.csv",
-              "evalues_glmm.csv", "grupo_rg_4grupos_desfechos.csv", "interseccional_coeficientes.csv"):
+    for f in ("glmm_glassceil_glmer.csv", "grupo_rg_glmm_ocp.csv", "grupo_rg_glmm_rs_interacao.csv",
+              "glmm_odds_ratios_full.csv", "evalues_glmm.csv", "grupo_rg_4grupos_desfechos.csv",
+              "interseccional_coeficientes.csv"):
         for r in csv_rows(f):
             for k, v in r.items():
                 if k and re.search(r"OR|odds", k, re.I):
@@ -356,7 +357,8 @@ def check_scripts() -> None:
             add("INFO", "MHE-75", nome, "QR sem bootstrap: SE dependem da densidade do resíduo em zero.",
                 "Bootstrap em blocos por UPA (ou declarar o kernel usado).")
         if "smf.logit" in code and not re.search(r"glmer|mixedlm|BinomialBayesMixedGLM|MixedLM", code):
-            if "glmm" in nome:
+            # bloco 4: o GLMM real vem de scripts/R/glmm_glassceil.R (glmer); o logit-FE é robustez
+            if "glmm" in nome and not (TABLES / "glmm_glassceil_glmer.csv").exists():
                 add("ALTO", "FAV-77/FAV-70", nome,
                     "Script rotulado GLMM estima logit com UF como efeito fixo + HC1 (sem efeito aleatório). "
                     "O relatório descreve 'GLMM com efeito aleatório de UPA'.",

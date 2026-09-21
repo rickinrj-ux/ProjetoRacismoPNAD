@@ -74,14 +74,16 @@ Resultado-chave: ICC_UPA = 0,369 (37% da variância entre bairros); gap agregado
       do viés; incluir `konfound_hlm_vs_ols.tex` (já rodado, ausente do relatório)
 - [x] 3.7 Padronizar rótulos de educação entre tabelas HLM e OB
 
-## Bloco 4 — GLMM de verdade (🖥, ⏱ ½ dia)
+## Bloco 4 — GLMM de verdade (🖥, ⏱ ½ dia) — ✅ concluído em 2026-09-20
 
-- [ ] 4.1 Alimentar `tcc/scripts/gerar_tabela_glmm.py` com a saída do glmer
+Resultado-chave (glmer, RE de UPA + UF fixo, população): ICC latente 0,20 (cargo) a 0,35 (top 10%); OR M2 = 0,699 (cargo), 0,688 (top 20%), 0,654 (top 10%); AUC 0,83–0,88; E-values 2,2–2,4; logit-FE cluster-UPA reproduz. Lição: um modelo por processo R (`--one`) — o R não devolve memória entre ajustes.
+
+- [x] 4.1 Alimentar `tcc/scripts/gerar_tabela_glmm.py` com a saída do glmer
       (`scripts/R/logit_multinivel_glmm.R`): OR, IC, ICC_UPA = τ/(τ+π²/3), LR test vs logit pooled
-- [ ] 4.2 Manter o logit-FE de UF (+cluster-UPA, item 2.5) como coluna de robustez
-- [ ] 4.3 AUC/ROC + matriz de confusão no cutoff ótimo (sensibilidade/especificidade) para os 3
+- [x] 4.2 Manter o logit-FE de UF (+cluster-UPA, item 2.5) como coluna de robustez
+- [x] 4.3 AUC/ROC + matriz de confusão no cutoff ótimo (sensibilidade/especificidade) para os 3
       desfechos; Hosmer-Lemeshow; comparação de AUC M1→M3 (FAV-43)
-- [ ] 4.4 Reescrever subsec GLMM (l.735–742) e legenda da tabela conforme o modelo real
+- [x] 4.4 Reescrever subsec GLMM (l.735–742) e legenda da tabela conforme o modelo real
 
 ## Bloco 5 — Bad control e reflexo (🖥, ⏱ ½ dia)
 
@@ -89,7 +91,7 @@ Resultado-chave: ICC_UPA = 0,369 (37% da variância entre bairros); gap agregado
       com Soares (2009) só nessa versão (l.852–859)
 - [ ] 5.2 Nomear M4/OB-acesso como "limite inferior descritivo" em Resultados, Discussão e Conclusão
 - [ ] 5.3 XGBoost sem `media_renda_upa` ou com média leave-one-out; novo ranking SHAP
-- [ ] 5.3b `run_glmm_glassceil.py`: o logit também usa `media_renda_upa_z` (reflexo — pior nos
+- [x] 5.3b (feito no bloco 4: o glmer usa %negro/desemprego/educação da UPA, sem `media_renda_upa`; vínculo só no M3, rotulado limite inferior) `run_glmm_glassceil.py`: o logit também usa `media_renda_upa_z` (reflexo — pior nos
       desfechos de renda top-20/top-10, que são função da própria renda) e `emprego_formal`,
       `setor_publico`, `conta_propria`, `trab_domestico` já no M1 (bad controls para o desfecho
       de acesso). Decidir: retirar `media_renda_upa_z` (ou leave-one-out) e mover formalidade

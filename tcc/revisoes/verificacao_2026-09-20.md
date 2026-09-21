@@ -1,12 +1,11 @@
-# Verificação mecânica — 2026-09-20 18:41
+# Verificação mecânica — 2026-09-20 22:49
 
-Gatilho: `run_hlm_stepup.py`  
-Achados: **1 ALTO**, 7 MÉDIO, 3 BAIXO, 4 INFO.
+Gatilho: `execução manual`  
+Achados: **0 ALTO**, 7 MÉDIO, 3 BAIXO, 4 INFO.
 
 | Nível | Critério | Onde | Achado | Correção |
 |---|---|---|---|---|
-| ALTO | FAV-77/FAV-70 | run_glmm_glassceil.py | Script rotulado GLMM estima logit com UF como efeito fixo + HC1 (sem efeito aleatório). O relatório descreve 'GLMM com efeito aleatório de UPA'. | Ou alimentar a tabela com scripts/R/logit_multinivel_glmm.R (glmer, ICC UPA, LR test vs logit), ou renomear para 'logit com efeitos fixos de UF' e citar o glmer como robustez. |
-| MÉDIO | MHE-01/MHE-23/FAV-07 | relatorio | Linguagem causal ('comprova', 'determina', 'causa', 'efeito causal') em 1 linha(s): [679]. | Trocar por 'associa-se', 'é consistente com', 'penalidade condicional'; reservar causal para a seção de limitações. |
+| MÉDIO | MHE-01/MHE-23/FAV-07 | relatorio | Linguagem causal ('comprova', 'determina', 'causa', 'efeito causal') em 1 linha(s): [683]. | Trocar por 'associa-se', 'é consistente com', 'penalidade condicional'; reservar causal para a seção de limitações. |
 | MÉDIO | SWD-10/SWD-18/SWD-14 | relatorio: figuras | Nenhuma figura para Oaxaca-Blinder (só tabela). Figuras atuais: 7. | Uma figura por método do núcleo: cascata (OB), coeficiente×quantil com IC (QR/RIF), barras horizontais de OR com IC (GLMM), barras do β_negro M1→M4 (HLM). |
 | MÉDIO | SWD-10/SWD-18/SWD-14 | relatorio: figuras | Nenhuma figura para Regressão quantílica/RIF (só tabela). Figuras atuais: 7. | Uma figura por método do núcleo: cascata (OB), coeficiente×quantil com IC (QR/RIF), barras horizontais de OR com IC (GLMM), barras do β_negro M1→M4 (HLM). |
 | MÉDIO | SWD-10/SWD-18/SWD-14 | relatorio: figuras | Nenhuma figura para GLMM/logit (só tabela). Figuras atuais: 7. | Uma figura por método do núcleo: cascata (OB), coeficiente×quantil com IC (QR/RIF), barras horizontais de OR com IC (GLMM), barras do β_negro M1→M4 (HLM). |
