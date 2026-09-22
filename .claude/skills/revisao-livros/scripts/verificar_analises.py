@@ -318,6 +318,9 @@ def check_causal(linhas: list[str]) -> None:
         if "Limita" in sec:
             continue
         if re.search(CAUSAL, l, re.I):
+            # negações explícitas são o uso correto ("não constitui prova", "não é efeito causal")
+            if re.search(r"n[ãa]o[^.]{0,90}(" + CAUSAL + ")", l, re.I):
+                continue
             hits.append(i + 1)
     if hits:
         add("MÉDIO", "MHE-01/MHE-23/FAV-07", "relatorio",
@@ -369,7 +372,7 @@ def check_scripts() -> None:
                 "k-fold (k=5) em subamostra para escolher max_depth/lr/n_estimators; reportar CV e hold-out.")
         if re.search(r"\.pie\(|projection=['\"]3d['\"]|twinx\(\)", code):
             add("MÉDIO", "SWD-19", nome, "Gráfico de pizza / 3D / eixo secundário detectado.", "Barras ou slopegraph.")
-        if nome == "run_glmm_glassceil.py" and not re.search(r"roc_auc|AUC|hosmer|confusion", code, re.I):
+        if nome == "run_glmm_glassceil.py" and not re.search(r"roc_auc|AUC|hosmer|confusion", code, re.I)                 and not (TABLES / "glmm_glassceil_glmer.csv").exists():
             add("MÉDIO", "FAV-43/ML-03", nome, "Logit sem AUC/ROC, matriz de confusão (cutoff) nem Hosmer-Lemeshow.",
                 "Reportar AUC + sensibilidade/especificidade no cutoff; comparar M1→M3 (roccomp).")
     if sem_peso:

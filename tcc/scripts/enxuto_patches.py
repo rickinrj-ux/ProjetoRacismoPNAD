@@ -498,6 +498,21 @@ Seguindo a recomendação de ``ser o próprio cético'' (\citeonline{angrist2009
      "@@SHAP_NFEAT_SR@@, contra @@SHAP_RANK@@\\textsuperscript{a} de @@SHAP_NFEAT@@), porque as demais\n"
      "variáveis absorvem parte do que o território explicava.", S),
 
+    ("7.4 SHAP: manter beeswarm e um waterfall (corta dependence e 2 casos)",
+     r"  \\hfill\n  \\begin\{subfigure\}\[b\]\{0\.49\\textwidth\}\n    \\includegraphics\[width=\\textwidth\]\{shap_dependence_negro_xgb\}.*?\\end\{subfigure\}\n",
+     "", S),
+
+    ("7.4 SHAP: waterfall único",
+     r"\\begin\{figure\}\[H\]\n  \\centering\n  \\begin\{subfigure\}\[b\]\{0\.32\\textwidth\}\n    \\includegraphics\[width=\\textwidth\]\{shap_waterfall_A_branco_alta_renda_xgb\}.*?\\label\{fig:shap_wf\}\n\\end\{figure\}",
+     r"""\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.62\textwidth]{shap_waterfall_C_negro_baixa_renda_xgb}
+  \caption{Como a previsão de um caso é construída: decomposição SHAP individual
+  (\emph{waterfall}) de um trabalhador negro de baixa renda. Valores em log-pontos; a
+  contribuição da variável racial aparece isolada das demais.}
+  \label{fig:shap_wf}
+\end{figure}""", S),
+
     # ── Limitações ────────────────────────────────────────────────────────────
     ("0.2 Limitações: Heckman fora do núcleo",
      r"Os modelos HLM, a decomposição de Oaxaca--Blinder, a regressão quantílica e\na correção de Heckman produzem",

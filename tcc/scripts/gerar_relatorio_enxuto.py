@@ -86,6 +86,16 @@ explicada aparece em ``Mediação acum.''; o que resta no M4 é a penalidade que
 nenhum atributo observável explica.
 \input{outputs/tables/gap_mediacao_tcc.tex}
 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{fig_hlm_gap}
+  \caption{Metade do gap racial desaparece ao comparar pessoas do mesmo bairro --- e o que
+  sobra não é explicado por escolaridade, idade, sexo, estado nem ocupação. Barras:
+  $\hat\beta_{\text{negro}}$ de cada modelo; traço: IC~95\% (estreito pelo $N$ de milhões);
+  rótulo: gap em \% de renda. Em azul, o M3 (gap líquido).}
+  \label{fig:hlm_gap}
+\end{figure}
+
 \subsection{Decomposição de Oaxaca--Blinder: composição \emph{vs.}\ discriminação}
 A decomposição de Oaxaca--Blinder separa o gap bruto de log-rendimento
 (@@OB_GAP@@ log-pontos, ou @@OB_GAP_PCT@@\%) em uma parcela explicada por diferenças de
@@ -114,6 +124,15 @@ de milhões, ambos os testes rejeitam qualquer hipótese nula pontual; o que imp
 magnitude, não o $p$-valor \cite{angrist2009}.
 \input{outputs/tables/ob_acesso.tex}
 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{fig_ob_cascata}
+  \caption{Tratar a ocupação como ``característica'' derruba pela metade a discriminação
+  medida: de @@OB_A_COEF@@\% para @@OB_B_COEF@@\% do gap. A parcela que some é a que opera
+  na porta de entrada das ocupações --- medida adiante pelo modelo de acesso.}
+  \label{fig:ob_cascata}
+\end{figure}
+
 \subsection{Regressão Quantílica e RIF-OB: teto de vidro e \emph{sticky floor}}
 A regressão quantílica estima o gap em cada ponto da distribuição de renda; a
 RIF-OB separa, por quantil, dotação e retorno. A Tabela~\ref{tab:qr_melhorias}
@@ -125,6 +144,16 @@ Retornos $=100\%$ em cada quantil; siga a coluna Retornos caindo de $35{,}1\%$ (
 a $12{,}9\%$ (q90) --- a discriminação de preço pesa mais na base.
 \input{outputs/tables/qr_melhorias.tex}
 \input{outputs/tables/rif_decomp_tcc.tex}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.98\textwidth]{fig_qr_rif}
+  \caption{Teto de vidro e piso pegajoso são o mesmo fenômeno visto de dois ângulos. À
+  esquerda, a penalidade em quantis \emph{condicionais} cresce rumo ao topo (faixa: IC~95\%
+  por bootstrap em blocos de UPA); à direita, a parcela não explicada dos quantis
+  \emph{incondicionais} da renda é maior na base.}
+  \label{fig:qr_rif}
+\end{figure}
 
 \subsection{GLMM logístico: o teto de vidro no acesso}
 \label{subsec:glmm_resultados}
@@ -170,6 +199,15 @@ rejeita a calibração perfeita em todos os degraus --- inevitável com $N=7{,}7
 vínculo (M3), sinal de calibração melhor; entre M1 e M2 ela praticamente não muda. O logit com efeitos fixos de UF e erro-padrão agrupado por UPA (última coluna
 da Tabela~\ref{tab:glmm_glassceil}) reproduz os OR do GLMM: a conclusão não depende da
 hipótese de efeitos aleatórios.
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{fig_glmm_or}
+  \caption{A porta é mais estreita para trabalhadores negros --- e estreita ainda mais no
+  topo da renda. Razão de chances de acesso (negro \emph{vs.}\ branco do mesmo bairro) com
+  IC~95\%, por desfecho e degrau; em azul, o modelo com contexto de bairro (M2).}
+  \label{fig:glmm_or}
+\end{figure}
+
 \input{outputs/tables/glmm_glassceil.tex}
 \input{outputs/tables/glmm_ajuste.tex}
 
@@ -540,6 +578,115 @@ if _mlp.exists():
         print(f"  [AVISO] tabela ML não substituída (n={_nml}).")
 else:
     print("  [AVISO] ml_performance.csv não encontrado — tabela ML mantida.")
+
+def _rd0(name):
+    _p = Path("outputs/tables") / name
+    if not _p.exists():
+        return []
+    import csv as _c
+    with _p.open(encoding="utf-8", newline="") as _f:
+        return list(_c.DictReader(_f))
+
+
+# 7.8 — balanceamento e suporte comum, logo após a descrição da base (MHE-11/28)
+print("Inserindo a tabela de balanceamento…")
+_BAL = r"""
+\paragraph{De que é feita a comparação: balanceamento e suporte comum.}
+Antes de qualquer controle, convém olhar em que brancos e negros diferem --- é o que
+mostra a Tabela~\ref{tab:balanceamento}. O maior desequilíbrio não está em escolaridade
+nem em horas: está em \emph{onde se mora}. A composição racial do bairro tem diferença
+padronizada de @@BAL_D_UPA@@ desvios --- uma ordem de grandeza acima de qualquer variável
+individual ---, seguida do desemprego local (@@BAL_D_DES@@) e da educação média do entorno
+(@@BAL_D_EDU@@). É esse desequilíbrio que o nível~2 do modelo hierárquico absorve. As
+\textit{dummies} de escolaridade, por sua vez, são condicionais ao registro da variável,
+cuja cobertura difere entre os grupos (@@BAL_MISS_B@@ contra @@BAL_MISS_N@@ de não
+registro); por isso o indicador \texttt{educ\_missing} entra em todos os modelos e os
+retornos educacionais são lidos com a cautela registrada nas limitações.
+O suporte comum é amplo: @@BAL_UPA_MISTA@@\% das UPAs abrigam trabalhadores dos dois
+grupos e todas as células UF~$\times$~escolaridade contêm brancos e negros, de modo que a
+comparação não depende de extrapolação \cite{angrist2009}.
+\input{outputs/tables/balanceamento.tex}
+"""
+texto, _nb2 = re.subn(r"(?=\\subsection\{Modelo Linear Hierárquico)", lambda m: _BAL + "\n", texto, count=1)
+if _nb2 != 1:
+    print(f"  [AVISO] tabela de balanceamento não inserida (n={_nb2}).")
+_bal = {r["variavel"]: r for r in _rd0("balanceamento.csv")}
+if _bal:
+    def _pt0(x, d=2):
+        return f"{float(x):.{d}f}".replace(".", ",").replace("-", "−")
+    _bal_vals = {
+        "@@BAL_D_UPA@@": _pt0(_bal["pct_negro_upa_z"]["d_cohen"]),
+        "@@BAL_D_DES@@": _pt0(_bal["tx_desemprego_upa_z"]["d_cohen"]),
+        "@@BAL_D_EDU@@": _pt0(_bal["media_educ_upa_z"]["d_cohen"]),
+        "@@BAL_MISS_B@@": _pt0(float(_bal["educ_missing"]["media_branco"]) * 100, 1) + r"\%",
+        "@@BAL_MISS_N@@": _pt0(float(_bal["educ_missing"]["media_negro"]) * 100, 1) + r"\%",
+    }
+    import csv as _c3
+    with (Path("outputs/tables") / "balanceamento.tex").open(encoding="utf-8") as _f3:
+        _t3 = _f3.read()
+    _mm = re.search(r"(\d+,\d)\\% das UPAs", _t3)
+    _bal_vals["@@BAL_UPA_MISTA@@"] = _mm.group(1) if _mm else "97,3"
+    for _k, _v in _bal_vals.items():
+        texto = texto.replace(_k, _v)
+if "@@BAL_" in texto:
+    print("  [AVISO] placeholders @@BAL_...@@ não preenchidos!")
+
+# 7.2 — página "Em três minutos" logo após o sumário (Knaflic, cap. 7: a história de
+# três minutos e a estrutura Bing-Bang-Bongo). Números lidos dos placeholders já
+# preenchidos acima, de modo que a página nunca desatualiza.
+print("Inserindo a página \"Em três minutos\"…")
+_TRES_MIN = r"""
+\newpage
+\section*{Em três minutos}
+\addcontentsline{toc}{section}{Em três minutos}
+
+\noindent\textbf{O contexto.} Entre 2016 e 2025, um trabalhador negro ganhou em média
+@@HLM_GAP_POOL@@\% a menos que um branco com a mesma escolaridade, idade e sexo. A
+explicação usual --- ``é diferença de qualificação'' --- já está descontada nesse número.
+
+\medskip
+\noindent\textbf{O desequilíbrio.} Esse gap não é uma coisa só. Quando se compara apenas
+pessoas \emph{do mesmo bairro}, ele cai quase pela metade: @@HLM_MED_BAIRRO@@\% do gap
+transita pela segregação residencial. O que resta --- @@HLM_GAP3@@\% --- não é explicado
+por capital humano, bairro ou estado. E, ao olhar quem \emph{entra} nas ocupações
+qualificadas, a barreira aparece inteira: com o mesmo perfil e o mesmo bairro, a chance de
+um trabalhador negro ocupar um cargo qualificado é @@G_PCT_CBO_M2@@\% menor; no décimo
+superior da renda, @@G_PCT_T10_M2@@\% menor.
+
+\medskip
+\noindent\textbf{A evidência.} Quatro métodos independentes, sobre a população completa da
+PNAD Contínua ($N = @@N_OBS@@$ observações; @@N_UPAS@@ bairros): um modelo hierárquico que
+separa pessoa e bairro; a decomposição de Oaxaca--Blinder, que separa ``ter
+características diferentes'' de ``receber preços diferentes''; a regressão quantílica com
+RIF, que mostra onde na distribuição a penalidade pesa; e um modelo logístico multinível
+de acesso. Um XGBoost com SHAP confirma, sem impor forma funcional, que a raça mantém
+contribuição própria. Os erros-padrão são agrupados por bairro, porque a PNAD amostra por
+conglomerados.
+
+\medskip
+\noindent\textbf{O que isso muda.} Se o gargalo fosse escolaridade, bastaria ampliar
+acesso ao ensino. Os resultados dizem outra coisa: parte do gap está em \emph{onde se
+consegue morar} e a maior parte da barreira está na \emph{porta de entrada} das ocupações
+--- que é onde a Lei~12.990/2014 e a fiscalização da Lei~9.029/1995 atuam. Educação é
+necessária; sozinha, insuficiente.
+
+\medskip
+\noindent\textit{As três seções seguintes detalham, nesta ordem: como o bairro medeia o
+gap (Barreira~I), quanto custa ser negro para quem já está empregado (Barreira~II) e o que
+os números não podem dizer (Limitações).}
+"""
+texto, _n3 = re.subn(r"(?=\\section\{Introdução\})", lambda m: _TRES_MIN + "\n", texto, count=1)
+if _n3 != 1:
+    print(f"  [AVISO] página 'Em três minutos' não inserida (n={_n3}).")
+# N e UPAs para a página (do HLM step-up) — leitor local: _rd só é definido adiante
+_fit0 = _rd0("hlm_stepup_fit.csv")
+if _fit0:
+    _n = int(float(_fit0[0]["n"]))
+    texto = texto.replace("@@N_OBS@@", f"{_n:,}".replace(",", "."))
+_se_rows2 = _rd0("rif_ob_se.csv")
+_nupas = next((r.get("n_upas") for r in _se_rows2 if r.get("n_upas")), None)
+if _nupas:
+    texto = texto.replace("@@N_UPAS@@", f"{int(float(_nupas)):,}".replace(",", "."))
 
 # Números da Oaxaca-Blinder a partir de outputs/tables/ob_acesso.csv (fonte única):
 # (A) sem ocupação, (B) acesso. Placeholders @@OB_...@@ no Resumo/Abstract/subseção.

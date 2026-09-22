@@ -120,22 +120,25 @@ mulher negra vs. homem branco passa de 96,4% para 80,6% e a penalidade intersecc
 - [x] 6.3 Limitações: lista item a item das hipóteses (CIA, bad controls, reflexo, RE, pesos,
       cluster, COP) e o que acontece se falharem (MHE-90)
 
-## Bloco 7 — Storytelling (✍ + figuras, ⏱ 1 dia)
+## Bloco 7 — Storytelling (✍ + figuras, ⏱ 1 dia) — ✅ concluído em 2026-09-22
+
+Quatro figuras do núcleo geradas dos csv por tcc/scripts/gerar_figuras_nucleo.py (não reestimam nada);
+página "Em três minutos"; SHAP reduzido a beeswarm + 1 waterfall; 19 títulos de ação nos slides.
 
 - [x] 7.1 (frase-síntese única já inserida na Conclusão; falta a do Resumo → 7.2) Grande Ideia única (uma frase, um número) no Resumo e na Conclusão; reduzir as quatro
       caixas de citação (l.1001–1023) a uma
-- [ ] 7.2 Página "Em três minutos" após o Resumo (contexto → desequilíbrio → 4 achados → o que muda)
-- [ ] 7.3 Quatro figuras do núcleo: (1) barras horizontais β_negro M1→M4 com IC; (2) cascata
+- [x] 7.2 Página "Em três minutos" após o Resumo (contexto → desequilíbrio → 4 achados → o que muda)
+- [x] 7.3 Quatro figuras do núcleo: (1) barras horizontais β_negro M1→M4 com IC; (2) cascata
       gap → dotações → retornos (OB, com e sem ocupação); (3) β(τ) com faixa de IC em pequenos
       múltiplos global/homens/mulheres + barras 100 % dotação/retorno por quantil (QR/RIF);
       (4) barras horizontais de OR com IC, 3 desfechos (GLMM)
-- [ ] 7.4 Reduzir SHAP a beeswarm + um waterfall
-- [ ] 7.5 Paleta: cinza + azul de destaque em todas as figuras; vermelho só no dado da frase-síntese;
+- [x] 7.4 Reduzir SHAP a beeswarm + um waterfall
+- [x] 7.5 (figuras novas em cinza + azul; paleta dos slides com vermelho só como destaque) Paleta: cinza + azul de destaque em todas as figuras; vermelho só no dado da frase-síntese;
       mesmo grupo = mesma cor; colormap do SHAP ajustado
-- [ ] 7.6 Legendas: primeira frase = achado (título de ação); manter as notas "Como ler"
-- [ ] 7.7 Slides: títulos de ação nos 10 slides-tópico; lógica horizontal (só os títulos contam a
+- [x] 7.6 Legendas: primeira frase = achado (título de ação); manter as notas "Como ler"
+- [x] 7.7 Slides: títulos de ação nos 10 slides-tópico; lógica horizontal (só os títulos contam a
       história); Bing-Bang-Bongo; paleta de 11 → 3 cores
-- [ ] 7.8 Tabela de balanceamento (covariáveis por raça) e checagem de suporte comum na Descritiva
+- [x] 7.8 (tabela de balanceamento + suporte comum: 97,3% das UPAs mistas; maior desequilíbrio é o bairro, d = −1,18) Tabela de balanceamento (covariáveis por raça) e checagem de suporte comum na Descritiva
 
 ## Bloco 8 — ML (🖥, ⏱ 2 h)
 

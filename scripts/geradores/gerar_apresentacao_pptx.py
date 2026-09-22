@@ -31,7 +31,8 @@ OUT_PPT = ROOT / "entregaveis" / "apresentacao_tcc.pptx"
 # ── Paleta ────────────────────────────────────────────────────────────────────
 C_DARK   = RGBColor(0x1F, 0x38, 0x64)   # azul escuro (cabeçalhos)
 C_BLUE   = RGBColor(0x15, 0x65, 0xC0)   # azul (brancos / positivo)
-C_RED    = RGBColor(0xB7, 0x1C, 0x1C)   # vermelho (negros / discriminação)
+C_RED    = RGBColor(0xB7, 0x1C, 0x1C)   # destaque pontual (usar com parcimônia — SWD-42)
+C_GRAY2  = RGBColor(0x9E, 0x9E, 0x9E)   # cinza dos dados de contexto
 C_AMBER  = RGBColor(0xFF, 0x8F, 0x00)   # âmbar (destaque)
 C_WHITE  = RGBColor(0xFF, 0xFF, 0xFF)
 C_BLACK  = RGBColor(0x21, 0x21, 0x21)
@@ -238,7 +239,7 @@ add_text(s, "Orientador: Edilson José Rodrigues",
 # SLIDE 2 — O PROBLEMA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "1. O Problema",
+header_bar(s, "1. Mesma escolaridade, salário menor: o gap racial não é só qualificação",
            "Por que um mestrado quantitativo sobre o gap racial brasileiro?")
 
 add_text(s, "O gap salarial racial persiste mesmo após décadas de políticas inclusivas",
@@ -272,7 +273,7 @@ footer(s, 2)
 # SLIDE 3 — DADOS E DATASET
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "2. Base de Dados", "PNAD Contínua 2016–2025 + enriquecimento com variáveis ocupacionais")
+header_bar(s, "2. Dez anos de PNAD Contínua: 7,7 milhões de trabalhadores, 41 mil bairros", "PNAD Contínua 2016–2025 + enriquecimento com variáveis ocupacionais")
 
 kpi_box(s, "Observações brutas", "15,9M", "PNAD 2016–2025", In(0.3), In(1.2))
 kpi_box(s, "PEA com renda positiva", "7,7M", "após filtros", In(3.3), In(1.2))
@@ -307,7 +308,7 @@ footer(s, 3)
 # SLIDE 4 — ANÁLISE DESCRITIVA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "3. Análise Descritiva — A Desigualdade nos Dados",
+header_bar(s, "3. Antes de qualquer modelo: brancos e negros não moram nos mesmos bairros",
            "Gap mediano bruto de 27,5% | 7,7 milhões de empregados com renda positiva | PNAD Contínua 2016–2025")
 
 add_img(s, FIGURES / "fig1_densidade_log_salario.png", In(0.3), In(1.2), In(6.4), In(4.5))
@@ -343,7 +344,7 @@ footer(s, 4)
 # SLIDE 5 — ARQUITETURA METODOLÓGICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "4. Arquitetura Metodológica",
+header_bar(s, "4. Quatro métodos que respondem a quatro perguntas diferentes",
            "Núcleo de 4 métodos + robustez (ML/SHAP) — convergência de evidências")
 
 metodos = [
@@ -380,7 +381,7 @@ footer(s, 5)
 # SLIDE 6 — HLM: DECOMPOSIÇÃO DO GAP
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "5. HLM — Decomposição do Gap em Camadas",
+header_bar(s, "5. Metade do gap desaparece ao comparar pessoas do mesmo bairro",
            "Do gap bruto de 19,3% ao resíduo de discriminação pura de 6,2%")
 
 # Barra de decomposição visual
@@ -417,7 +418,7 @@ footer(s, 6)
 # SLIDE 7 — COMPOSIÇÃO OCUPACIONAL E GLASS CEILING
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "6. Composição Ocupacional — Onde Estão Negros e Brancos?",
+header_bar(s, "6. A ocupação explica muito — mas a ocupação é ela própria desigual",
            "Sub-representação sistemática nos grupos de alto prestígio")
 
 add_img(s, FIGURES / "comp_razao_grupo_cbo.png", In(0.3), In(1.2), In(6.5))
@@ -437,7 +438,7 @@ footer(s, 7)
 # SLIDE 7 — OAXACA-BLINDER
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "7. Oaxaca-Blinder — Onde Opera a Discriminação?",
+header_bar(s, "7. Tratar a ocupação como “característica” corta a discriminação medida pela metade",
            f"Gap total {fmt(P['GAP_PCT'],1)}% | 84% explicado por diferenças nas características dos trabalhadores")
 
 add_img(s, FIGURES / "oaxaca_decomposicao.png", In(0.3), In(1.2), In(7.5))
@@ -463,7 +464,7 @@ footer(s, 8)
 # SLIDE 8 — GAP POR SUBGRUPO, MINCER E CICLO DE VIDA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "8. Gap por Subgrupo e Ciclo de Vida",
+header_bar(s, "8. A penalidade cresce com a idade e não poupa nenhum subgrupo",
            "Regressão Mincer com controles progressivos + curva de ciclo de vida racial")
 
 add_img(s, FIGURES / "fig4_gap_faixa_etaria.png", In(0.3), In(1.2), In(6.2), In(4.5))
@@ -502,7 +503,7 @@ footer(s, 9)
 # SLIDE 10 — LOGIT MULTINÍVEL
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "9. Logit Multinível — Gap de Oportunidades Racial",
+header_bar(s, "9. A barreira maior é a porta: 30% menos chance de cargo qualificado",
            "GLMM lme4 com efeito aleatório de UPA — discriminação de ACESSO confirmada (n=7,7M, 40,9k UPAs)")
 
 add_img(s, FIGURES / "glmm_odds_ratios_full.png", In(0.3), In(1.2), In(7.0))
@@ -535,7 +536,7 @@ footer(s, 10)
 # SLIDE 11 — REGRESSÃO QUANTÍLICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "10. Regressão Quantílica — Formalização do Glass Ceiling",
+header_bar(s, "10. Quanto mais alto o salário, maior a penalidade racial",
            "O gap racial aumenta no topo da distribuição de renda — confirmação formal")
 
 add_img(s, FIGURES / "quantreg_trajetoria.png", In(0.3), In(1.2), In(7.2))
@@ -564,7 +565,7 @@ footer(s, 11)
 # SLIDE 12 — RIF-OB: STICKY FLOOR vs GLASS CEILING POR DOTAÇÕES
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "11. RIF-OB — Sticky Floor Discriminatório vs. Glass Ceiling por Dotações",
+header_bar(s, "11. Na base da distribuição, a maior parte do gap é preço, não característica",
            f"Firpo, Fortin & Lemieux (2018) | N={fmtN(P['N_GLMM'])} | Decomposição incondicional por quantil")
 
 add_img(s, FIGURES / "rif_ob_retornos_quantis.png", In(0.3), In(1.2), In(6.8))
@@ -614,7 +615,7 @@ footer(s, 12)
 # SLIDE 13 — INTERSECCIONALIDADE OB 4 GRUPOS
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "12. Interseccionalidade — OB em 4 Grupos (Crenshaw, 1989)",
+header_bar(s, "12. A mulher negra acumula as duas penalidades — e sobra uma terceira",
            "OB twofold vs. Homem Branco | N=2.357.851 | penalidade interseccional extra = +9,5 pp")
 
 add_img(s, FIGURES / "interseccional_ob4grupos.png", In(0.3), In(1.2), In(6.5))
@@ -651,7 +652,7 @@ footer(s, 13)
 # SLIDE 14 — SENSIBILIDADE A VARIÁVEIS OMITIDAS
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "13. Sensibilidade — Konfound, E-values e Oster Bounds",
+header_bar(s, "13. Para derrubar o resultado, faltaria um confundidor mais forte que tudo o que medimos",
            "3 métodos complementares — nenhum consegue anular o gap racial observado")
 
 add_img(s, FIGURES / "sensibilidade_konfound_evalues.png", In(0.3), In(1.2), In(6.8))
@@ -689,7 +690,7 @@ footer(s, 14)
 # SLIDE 10 — ML/SHAP
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "14. ML/SHAP — O Que Mais Determina a Renda?",
+header_bar(s, "14. Sem impor forma funcional, a raça continua pesando na previsão da renda",
            "XGBoost R²=0,6162 | Horas + CBO + Formalidade emergem como top preditores")
 
 add_img(s, FIGURES / "shap_importance_xgb.png", In(0.3), In(1.2), In(6.8))
@@ -724,7 +725,7 @@ footer(s, 16)
 # SLIDE 14 — JUSTIFICAÇÃO METODOLÓGICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "15. Por Que Esses Modelos? — Justificação Estatística",
+header_bar(s, "15. Por que multinível: 37% da variação da renda está entre bairros",
            f"LRT χ²=191.625 confirma hierarquia | ICC={fmt(P['ICC_HLM_M0_pct'],2)}% > limiar 5% | HLM supera OLS+FE em AIC")
 
 add_img(s, FIGURES / "modelos_loglik_aic.png", In(0.3), In(1.2), In(6.3))
@@ -746,7 +747,7 @@ footer(s, 21)
 # SLIDE — RESUMO DOS RESULTADOS (tabela real)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "Resumo dos Resultados — Núcleo de 4 Métodos",
+header_bar(s, "Os quatro métodos apontam para o mesmo lugar",
            "Os quatro métodos convergem; a discriminação opera sobretudo no acesso às ocupações")
 add_table_resumo(
     s,
@@ -774,7 +775,7 @@ footer(s, 22)
 # SLIDE 15 — SÍNTESE: TRIÂNGULO DE EVIDÊNCIAS
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "16. Síntese — Triângulo de Evidências",
+header_bar(s, "16. Duas barreiras, um sistema: porta de entrada e salário",
            "Os métodos do núcleo apontam para o mesmo diagnóstico")
 
 # Três vértices do triângulo
@@ -807,7 +808,7 @@ footer(s, 22)
 # SLIDE 13 — IMPLICAÇÕES DE POLÍTICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "17. Implicações de Política",
+header_bar(s, "17. Cotas de acesso e fiscalização atacam a barreira que medimos",
            "Três eixos simultâneos — ações isoladas são insuficientes para romper a armadilha estrutural")
 
 politicas = [
@@ -844,7 +845,7 @@ footer(s, 28)
 # SLIDE 14 — LIMITAÇÕES E AGENDA FUTURA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "18. Limitações e Agenda Futura",
+header_bar(s, "18. O que estes números não dizem",
            "Honestidade acadêmica: o que este trabalho não faz e por quê")
 
 add_text(s, "Limitações", In(0.4), In(1.25), In(6.0), In(0.4),

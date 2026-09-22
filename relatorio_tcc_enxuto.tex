@@ -220,6 +220,46 @@ SHAP values; PNAD Contínua.
 % ══════════════════════════════════════════════════════════════════════════════
 %  1. INTRODUÇÃO
 % ══════════════════════════════════════════════════════════════════════════════
+
+\newpage
+\section*{Em três minutos}
+\addcontentsline{toc}{section}{Em três minutos}
+
+\noindent\textbf{O contexto.} Entre 2016 e 2025, um trabalhador negro ganhou em média
+19,1\% a menos que um branco com a mesma escolaridade, idade e sexo. A
+explicação usual --- ``é diferença de qualificação'' --- já está descontada nesse número.
+
+\medskip
+\noindent\textbf{O desequilíbrio.} Esse gap não é uma coisa só. Quando se compara apenas
+pessoas \emph{do mesmo bairro}, ele cai quase pela metade: 47,0\% do gap
+transita pela segregação residencial. O que resta --- 10,2\% --- não é explicado
+por capital humano, bairro ou estado. E, ao olhar quem \emph{entra} nas ocupações
+qualificadas, a barreira aparece inteira: com o mesmo perfil e o mesmo bairro, a chance de
+um trabalhador negro ocupar um cargo qualificado é 30\% menor; no décimo
+superior da renda, 35\% menor.
+
+\medskip
+\noindent\textbf{A evidência.} Quatro métodos independentes, sobre a população completa da
+PNAD Contínua ($N = 7.689.426$ observações; 40.969 bairros): um modelo hierárquico que
+separa pessoa e bairro; a decomposição de Oaxaca--Blinder, que separa ``ter
+características diferentes'' de ``receber preços diferentes''; a regressão quantílica com
+RIF, que mostra onde na distribuição a penalidade pesa; e um modelo logístico multinível
+de acesso. Um XGBoost com SHAP confirma, sem impor forma funcional, que a raça mantém
+contribuição própria. Os erros-padrão são agrupados por bairro, porque a PNAD amostra por
+conglomerados.
+
+\medskip
+\noindent\textbf{O que isso muda.} Se o gargalo fosse escolaridade, bastaria ampliar
+acesso ao ensino. Os resultados dizem outra coisa: parte do gap está em \emph{onde se
+consegue morar} e a maior parte da barreira está na \emph{porta de entrada} das ocupações
+--- que é onde a Lei~12.990/2014 e a fiscalização da Lei~9.029/1995 atuam. Educação é
+necessária; sozinha, insuficiente.
+
+\medskip
+\noindent\textit{As três seções seguintes detalham, nesta ordem: como o bairro medeia o
+gap (Barreira~I), quanto custa ser negro para quem já está empregado (Barreira~II) e o que
+os números não podem dizer (Limitações).}
+
 \section{Introdução}
 \label{sec:intro}
 
@@ -374,6 +414,23 @@ A classificação racial segue o critério binário adotado pelos estudos
 de desigualdade racial no Brasil: \textit{negro} = preto (código~2) +
 pardo (código~4); \textit{branco} = branco (código~1), ambos da variável
 V2010 (cor ou raça autodeclarada).
+
+
+\paragraph{De que é feita a comparação: balanceamento e suporte comum.}
+Antes de qualquer controle, convém olhar em que brancos e negros diferem --- é o que
+mostra a Tabela~\ref{tab:balanceamento}. O maior desequilíbrio não está em escolaridade
+nem em horas: está em \emph{onde se mora}. A composição racial do bairro tem diferença
+padronizada de −1,18 desvios --- uma ordem de grandeza acima de qualquer variável
+individual ---, seguida do desemprego local (−0,46) e da educação média do entorno
+(−0,30). É esse desequilíbrio que o nível~2 do modelo hierárquico absorve. As
+\textit{dummies} de escolaridade, por sua vez, são condicionais ao registro da variável,
+cuja cobertura difere entre os grupos (73,7\% contra 65,3\% de não
+registro); por isso o indicador \texttt{educ\_missing} entra em todos os modelos e os
+retornos educacionais são lidos com a cautela registrada nas limitações.
+O suporte comum é amplo: 97,3\% das UPAs abrigam trabalhadores dos dois
+grupos e todas as células UF~$\times$~escolaridade contêm brancos e negros, de modo que a
+comparação não depende de extrapolação \cite{angrist2009}.
+\input{outputs/tables/balanceamento.tex}
 
 \subsection{Modelo Linear Hierárquico: indivíduos em bairros (UPA), com efeitos fixos de UF}
 \label{subsec:hlm}
@@ -668,13 +725,6 @@ Educ.: pós-graduação & 0.00000 & 28 & 0.00000 & 29 \\
     \caption{Beeswarm: distribuição de SHAP por feature (XGBoost).}
     \label{fig:shap_bee}
   \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.49\textwidth}
-    \includegraphics[width=\textwidth]{shap_dependence_negro_xgb}
-    \caption{Dependence plot: efeito da raça colorido por
-              \% negro na UPA (interação contextual).}
-    \label{fig:shap_dep}
-  \end{subfigure}
   \caption{Análise SHAP --- XGBoost ($N_\text{SHAP}=50.000$).}
   \label{fig:shap}
 \end{figure}
@@ -706,22 +756,10 @@ a diferenças em educação, experiência, gênero ou contexto de moradia.
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{shap_waterfall_A_branco_alta_renda_xgb}
-    \caption{Caso A: branco de alta renda.}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{shap_waterfall_B_negro_alta_renda_xgb}
-    \caption{Caso B: negro de alta renda.}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{shap_waterfall_C_negro_baixa_renda_xgb}
-    \caption{Caso C: negro de baixa renda.}
-  \end{subfigure}
-  \caption{Decomposição SHAP individual (waterfall) para três perfis representativos.
-            Valores em log-pontos; azul = contribuição positiva, vermelho = negativa.}
+  \includegraphics[width=0.62\textwidth]{shap_waterfall_C_negro_baixa_renda_xgb}
+  \caption{Como a previsão de um caso é construída: decomposição SHAP individual
+  (\emph{waterfall}) de um trabalhador negro de baixa renda. Valores em log-pontos; a
+  contribuição da variável racial aparece isolada das demais.}
   \label{fig:shap_wf}
 \end{figure}
 
@@ -741,6 +779,16 @@ $\beta_{\text{negro}}$ aproximando-se de zero linha a linha --- a fração do ga
 explicada aparece em ``Mediação acum.''; o que resta no M4 é a penalidade que
 nenhum atributo observável explica.
 \input{outputs/tables/gap_mediacao_tcc.tex}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{fig_hlm_gap}
+  \caption{Metade do gap racial desaparece ao comparar pessoas do mesmo bairro --- e o que
+  sobra não é explicado por escolaridade, idade, sexo, estado nem ocupação. Barras:
+  $\hat\beta_{\text{negro}}$ de cada modelo; traço: IC~95\% (estreito pelo $N$ de milhões);
+  rótulo: gap em \% de renda. Em azul, o M3 (gap líquido).}
+  \label{fig:hlm_gap}
+\end{figure}
 
 \subsection{Decomposição de Oaxaca--Blinder: composição \emph{vs.}\ discriminação}
 A decomposição de Oaxaca--Blinder separa o gap bruto de log-rendimento
@@ -770,6 +818,15 @@ de milhões, ambos os testes rejeitam qualquer hipótese nula pontual; o que imp
 magnitude, não o $p$-valor \cite{angrist2009}.
 \input{outputs/tables/ob_acesso.tex}
 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{fig_ob_cascata}
+  \caption{Tratar a ocupação como ``característica'' derruba pela metade a discriminação
+  medida: de 28,4\% para 16,2\% do gap. A parcela que some é a que opera
+  na porta de entrada das ocupações --- medida adiante pelo modelo de acesso.}
+  \label{fig:ob_cascata}
+\end{figure}
+
 \subsection{Regressão Quantílica e RIF-OB: teto de vidro e \emph{sticky floor}}
 A regressão quantílica estima o gap em cada ponto da distribuição de renda; a
 RIF-OB separa, por quantil, dotação e retorno. A Tabela~\ref{tab:qr_melhorias}
@@ -795,6 +852,16 @@ cresce com $\tau$. Os dois resultados são complementares --- um é sobre o \emp
 pago a características, o outro sobre a \emph{distribuição} de características.
 \input{outputs/tables/qr_melhorias.tex}
 \input{outputs/tables/rif_decomp_tcc.tex}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.98\textwidth]{fig_qr_rif}
+  \caption{Teto de vidro e piso pegajoso são o mesmo fenômeno visto de dois ângulos. À
+  esquerda, a penalidade em quantis \emph{condicionais} cresce rumo ao topo (faixa: IC~95\%
+  por bootstrap em blocos de UPA); à direita, a parcela não explicada dos quantis
+  \emph{incondicionais} da renda é maior na base.}
+  \label{fig:qr_rif}
+\end{figure}
 
 \subsection{GLMM logístico: o teto de vidro no acesso}
 \label{subsec:glmm_resultados}
@@ -840,6 +907,15 @@ rejeita a calibração perfeita em todos os degraus --- inevitável com $N=7{,}7
 vínculo (M3), sinal de calibração melhor; entre M1 e M2 ela praticamente não muda. O logit com efeitos fixos de UF e erro-padrão agrupado por UPA (última coluna
 da Tabela~\ref{tab:glmm_glassceil}) reproduz os OR do GLMM: a conclusão não depende da
 hipótese de efeitos aleatórios.
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{fig_glmm_or}
+  \caption{A porta é mais estreita para trabalhadores negros --- e estreita ainda mais no
+  topo da renda. Razão de chances de acesso (negro \emph{vs.}\ branco do mesmo bairro) com
+  IC~95\%, por desfecho e degrau; em azul, o modelo com contexto de bairro (M2).}
+  \label{fig:glmm_or}
+\end{figure}
+
 \input{outputs/tables/glmm_glassceil.tex}
 \input{outputs/tables/glmm_ajuste.tex}
 
