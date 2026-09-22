@@ -85,26 +85,31 @@ Resultado-chave (glmer, RE de UPA + UF fixo, população): ICC latente 0,20 (car
       desfechos; Hosmer-Lemeshow; comparação de AUC M1→M3 (FAV-43)
 - [x] 4.4 Reescrever subsec GLMM (l.735–742) e legenda da tabela conforme o modelo real
 
-## Bloco 5 — Bad control e reflexo (🖥, ⏱ ½ dia)
+## Bloco 5 — Bad control e reflexo (🖥, ⏱ ½ dia) — ✅ concluído em 2026-09-22
+
+Achado colateral: a decomposição interseccional do entregável usava só as ~31% de observações com
+`educ_ord` registrado (legenda dizia 'população completa'); refeita na amostra do núcleo, o gap da
+mulher negra vs. homem branco passa de 96,4% para 80,6% e a penalidade interseccional extra de
+9,5 p.p. para 4,6 p.p.
 
 - [x] 5.1 (tabela OB com (A) sem ocupação: 28,4% não explicado / (B) acesso: 16,2%; Resumo, Abstract, subseção e comparação com Soares atualizados) OB **sem** ocupação/formalidade/horas (especificação M3) ao lado da OB de acesso; comparar
       com Soares (2009) só nessa versão (l.852–859)
-- [ ] 5.2 Nomear M4/OB-acesso como "limite inferior descritivo" em Resultados, Discussão e Conclusão
-- [ ] 5.3 XGBoost sem `media_renda_upa` ou com média leave-one-out; novo ranking SHAP
+- [x] 5.2 Nomear M4/OB-acesso como "limite inferior descritivo" em Resultados, Discussão e Conclusão
+- [x] 5.3 (LOO: R² 0,617→0,614; sem renda de vizinhança: 0,578; |SHAP| da raça 0,030 → 0,029) XGBoost sem `media_renda_upa` ou com média leave-one-out; novo ranking SHAP
 - [x] 5.3b (feito no bloco 4: o glmer usa %negro/desemprego/educação da UPA, sem `media_renda_upa`; vínculo só no M3, rotulado limite inferior) `run_glmm_glassceil.py`: o logit também usa `media_renda_upa_z` (reflexo — pior nos
       desfechos de renda top-20/top-10, que são função da própria renda) e `emprego_formal`,
       `setor_publico`, `conta_propria`, `trab_domestico` já no M1 (bad controls para o desfecho
       de acesso). Decidir: retirar `media_renda_upa_z` (ou leave-one-out) e mover formalidade
       para um M-extra explicitamente rotulado "dentro do vínculo"
-- [ ] 5.4 Retirar/reescrever "onde se mora supera quanto se estudou" (l.670–671) conforme 5.3
-- [ ] 5.5 Limitações: parágrafo COP (renda > 0 condiciona no desfecho; direção do viés; Heckman
+- [x] 5.4 Retirar/reescrever "onde se mora supera quanto se estudou" (l.670–671) conforme 5.3
+- [x] 5.5 Limitações: parágrafo COP (renda > 0 condiciona no desfecho; direção do viés; Heckman
       λ = −1,96 no branch extenso) (MHE-32)
-- [ ] 5.6 Parágrafo QR vs RIF: condicional (fanning-out) vs incondicional (sticky floor); linguagem
+- [x] 5.6 Parágrafo QR vs RIF: condicional (fanning-out) vs incondicional (sticky floor); linguagem
       sobre distribuições, não indivíduos (MHE-72/73)
-- [ ] 5.7 VIF (l.808–810): "descartam multicolinearidade" → explicar que VIF 22 está em
+- [x] 5.7 VIF (l.808–810): "descartam multicolinearidade" → explicar que VIF 22 está em
       `educ_missing` (bloco educacional, esperado) e mostrar β_negro estável sem ela
-- [ ] 5.8 Diagnósticos OLS das regressões de grupo da OB: Breusch-Pagan e RESET (apêndice de uma linha)
-- [ ] 5.9 N e SE nas tabelas RIF-OB e interseccional; frase explicando "dotações −8,9 %" da mulher branca
+- [x] 5.8 Diagnósticos OLS das regressões de grupo da OB: Breusch-Pagan e RESET (apêndice de uma linha)
+- [x] 5.9 (bootstrap em blocos por UPA, 150 réplicas; descoberto que a tabela interseccional rodava em 31% da PEA — refeita na população) N e SE nas tabelas RIF-OB e interseccional; frase explicando "dotações −8,9 %" da mulher branca
 
 ## Bloco 6 — Linguagem (✍, ⏱ 1 h)
 
@@ -112,7 +117,7 @@ Resultado-chave (glmer, RE de UPA + UF fixo, população): ICC latente 0,20 (car
       discriminação direta" (Resumo l.129–131 e abstract l.177–179) → "não explicado por
       observáveis — limite inferior da discriminação"
 - [x] 6.2 "discriminação pura pós-ocupação" (l.1034) → conforme 5.2
-- [ ] 6.3 Limitações: lista item a item das hipóteses (CIA, bad controls, reflexo, RE, pesos,
+- [x] 6.3 Limitações: lista item a item das hipóteses (CIA, bad controls, reflexo, RE, pesos,
       cluster, COP) e o que acontece se falharem (MHE-90)
 
 ## Bloco 7 — Storytelling (✍ + figuras, ⏱ 1 dia)

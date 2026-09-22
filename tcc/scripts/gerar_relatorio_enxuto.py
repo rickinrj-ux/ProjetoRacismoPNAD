@@ -101,6 +101,17 @@ discriminação salarial \emph{dentro} da ocupação. A diferença entre as duas
 \emph{porta de entrada} das ocupações, e não pelo salário --- exatamente o que o
 GLMM de acesso mede adiante. \emph{Como ler:} em cada coluna, Dotações $+$ Não
 explicado $=100\%$; os erros-padrão vêm de bootstrap em blocos por UPA.
+
+\paragraph{Pressupostos das regressões por grupo.} As duas regressões auxiliares
+(brancos e negros) foram submetidas aos testes de Breusch--Pagan e RESET
+(Fávero \& Belfiore, cap.~12). Há heterocedasticidade --- esperada em log-rendimento ---
+mas de magnitude modesta: o $R^2$ da regressão auxiliar do Breusch--Pagan é @@BP_R2_B@@
+(brancos) e @@BP_R2_N@@ (negros), e é justamente por isso que os erros-padrão são
+agrupados por UPA e a decomposição usa bootstrap em blocos. O RESET rejeita a forma
+funcional linear, mas o ganho de $R^2$ ao acrescentar potências do valor predito é de
+@@RESET_B@@ (brancos) e @@RESET_N@@ (negros) --- irrelevante para a decomposição. Com $N$
+de milhões, ambos os testes rejeitam qualquer hipótese nula pontual; o que importa é a
+magnitude, não o $p$-valor \cite{angrist2009}.
 \input{outputs/tables/ob_acesso.tex}
 
 \subsection{Regressão Quantílica e RIF-OB: teto de vidro e \emph{sticky floor}}
@@ -517,6 +528,10 @@ if _mlp.exists():
             "\\textbf{Modelo} & $R^2$ & \\textbf{MAE} & \\textbf{RMSE} & "
             "\\textbf{Gap treino--teste} \\\\\n"
             "\\midrule\n" + "\n".join(_linhas) + "\n\\bottomrule\n\\end{tabular}")
+    texto = texto.replace(
+        "\caption{Desempenho preditivo --- Random Forest e XGBoost.",
+        "\caption{Desempenho preditivo --- Random Forest, XGBoost e XGBoost sem renda de "
+        "vizinhança (robustez ao problema do reflexo).")
     texto, _nml = re.subn(
         r"\\begin\{tabular\}\{lccc\}\s*\\toprule\s*\\textbf\{Modelo\} & \$R\^2\$ & "
         r"\\textbf\{MAE\} & \\textbf\{RMSE\} \\\\.*?\\end\{tabular\}",
@@ -754,6 +769,56 @@ for _k, _v in _V.items():
 _rest = sorted(set(re.findall(r"@@(?:HLM|GLMM|G)_[A-Z0-9_]+@@", texto)))
 if _rest:
     print(f"  [AVISO] placeholders não preenchidos: {_rest[:12]}")
+
+# VIF (bloco 5.7) — placeholders @@VIF_*@@ lidos de vif_m4_preditores.csv
+_vif = {r["predictor"]: float(r["VIF"]) for r in _rd("vif_m4_preditores.csv")}
+if _vif:
+    _ctx = [v for k, v in _vif.items() if k.endswith("_upa_z")]
+    _occ = [v for k, v in _vif.items() if k.startswith("ocp_") or k in ("emprego_formal", "conta_propria", "trab_domestico")]
+    for _k, _v in {"@@VIF_MISS@@": _pt(_vif.get("educ_missing", float("nan")), 2),
+                   "@@VIF_SUP@@": _pt(_vif.get("educ_superior_completo", float("nan")), 2),
+                   "@@VIF_NEGRO@@": _pt(_vif.get("negro", float("nan")), 2),
+                   "@@VIF_CTX_MAX@@": _pt(max(_ctx) if _ctx else float("nan"), 1),
+                   "@@VIF_OCC_MAX@@": _pt(max(_occ) if _occ else float("nan"), 2)}.items():
+        texto = texto.replace(_k, _v)
+if "@@VIF_" in texto:
+    print("  [AVISO] placeholders @@VIF_...@@ não preenchidos!")
+
+# ML (bloco 5.3): R² do XGBoost com LOO e sem renda da UPA; rank da raça no modelo sem
+_mlp = {r["Modelo"]: r for r in _rd("ml_performance.csv")}
+_imp_sr = _rd("shap_importance_sem_renda_upa.csv")
+if _mlp:
+    _V2 = {}
+    if "XGBoost" in _mlp:
+        _V2["@@ML_R2_XGB@@"] = _pt(_mlp["XGBoost"]["R²"], 3)
+    if "XGBoost (sem renda da UPA)" in _mlp:
+        _V2["@@ML_R2_SR@@"] = _pt(_mlp["XGBoost (sem renda da UPA)"]["R²"], 3)
+    _rk = [r for r in _imp_sr if r["Feature"].startswith("Raça")]
+    if _rk:
+        _V2["@@SHAP_RANK_SR@@"] = str(int(float(_rk[0]["rank"])))
+        _V2["@@SHAP_NEGRO_SR@@"] = _pt(_rk[0]["SHAP_mean_abs"], 3)
+        _V2["@@SHAP_NFEAT_SR@@"] = str(len(_imp_sr))
+    _imp = _rd("shap_importance_comparada.csv")
+    _rk2 = [r for r in _imp if r.get("Feature", "").startswith("Raça")]
+    if _rk2:
+        _V2["@@SHAP_NEGRO@@"] = _pt(_rk2[0]["SHAP_mean_abs_XGB"], 3)
+        _V2["@@SHAP_RANK@@"] = str(int(float(_rk2[0]["Rank_XGB"])))
+        _V2["@@SHAP_NFEAT@@"] = str(len(_imp))
+    for _k, _v in _V2.items():
+        texto = texto.replace(_k, _v)
+if re.search(r"@@(ML_|SHAP_RANK)", texto):
+    print("  [AVISO] placeholders de ML/SHAP não preenchidos!")
+
+# Diagnósticos da OB (bloco 5.8) — placeholders @@BP_*@@ / @@RESET_*@@
+_diag = {r["grupo"]: r for r in _rd("oaxaca_diagnosticos.csv")}
+if _diag:
+    for _k, _v in {"@@BP_R2_B@@": _pt(_diag["Brancos"]["bp_r2_aux"], 3),
+                   "@@BP_R2_N@@": _pt(_diag["Negros"]["bp_r2_aux"], 3),
+                   "@@RESET_B@@": _pt(_diag["Brancos"]["reset_ganho_r2"], 4),
+                   "@@RESET_N@@": _pt(_diag["Negros"]["reset_ganho_r2"], 4)}.items():
+        texto = texto.replace(_k, _v)
+if re.search(r"@@(BP_|RESET_)", texto):
+    print("  [AVISO] placeholders de diagnóstico não preenchidos!")
 
 # Checagem de \ref pendentes a rótulos removidos
 pendentes = []

@@ -590,15 +590,16 @@ sobre o conjunto de teste (\textit{hold-out} 20\%).
 
 \begin{table}[H]
 \centering
-\caption{Desempenho preditivo --- Random Forest e XGBoost.
+\caption{Desempenho preditivo --- Random Forest, XGBoost e XGBoost sem renda de vizinhança (robustez ao problema do reflexo).
           \textit{Hold-out} 20\% da população ($N_\text{teste}\approx 1{,}54$ milhão).}
 \label{tab:ml_perf}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Modelo} & $R^2$ & \textbf{MAE} & \textbf{RMSE} & \textbf{Gap treino--teste} \\
 \midrule
-Random Forest & 0,5735 & 0,4529 & 0,6030 & 0,0006 \\
-\textbf{XGBoost} & \textbf{0,6168} & \textbf{0,4287} & \textbf{0,5716} & \textbf{0,0006} \\
+Random Forest & 0,5689 & 0,4557 & 0,6070 & 0,0015 \\
+\textbf{XGBoost} & \textbf{0,6139} & \textbf{0,4306} & \textbf{0,5745} & \textbf{0,0013} \\
+XGBoost (sem renda da UPA) & 0,5778 & 0,4523 & 0,6007 & 0,0012 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -611,7 +612,7 @@ pela maior parte do resíduo.
 \paragraph{Ausência de sobreajuste (população completa).}
 Estimado sobre a população (\mbox{$N=7.694.198$}; treino~80\%/teste~20\%),
 o método não-paramétrico não apresenta \textit{overfitting}: o $R^2$ de treino e de
-teste praticamente coincidem (\textit{gap}~$=0,0006$ para o XGBoost e
+teste praticamente coincidem (\textit{gap}~$=0,0013$ para o XGBoost e
 para o Random Forest). Três evidências convergem: o \textit{gap} treino--teste
 $\approx 0$; a razão $N \gg$ complexidade (modelos regularizados sobre 7,7~milhões de
 observações); e a estabilidade do $R^2$ de teste entre a subamostra de 20\% e a
@@ -626,35 +627,35 @@ de amostral para populacional \emph{reduz} --- não aumenta --- o risco de sobre
 \toprule
 \textbf{Feature} & \textbf{$|\text{SHAP}|$ RF} & \textbf{Rank RF} & \textbf{$|\text{SHAP}|$ XGB} & \textbf{Rank XGB} \\
 \midrule
-\textbf{Renda média UPA} & 0.33232 & 1 & 0.27491 & 1 \\
-Horas trabalhadas & 0.17465 & 2 & 0.16360 & 2 \\
-CBO: Profissionais & 0.11539 & 4 & 0.11933 & 3 \\
-Emprego formal (carteira) & 0.14084 & 3 & 0.11079 & 4 \\
-Gênero (feminino) & 0.09185 & 5 & 0.10107 & 5 \\
-Idade (centralizada) & 0.06443 & 6 & 0.09976 & 6 \\
-Educ.: não registrada & 0.02991 & 9 & 0.07000 & 7 \\
-Conta própria & 0.02117 & 10 & 0.06360 & 8 \\
-CBO: Técnicos & 0.03600 & 8 & 0.04635 & 9 \\
-CBO: Dirigentes & 0.03962 & 7 & 0.03942 & 10 \\
-\textbf{Raça (negro)} & 0.00007 & 25 & 0.02962 & 11 \\
-CBO: Serviços/Vendas & 0.00080 & 16 & 0.02907 & 12 \\
-CBO: Operários & 0.00047 & 20 & 0.02215 & 13 \\
-\textbf{Desemprego na UPA} & 0.00068 & 19 & 0.02165 & 14 \\
-CBO: Op. Máquinas & 0.00017 & 22 & 0.02047 & 15 \\
-Trabalho doméstico & 0.00674 & 13 & 0.01840 & 16 \\
-CBO: Administrativo & 0.00233 & 14 & 0.01757 & 17 \\
-\textbf{\% Negro no Estado} & 0.00080 & 16 & 0.01709 & 18 \\
-CBO: Agropecuária & 0.00131 & 15 & 0.01522 & 19 \\
-\textbf{Desemprego no Estado} & 0.00039 & 21 & 0.01501 & 20 \\
-CBO: FFAA/Polícia & 0.01078 & 11 & 0.01271 & 21 \\
-Idade² (experiência) & 0.00772 & 12 & 0.01101 & 22 \\
-\textbf{\% Negro na UPA} & 0.00012 & 23 & 0.01078 & 23 \\
-Educ. média UPA & 0.00008 & 24 & 0.01054 & 24 \\
-Educ. média Estado & 0.00069 & 18 & 0.00616 & 25 \\
-Educ.: Médio & 0.00000 & 28 & 0.00452 & 26 \\
-Educ.: Superior & 0.00001 & 26 & 0.00245 & 27 \\
-Educ.: Fundamental & 0.00000 & 28 & 0.00093 & 28 \\
-Educ.: Pós-graduação & 0.00000 & 28 & 0.00000 & 29 \\
+Renda média UPA (exceto o próprio) & 0.32538 & 1 & 0.26570 & 1 \\
+Horas trabalhadas & 0.16918 & 2 & 0.16232 & 2 \\
+CBO: Profissionais & 0.11711 & 4 & 0.12026 & 3 \\
+Emprego formal (carteira) & 0.14821 & 3 & 0.10986 & 4 \\
+Gênero (feminino) & 0.09288 & 5 & 0.10213 & 5 \\
+Idade (centralizada) & 0.06494 & 6 & 0.10163 & 6 \\
+Educ.: não registrada & 0.03203 & 9 & 0.07212 & 7 \\
+Conta própria & 0.02089 & 10 & 0.06311 & 8 \\
+CBO: Técnicos & 0.03709 & 8 & 0.04684 & 9 \\
+CBO: Dirigentes & 0.04052 & 7 & 0.03971 & 10 \\
+\textbf{Raça (negro)} & 0.00006 & 24 & 0.03015 & 11 \\
+CBO: Serviços/Vendas & 0.00052 & 20 & 0.02979 & 12 \\
+CBO: Operários & 0.00072 & 18 & 0.02333 & 13 \\
+\textbf{Desemprego na UPA} & 0.00073 & 17 & 0.02262 & 14 \\
+CBO: Op. Máquinas & 0.00005 & 25 & 0.02106 & 15 \\
+Trabalho doméstico & 0.00651 & 12 & 0.01851 & 16 \\
+CBO: Administrativo & 0.00234 & 14 & 0.01796 & 17 \\
+\textbf{\% Negro no Estado} & 0.00075 & 16 & 0.01714 & 18 \\
+\textbf{Desemprego no Estado} & 0.00036 & 21 & 0.01537 & 19 \\
+CBO: Agropecuária & 0.00133 & 15 & 0.01446 & 20 \\
+CBO: FFAA/Polícia & 0.01110 & 11 & 0.01297 & 21 \\
+Educ. média UPA & 0.00009 & 23 & 0.01043 & 22 \\
+\textbf{\% Negro na UPA} & 0.00010 & 22 & 0.00921 & 23 \\
+Idade² (experiência) & 0.00641 & 13 & 0.00887 & 24 \\
+Educ. média Estado & 0.00067 & 19 & 0.00731 & 25 \\
+Educ.: médio completo & 0.00001 & 26 & 0.00411 & 26 \\
+Educ.: superior completo & 0.00001 & 26 & 0.00348 & 27 \\
+Educ.: fundamental completo & 0.00000 & 28 & 0.00088 & 28 \\
+Educ.: pós-graduação & 0.00000 & 28 & 0.00000 & 29 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -679,10 +680,23 @@ Educ.: Pós-graduação & 0.00000 & 28 & 0.00000 & 29 \\
 \end{figure}
 \noindent\emph{Como ler a Figura~\ref{fig:shap}:} cada ponto é um trabalhador; quanto mais à direita (ou maior a barra), maior o efeito da variável na renda prevista. A cor indica se o valor da variável é alto ou baixo.
 
-A Tabela~\ref{tab:shap_importance} revela que a \textbf{renda média da UPA}
-figura entre os preditores de maior peso do rendimento individual ($|\text{SHAP}| = 0.275$). Trata-se, porém, de preditor parcialmente endógeno (problema do reflexo, Manski 1993), pois agrega o próprio indivíduo, o que recomenda interpretá-lo como evidência de mediação territorial e não como determinante causal isolado.
-Esse resultado confirma computacionalmente a hipótese de Wilson~(\citeyear{wilson1987}):
-o \textit{onde se mora} supera em importância o \textit{quanto se estudou}.
+A Tabela~\ref{tab:shap_importance} mostra o \textbf{contexto do bairro} entre os
+preditores de maior peso do rendimento individual. A variável usada aqui é a renda
+média da UPA \emph{excluindo o próprio indivíduo} (\emph{leave-one-out}): a média que
+inclui a própria pessoa é mecanicamente correlacionada com seu rendimento --- o
+problema do reflexo \cite{manski1993} --- e inflaria artificialmente a importância do
+território. Mesmo sem essa contaminação, o bairro permanece entre os preditores de
+primeira ordem, o que é consistente com a hipótese de \citeonline{wilson1987}; a
+leitura correta, porém, é de \emph{mediação} territorial --- choques comuns ao bairro
+(mercado de trabalho local, transporte, redes) afetam todos os moradores --- e não de
+efeito causal de um vizinho sobre o outro. Como checagem extrema, o mesmo XGBoost
+estimado \emph{sem qualquer} renda de vizinhança perde pouco poder preditivo
+($R^2 = 0,578$ contra 0,614 do modelo completo) e, nele, a contribuição
+média da raça é praticamente a mesma (0,029 contra 0,030 em
+$|\text{SHAP}|$): o sinal racial não é um artefato da variável de contexto ---
+muda apenas a posição relativa no \emph{ranking} (16\textsuperscript{a} de
+28, contra 11\textsuperscript{a} de 29), porque as demais
+variáveis absorvem parte do que o território explicava.
 
 A variável racial ocupa o 11$^\circ$ lugar no ranking de
 importância mesmo após controlar por todos os demais fatores, com SHAP
@@ -743,6 +757,17 @@ discriminação salarial \emph{dentro} da ocupação. A diferença entre as duas
 \emph{porta de entrada} das ocupações, e não pelo salário --- exatamente o que o
 GLMM de acesso mede adiante. \emph{Como ler:} em cada coluna, Dotações $+$ Não
 explicado $=100\%$; os erros-padrão vêm de bootstrap em blocos por UPA.
+
+\paragraph{Pressupostos das regressões por grupo.} As duas regressões auxiliares
+(brancos e negros) foram submetidas aos testes de Breusch--Pagan e RESET
+(Fávero \& Belfiore, cap.~12). Há heterocedasticidade --- esperada em log-rendimento ---
+mas de magnitude modesta: o $R^2$ da regressão auxiliar do Breusch--Pagan é 0,061
+(brancos) e 0,065 (negros), e é justamente por isso que os erros-padrão são
+agrupados por UPA e a decomposição usa bootstrap em blocos. O RESET rejeita a forma
+funcional linear, mas o ganho de $R^2$ ao acrescentar potências do valor predito é de
+0,0009 (brancos) e 0,0038 (negros) --- irrelevante para a decomposição. Com $N$
+de milhões, ambos os testes rejeitam qualquer hipótese nula pontual; o que importa é a
+magnitude, não o $p$-valor \cite{angrist2009}.
 \input{outputs/tables/ob_acesso.tex}
 
 \subsection{Regressão Quantílica e RIF-OB: teto de vidro e \emph{sticky floor}}
@@ -754,6 +779,20 @@ Tabela~\ref{tab:rif_ob} revela o padrão complementar: o componente de retorno
 (\emph{sticky floor}). \emph{Como ler:} na Tabela~\ref{tab:rif_ob}, Dotações $+$
 Retornos $=100\%$ em cada quantil; siga a coluna Retornos caindo de $35{,}1\%$ (q10)
 a $12{,}9\%$ (q90) --- a discriminação de preço pesa mais na base.
+
+\paragraph{Por que os dois padrões não se contradizem.} A regressão quantílica
+estima quantis \emph{condicionais}: $\hat\beta(\tau)$ compara negros e brancos na
+mesma posição \emph{dentro} da distribuição de pessoas com o mesmo perfil observável.
+O crescimento de $|\hat\beta(\tau)|$ ao longo de $\tau$ significa que a dispersão
+condicional do rendimento é maior entre brancos --- \emph{fanning out} na linguagem de
+\citeonline{angrist2009} ---, e não que ``os negros do topo sofrem mais'': quantis não
+seguem indivíduos, e a leitura em termos de pessoas exigiria invariância de posto, que
+não se testa aqui. A RIF-OB, ao contrário, decompõe quantis \emph{incondicionais} da
+distribuição de renda \cite{firpo2018}: responde ``de que é feito o gap no q10 da renda
+do país''. Como a composição observável concentra negros na base, a parcela de retornos
+é maior ali; e como há mais dispersão condicional no topo, o coeficiente condicional
+cresce com $\tau$. Os dois resultados são complementares --- um é sobre o \emph{preço}
+pago a características, o outro sobre a \emph{distribuição} de características.
 \input{outputs/tables/qr_melhorias.tex}
 \input{outputs/tables/rif_decomp_tcc.tex}
 
@@ -856,9 +895,17 @@ Dos $24$ preditores analisados, VIF máximo~$= 22,25$
 (VIF~$> 10$); 1~variável alta ($5$--$10$);
 1~variável moderada ($2$--$5$);
 20~variáveis baixas ($< 2$).
-Esses resultados descartam multicolinearidade problemática entre CBO e
-formalidade, validando a especificação completa do M4 sem necessidade de
-ortogonalização ou eliminação de preditores.
+Os dois VIF acima de 10 são \texttt{educ\_missing} (22,25) e
+\texttt{educ\_superior\_completo} (19,45) --- colinearidade \emph{por construção}
+dentro do bloco educacional, já que o indicador de escolaridade não registrada é
+quase o complemento das \textit{dummies} de conclusão (Fávero \& Belfiore,
+cap.~12). Ela infla o erro-padrão dos retornos educacionais, que por isso são lidos
+com cautela, mas \textbf{não} contamina o coeficiente de interesse: o VIF de
+\texttt{negro} é 1,37 e o das variáveis de contexto da UPA fica abaixo de
+1,8. Entre os \textit{dummies} de CBO e as variáveis de vínculo --- a
+colinearidade que se temia no M4 --- o VIF máximo é 2,09. A especificação
+do M4 dispensa, portanto, ortogonalização ou eliminação de preditores; o que ela
+não dispensa é a ressalva de \emph{bad control} (Seção~\ref{subsec:hlm_resultados}).
 
 \section{Discussão e Prescrição}
 \label{sec:discussao}
@@ -1111,6 +1158,53 @@ Testes de sensibilidade mostram que o coeficiente racial é estável a essa
 especificação (variação inferior a~1\%); ainda assim, os retornos educacionais
 devem ser interpretados com a cautela própria de uma variável parcialmente
 observada.
+
+\paragraph{Condicionar em quem tem renda positiva.}
+Todos os modelos de rendimento são estimados entre ocupados com renda positiva. Isso é
+\emph{condicionar no desfecho} (\citeonline{angrist2009}, cap.~3): se a discriminação
+também reduz a probabilidade de estar ocupado, o gap salarial condicional mistura o
+efeito sobre o salário com a seleção de quem permanece na amostra. A direção provável do
+viés é de \emph{subestimação}: se os trabalhadores negros que conseguem se manter
+ocupados são positivamente selecionados em atributos não observados, o gap entre os
+observados é menor que o gap potencial na população. O modelo logístico de acesso trata
+diretamente a outra metade do problema --- a probabilidade de chegar à ocupação
+qualificada --- e a correção de Heckman, estimada na versão estendida deste trabalho,
+indicou seleção não nula ($\hat\lambda$ significativo), com o coeficiente racial estável
+em sinal e ordem de grandeza. A leitura correta é, portanto: o gap líquido aqui reportado
+é o gap \emph{entre ocupados}, não o gap potencial de toda a população em idade ativa.
+
+\paragraph{As hipóteses, uma a uma, e o que acontece se falharem.}
+Seguindo a recomendação de ``ser o próprio cético'' (\citeonline{angrist2009}, cap.~8):
+\begin{enumerate}
+  \item \textbf{Seleção em observáveis (CIA).} O gap líquido só é o efeito do tratamento
+    diferencial se, condicional a $X$, a raça for ``como se'' aleatória. Não é: qualidade
+    da escola, habilidade não medida e redes ficam fora. Se esses omitidos correlacionam
+    negativamente com ser negro e positivamente com renda, o coeficiente \emph{superestima}
+    a discriminação --- por isso o gap líquido é apresentado como limite superior dessa
+    leitura, e o Konfound/E-value quantificam quanto de confundimento seria preciso.
+  \item \textbf{\emph{Bad controls}.} Ocupação, formalidade e horas são desfechos da
+    própria discriminação. Com eles (M4, Oaxaca-Blinder de acesso) o resultado é um
+    \emph{limite inferior descritivo}: a parcela que opera pela porta de entrada some da
+    conta. Sem eles (M3, especificação~(A) da Oaxaca-Blinder) tem-se o gap total
+    condicional a capital humano e bairro. As duas versões são reportadas lado a lado.
+  \item \textbf{Reflexo (Manski).} A renda média do bairro inclui o próprio indivíduo; usada
+    como preditor, é mecanicamente informativa. Nos modelos de acesso ela foi removida e,
+    no XGBoost, substituída pela média \emph{leave-one-out}; ainda assim, choques comuns ao
+    bairro impedem leitura causal do coeficiente contextual.
+  \item \textbf{Efeitos aleatórios.} O HLM e o GLMM supõem que o efeito de bairro não é
+    correlacionado com os regressores. Como contraprova, todos os coeficientes foram
+    reestimados com efeitos fixos de UF e erro-padrão agrupado por UPA, com as mesmas
+    conclusões (Subseção~\ref{subsec:inferencia}).
+  \item \textbf{Pesos e desenho amostral.} As estimativas são não ponderadas: descrevem a
+    regressão na amostra. A robustez ponderada pelo peso da PNAD muda o gap em menos de
+    meio ponto percentual.
+  \item \textbf{Correlação intragrupo.} Ignorá-la subestimaria os erros-padrão (Moulton);
+    todos os modelos reportam erro-padrão agrupado por UPA ou o modelam por efeito
+    aleatório, e o agrupamento por UF usa $t$ com $G-1$ graus de liberdade.
+  \item \textbf{Significância com $N$ grande.} Com 7,7 milhões de observações, quase tudo é
+    ``significativo''; a leitura privilegia magnitude, intervalos de confiança e E-values,
+    não asteriscos.
+\end{enumerate}
 
 \paragraph{Desenho transversal e direções futuras.}
 O caráter transversal do painel público impede a análise de trajetórias

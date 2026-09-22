@@ -103,7 +103,7 @@ FEATURES = [
     "ocp_servicos", "ocp_agro", "ocp_operario", "ocp_operador", "ocp_ffaa",
     # Contexto UPA (Nível 2)
     "pct_negro_upa_z", "tx_desemprego_upa_z",
-    "media_educ_upa_z", "media_renda_upa_z",
+    "media_educ_upa_z", "media_renda_upa_loo_z",
     # Contexto UF (Nível 3)
     "pct_negro_uf_z", "tx_desemprego_uf_z", "media_educ_uf_z",
 ]
@@ -134,7 +134,7 @@ FEATURE_LABELS = {
     "pct_negro_upa_z":         "% Negro na UPA",
     "tx_desemprego_upa_z":     "Desemprego na UPA",
     "media_educ_upa_z":        "Educ. média UPA",
-    "media_renda_upa_z":       "Renda média UPA",
+    "media_renda_upa_loo_z":   "Renda média UPA (exceto o próprio)",
     "pct_negro_uf_z":          "% Negro no Estado",
     "tx_desemprego_uf_z":      "Desemprego no Estado",
     "media_educ_uf_z":         "Educ. média Estado",
@@ -150,6 +150,18 @@ def load_data():
     df["educ_missing"] = df["educ_cat"].isna().astype(int) if "educ_cat" in df.columns else 0
 
     df = df[df["log_renda"].notna() & (df["log_renda"] > 0)].copy()
+
+    # Renda média da UPA LEAVE-ONE-OUT (problema do reflexo, Manski 1993): a variável
+    # original media_renda_upa_z é a média de log_renda da UPA INCLUINDO o próprio
+    # indivíduo — regredir y_i em ȳ_j é mecanicamente informativo e não mede efeito de
+    # vizinhança. Aqui: (soma_j − y_i)/(n_j − 1), padronizada. UPAs com n = 1 saem.
+    _sum = df.groupby("UPA")["log_renda"].transform("sum")
+    _n   = df.groupby("UPA")["log_renda"].transform("size")
+    _loo = (_sum - df["log_renda"]) / (_n - 1)
+    df["media_renda_upa_loo_z"] = (_loo - _loo.mean()) / _loo.std()
+    df = df[_n > 1].copy()
+    logger.info(f"  renda média da UPA leave-one-out criada (UPAs com n=1 removidas: {int((_n <= 1).sum()):,})")
+
     df = df.dropna(subset=FEATURES + [TARGET]).reset_index(drop=True)
 
     for col in FEATURES + [TARGET]:
@@ -208,7 +220,7 @@ def fit_rf(X_tr, y_tr):
 # ── XGBoost ────────────────────────────────────────────────────────────────────
 
 def fit_xgb(X_tr, y_tr):
-    logger.info("Ajustando XGBoost (n=300, depth=6, lr=0.05) ...")
+    logger.info("Ajustando XGBoost (n=300, depth=6, lr=0.05) ...")  # noqa: E501
     t0 = time.time()
     model = xgb.XGBRegressor(
         n_estimators=300,
@@ -469,6 +481,35 @@ def main():
     m_xgb["gap_overfit"] = round(m_xgb["R2_treino"] - m_xgb["R²"], 4)
     metrics.append(m_xgb)
     logger.info(f"  Overfitting (R²treino-R²teste): RF={m_rf['gap_overfit']:.4f} | XGB={m_xgb['gap_overfit']:.4f}")
+
+    # ── Robustez ao reflexo: XGBoost SEM nenhuma renda de vizinhança ───────────
+    # (a LOO já remove a inclusão mecânica do próprio indivíduo; aqui testa-se o caso
+    #  extremo — nem a renda dos vizinhos entra — para ver quanto do ajuste e do
+    #  ranking de importância dependia dessa variável.)
+    i_loo = FEATURES.index("media_renda_upa_loo_z")
+    keep = [i for i in range(len(FEATURES)) if i != i_loo]
+    xgb_sr = fit_xgb(X_tr[:, keep], y_tr)
+    m_sr = evaluate("XGBoost (sem renda da UPA)", y_te, xgb_sr.predict(X_te[:, keep]))
+    m_sr["R2_treino"] = round(r2_score(y_tr, xgb_sr.predict(X_tr[:, keep])), 4)
+    m_sr["gap_overfit"] = round(m_sr["R2_treino"] - m_sr["R²"], 4)
+    metrics.append(m_sr)
+    # rank da raça nesse modelo (mesmo subsample do SHAP principal)
+    try:
+        rng_sr = np.random.default_rng(RANDOM_STATE)
+        idx_sr = rng_sr.choice(len(X_tr), size=min(SHAP_SAMPLE, len(X_tr)), replace=False)
+        sv_sr = shap.TreeExplainer(xgb_sr).shap_values(X_tr[idx_sr][:, keep])
+        imp_sr = pd.DataFrame({"Feature": [FEATURE_LABELS.get(FEATURES[i], FEATURES[i]) for i in keep],
+                               "SHAP_mean_abs": np.abs(sv_sr).mean(0)}).sort_values("SHAP_mean_abs", ascending=False)
+        imp_sr = imp_sr.reset_index(drop=True)
+        imp_sr["rank"] = imp_sr.index + 1
+        imp_sr.to_csv(OUTPUTS_TB / "shap_importance_sem_renda_upa.csv", index=False)
+        _r = imp_sr[imp_sr["Feature"] == FEATURE_LABELS["negro"]]
+        logger.info(f"  [sem renda da UPA] R²={m_sr['R²']:.4f} | raça no rank "
+                    f"{int(_r['rank'].iloc[0]) if len(_r) else '?'} de {len(imp_sr)}")
+        del sv_sr
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"  SHAP do modelo sem renda da UPA falhou: {e}")
+    del xgb_sr
 
     # Salva métricas
     pd.DataFrame(metrics).to_csv(OUTPUTS_TB / "ml_performance.csv", index=False)

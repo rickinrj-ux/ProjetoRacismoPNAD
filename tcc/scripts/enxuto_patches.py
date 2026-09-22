@@ -392,6 +392,112 @@ qualquer covariável observada.
      "O achado mais robusto desta análise é que @@HLM_MED_BAIRRO@@\\% do gap salarial racial\n"
      "condicional a capital humano é mediado pelo bairro de moradia", 0),
 
+
+    # ── Bloco 5 — bad control, reflexo e diagnósticos ─────────────────────────
+    ("5.7 VIF: colinearidade está no bloco educacional, não em raça",
+     r"Esses resultados descartam multicolinearidade problemática entre CBO e\nformalidade, validando a especificação completa do M4 sem necessidade de\nortogonalização ou eliminação de preditores\.",
+     "Os dois VIF acima de 10 são \\texttt{educ\\_missing} (@@VIF_MISS@@) e\n"
+     "\\texttt{educ\\_superior\\_completo} (@@VIF_SUP@@) --- colinearidade \\emph{por construção}\n"
+     "dentro do bloco educacional, já que o indicador de escolaridade não registrada é\n"
+     "quase o complemento das \\textit{dummies} de conclusão (Fávero \\& Belfiore,\n"
+     "cap.~12). Ela infla o erro-padrão dos retornos educacionais, que por isso são lidos\n"
+     "com cautela, mas \\textbf{não} contamina o coeficiente de interesse: o VIF de\n"
+     "\\texttt{negro} é @@VIF_NEGRO@@ e o das variáveis de contexto da UPA fica abaixo de\n"
+     "@@VIF_CTX_MAX@@. Entre os \\textit{dummies} de CBO e as variáveis de vínculo --- a\n"
+     "colinearidade que se temia no M4 --- o VIF máximo é @@VIF_OCC_MAX@@. A especificação\n"
+     "do M4 dispensa, portanto, ortogonalização ou eliminação de preditores; o que ela\n"
+     "não dispensa é a ressalva de \\emph{bad control} (Seção~\\ref{subsec:hlm_resultados}).", 0),
+
+    ("5.6 QR vs RIF: condicional vs incondicional",
+     r"\(\\emph\{sticky floor\}\)\. \\emph\{Como ler:\} na Tabela~\\ref\{tab:rif_ob\}, Dotações \$\+\$\nRetornos \$=100\\%\$ em cada quantil; siga a coluna Retornos caindo de \$35\{,\}1\\%\$ \(q10\)\na \$12\{,\}9\\%\$ \(q90\) --- a discriminação de preço pesa mais na base\.",
+     "(\\emph{sticky floor}). \\emph{Como ler:} na Tabela~\\ref{tab:rif_ob}, Dotações $+$\n"
+     "Retornos $=100\\%$ em cada quantil; siga a coluna Retornos caindo de $35{,}1\\%$ (q10)\n"
+     "a $12{,}9\\%$ (q90) --- a discriminação de preço pesa mais na base.\n\n"
+     "\\paragraph{Por que os dois padrões não se contradizem.} A regressão quantílica\n"
+     "estima quantis \\emph{condicionais}: $\\hat\\beta(\\tau)$ compara negros e brancos na\n"
+     "mesma posição \\emph{dentro} da distribuição de pessoas com o mesmo perfil observável.\n"
+     "O crescimento de $|\\hat\\beta(\\tau)|$ ao longo de $\\tau$ significa que a dispersão\n"
+     "condicional do rendimento é maior entre brancos --- \\emph{fanning out} na linguagem de\n"
+     "\\citeonline{angrist2009} ---, e não que ``os negros do topo sofrem mais'': quantis não\n"
+     "seguem indivíduos, e a leitura em termos de pessoas exigiria invariância de posto, que\n"
+     "não se testa aqui. A RIF-OB, ao contrário, decompõe quantis \\emph{incondicionais} da\n"
+     "distribuição de renda \\cite{firpo2018}: responde ``de que é feito o gap no q10 da renda\n"
+     "do país''. Como a composição observável concentra negros na base, a parcela de retornos\n"
+     "é maior ali; e como há mais dispersão condicional no topo, o coeficiente condicional\n"
+     "cresce com $\\tau$. Os dois resultados são complementares --- um é sobre o \\emph{preço}\n"
+     "pago a características, o outro sobre a \\emph{distribuição} de características.", 0),
+
+    ("5.5/6.3 Limitações: hipóteses item a item (MHE-90) e COP",
+     r"\\paragraph\{Desenho transversal e direções futuras\.\}",
+     r"""\paragraph{Condicionar em quem tem renda positiva.}
+Todos os modelos de rendimento são estimados entre ocupados com renda positiva. Isso é
+\emph{condicionar no desfecho} (\citeonline{angrist2009}, cap.~3): se a discriminação
+também reduz a probabilidade de estar ocupado, o gap salarial condicional mistura o
+efeito sobre o salário com a seleção de quem permanece na amostra. A direção provável do
+viés é de \emph{subestimação}: se os trabalhadores negros que conseguem se manter
+ocupados são positivamente selecionados em atributos não observados, o gap entre os
+observados é menor que o gap potencial na população. O modelo logístico de acesso trata
+diretamente a outra metade do problema --- a probabilidade de chegar à ocupação
+qualificada --- e a correção de Heckman, estimada na versão estendida deste trabalho,
+indicou seleção não nula ($\hat\lambda$ significativo), com o coeficiente racial estável
+em sinal e ordem de grandeza. A leitura correta é, portanto: o gap líquido aqui reportado
+é o gap \emph{entre ocupados}, não o gap potencial de toda a população em idade ativa.
+
+\paragraph{As hipóteses, uma a uma, e o que acontece se falharem.}
+Seguindo a recomendação de ``ser o próprio cético'' (\citeonline{angrist2009}, cap.~8):
+\begin{enumerate}
+  \item \textbf{Seleção em observáveis (CIA).} O gap líquido só é o efeito do tratamento
+    diferencial se, condicional a $X$, a raça for ``como se'' aleatória. Não é: qualidade
+    da escola, habilidade não medida e redes ficam fora. Se esses omitidos correlacionam
+    negativamente com ser negro e positivamente com renda, o coeficiente \emph{superestima}
+    a discriminação --- por isso o gap líquido é apresentado como limite superior dessa
+    leitura, e o Konfound/E-value quantificam quanto de confundimento seria preciso.
+  \item \textbf{\emph{Bad controls}.} Ocupação, formalidade e horas são desfechos da
+    própria discriminação. Com eles (M4, Oaxaca-Blinder de acesso) o resultado é um
+    \emph{limite inferior descritivo}: a parcela que opera pela porta de entrada some da
+    conta. Sem eles (M3, especificação~(A) da Oaxaca-Blinder) tem-se o gap total
+    condicional a capital humano e bairro. As duas versões são reportadas lado a lado.
+  \item \textbf{Reflexo (Manski).} A renda média do bairro inclui o próprio indivíduo; usada
+    como preditor, é mecanicamente informativa. Nos modelos de acesso ela foi removida e,
+    no XGBoost, substituída pela média \emph{leave-one-out}; ainda assim, choques comuns ao
+    bairro impedem leitura causal do coeficiente contextual.
+  \item \textbf{Efeitos aleatórios.} O HLM e o GLMM supõem que o efeito de bairro não é
+    correlacionado com os regressores. Como contraprova, todos os coeficientes foram
+    reestimados com efeitos fixos de UF e erro-padrão agrupado por UPA, com as mesmas
+    conclusões (Subseção~\ref{subsec:inferencia}).
+  \item \textbf{Pesos e desenho amostral.} As estimativas são não ponderadas: descrevem a
+    regressão na amostra. A robustez ponderada pelo peso da PNAD muda o gap em menos de
+    meio ponto percentual.
+  \item \textbf{Correlação intragrupo.} Ignorá-la subestimaria os erros-padrão (Moulton);
+    todos os modelos reportam erro-padrão agrupado por UPA ou o modelam por efeito
+    aleatório, e o agrupamento por UF usa $t$ com $G-1$ graus de liberdade.
+  \item \textbf{Significância com $N$ grande.} Com 7,7 milhões de observações, quase tudo é
+    ``significativo''; a leitura privilegia magnitude, intervalos de confiança e E-values,
+    não asteriscos.
+\end{enumerate}
+
+\paragraph{Desenho transversal e direções futuras.}""", 0),
+
+    ("5.3/5.4 SHAP: renda de vizinhança leave-one-out e robustez sem ela",
+     r"A Tabela~\\ref\{tab:shap_importance\} revela que a \\textbf\{renda média da UPA\}\nfigura entre os preditores de maior peso do rendimento individual.*?o \\textit\{onde se mora\} supera em importância o \\textit\{quanto se estudou\}\.",
+     "A Tabela~\\ref{tab:shap_importance} mostra o \\textbf{contexto do bairro} entre os\n"
+     "preditores de maior peso do rendimento individual. A variável usada aqui é a renda\n"
+     "média da UPA \\emph{excluindo o próprio indivíduo} (\\emph{leave-one-out}): a média que\n"
+     "inclui a própria pessoa é mecanicamente correlacionada com seu rendimento --- o\n"
+     "problema do reflexo \\cite{manski1993} --- e inflaria artificialmente a importância do\n"
+     "território. Mesmo sem essa contaminação, o bairro permanece entre os preditores de\n"
+     "primeira ordem, o que é consistente com a hipótese de \\citeonline{wilson1987}; a\n"
+     "leitura correta, porém, é de \\emph{mediação} territorial --- choques comuns ao bairro\n"
+     "(mercado de trabalho local, transporte, redes) afetam todos os moradores --- e não de\n"
+     "efeito causal de um vizinho sobre o outro. Como checagem extrema, o mesmo XGBoost\n"
+     "estimado \\emph{sem qualquer} renda de vizinhança perde pouco poder preditivo\n"
+     "($R^2 = @@ML_R2_SR@@$ contra @@ML_R2_XGB@@ do modelo completo) e, nele, a contribuição\n"
+     "média da raça é praticamente a mesma (@@SHAP_NEGRO_SR@@ contra @@SHAP_NEGRO@@ em\n"
+     "$|\\text{SHAP}|$): o sinal racial não é um artefato da variável de contexto ---\n"
+     "muda apenas a posição relativa no \\emph{ranking} (@@SHAP_RANK_SR@@\\textsuperscript{a} de\n"
+     "@@SHAP_NFEAT_SR@@, contra @@SHAP_RANK@@\\textsuperscript{a} de @@SHAP_NFEAT@@), porque as demais\n"
+     "variáveis absorvem parte do que o território explicava.", S),
+
     # ── Limitações ────────────────────────────────────────────────────────────
     ("0.2 Limitações: Heckman fora do núcleo",
      r"Os modelos HLM, a decomposição de Oaxaca--Blinder, a regressão quantílica e\na correção de Heckman produzem",

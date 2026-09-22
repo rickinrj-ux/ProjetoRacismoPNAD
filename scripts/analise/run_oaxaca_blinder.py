@@ -14,6 +14,7 @@ _sys.path.insert(0, _os.getcwd())
 import sys; sys.stdout.reconfigure(encoding='utf-8')
 import pandas as pd
 import numpy as np
+_np, _pd = np, pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -107,6 +108,34 @@ res = pd.DataFrame({
     "Pct_do_gap": [100.0, endowment/gap_total*100, returns/gap_total*100, interaction/gap_total*100]
 })
 res.to_csv(TABLES / "oaxaca_resultados.csv", index=False, encoding='utf-8')
+
+# ── Diagnósticos dos pressupostos OLS por grupo (Fávero & Belfiore, cap. 12) ──
+# Breusch-Pagan: heterocedasticidade (esperada em log-renda; por isso os SE são
+# agrupados por UPA e a decomposição usa bootstrap em blocos).
+# RESET (Ramsey): forma funcional — potências do valor predito acrescentam poder?
+# Com N na casa dos milhões qualquer desvio é "significativo": o que importa é a
+# magnitude (R² auxiliar do BP; ganho de R² no RESET), não o p-valor.
+print("\nDiagnósticos OLS por grupo (BP e RESET) ...", flush=True)
+import statsmodels.api as _sm
+from statsmodels.stats.diagnostic import het_breuschpagan as _bp
+
+_diag = []
+for _lab, _m, _d in (("Brancos", m_b, df_b), ("Negros", m_n, df_n)):
+    _e = _m.resid.values
+    _X = _m.model.exog
+    _lm, _lmp, _f, _fp = _bp(_e, _X)
+    _r2_bp = _lm / len(_e)                       # R² da regressão auxiliar do BP
+    _yhat = _m.fittedvalues.values
+    _Xr = _sm.add_constant(_np.column_stack([_X[:, 1:], _yhat**2, _yhat**3]))
+    _reset = _sm.OLS(_m.model.endog, _Xr).fit()
+    _f_reset = ((_reset.rsquared - _m.rsquared) / 2) / ((1 - _reset.rsquared) / _reset.df_resid)
+    _diag.append({"grupo": _lab, "n": int(_m.nobs), "r2": _m.rsquared,
+                  "bp_lm": _lm, "bp_p": _lmp, "bp_r2_aux": _r2_bp,
+                  "reset_f": _f_reset, "reset_ganho_r2": _reset.rsquared - _m.rsquared})
+    print(f"  {_lab}: R²={_m.rsquared:.4f} | BP LM={_lm:,.0f} (R² aux={_r2_bp:.4f}) | "
+          f"RESET F={_f_reset:,.0f} (ganho de R²={_reset.rsquared - _m.rsquared:.5f})", flush=True)
+_pd.DataFrame(_diag).to_csv(TABLES / "oaxaca_diagnosticos.csv", index=False, encoding="utf-8")
+print("oaxaca_diagnosticos.csv salvo.", flush=True)
 
 # ── Decomposição por variável (efeito dotações) ────────────────────────────
 pnames = m_b.model.exog_names

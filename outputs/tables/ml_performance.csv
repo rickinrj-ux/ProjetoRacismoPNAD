@@ -1,3 +1,4 @@
 Modelo,R²,MAE,RMSE,R2_treino,gap_overfit
-Random Forest,0.5735,0.4529,0.603,0.5741,0.0006
-XGBoost,0.6168,0.4287,0.5716,0.6174,0.0006
+Random Forest,0.5689,0.4557,0.607,0.5704,0.0015
+XGBoost,0.6139,0.4306,0.5745,0.6152,0.0013
+XGBoost (sem renda da UPA),0.5778,0.4523,0.6007,0.579,0.0012
