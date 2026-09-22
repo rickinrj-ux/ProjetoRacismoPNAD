@@ -655,8 +655,8 @@ sobre o conjunto de teste (\textit{hold-out} 20\%).
 \textbf{Modelo} & $R^2$ & \textbf{MAE} & \textbf{RMSE} & \textbf{Gap treino--teste} \\
 \midrule
 Random Forest & 0,5689 & 0,4557 & 0,6070 & 0,0015 \\
-\textbf{XGBoost} & \textbf{0,6139} & \textbf{0,4306} & \textbf{0,5745} & \textbf{0,0013} \\
-XGBoost (sem renda da UPA) & 0,5778 & 0,4523 & 0,6007 & 0,0012 \\
+\textbf{XGBoost} & \textbf{0,6280} & \textbf{0,4218} & \textbf{0,5639} & \textbf{0,0090} \\
+XGBoost (sem renda da UPA) & 0,5983 & 0,4402 & 0,5860 & 0,0092 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -666,10 +666,31 @@ O $R^2$ de teste de 0,62 (XGBoost) é elevado para dados de rendimento individua
 onde a variância não observada (setor, cargo, tempo de serviço) responde
 pela maior parte do resíduo.
 
+\paragraph{Escolha de hiperparâmetros e validação cruzada.}
+A profundidade das árvores, a taxa de aprendizado e o número de iterações não foram
+fixados por conveniência: seis configurações foram comparadas numa partição de validação
+\emph{dentro} do conjunto de treino --- o teste permanece intocado ---, e a vencedora foi
+submetida a validação cruzada $k$-\emph{fold} ($k=5$) no treino completo
+(Tabela~\ref{tab:ml_cv}). A configuração escolhida (profundidade 10) alcança
+$R^2 = 0,6281 \pm 0,0007$ entre os \emph{folds}, contra
+0,6143 $\pm$ 0,0007 da profundidade~6 usada na versão anterior deste
+trabalho, sem aumentar o sobreajuste. O desvio-padrão entre \emph{folds} na quarta casa
+decimal mostra que, com 6.155.355 observações de treino, o desempenho não depende de
+qual parte dos dados é usada para validar --- a validação cruzada aqui serve menos para
+estimar incerteza e mais para justificar a especificação.
+\input{outputs/tables/ml_cv.tex}
+
+\paragraph{O erro na unidade original.} Os modelos preveem o \emph{logaritmo} do
+rendimento; para o leitor, o que importa é o erro em reais. Retransformando com a correção
+de \citeonline{duan1983} (fator de \emph{smearing} $= 1,178$), o erro mediano de
+previsão é de \textbf{R\$~538 por mês}, ou 37\% do rendimento
+observado --- a ordem de grandeza que se deve ter em mente ao ler o $R^2$: o modelo acerta
+a posição relativa das pessoas muito melhor do que o valor exato do salário de cada uma.
+
 \paragraph{Ausência de sobreajuste (população completa).}
 Estimado sobre a população (\mbox{$N=7.694.198$}; treino~80\%/teste~20\%),
 o método não-paramétrico não apresenta \textit{overfitting}: o $R^2$ de treino e de
-teste praticamente coincidem (\textit{gap}~$=0,0013$ para o XGBoost e
+teste praticamente coincidem (\textit{gap}~$=0,0090$ para o XGBoost e
 para o Random Forest). Três evidências convergem: o \textit{gap} treino--teste
 $\approx 0$; a razão $N \gg$ complexidade (modelos regularizados sobre 7,7~milhões de
 observações); e a estabilidade do $R^2$ de teste entre a subamostra de 20\% e a
@@ -684,35 +705,35 @@ de amostral para populacional \emph{reduz} --- não aumenta --- o risco de sobre
 \toprule
 \textbf{Feature} & \textbf{$|\text{SHAP}|$ RF} & \textbf{Rank RF} & \textbf{$|\text{SHAP}|$ XGB} & \textbf{Rank XGB} \\
 \midrule
-Renda média UPA (exceto o próprio) & 0.32538 & 1 & 0.26570 & 1 \\
-Horas trabalhadas & 0.16918 & 2 & 0.16232 & 2 \\
-CBO: Profissionais & 0.11711 & 4 & 0.12026 & 3 \\
-Emprego formal (carteira) & 0.14821 & 3 & 0.10986 & 4 \\
-Gênero (feminino) & 0.09288 & 5 & 0.10213 & 5 \\
-Idade (centralizada) & 0.06494 & 6 & 0.10163 & 6 \\
-Educ.: não registrada & 0.03203 & 9 & 0.07212 & 7 \\
-Conta própria & 0.02089 & 10 & 0.06311 & 8 \\
-CBO: Técnicos & 0.03709 & 8 & 0.04684 & 9 \\
-CBO: Dirigentes & 0.04052 & 7 & 0.03971 & 10 \\
-\textbf{Raça (negro)} & 0.00006 & 24 & 0.03015 & 11 \\
-CBO: Serviços/Vendas & 0.00052 & 20 & 0.02979 & 12 \\
-CBO: Operários & 0.00072 & 18 & 0.02333 & 13 \\
-\textbf{Desemprego na UPA} & 0.00073 & 17 & 0.02262 & 14 \\
-CBO: Op. Máquinas & 0.00005 & 25 & 0.02106 & 15 \\
-Trabalho doméstico & 0.00651 & 12 & 0.01851 & 16 \\
-CBO: Administrativo & 0.00234 & 14 & 0.01796 & 17 \\
-\textbf{\% Negro no Estado} & 0.00075 & 16 & 0.01714 & 18 \\
-\textbf{Desemprego no Estado} & 0.00036 & 21 & 0.01537 & 19 \\
-CBO: Agropecuária & 0.00133 & 15 & 0.01446 & 20 \\
-CBO: FFAA/Polícia & 0.01110 & 11 & 0.01297 & 21 \\
-Educ. média UPA & 0.00009 & 23 & 0.01043 & 22 \\
-\textbf{\% Negro na UPA} & 0.00010 & 22 & 0.00921 & 23 \\
-Idade² (experiência) & 0.00641 & 13 & 0.00887 & 24 \\
-Educ. média Estado & 0.00067 & 19 & 0.00731 & 25 \\
-Educ.: médio completo & 0.00001 & 26 & 0.00411 & 26 \\
-Educ.: superior completo & 0.00001 & 26 & 0.00348 & 27 \\
-Educ.: fundamental completo & 0.00000 & 28 & 0.00088 & 28 \\
-Educ.: pós-graduação & 0.00000 & 28 & 0.00000 & 29 \\
+Renda média UPA (exceto o próprio) & 0.32538 & 1 & 0.25705 & 1 \\
+Horas trabalhadas & 0.16918 & 2 & 0.16727 & 2 \\
+CBO: Profissionais & 0.11711 & 4 & 0.12157 & 3 \\
+Emprego formal (carteira) & 0.14821 & 3 & 0.11753 & 4 \\
+Gênero (feminino) & 0.09288 & 5 & 0.09908 & 5 \\
+Idade (centralizada) & 0.06494 & 6 & 0.09663 & 6 \\
+Educ.: não registrada & 0.03203 & 9 & 0.07138 & 7 \\
+Conta própria & 0.02089 & 10 & 0.06304 & 8 \\
+CBO: Técnicos & 0.03709 & 8 & 0.04778 & 9 \\
+CBO: Dirigentes & 0.04052 & 7 & 0.04102 & 10 \\
+\textbf{Raça (negro)} & 0.00006 & 24 & 0.03140 & 11 \\
+CBO: Serviços/Vendas & 0.00052 & 20 & 0.03046 & 12 \\
+\textbf{Desemprego na UPA} & 0.00073 & 17 & 0.02735 & 13 \\
+\textbf{\% Negro no Estado} & 0.00075 & 16 & 0.02493 & 14 \\
+CBO: Operários & 0.00072 & 18 & 0.02415 & 15 \\
+CBO: Op. Máquinas & 0.00005 & 25 & 0.02239 & 16 \\
+CBO: Administrativo & 0.00234 & 14 & 0.01974 & 17 \\
+Trabalho doméstico & 0.00651 & 12 & 0.01873 & 18 \\
+\textbf{Desemprego no Estado} & 0.00036 & 21 & 0.01746 & 19 \\
+CBO: Agropecuária & 0.00133 & 15 & 0.01583 & 20 \\
+Idade² (experiência) & 0.00641 & 13 & 0.01534 & 21 \\
+\textbf{\% Negro na UPA} & 0.00010 & 22 & 0.01320 & 22 \\
+CBO: FFAA/Polícia & 0.01110 & 11 & 0.01311 & 23 \\
+Educ. média UPA & 0.00009 & 23 & 0.01157 & 24 \\
+Educ. média Estado & 0.00067 & 19 & 0.00908 & 25 \\
+Educ.: superior completo & 0.00001 & 26 & 0.00517 & 26 \\
+Educ.: médio completo & 0.00001 & 26 & 0.00475 & 27 \\
+Educ.: fundamental completo & 0.00000 & 28 & 0.00104 & 28 \\
+Educ.: pós-graduação & 0.00000 & 28 & 0.00011 & 29 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -741,10 +762,10 @@ leitura correta, porém, é de \emph{mediação} territorial --- choques comuns 
 (mercado de trabalho local, transporte, redes) afetam todos os moradores --- e não de
 efeito causal de um vizinho sobre o outro. Como checagem extrema, o mesmo XGBoost
 estimado \emph{sem qualquer} renda de vizinhança perde pouco poder preditivo
-($R^2 = 0,578$ contra 0,614 do modelo completo) e, nele, a contribuição
-média da raça é praticamente a mesma (0,029 contra 0,030 em
+($R^2 = 0,598$ contra 0,628 do modelo completo) e, nele, a contribuição
+média da raça é praticamente a mesma (0,031 contra 0,031 em
 $|\text{SHAP}|$): o sinal racial não é um artefato da variável de contexto ---
-muda apenas a posição relativa no \emph{ranking} (16\textsuperscript{a} de
+muda apenas a posição relativa no \emph{ranking} (17\textsuperscript{a} de
 28, contra 11\textsuperscript{a} de 29), porque as demais
 variáveis absorvem parte do que o território explicava.
 

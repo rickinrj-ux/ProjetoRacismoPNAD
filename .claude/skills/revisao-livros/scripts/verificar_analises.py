@@ -318,8 +318,10 @@ def check_causal(linhas: list[str]) -> None:
         if "Limita" in sec:
             continue
         if re.search(CAUSAL, l, re.I):
-            # negações explícitas são o uso correto ("não constitui prova", "não é efeito causal")
-            if re.search(r"n[ãa]o[^.]{0,90}(" + CAUSAL + ")", l, re.I):
+            # negações explícitas são o uso correto ("não constitui prova", "não é efeito
+            # causal"); a negação pode estar na linha anterior, então olha-se o par de linhas
+            ctx = (linhas[i - 1] + " " + l) if i else l
+            if re.search(r"\bn[ãa]o\b[^.]{0,120}(" + CAUSAL + ")", ctx, re.I):
                 continue
             hits.append(i + 1)
     if hits:
@@ -367,7 +369,9 @@ def check_scripts() -> None:
                     "O relatório descreve 'GLMM com efeito aleatório de UPA'.",
                     "Ou alimentar a tabela com scripts/R/logit_multinivel_glmm.R (glmer, ICC UPA, LR test vs logit), "
                     "ou renomear para 'logit com efeitos fixos de UF' e citar o glmer como robustez.")
-        if "train_test_split" in code and not re.search(r"cross_val|KFold|GridSearch|RandomizedSearch|optuna", code):
+        # a CV e a busca de hiperparâmetros vivem em run_ml_cv.py (bloco 8); o script de
+        # produção usa a configuração escolhida lá
+        if "train_test_split" in code and not re.search(r"cross_val|KFold|GridSearch|RandomizedSearch|optuna", code)                 and not (TABLES / "ml_cv_resumo.csv").exists():
             add("MÉDIO", "ML-02/ML-06", nome, "Hold-out único, sem validação cruzada nem busca de hiperparâmetros.",
                 "k-fold (k=5) em subamostra para escolher max_depth/lr/n_estimators; reportar CV e hold-out.")
         if re.search(r"\.pie\(|projection=['\"]3d['\"]|twinx\(\)", code):

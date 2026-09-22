@@ -1,12 +1,10 @@
-# Verificação mecânica — 2026-09-22 15:24
+# Verificação mecânica — 2026-09-22 20:28
 
-Gatilho: `gerar_apresentacao_pptx.py`  
-Achados: **0 ALTO**, 2 MÉDIO, 3 BAIXO, 4 INFO.
+Gatilho: `execução manual`  
+Achados: **0 ALTO**, 0 MÉDIO, 3 BAIXO, 4 INFO.
 
 | Nível | Critério | Onde | Achado | Correção |
 |---|---|---|---|---|
-| MÉDIO | MHE-01/MHE-23/FAV-07 | relatorio | Linguagem causal ('comprova', 'determina', 'causa', 'efeito causal') em 1 linha(s): [742]. | Trocar por 'associa-se', 'é consistente com', 'penalidade condicional'; reservar causal para a seção de limitações. |
-| MÉDIO | ML-02/ML-06 | run_ml_shap.py | Hold-out único, sem validação cruzada nem busca de hiperparâmetros. | k-fold (k=5) em subamostra para escolher max_depth/lr/n_estimators; reportar CV e hold-out. |
 | BAIXO | FAV-91 | relatorio | Vários N citados como 'população': ['7.689.426', '7.694.198']. | Declarar o N de cada modelo (filtros diferentes) em cada tabela. |
 | BAIXO | SWD-55 | relatorio: legendas | 7 legenda(s) começam por rótulo descritivo em vez de afirmar o achado (ex.: 'Desempenho preditivo --- Random Forest, XGBoost e XGBoost se…'). | Título de ação na primeira frase da legenda. |
 | BAIXO | SWD-42/SWD-40 | gerar_apresentacao_pptx.py | Paleta com 12 cores nomeadas. | Cinza + uma cor de destaque (azul); vermelho só para o dado que se quer destacar. |

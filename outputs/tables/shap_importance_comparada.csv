@@ -1,30 +1,30 @@
 Feature,SHAP_mean_abs_RF,SHAP_mean_abs_XGB,Rank_RF,Rank_XGB
-Renda média UPA (exceto o próprio),0.32538,0.2657,1,1
-Horas trabalhadas,0.16918,0.16232,2,2
-CBO: Profissionais,0.11711,0.12026,4,3
-Emprego formal (carteira),0.14821,0.10986,3,4
-Gênero (feminino),0.09288,0.10213,5,5
-Idade (centralizada),0.06494,0.10163,6,6
-Educ.: não registrada,0.03203,0.07212,9,7
-Conta própria,0.02089,0.06311,10,8
-CBO: Técnicos,0.03709,0.04684,8,9
-CBO: Dirigentes,0.04052,0.03971,7,10
-Raça (negro),6e-05,0.03015,24,11
-CBO: Serviços/Vendas,0.00052,0.02979,20,12
-CBO: Operários,0.00072,0.02333,18,13
-Desemprego na UPA,0.00073,0.02262,17,14
-CBO: Op. Máquinas,5e-05,0.02106,25,15
-Trabalho doméstico,0.00651,0.01851,12,16
-CBO: Administrativo,0.00234,0.01796,14,17
-% Negro no Estado,0.00075,0.01714,16,18
-Desemprego no Estado,0.00036,0.01537,21,19
-CBO: Agropecuária,0.00133,0.01446,15,20
-CBO: FFAA/Polícia,0.0111,0.01297,11,21
-Educ. média UPA,9e-05,0.01043,23,22
-% Negro na UPA,0.0001,0.00921,22,23
-Idade² (experiência),0.00641,0.00887,13,24
-Educ. média Estado,0.00067,0.00731,19,25
-Educ.: médio completo,1e-05,0.00411,26,26
-Educ.: superior completo,1e-05,0.00348,26,27
-Educ.: fundamental completo,0.0,0.00088,28,28
-Educ.: pós-graduação,0.0,0.0,28,29
+Renda média UPA (exceto o próprio),0.32538,0.25705,1,1
+Horas trabalhadas,0.16918,0.16727,2,2
+CBO: Profissionais,0.11711,0.12157,4,3
+Emprego formal (carteira),0.14821,0.11753,3,4
+Gênero (feminino),0.09288,0.09908,5,5
+Idade (centralizada),0.06494,0.09663,6,6
+Educ.: não registrada,0.03203,0.07138,9,7
+Conta própria,0.02089,0.06304,10,8
+CBO: Técnicos,0.03709,0.04778,8,9
+CBO: Dirigentes,0.04052,0.04102,7,10
+Raça (negro),6e-05,0.0314,24,11
+CBO: Serviços/Vendas,0.00052,0.03046,20,12
+Desemprego na UPA,0.00073,0.02735,17,13
+% Negro no Estado,0.00075,0.02493,16,14
+CBO: Operários,0.00072,0.02415,18,15
+CBO: Op. Máquinas,5e-05,0.02239,25,16
+CBO: Administrativo,0.00234,0.01974,14,17
+Trabalho doméstico,0.00651,0.01873,12,18
+Desemprego no Estado,0.00036,0.01746,21,19
+CBO: Agropecuária,0.00133,0.01583,15,20
+Idade² (experiência),0.00641,0.01534,13,21
+% Negro na UPA,0.0001,0.0132,22,22
+CBO: FFAA/Polícia,0.0111,0.01311,11,23
+Educ. média UPA,9e-05,0.01157,23,24
+Educ. média Estado,0.00067,0.00908,19,25
+Educ.: superior completo,1e-05,0.00517,26,26
+Educ.: médio completo,1e-05,0.00475,26,27
+Educ.: fundamental completo,0.0,0.00104,28,28
+Educ.: pós-graduação,0.0,0.00011,28,29

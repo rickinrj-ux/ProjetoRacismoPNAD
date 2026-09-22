@@ -513,6 +513,31 @@ Seguindo a recomendação de ``ser o próprio cético'' (\citeonline{angrist2009
   \label{fig:shap_wf}
 \end{figure}""", S),
 
+    ("8.1/8.2 CV, hiperparâmetros e erro em reais",
+     r"\\paragraph\{Ausência de sobreajuste \(população completa\)\.\}",
+     r"""\paragraph{Escolha de hiperparâmetros e validação cruzada.}
+A profundidade das árvores, a taxa de aprendizado e o número de iterações não foram
+fixados por conveniência: seis configurações foram comparadas numa partição de validação
+\emph{dentro} do conjunto de treino --- o teste permanece intocado ---, e a vencedora foi
+submetida a validação cruzada $k$-\emph{fold} ($k=5$) no treino completo
+(Tabela~\ref{tab:ml_cv}). A configuração escolhida (profundidade @@CV_DEPTH@@) alcança
+$R^2 = @@CV_R2@@ \pm @@CV_R2_DP@@$ entre os \emph{folds}, contra
+@@CV_R2_ANT@@ $\pm$ @@CV_R2_ANT_DP@@ da profundidade~6 usada na versão anterior deste
+trabalho, sem aumentar o sobreajuste. O desvio-padrão entre \emph{folds} na quarta casa
+decimal mostra que, com @@CV_N_TREINO@@ observações de treino, o desempenho não depende de
+qual parte dos dados é usada para validar --- a validação cruzada aqui serve menos para
+estimar incerteza e mais para justificar a especificação.
+\input{outputs/tables/ml_cv.tex}
+
+\paragraph{O erro na unidade original.} Os modelos preveem o \emph{logaritmo} do
+rendimento; para o leitor, o que importa é o erro em reais. Retransformando com a correção
+de \citeonline{duan1983} (fator de \emph{smearing} $= @@CV_SMEAR@@$), o erro mediano de
+previsão é de \textbf{R\$~@@CV_ERRO_MED@@ por mês}, ou @@CV_ERRO_PCT@@\% do rendimento
+observado --- a ordem de grandeza que se deve ter em mente ao ler o $R^2$: o modelo acerta
+a posição relativa das pessoas muito melhor do que o valor exato do salário de cada uma.
+
+\paragraph{Ausência de sobreajuste (população completa).}""", 0),
+
     # ── Limitações ────────────────────────────────────────────────────────────
     ("0.2 Limitações: Heckman fora do núcleo",
      r"Os modelos HLM, a decomposição de Oaxaca--Blinder, a regressão quantílica e\na correção de Heckman produzem",

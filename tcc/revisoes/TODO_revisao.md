@@ -140,16 +140,19 @@ página "Em três minutos"; SHAP reduzido a beeswarm + 1 waterfall; 19 títulos 
       história); Bing-Bang-Bongo; paleta de 11 → 3 cores
 - [x] 7.8 (tabela de balanceamento + suporte comum: 97,3% das UPAs mistas; maior desequilíbrio é o bairro, d = −1,18) Tabela de balanceamento (covariáveis por raça) e checagem de suporte comum na Descritiva
 
-## Bloco 8 — ML (🖥, ⏱ 2 h)
+## Bloco 8 — ML (🖥, ⏱ 2 h) — ✅ concluído em 2026-09-22
 
-- [ ] 8.1 5-fold CV em subamostra (só para escolher max_depth / learning_rate / n_estimators);
+A configuração antiga (max_depth=6) era a penúltima de seis; adotada a escolhida por CV (max_depth=10)
+e todo o pipeline de ML/SHAP reexecutado para manter tabela, ranking e figuras coerentes.
+
+- [x] 8.1 (CV 5-fold na POPULAÇÃO, sem amostrar; busca em partição de validação dentro do treino: max_depth=10 vence, R² 0,628±0,001 vs 0,614±0,001) 5-fold CV em subamostra (só para escolher max_depth / learning_rate / n_estimators);
       refit final na população; reportar média ± dp do R² nos folds — **pedir confirmação antes,
       pois usa subamostra**
-- [ ] 8.2 Métrica na unidade original: MAE retransformado (mediana do erro absoluto em R$)
+- [x] 8.2 (erro mediano R$ 538/mês = 37% do rendimento, com correção de Duan) Métrica na unidade original: MAE retransformado (mediana do erro absoluto em R$)
 
 ## Fechamento
 
-- [ ] F.1 `./tcc/run_tcc.ps1` completo; `verificar_analises.py` com 0 ALTO
-- [ ] F.2 Invocar `revisao-livros` para a revisão qualitativa final; registrar em `tcc/revisoes/`
-- [ ] F.3 Regerar relatório enxuto, apresentação e Word; conferir PDF
+- [x] F.1 (verificador: 0 ALTO, 0 MÉDIO; restam 3 BAIXO e 4 INFO, documentados) `./tcc/run_tcc.ps1` completo; `verificar_analises.py` com 0 ALTO
+- [x] F.2 Invocar `revisao-livros` para a revisão qualitativa final; registrar em `tcc/revisoes/`
+- [x] F.3 (relatório 37 páginas; apresentação regerada) Regerar relatório enxuto, apresentação e Word; conferir PDF
 - [ ] F.4 Commit por bloco (`fix(tcc): bloco N — …`)

@@ -967,6 +967,29 @@ if _diag:
 if re.search(r"@@(BP_|RESET_)", texto):
     print("  [AVISO] placeholders de diagnóstico não preenchidos!")
 
+# CV do XGBoost (bloco 8) — placeholders @@CV_*@@
+_cvr = _rd("ml_cv_resumo.csv")
+_cvf = _rd("ml_cv_folds.csv")
+if _cvr:
+    _r = _cvr[0]
+    _ant = [x for x in _cvf if x["config"] == "atual_tcc"]
+    import statistics as _st
+    _ant_r2 = [float(x["r2"]) for x in _ant]
+    _V3 = {
+        "@@CV_DEPTH@@": str(int(float(_r["escolhido_max_depth"]))),
+        "@@CV_R2@@": _pt(_r["cv_r2_media"], 4), "@@CV_R2_DP@@": _pt(_r["cv_r2_dp"], 4),
+        "@@CV_R2_ANT@@": _pt(_st.mean(_ant_r2), 4) if _ant_r2 else "---",
+        "@@CV_R2_ANT_DP@@": _pt(_st.stdev(_ant_r2), 4) if len(_ant_r2) > 1 else "---",
+        "@@CV_N_TREINO@@": f"{int(float(_r['n_treino'])):,}".replace(",", "."),
+        "@@CV_SMEAR@@": _pt(_r["smearing_duan"], 3),
+        "@@CV_ERRO_MED@@": f"{int(round(float(_r['erro_mediano_reais']))):,}".replace(",", "."),
+        "@@CV_ERRO_PCT@@": _pt(_r["erro_mediano_pct"], 0),
+    }
+    for _k, _v in _V3.items():
+        texto = texto.replace(_k, _v)
+if "@@CV_" in texto:
+    print("  [AVISO] placeholders @@CV_...@@ não preenchidos!")
+
 # Checagem de \ref pendentes a rótulos removidos
 pendentes = []
 for rot in set(rotulos_removidos):

@@ -17,7 +17,7 @@ MODELAGEM:
         Vantagem: robusto a outliers, captura não-linearidades.
 
     Modelo 2 — XGBoost (gradient boosting):
-        300 árvores, max_depth=6, learning_rate=0.05.
+        300 árvores, max_depth=10 (validação cruzada), learning_rate=0.05.
         Vantagem: regularização L1/L2, melhor performance preditiva.
 
 INTERPRETABILIDADE (SHAP — SHapley Additive exPlanations):
@@ -220,11 +220,14 @@ def fit_rf(X_tr, y_tr):
 # ── XGBoost ────────────────────────────────────────────────────────────────────
 
 def fit_xgb(X_tr, y_tr):
-    logger.info("Ajustando XGBoost (n=300, depth=6, lr=0.05) ...")  # noqa: E501
+    logger.info("Ajustando XGBoost (n=300, depth=10 [CV], lr=0.05) ...")
     t0 = time.time()
+    # max_depth=10 escolhido por validação cruzada 5-fold na população (run_ml_cv.py):
+    # R² 0,628 ± 0,001 contra 0,614 ± 0,001 de max_depth=6, sem sinal de sobreajuste
+    # (gap treino–validação de 0,011). Demais hiperparâmetros inalterados.
     model = xgb.XGBRegressor(
         n_estimators=300,
-        max_depth=6,
+        max_depth=10,
         learning_rate=0.05,
         subsample=0.8,
         colsample_bytree=0.8,
