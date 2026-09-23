@@ -170,8 +170,10 @@ estruturalmente insuficientes.
 
 O ritmo de convergência observado na última década reforça a urgência.
 Ao passo atual, a eliminação do diferencial racial levaria mais de um século.
-Isso não é uma previsão pessimista --- é uma consequência aritmética da
-combinação entre a magnitude do gap e a velocidade atual de redução.
+Não é uma previsão, e sim uma extrapolação aritmética da combinação entre a
+magnitude do gap e a velocidade atual de redução --- velocidade que, aliás, não
+se distingue de zero aos níveis convencionais ($p = 0{,}077$): a leitura
+conservadora é que a década não produziu convergência mensurável.
 Significa, concretamente, que reformas incrementais são insuficientes:
 é necessário atacar as duas barreiras de forma simultânea e com recursos
 proporcionais à magnitude do problema.
@@ -195,7 +197,7 @@ de robustez sobre $N=7.694.198$ observações da PNAD Contínua 2016--2025.
 O gap condicional a capital humano, de @@HLM_GAP_POOL@@\% (sem efeito de bairro),
 decompõe-se em três parcelas: (i)~mediação de @@HLM_MED_BAIRRO@@\% pela segregação
 residencial --- comparando negros e brancos do mesmo bairro ($\hat{\gamma}_{01}=@@HLM_G01@@$
-para a composição racial do bairro), chega-se ao \textbf{gap líquido de @@HLM_GAP3@@\%} (M3);
+por desvio-padrão da composição racial do bairro), chega-se ao \textbf{gap líquido de @@HLM_GAP3@@\%} (M3);
 (ii)~mediação ocupacional de @@HLM_MED_OCC@@\% pelo acesso desigual a grupos CBO de alta
 remuneração; e (iii)~penalidade de @@HLM_GAP4@@\% que persiste \emph{dentro} da mesma
 ocupação (M4) --- limite inferior descritivo, pois a própria ocupação é
@@ -273,8 +275,8 @@ pelos controles. Testa-se ainda uma \emph{inclinação aleatória} de \texttt{ne
 varia entre bairros? --- por LR com dois graus de liberdade. Todos os modelos são
 estimados por máxima verossimilhança (ML), necessária para comparar efeitos fixos entre
 degraus; com $N=7{,}7$~milhões, REML e ML produzem os mesmos componentes de variância
-(diferença $<0{,}3\%$ no M0), como registra a Tabela~\ref{tab:hlm_resultados}. A
-inferência sobre erros-padrão e pesos é discutida na Subseção~\ref{subsec:inferencia}.
+(no M0, $\hat\tau^2_{\text{UPA}} = @@HLM_TAU0_ML@@$ por ML e @@HLM_TAU0_REML@@ por REML;
+ICC idêntico até a quarta casa). A
 
 """, S),
 
@@ -382,7 +384,7 @@ qualquer covariável observada.
 
     ("3.2 Discussão: gamma01 e mediação lidos do csv",
      r"\$\\hat\{\\gamma\}_\{01\} = -0\{,\}269\$ para a proporção de negros na UPA\nindica que a penalidade de viver em bairro segregado equivale,\nem magnitude, à própria penalidade individual de ser negro\.",
-     "$\\hat{\\gamma}_{01} = @@HLM_G01@@$ para a proporção de negros na UPA\n"
+     "$\\hat{\\gamma}_{01} = @@HLM_G01@@$ por desvio-padrão da proporção de negros na UPA\n"
      "indica que a penalidade de viver em bairro segregado é da mesma ordem\n"
      "de grandeza da própria penalidade individual de ser negro --- e que @@HLM_ICC0_PCT@@\%\n"
      "da variância do rendimento está entre bairros, não entre pessoas.", 0),
@@ -537,6 +539,25 @@ observado --- a ordem de grandeza que se deve ter em mente ao ler o $R^2$: o mod
 a posição relativa das pessoas muito melhor do que o valor exato do salário de cada uma.
 
 \paragraph{Ausência de sobreajuste (população completa).}""", 0),
+
+    ("rev-final ML: hiperparâmetros escolhidos por validação cruzada",
+     r"\(ii\)~\\textit\{XGBoost\} \\cite\{chen2016\} com 300 iterações,\n\$\\text\{lr\}=0\{,\}05\$ e regularização \$L_1/L_2\$\.",
+     "(ii)~\\textit{XGBoost} \\cite{chen2016} com 300 iterações, taxa de aprendizado\n"
+     "$0{,}05$, profundidade máxima @@CV_DEPTH@@ e regularização $L_1/L_2$. A profundidade\n"
+     "foi escolhida por validação cruzada (Tabela~\\ref{tab:ml_cv}), e não por conveniência;\n"
+     "os dois modelos usam o mesmo conjunto de \\emph{features} e a mesma partição de teste.", 0),
+
+    # ── Títulos de ação nas figuras que ainda eram descritivas (SWD-55) ──
+    ("rev-final SWD: título de ação na figura SHAP",
+     r"\\caption\{Análise SHAP --- XGBoost \(\$N_\\text\{SHAP\}=50\.000\$\)\.\}",
+     "\\caption{Contexto do bairro e jornada dominam a previsão de renda; a raça "
+     "aparece na 11\\textsuperscript{a} posição entre 29 preditores "
+     "(SHAP, XGBoost, $N_\\text{SHAP}=50.000$).}", 0),
+
+    ("rev-final SWD: título de ação na figura interseccional",
+     r"\\caption\{Razões de chance dos quatro grupos raça\$\\times\$gênero",
+     "\\caption{A mulher negra entra na categoria, mas não chega ao topo: razões de "
+     "chance dos quatro grupos raça$\\times$gênero", 0),
 
     # ── Limitações ────────────────────────────────────────────────────────────
     ("0.2 Limitações: Heckman fora do núcleo",

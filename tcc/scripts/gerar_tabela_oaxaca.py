@@ -192,6 +192,7 @@ discriminatória (Oaxaca \& Ransom, 1999; ver o GLMM de acesso, Tabela~\ref{{tab
 População completa da PEA com renda positiva ($N = {fmtN(n_b + n_n)}$; {fmtN(G)}~UPAs).
 Erros-padrão entre parênteses: bootstrap em blocos por UPA ({A['n_boot']} réplicas).}}
 \label{{tab:oaxaca_blinder}}
+\resizebox{{\textwidth}}{{!}}{{%
 \begin{{tabular}}{{lcccc}}
 \toprule
 & \multicolumn{{2}}{{c}}{{(A) Sem ocupação}} & \multicolumn{{2}}{{c}}{{(B) Acesso (com ocupação)}} \\
@@ -203,6 +204,7 @@ Dotações (características observáveis) & {fmt(A['ef_dot'],4)} ({fmt(A['se_do
 Não explicado (retornos / discriminação) & {fmt(A['ef_coef'],4)} ({fmt(A['se_coef'],4)}) & {fmt(A['pct_coef'],1)} & {fmt(B['ef_coef'],4)} ({fmt(B['se_coef'],4)}) & {fmt(B['pct_coef'],1)} \\
 \bottomrule
 \end{{tabular}}
+}}
 \par\smallskip
 \footnotesize\emph{{Como ler:}} em cada especificação, Dotações $+$ Não explicado $=$ Gap total.
 De (A) para (B), parte do ``não explicado'' migra para ``dotações'' porque a ocupação passa a

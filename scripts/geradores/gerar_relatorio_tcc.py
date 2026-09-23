@@ -1272,8 +1272,8 @@ teste praticamente coincidem (\textit{{gap}}~$={fmt(k['gap_xgb'],4)}$ para o XGB
 para o Random Forest). Três evidências convergem: o \textit{{gap}} treino--teste
 $\approx 0$; a razão $N \gg$ complexidade (modelos regularizados sobre 7,7~milhões de
 observações); e a estabilidade do $R^2$ de teste entre a subamostra de 20\% e a
-população (praticamente idêntico, $\approx 0{{,}}62$). Em suma, \emph{{ampliar}} a base
-de amostral para populacional \emph{{reduz}} --- não aumenta --- o risco de sobreajuste.
+população (praticamente idêntico, $\approx 0{{,}}62$). Em suma, \emph{{ampliar}} a base,
+de amostral para populacional, \emph{{reduz}} --- não aumenta --- o risco de sobreajuste.
 
 {shap_tab}
 

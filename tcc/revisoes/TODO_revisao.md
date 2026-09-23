@@ -152,7 +152,17 @@ e todo o pipeline de ML/SHAP reexecutado para manter tabela, ranking e figuras c
 
 ## Fechamento
 
-- [x] F.1 (verificador: 0 ALTO, 0 MÉDIO; restam 3 BAIXO e 4 INFO, documentados) `./tcc/run_tcc.ps1` completo; `verificar_analises.py` com 0 ALTO
-- [x] F.2 Invocar `revisao-livros` para a revisão qualitativa final; registrar em `tcc/revisoes/`
-- [x] F.3 (relatório 37 páginas; apresentação regerada) Regerar relatório enxuto, apresentação e Word; conferir PDF
-- [ ] F.4 Commit por bloco (`fix(tcc): bloco N — …`)
+- [x] F.1 (verificador: 0 ALTO, 0 MÉDIO; restam 2 BAIXO e 4 INFO, justificados na revisão) `./tcc/run_tcc.ps1` completo; `verificar_analises.py` com 0 ALTO
+- [x] F.2 (revisão qualitativa final em `tcc/revisoes/revisao_2026-09-22.md`: 1 ALTO, 5 MÉDIO e 6 BAIXO, todos corrigidos na hora — nenhum exigiu decisão do autor) Invocar `revisao-livros` para a revisão qualitativa final; registrar em `tcc/revisoes/`
+- [x] F.3 (relatório 38 páginas, 0 erros / 0 refs indefinidas / 0 `(??)` / 0 placeholders) Regerar relatório enxuto, apresentação e Word; conferir PDF
+- [x] F.4 Commit por bloco (`fix(tcc): bloco N — …`)
+
+### Lições da revisão final (2026-09-22)
+
+- Nota de tabela escrita em *raw string* deixou `{fmt(...)}` chegar ao PDF: todo texto com
+  número tem de passar por f-string ou por substituição explícita — e o verificador passou a
+  procurar `{fmt(` e `@@` no `.tex` final.
+- Heredoc (`python - <<'EOF'`) continua corrompendo barras invertidas dentro de literais
+  Python: scripts de patch devem ser escritos com a ferramenta Write e só então executados.
+- `\resizebox` em tabela larga tem de ser aplicado **no gerador** e no `.tex` já materializado;
+  caso contrário a próxima execução do gerador desfaz a correção.

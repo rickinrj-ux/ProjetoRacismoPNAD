@@ -60,6 +60,7 @@ isoladas (efeito interseccional puro, Crenshaw, 1989). PNAD Contínua, populaç�
 ($N$ do grupo de referência --- homens brancos --- na última linha da nota). Entre
 parênteses: erro-padrão por bootstrap em blocos por UPA.}
 \label{tab:interseccional}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrrrr}
 \toprule
 Grupo & Gap vs HB (\%) & Dotações (\%) & Retornos (\%) & Penal.\ extra (p.p.) & $N$ do grupo \\
@@ -67,6 +68,7 @@ Grupo & Gap vs HB (\%) & Dotações (\%) & Retornos (\%) & Penal.\ extra (p.p.) 
 """ + "\n".join(linhas) + r"""
 \bottomrule
 \end{tabular}
+}
 \par\smallskip
 \footnotesize\emph{Como ler:} ``Gap vs HB'' é a desvantagem de renda de cada grupo
 \emph{vs.}\ o Homem Branco; Dotações $+$ Retornos $=100\%$ do gap. A Mulher Negra tem o

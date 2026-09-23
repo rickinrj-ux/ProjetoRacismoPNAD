@@ -144,7 +144,7 @@ portanto, sobretudo no \emph{acesso} às ocupações --- canal que o GLMM mede d
 O GLMM logístico de acesso (intercepto aleatório de UPA) confirma o teto de vidro
 ocupacional: controlados escolaridade, sexo, idade, estado e contexto do bairro,
 trabalhadores negros têm \textit{odds} de acesso a cargo qualificado de 0,699
-(IC~95\% 0.696--0.702) das de brancos do mesmo bairro, que se apertam para
+(IC~95\% 0,696--0,702) das de brancos do mesmo bairro, que se apertam para
 0,654 no topo~10\% da renda; o E-value de~2,2 indica robustez a
 confundidores não observados.
 O \textit{machine learning} (XGBoost + SHAP) corrobora, sem pressuposto de forma
@@ -240,7 +240,8 @@ superior da renda, 35\% menor.
 
 \medskip
 \noindent\textbf{A evidência.} Quatro métodos independentes, sobre a população completa da
-PNAD Contínua ($N = 7.689.426$ observações; 40.969 bairros): um modelo hierárquico que
+PNAD Contínua (cerca de 7,7~milhões de observações em 40.969 bairros --- o $N$
+exato varia com os filtros de cada método e consta da sua tabela): um modelo hierárquico que
 separa pessoa e bairro; a decomposição de Oaxaca--Blinder, que separa ``ter
 características diferentes'' de ``receber preços diferentes''; a regressão quantílica com
 RIF, que mostra onde na distribuição a penalidade pesa; e um modelo logístico multinível
@@ -483,8 +484,8 @@ pelos controles. Testa-se ainda uma \emph{inclinação aleatória} de \texttt{ne
 varia entre bairros? --- por LR com dois graus de liberdade. Todos os modelos são
 estimados por máxima verossimilhança (ML), necessária para comparar efeitos fixos entre
 degraus; com $N=7{,}7$~milhões, REML e ML produzem os mesmos componentes de variância
-(diferença $<0{,}3\%$ no M0), como registra a Tabela~\ref{tab:hlm_resultados}. A
-inferência sobre erros-padrão e pesos é discutida na Subseção~\ref{subsec:inferencia}.
+(no M0, $\hat\tau^2_{\text{UPA}} = 0,33698$ por ML e 0,33699 por REML;
+ICC idêntico até a quarta casa). A
 
 \subsection{Inferência: erros-padrão agrupados, poucos clusters e pesos}
 \label{subsec:inferencia}
@@ -497,8 +498,10 @@ A PNAD Contínua é uma amostra por conglomerados: pessoas da mesma unidade prim
 
 Para predição do log-rendimento, foram ajustados dois modelos de ensemble:
 (i)~\textit{Random Forest} \cite{breiman2001} com 200 árvores e profundidade
-máxima 10; e (ii)~\textit{XGBoost} \cite{chen2016} com 300 iterações,
-$\text{lr}=0{,}05$ e regularização $L_1/L_2$. Sobre o modelo XGBoost,
+máxima 10; e (ii)~\textit{XGBoost} \cite{chen2016} com 300 iterações, taxa de aprendizado
+$0{,}05$, profundidade máxima 10 e regularização $L_1/L_2$. A profundidade
+foi escolhida por validação cruzada (Tabela~\ref{tab:ml_cv}), e não por conveniência;
+os dois modelos usam o mesmo conjunto de \emph{features} e a mesma partição de teste. Sobre o modelo XGBoost,
 foi aplicado o \textit{TreeExplainer} da biblioteca SHAP
 \cite{lundberg2017} sobre um subsample de 50.000 observações para
 calcular os valores de Shapley de cada feature.
@@ -694,48 +697,49 @@ teste praticamente coincidem (\textit{gap}~$=0,0090$ para o XGBoost e
 para o Random Forest). Três evidências convergem: o \textit{gap} treino--teste
 $\approx 0$; a razão $N \gg$ complexidade (modelos regularizados sobre 7,7~milhões de
 observações); e a estabilidade do $R^2$ de teste entre a subamostra de 20\% e a
-população (praticamente idêntico, $\approx 0{,}62$). Em suma, \emph{ampliar} a base
-de amostral para populacional \emph{reduz} --- não aumenta --- o risco de sobreajuste.
+população (praticamente idêntico, $\approx 0{,}62$). Em suma, \emph{ampliar} a base, de amostral para populacional, \emph{reduz} --- não aumenta --- o risco de sobreajuste.
 
 \begin{table}[H]
 \centering
 \caption{Importância SHAP Comparada --- Random Forest e XGBoost. Predição de log-rendimento, PNAD 2016--2025 ($N_{\text{SHAP}}=50.000$). Valores: $|\text{SHAP}|$ médio. Destaque em negrito: variáveis raciais/contextuais.}
 \label{tab:shap_importance}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Feature} & \textbf{$|\text{SHAP}|$ RF} & \textbf{Rank RF} & \textbf{$|\text{SHAP}|$ XGB} & \textbf{Rank XGB} \\
 \midrule
-Renda média UPA (exceto o próprio) & 0.32538 & 1 & 0.25705 & 1 \\
-Horas trabalhadas & 0.16918 & 2 & 0.16727 & 2 \\
-CBO: Profissionais & 0.11711 & 4 & 0.12157 & 3 \\
-Emprego formal (carteira) & 0.14821 & 3 & 0.11753 & 4 \\
-Gênero (feminino) & 0.09288 & 5 & 0.09908 & 5 \\
-Idade (centralizada) & 0.06494 & 6 & 0.09663 & 6 \\
-Educ.: não registrada & 0.03203 & 9 & 0.07138 & 7 \\
-Conta própria & 0.02089 & 10 & 0.06304 & 8 \\
-CBO: Técnicos & 0.03709 & 8 & 0.04778 & 9 \\
-CBO: Dirigentes & 0.04052 & 7 & 0.04102 & 10 \\
-\textbf{Raça (negro)} & 0.00006 & 24 & 0.03140 & 11 \\
-CBO: Serviços/Vendas & 0.00052 & 20 & 0.03046 & 12 \\
-\textbf{Desemprego na UPA} & 0.00073 & 17 & 0.02735 & 13 \\
-\textbf{\% Negro no Estado} & 0.00075 & 16 & 0.02493 & 14 \\
-CBO: Operários & 0.00072 & 18 & 0.02415 & 15 \\
-CBO: Op. Máquinas & 0.00005 & 25 & 0.02239 & 16 \\
-CBO: Administrativo & 0.00234 & 14 & 0.01974 & 17 \\
-Trabalho doméstico & 0.00651 & 12 & 0.01873 & 18 \\
-\textbf{Desemprego no Estado} & 0.00036 & 21 & 0.01746 & 19 \\
-CBO: Agropecuária & 0.00133 & 15 & 0.01583 & 20 \\
-Idade² (experiência) & 0.00641 & 13 & 0.01534 & 21 \\
-\textbf{\% Negro na UPA} & 0.00010 & 22 & 0.01320 & 22 \\
-CBO: FFAA/Polícia & 0.01110 & 11 & 0.01311 & 23 \\
-Educ. média UPA & 0.00009 & 23 & 0.01157 & 24 \\
-Educ. média Estado & 0.00067 & 19 & 0.00908 & 25 \\
-Educ.: superior completo & 0.00001 & 26 & 0.00517 & 26 \\
-Educ.: médio completo & 0.00001 & 26 & 0.00475 & 27 \\
-Educ.: fundamental completo & 0.00000 & 28 & 0.00104 & 28 \\
-Educ.: pós-graduação & 0.00000 & 28 & 0.00011 & 29 \\
+Renda média UPA (exceto o próprio) & 0,32538 & 1 & 0,25705 & 1 \\
+Horas trabalhadas & 0,16918 & 2 & 0,16727 & 2 \\
+CBO: Profissionais & 0,11711 & 4 & 0,12157 & 3 \\
+Emprego formal (carteira) & 0,14821 & 3 & 0,11753 & 4 \\
+Gênero (feminino) & 0,09288 & 5 & 0,09908 & 5 \\
+Idade (centralizada) & 0,06494 & 6 & 0,09663 & 6 \\
+Educ.: não registrada & 0,03203 & 9 & 0,07138 & 7 \\
+Conta própria & 0,02089 & 10 & 0,06304 & 8 \\
+CBO: Técnicos & 0,03709 & 8 & 0,04778 & 9 \\
+CBO: Dirigentes & 0,04052 & 7 & 0,04102 & 10 \\
+\textbf{Raça (negro)} & 0,00006 & 24 & 0,03140 & 11 \\
+CBO: Serviços/Vendas & 0,00052 & 20 & 0,03046 & 12 \\
+\textbf{Desemprego na UPA} & 0,00073 & 17 & 0,02735 & 13 \\
+\textbf{\% Negro no Estado} & 0,00075 & 16 & 0,02493 & 14 \\
+CBO: Operários & 0,00072 & 18 & 0,02415 & 15 \\
+CBO: Op. Máquinas & 0,00005 & 25 & 0,02239 & 16 \\
+CBO: Administrativo & 0,00234 & 14 & 0,01974 & 17 \\
+Trabalho doméstico & 0,00651 & 12 & 0,01873 & 18 \\
+\textbf{Desemprego no Estado} & 0,00036 & 21 & 0,01746 & 19 \\
+CBO: Agropecuária & 0,00133 & 15 & 0,01583 & 20 \\
+Idade² (experiência) & 0,00641 & 13 & 0,01534 & 21 \\
+\textbf{\% Negro na UPA} & 0,00010 & 22 & 0,01320 & 22 \\
+CBO: FFAA/Polícia & 0,01110 & 11 & 0,01311 & 23 \\
+Educ. média UPA & 0,00009 & 23 & 0,01157 & 24 \\
+Educ. média Estado & 0,00067 & 19 & 0,00908 & 25 \\
+Educ.: superior completo & 0,00001 & 26 & 0,00517 & 26 \\
+Educ.: médio completo & 0,00001 & 26 & 0,00475 & 27 \\
+Educ.: fundamental completo & 0,00000 & 28 & 0,00104 & 28 \\
+Educ.: pós-graduação & 0,00000 & 28 & 0,00011 & 29 \\
 \bottomrule
 \end{tabular}
+}
 \end{table}
 \noindent\emph{Como ler a Tabela~\ref{tab:shap_importance}:} variáveis ordenadas pela importância média ($|\text{SHAP}|$); valores maiores = maior peso na previsão da renda.
 
@@ -746,7 +750,7 @@ Educ.: pós-graduação & 0.00000 & 28 & 0.00011 & 29 \\
     \caption{Beeswarm: distribuição de SHAP por feature (XGBoost).}
     \label{fig:shap_bee}
   \end{subfigure}
-  \caption{Análise SHAP --- XGBoost ($N_\text{SHAP}=50.000$).}
+  \caption{Contexto do bairro e jornada dominam a previsão de renda; a raça aparece na 11\textsuperscript{a} posição entre 29 preditores (SHAP, XGBoost, $N_\text{SHAP}=50.000$).}
   \label{fig:shap}
 \end{figure}
 \noindent\emph{Como ler a Figura~\ref{fig:shap}:} cada ponto é um trabalhador; quanto mais à direita (ou maior a barra), maior o efeito da variável na renda prevista. A cor indica se o valor da variável é alto ou baixo.
@@ -954,7 +958,7 @@ ocupação qualificada (CBO~1--4), renda no top~20\% e no top~10\%.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.82\textwidth]{grupo_rg_interseccional}
-  \caption{Razões de chance dos quatro grupos raça$\times$gênero \textit{vs.}~homem
+  \caption{A mulher negra entra na categoria, mas não chega ao topo: razões de chance dos quatro grupos raça$\times$gênero \textit{vs.}~homem
   branco, em três desfechos. A mulher negra é \emph{alçada} no acesso à categoria,
   mas torna-se a \emph{mais excluída} no topo da renda.}
   \label{fig:interseccional}
@@ -1092,7 +1096,7 @@ O achado mais robusto desta análise é que 47,0\% do gap salarial racial
 condicional a capital humano é mediado pelo bairro de moradia --- muito além do que modelos
 cross-sectionais típicos, que ignoram a estrutura aninhada dos dados,
 seriam capazes de estimar. O coeficiente contextual
-$\hat{\gamma}_{01} = −0,2189$ para a proporção de negros na UPA
+$\hat{\gamma}_{01} = −0,2189$ por desvio-padrão da proporção de negros na UPA
 indica que a penalidade de viver em bairro segregado é da mesma ordem
 de grandeza da própria penalidade individual de ser negro --- e que 36,9\%
 da variância do rendimento está entre bairros, não entre pessoas.
@@ -1180,8 +1184,10 @@ estruturalmente insuficientes.
 
 O ritmo de convergência observado na última década reforça a urgência.
 Ao passo atual, a eliminação do diferencial racial levaria mais de um século.
-Isso não é uma previsão pessimista --- é uma consequência aritmética da
-combinação entre a magnitude do gap e a velocidade atual de redução.
+Não é uma previsão, e sim uma extrapolação aritmética da combinação entre a
+magnitude do gap e a velocidade atual de redução --- velocidade que, aliás, não
+se distingue de zero aos níveis convencionais ($p = 0{,}077$): a leitura
+conservadora é que a década não produziu convergência mensurável.
 Significa, concretamente, que reformas incrementais são insuficientes:
 é necessário atacar as duas barreiras de forma simultânea e com recursos
 proporcionais à magnitude do problema.
@@ -1202,7 +1208,7 @@ de robustez sobre $N=7.694.198$ observações da PNAD Contínua 2016--2025.
 O gap condicional a capital humano, de 19,1\% (sem efeito de bairro),
 decompõe-se em três parcelas: (i)~mediação de 47,0\% pela segregação
 residencial --- comparando negros e brancos do mesmo bairro ($\hat{\gamma}_{01}=−0,2189$
-para a composição racial do bairro), chega-se ao \textbf{gap líquido de 10,2\%} (M3);
+por desvio-padrão da composição racial do bairro), chega-se ao \textbf{gap líquido de 10,2\%} (M3);
 (ii)~mediação ocupacional de 16,6\% pelo acesso desigual a grupos CBO de alta
 remuneração; e (iii)~penalidade de 7,0\% que persiste \emph{dentro} da mesma
 ocupação (M4) --- limite inferior descritivo, pois a própria ocupação é

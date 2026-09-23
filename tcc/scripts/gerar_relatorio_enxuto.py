@@ -249,7 +249,7 @@ portanto, sobretudo no \emph{acesso} às ocupações --- canal que o GLMM mede d
 O GLMM logístico de acesso (intercepto aleatório de UPA) confirma o teto de vidro
 ocupacional: controlados escolaridade, sexo, idade, estado e contexto do bairro,
 trabalhadores negros têm \textit{odds} de acesso a cargo qualificado de @@G_OR_CBO_M2@@
-(IC~95\% @@G_CI_CBO_M2_EN@@) das de brancos do mesmo bairro, que se apertam para
+(IC~95\% @@G_CI_CBO_M2@@) das de brancos do mesmo bairro, que se apertam para
 @@G_OR_T10_M2@@ no topo~10\% da renda; o E-value de~@@G_EV_CBO_M2@@ indica robustez a
 confundidores não observados.
 O \textit{machine learning} (XGBoost + SHAP) corrobora, sem pressuposto de forma
@@ -510,6 +510,23 @@ for label, fim, nota in LEGENDAS:
         print(f"  [AVISO] legenda não inserida para {label}")
 print(f"  tabela interseccional={n_it}, legendas inseridas={n_leg}/{len(LEGENDAS)}")
 
+# Tabela SHAP: vem do gerador completo com ponto decimal e mais larga que a mancha.
+# Aqui ela é ajustada ao padrão do relatório (vírgula decimal) e encaixada na largura.
+_i = texto.find(r"\label{tab:shap_importance}")
+if _i > 0:
+    _j = texto.index(r"\end{table}", _i) + len(r"\end{table}")
+    _bloco = texto[_i:_j]
+    if r"\resizebox" not in _bloco:
+        _bloco = _bloco.replace(r"\begin{tabular}", "\\resizebox{\\textwidth}{!}{%\n\\begin{tabular}", 1)
+        _bloco = _bloco.replace(r"\end{tabular}", "\\end{tabular}\n}", 1)
+    _bloco = re.sub(r"(?<= )(\d)\.(\d+)(?= )", r"\1,\2", _bloco)   # 0.325 -> 0,325 (só células)
+    texto = texto[:_i] + _bloco + texto[_j:]
+    print("  tabela SHAP: vírgula decimal e resizebox aplicados")
+
+# Frase truncada no gerador completo (já corrigida lá; aqui para não exigir regeração)
+texto = re.sub(r"\\emph\{ampliar\} a base\s+de amostral para populacional \\emph\{reduz\}",
+               r"\\emph{ampliar} a base, de amostral para populacional, \\emph{reduz}", texto)
+
 # Bibliografia: as referências do núcleo são citadas como texto plano nas tabelas
 # (VanderWeele & Ding, Oaxaca & Ransom, Firpo et al., Crenshaw, Manski...). Um \nocite
 # garante que entrem na lista de referências. Ver tcc/PERICIA.md (bibliografia).
@@ -655,7 +672,8 @@ superior da renda, @@G_PCT_T10_M2@@\% menor.
 
 \medskip
 \noindent\textbf{A evidência.} Quatro métodos independentes, sobre a população completa da
-PNAD Contínua ($N = @@N_OBS@@$ observações; @@N_UPAS@@ bairros): um modelo hierárquico que
+PNAD Contínua (cerca de 7,7~milhões de observações em @@N_UPAS@@ bairros --- o $N$
+exato varia com os filtros de cada método e consta da sua tabela): um modelo hierárquico que
 separa pessoa e bairro; a decomposição de Oaxaca--Blinder, que separa ``ter
 características diferentes'' de ``receber preços diferentes''; a regressão quantílica com
 RIF, que mostra onde na distribuição a penalidade pesa; e um modelo logístico multinível
@@ -913,6 +931,12 @@ if _glmer:
     })
 for _k, _v in _V.items():
     texto = texto.replace(_k, _v)
+# REML vs ML do modelo nulo (FAV-73): a comparação não cabia na tabela
+_vc = {r["componente"]: r for r in _rd("hlm_stepup_varcomp.csv")}
+if _vc:
+    texto = texto.replace("@@HLM_TAU0_ML@@", _pt(_vc["tau2_upa"]["ML"], 5))
+    texto = texto.replace("@@HLM_TAU0_REML@@", _pt(_vc["tau2_upa"]["REML"], 5))
+
 _rest = sorted(set(re.findall(r"@@(?:HLM|GLMM|G)_[A-Z0-9_]+@@", texto)))
 if _rest:
     print(f"  [AVISO] placeholders não preenchidos: {_rest[:12]}")

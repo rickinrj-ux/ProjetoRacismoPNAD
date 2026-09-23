@@ -288,6 +288,15 @@ def check_gap_interno(tex: str) -> None:
         add("MÉDIO", "SWD-79", "relatorio",
             f"'gap líquido' ({sorted(liq)}) e 'gap residual' ({sorted(res)}) são usados como sinônimos com números diferentes.",
             "Fixar terminologia: líquido = M3 (sem bad controls); residual pós-ocupação = M4.")
+    # Fonte única: nenhum marcador de geração pode sobreviver no .tex entregue.
+    # (Em 2026-09-22 uma nota de tabela em raw string deixou '{fmt(abs(g1),1)}' chegar ao PDF.)
+    vazados = set(re.findall(r"\{fmt\(.{0,40}?\)\}|@@[A-Z0-9_]+@@|\{[a-z_]+\[[^\]]{0,30}\]\}", tex))
+    if vazados:
+        add("ALTO", "FONTE-ÚNICA/FAV-91", "relatorio",
+            f"Marcador de geração não preenchido no .tex: {sorted(vazados)[:5]}.",
+            "O texto veio de uma raw string ou de um placeholder sem filler; preencher na "
+            "geração e reconferir o PDF.")
+
     n_obs = set(re.findall(r"N\s*=\s*\$?([\d.]{7,})", tex))
     if len(n_obs) > 1:
         add("BAIXO", "FAV-91", "relatorio", f"Vários N citados como 'população': {sorted(n_obs)}.",
@@ -433,9 +442,14 @@ def check_slides() -> None:
         add("MÉDIO", "SWD-55/SWD-75", "gerar_apresentacao_pptx.py",
             f"{len(descritivos)}/{len(titulos)} títulos de slide são tópicos ('N. Método — Tema'), não frases de ação.",
             "Ex.: '5. HLM — Decomposição do Gap' → 'Morar em bairro segregado explica metade do gap racial'.")
-    cores = len(set(re.findall(r"RGBColor\(0x[0-9A-Fa-f]{2}, 0x[0-9A-Fa-f]{2}, 0x[0-9A-Fa-f]{2}\)", src)))
+    # SWD-42 fala de cores que *codificam dado*; branco, preto, cinzas e o fundo do tema
+    # são estruturais e não contam para a saturação da paleta.
+    NEUTRAS = re.compile(r"WHITE|BLACK|GRAY|GREY|DARK|LGRAY|BG|FUNDO", re.I)
+    nomeadas = re.findall(r"^(C_\w+)\s*=\s*RGBColor\(", src, re.M)
+    cores = len({n for n in nomeadas if not NEUTRAS.search(n)})
     if cores > 5:
-        add("BAIXO", "SWD-42/SWD-40", "gerar_apresentacao_pptx.py", f"Paleta com {cores} cores nomeadas.",
+        add("BAIXO", "SWD-42/SWD-40", "gerar_apresentacao_pptx.py",
+            f"Paleta com {cores} cores de dado (fora as neutras).",
             "Cinza + uma cor de destaque (azul); vermelho só para o dado que se quer destacar.")
 
 

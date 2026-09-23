@@ -6,6 +6,7 @@
 acrescenta um bloco de controles ao anterior; à medida que se adiciona contexto e ocupação,
 o gap encolhe e a mediação acumulada cresce.}
 \label{tab:mediacao}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrr}
 \toprule
 Modelo (controles acumulados) & $\beta_{\text{negro}}$ & Gap (\%) & Mediação acum. (\%) \\
@@ -17,12 +18,14 @@ M3: + efeitos fixos de UF (gap líquido) & −0,1077 & −10,2 & 49,3 \\
 M4: + ocupação e formalidade (limite inferior) & −0,0724 & −7,0 & 65,9 \\
 \bottomrule
 \end{tabular}
+}
 \par\smallskip
 \footnotesize\emph{Como ler:} cada linha adiciona algo à anterior. $\beta_{\text{negro}}$
 é a penalidade racial em log-rendimento (mais próximo de zero = menor gap); ``Gap (\%)'' é a
 penalidade em \% de renda; ``Mediação acum.''\ é a fração do gap agregado (primeira linha) já
 explicada. O salto da primeira para a segunda linha é a mediação pela segregação residencial:
-comparar negros e brancos \emph{do mesmo bairro} reduz o gap quase à metade. Do M1 ao M4 o gap cai de {fmt(abs(g1),1)}\% para {fmt(abs(g4),1)}\%: {fmt(m4,1)}\% do gap é mediado por
-onde a pessoa mora, o estado e a ocupação que acessa --- e a penalidade de {fmt(abs(g4),1)}\% persiste
+comparar negros e brancos \emph{do mesmo bairro} reduz o gap quase à metade. Do modelo agregado
+ao M4 o gap cai de 19,1\% para 7,0\%: 65,9\% do gap é mediado por
+onde a pessoa mora, o estado e a ocupação que acessa --- e a penalidade de 7,0\% persiste
 dentro da mesma ocupação (limite inferior, pois a ocupação é ela própria resultado da barreira de acesso).
 \end{table}

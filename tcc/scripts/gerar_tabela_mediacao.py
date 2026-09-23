@@ -70,6 +70,7 @@ tex = (r"""\begin{table}[!ht]
 acrescenta um bloco de controles ao anterior; à medida que se adiciona contexto e ocupação,
 o gap encolhe e a mediação acumulada cresce.}
 \label{tab:mediacao}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrr}
 \toprule
 Modelo (controles acumulados) & $\beta_{\text{negro}}$ & Gap (\%) & Mediação acum. (\%) \\
@@ -77,16 +78,22 @@ Modelo (controles acumulados) & $\beta_{\text{negro}}$ & Gap (\%) & Mediação a
 """ + "\n".join(linhas) + r"""
 \bottomrule
 \end{tabular}
+}
 \par\smallskip
 \footnotesize\emph{Como ler:} cada linha adiciona algo à anterior. $\beta_{\text{negro}}$
 é a penalidade racial em log-rendimento (mais próximo de zero = menor gap); ``Gap (\%)'' é a
 penalidade em \% de renda; ``Mediação acum.''\ é a fração do gap agregado (primeira linha) já
 explicada. O salto da primeira para a segunda linha é a mediação pela segregação residencial:
-comparar negros e brancos \emph{do mesmo bairro} reduz o gap quase à metade. Do M1 ao M4 o gap cai de {fmt(abs(g1),1)}\% para {fmt(abs(g4),1)}\%: {fmt(m4,1)}\% do gap é mediado por
-onde a pessoa mora, o estado e a ocupação que acessa --- e a penalidade de {fmt(abs(g4),1)}\% persiste
+comparar negros e brancos \emph{do mesmo bairro} reduz o gap quase à metade. Do modelo agregado
+ao M4 o gap cai de <<G1>>\% para <<G4>>\%: <<M4>>\% do gap é mediado por
+onde a pessoa mora, o estado e a ocupação que acessa --- e a penalidade de <<G4>>\% persiste
 dentro da mesma ocupação (limite inferior, pois a ocupação é ela própria resultado da barreira de acesso).
 \end{table}
 """)
+# os números da nota entram por substituição: a string acima é raw, não f-string
+tex = (tex.replace("<<G1>>", fmt(abs(g1), 1))
+          .replace("<<G4>>", fmt(abs(g4), 1))
+          .replace("<<M4>>", fmt(m4, 1)))
 out = T / "gap_mediacao_tcc.tex"
 out.write_text(tex, encoding="utf-8")
 print(f"OK -> {out}")
