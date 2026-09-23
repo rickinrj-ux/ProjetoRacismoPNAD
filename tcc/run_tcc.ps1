@@ -82,9 +82,11 @@ function Build-Relatorio {
     Write-Host "  -> tcc/scripts/gerar_word_enxuto.py" -ForegroundColor Green
     & $Python (Join-Path $PSScriptRoot "scripts\gerar_word_enxuto.py")
     if ($LASTEXITCODE -ne 0) { Write-Host "  [AVISO] Word não gerado (pypandoc_binary ausente?)" -ForegroundColor Yellow }
-    # 5. demais entregáveis — todos lêem os números via params_nucleo.py
-    foreach ($e in @("gerar_guia_estudo.py", "gerar_apresentacao_executiva.py",
-                     "gerar_resultados_preliminares.py")) {
+    # 5. demais entregáveis — todos lêem os números via params_nucleo.py.
+    # gerar_resultados_preliminares.py ficou de fora: o documento é de uma etapa
+    # vencida (está em entregaveis/_arquivo/) e só precisa rodar se houver nova
+    # submissão naquele modelo.
+    foreach ($e in @("gerar_guia_estudo.py", "gerar_apresentacao_executiva.py")) {
         Write-Host "  -> tcc/scripts/$e" -ForegroundColor Green
         & $Python (Join-Path $PSScriptRoot "scripts\$e")
         if ($LASTEXITCODE -ne 0) { throw "Falha em $e (exit $LASTEXITCODE)" }

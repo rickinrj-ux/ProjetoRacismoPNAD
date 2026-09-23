@@ -13,6 +13,11 @@ da raiz e csv da série estendida, e por isso ficou com números que o relatóri
 já não sustenta.
 
 Saída: entregaveis/Resultados_Preliminares_TCC.docx
+
+Etapa vencida: a versão de setembro está em entregaveis/_arquivo/ e o
+relatório final a substitui. Este gerador fica pronto para o caso de uma
+nova submissão no modelo Resultados Preliminares; por isso saiu do
+run_tcc.ps1 e precisa ser chamado à mão.
 """
 
 # --- bootstrap raiz do projeto ---
