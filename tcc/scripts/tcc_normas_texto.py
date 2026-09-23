@@ -108,7 +108,7 @@ Ricardo Gomes Calheiros\textsuperscript{1*}; Edilson José Rodrigues\textsupersc
 {\fontsize{9}{11}\selectfont
 \textsuperscript{1*} Bacharel em Sistemas de Informação. E-mail autor
 correspondente: rickinrj@gmail.com\par
-\textsuperscript{2} Pós-doutor em Linguística Computacional. MBA USP/Esalq.
+\textsuperscript{2} Doutor em Engenharia Elétrica. MBA USP/Esalq.
 E-mail: orientador@usp.br\par}
 \end{flushleft}
 
