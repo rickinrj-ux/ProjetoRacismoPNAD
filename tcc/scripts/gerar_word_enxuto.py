@@ -14,7 +14,7 @@ Etapas:
   3. chama o pandoc (pypandoc_binary) com as figuras resolvidas e as
      referências do .bib.
 
-Saída: entregaveis/relatorio_tcc_enxuto.docx
+Saída: entregaveis/<nome de entrega>.docx e o PDF compilado ao lado
 Uso:   python tcc/scripts/gerar_word_enxuto.py
 """
 from __future__ import annotations
@@ -28,7 +28,10 @@ ROOT = Path(__file__).resolve().parents[2]
 TEX = ROOT / "relatorio_tcc_enxuto.tex"
 BIB = ROOT / "relatorio_tcc.bib"
 FIGS = ROOT / "outputs" / "figures"
-OUT = ROOT / "entregaveis" / "relatorio_tcc_enxuto.docx"
+# nome de entrega (o "enxuto" era jargao interno de quando havia duas versoes)
+NOME_ENTREGA = "TCC_Ricardo_Calheiros_MBA_USP_Esalq"
+OUT = ROOT / "entregaveis" / (NOME_ENTREGA + ".docx")
+OUT_PDF = ROOT / "entregaveis" / (NOME_ENTREGA + ".pdf")
 
 
 def expandir_inputs(texto: str, base: Path, profundidade: int = 0) -> str:
@@ -185,6 +188,19 @@ def main() -> int:
     tabelas = len(doc.tables)
     imagens = sum(1 for r in doc.part.rels.values() if "image" in r.reltype)
     paragrafos = sum(1 for p in doc.paragraphs if p.text.strip())
+    # o PDF é compilado na raiz sob o nome do build; a entrega leva o mesmo
+    # nome do .docx, para o orientador receber um par coerente
+    pdf_build = ROOT / "relatorio_tcc_enxuto.pdf"
+    if pdf_build.exists():
+        try:
+            OUT_PDF.write_bytes(pdf_build.read_bytes())
+            print(f"PDF copiado -> {OUT_PDF.relative_to(ROOT)}  "
+                  f"({OUT_PDF.stat().st_size // 1024} KB)")
+        except PermissionError:
+            print(f"[AVISO] {OUT_PDF.name} está aberto; a cópia do PDF não foi atualizada")
+    else:
+        print("[AVISO] relatorio_tcc_enxuto.pdf não existe — compile o LaTeX antes")
+
     print(f"\nOK -> {OUT.relative_to(ROOT)}  ({OUT.stat().st_size // 1024} KB)")
     print(f"     {paragrafos} parágrafos, {tabelas} tabelas, {imagens} imagens")
     if tabelas < 8 or imagens < 6:
