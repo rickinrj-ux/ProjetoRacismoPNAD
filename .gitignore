@@ -74,3 +74,6 @@ Thumbs.db
 
 # ─── MLflow tracking local (não versionar) ───
 mlruns/
+
+# cache de ajustes do HLM (um modelo por processo; regerável)
+outputs/_cache/

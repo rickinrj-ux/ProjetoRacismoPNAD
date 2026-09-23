@@ -36,6 +36,7 @@ _sys.path.insert(0, _os.getcwd())
 # --- fim bootstrap ---
 
 import sys, gc, time, logging, warnings, argparse
+import pickle
 from pathlib import Path
 sys.path.insert(0, "src")
 
@@ -143,6 +144,36 @@ class Light:
     pass
 
 
+# Cache em disco: cada degrau é ajustado num processo próprio (ver --fit), senão
+# os seis modelos juntos estouram a memória em 7,7 milhões de observações.
+CACHE = Path("outputs/_cache/hlm_stepup")   # o script já faz chdir para a raiz
+
+
+def _cache_path(name: str) -> Path:
+    return CACHE / f"{name}.pkl"
+
+
+def cache_save(name: str, L: "Light") -> None:
+    CACHE.mkdir(parents=True, exist_ok=True)
+    with _cache_path(name).open("wb") as fh:
+        pickle.dump(L, fh, protocol=pickle.HIGHEST_PROTOCOL)
+    logger.info(f"[{name}] cache gravado em {_cache_path(name)}")
+
+
+def cache_load(name: str):
+    p = _cache_path(name)
+    if not p.exists():
+        return None
+    try:
+        with p.open("rb") as fh:
+            L = pickle.load(fh)
+        logger.info(f"[{name}] reaproveitado do cache (llf={L.llf:,.0f}, conv={L.converged})")
+        return L
+    except Exception as e:
+        logger.warning(f"[{name}] cache ilegível ({e}); será reajustado")
+        return None
+
+
 def fit_mixed(name, formula, df, re_formula=None, reml=False, keep_re=False):
     """MixedLM com groups=UPA. Devolve objeto leve: params/bse/pvalues (Series),
     llf, aic, bic, k_fe, n, tau2 (intercepto), tau2_slope, cov01, sigma2, icc,
@@ -216,21 +247,51 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sample", type=float, default=SAMPLE_FRAC, help="só para teste; padrão = população")
     ap.add_argument("--replot", action="store_true", help="só refaz a figura a partir dos csv")
+    ap.add_argument("--fit", default="", metavar="MODELO",
+                    help="ajusta só esse degrau (M0, M0_REML, M1..M4, M3_RS), grava no cache e sai")
+    ap.add_argument("--force", action="store_true", help="ignora o cache e reajusta tudo")
     args = ap.parse_args()
     if args.replot:
         replot(); return
     t_total = time.time()
+
+    # modo "um modelo por processo": ajusta, grava no cache e sai
+    if args.fit:
+        nome = args.fit
+        df = load_data(args.sample)
+        kw = {}
+        if nome == "M0_REML":
+            L = fit_mixed(nome, FORMULAS["M0"], df, reml=True)
+        elif nome == "M3_RS":
+            L = fit_mixed(nome, FORMULAS["M3"], df, re_formula="~negro")
+        else:
+            L = fit_mixed(nome, FORMULAS[nome], df, keep_re=(nome == "M3"))
+        cache_save(nome, L)
+        logger.info(f"[{nome}] CONCLUIDO em {(time.time()-t_total)/60:.1f} min")
+        return
+
     df = load_data(args.sample)
     n_upa, n_uf = df["UPA_str"].nunique(), df["UF_str"].nunique()
 
     with run_context("HLM_StepUp_UPA", "HLM_Gap_Racial", tags={"n_obs": str(len(df))}):
         log_params({"sample_frac": args.sample, "groups": "UPA", "method": "bfgs", "ml": True})
         R = {}
-        R["M0"] = fit_mixed("M0", FORMULAS["M0"], df)
-        R["M0_REML"] = fit_mixed("M0_REML", FORMULAS["M0"], df, reml=True)
+
+        def _obter(nome, *a, **kw):
+            """Usa o cache do processo dedicado quando existir (ver --fit)."""
+            if not args.force:
+                L = cache_load(nome)
+                if L is not None:
+                    return L
+            L = fit_mixed(nome, *a, **kw)
+            cache_save(nome, L)
+            return L
+
+        R["M0"] = _obter("M0", FORMULAS["M0"], df)
+        R["M0_REML"] = _obter("M0_REML", FORMULAS["M0"], df, reml=True)
         for m in ("M1", "M2", "M3", "M4"):
-            R[m] = fit_mixed(m, FORMULAS[m], df, keep_re=(m == "M3"))
-        R["M3_RS"] = fit_mixed("M3_RS", FORMULAS["M3"], df, re_formula="~negro")
+            R[m] = _obter(m, FORMULAS[m], df, keep_re=(m == "M3"))
+        R["M3_RS"] = _obter("M3_RS", FORMULAS["M3"], df, re_formula="~negro")
 
         # ── Ajuste e LR tests ──
         fit_rows, seq = [], ["M0", "M1", "M2", "M3", "M4"]
