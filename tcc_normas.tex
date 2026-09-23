@@ -26,8 +26,10 @@
 \usepackage{array}
 \usepackage{caption}
 \usepackage{subcaption}
-% Tabela 1. / Figura 1. — separador é ponto, e a legenda é 1 pt menor
-\captionsetup{font=small, labelfont=bf, labelsep=period,
+% Tabela 1. / Figura 1. — separador é ponto. A legenda vai no MESMO corpo do
+% texto: o manual manda Arial 11 para todo o bloco da tabela e da figura,
+% incluindo o título (itens 15.1 e 15.2), sem o corpo menor de praxe.
+\captionsetup{labelfont=bf, labelsep=period,
               justification=justified, singlelinecheck=false, skip=6pt}
 \usepackage{placeins}
 \usepackage[alf, abnt-etal-list=5]{abntex2cite}

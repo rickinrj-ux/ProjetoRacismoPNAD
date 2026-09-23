@@ -107,6 +107,46 @@ def nota_depois_da_fonte(texto: str) -> str:
     return texto.replace("{Como ler:}", "Nota: ").replace("Como ler:", "Nota: ")
 
 
+def resolver_referencias(texto: str) -> str:
+    """Troca \\ref{rotulo} pelo texto correspondente.
+
+    Tabelas e figuras viram "Tabela N"/"Figura N" — a numeração já foi escrita
+    na legenda. Seções viram o próprio título, porque a norma não as numera e
+    não há contador a que o \\ref possa apontar.
+    """
+    mapa: dict[str, str] = {}
+
+    cont = {"table": 0, "figure": 0}
+    rot = {"table": "Tabela", "figure": "Figura"}
+    for m in re.finditer(r"\\begin\{(table|figure)\}(.*?)\\end\{\1\}", texto, re.S):
+        amb = m.group(1)
+        cont[amb] += 1
+        for lm in re.finditer(r"\\label\{([^}]+)\}", m.group(2)):
+            mapa[lm.group(1)] = f"{rot[amb]} {cont[amb]}"
+
+    # seções e subseções: o rótulo costuma vir na linha seguinte ao título
+    for m in re.finditer(r"\\(?:sub)?section\*?\{([^}]*)\}\s*\n?\s*\\label\{([^}]+)\}",
+                         texto):
+        mapa[m.group(2)] = m.group(1)
+
+    faltando: set[str] = set()
+
+    def _sub(m):
+        alvo = m.group(1)
+        if alvo in mapa:
+            return mapa[alvo]
+        faltando.add(alvo)
+        return ""                      # melhor nada do que "[rotulo]" no texto
+
+    texto = re.sub(r"\\ref\{([^}]+)\}", _sub, texto)
+    # "Seção~Nome" e "Subseção~Nome" ficam redundantes depois da troca
+    texto = re.sub(r"\((?:Sub)?[Ss]e[çc][ãa]o~?\s*\)", "(", texto)
+    texto = re.sub(r"(?:Sub)?[Ss]e[çc][ãa]o~", "", texto)
+    if faltando:
+        print(f"  [AVISO] rótulos sem destino: {sorted(faltando)}")
+    return texto
+
+
 def normalizar(texto: str) -> str:
     """Prepara o LaTeX para o pandoc, como no gerador do relatório."""
     texto = re.sub(r"\\nocite\{[^}]*\}", "", texto)
@@ -171,6 +211,7 @@ def main() -> int:
     texto = sem_subfigure(texto)
     texto = legendas_numeradas(texto)
     texto = nota_depois_da_fonte(texto)
+    texto = resolver_referencias(texto)
     texto = normalizar(texto)
     with tempfile.NamedTemporaryFile("w", suffix=".tex", delete=False,
                                      encoding="utf-8", dir=str(ROOT)) as fh:

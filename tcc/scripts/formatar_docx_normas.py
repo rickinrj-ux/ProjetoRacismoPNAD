@@ -95,6 +95,7 @@ def formatar_tabelas(doc: Document) -> int:
     numeros = 0
     for t in doc.tables:
         bordas_da_norma(t)
+        ajustar_larguras(t)
         numeros += alinhar_numeros(t)
         for linha in t.rows:
             for cel in linha.cells:
@@ -188,6 +189,59 @@ def alinhar_numeros(t) -> int:
                 else:
                     par.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     return n
+
+
+
+# janela do texto: A4 (21 cm) menos as margens de 2,5 cm de cada lado
+JANELA_CM = 16.0
+
+
+def ajustar_larguras(t) -> None:
+    """Reparte a largura entre as colunas conforme o conteúdo.
+
+    A medida é o comprimento típico da célula (percentil alto, não o máximo,
+    para uma única célula comprida não dominar), com piso e teto para nenhuma
+    coluna sumir nem engolir a tabela.
+    """
+    n_col = len(t.columns)
+    if not n_col:
+        return
+
+    larguras = []
+    for j in range(n_col):
+        comprimentos = []
+        for linha in t.rows:
+            try:
+                cel = linha.cells[j]
+            except IndexError:
+                continue
+            maior_palavra = max((len(w) for w in cel.text.split()), default=0)
+            comprimentos.append(max(len(cel.text), maior_palavra))
+        comprimentos.sort()
+        if not comprimentos:
+            larguras.append(1.0)
+            continue
+        # percentil 80: ignora a célula excepcional sem ignorar o conteúdo real
+        tipico = comprimentos[min(int(len(comprimentos) * 0.8), len(comprimentos) - 1)]
+        larguras.append(max(tipico, 4))
+
+    total = sum(larguras)
+    minimo, maximo = 0.055, 0.42            # fração da janela
+    fracoes = []
+    for w in larguras:
+        fracoes.append(min(max(w / total, minimo), maximo))
+    soma = sum(fracoes)
+    fracoes = [f / soma for f in fracoes]    # renormaliza depois do corte
+
+    t.autofit = False
+    for j, f in enumerate(fracoes):
+        largura = Cm(JANELA_CM * f)
+        t.columns[j].width = largura
+        for linha in t.rows:                 # o Word respeita a largura da célula
+            try:
+                linha.cells[j].width = largura
+            except IndexError:
+                continue
 
 
 def main() -> int:
