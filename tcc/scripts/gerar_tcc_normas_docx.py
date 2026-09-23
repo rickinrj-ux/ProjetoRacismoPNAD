@@ -37,6 +37,76 @@ TEMPLATES = [
 ]
 
 
+
+FONTE_FIGURA = "Fonte: Resultados originais da pesquisa"
+
+
+def sem_subfigure(texto: str) -> str:
+    """Deixa só a imagem da subfigure.
+
+    A subfigure tem legenda própria; se sobrevivesse até a numeração, levaria o
+    número que pertence à figura que a contém. E o pandoc converteria o ambiente
+    numa tabela de uma célula em volta da imagem.
+    """
+    def _sub(m):
+        img = re.search(r"\\includegraphics(?:\[[^\]]*\])?\{[^}]+\}", m.group(1))
+        return img.group(0) if img else ""
+
+    return re.sub(r"\\begin\{subfigure\}(?:\[[^\]]*\])?\{[^}]*\}(.*?)\\end\{subfigure\}",
+                  _sub, texto, flags=re.S)
+
+
+def _arg_caption(corpo: str) -> tuple[int, int] | None:
+    """Delimita o argumento de \\caption por contagem de chaves."""
+    i = corpo.find("\\caption{")
+    if i < 0:
+        return None
+    j, nivel = i + len("\\caption{"), 1
+    while j < len(corpo) and nivel:
+        if corpo[j] == "{":
+            nivel += 1
+        elif corpo[j] == "}":
+            nivel -= 1
+        j += 1
+    return i + len("\\caption{"), j - 1
+
+
+def legendas_numeradas(texto: str) -> str:
+    """Escreve o número na legenda e acrescenta a fonte das figuras.
+
+    No LaTeX o contador resolve a numeração; o pandoc a descarta. Escrevendo
+    "Tabela 1." e "Figura 1." no corpo da legenda, o rótulo sobrevive no .docx.
+    A fonte é elemento obrigatório também nas figuras (manual, item 15.1).
+    """
+    cont = {"table": 0, "figure": 0}
+    rotulo = {"table": "Tabela", "figure": "Figura"}
+
+    def _numerar(m):
+        amb, corpo = m.group(1), m.group(2)
+        cont[amb] += 1
+        pos = _arg_caption(corpo)
+        if pos:
+            a, b = pos
+            corpo = corpo[:a] + f"{rotulo[amb]} {cont[amb]}. " + corpo[a:]
+        fim = ""
+        if amb == "figure" and "Fonte:" not in corpo:
+            # fora do ambiente: o pandoc descarta o que vem depois da legenda
+            # dentro de figure, e a norma quer a fonte como linha própria
+            fim = "\n\n\\noindent " + FONTE_FIGURA + "\n"
+        return "\\begin{" + amb + "}" + corpo + "\\end{" + amb + "}" + fim
+
+    return re.sub(r"\\begin\{(table|figure)\}(.*?)\\end\{\1\}", _numerar,
+                  texto, flags=re.S)
+
+
+def nota_depois_da_fonte(texto: str) -> str:
+    """As notas de leitura viram "Nota:" — a norma reserva esse rótulo e manda
+    colocá-las depois da Fonte."""
+    texto = re.sub(r"\\noindent\{?Como ler (a|o) (Figura|Tabela)~\\ref\{([^}]+)\}:\}?",
+                   r"Nota: como ler a \2~\\ref{\3}:", texto)
+    return texto.replace("{Como ler:}", "Nota: ").replace("Como ler:", "Nota: ")
+
+
 def normalizar(texto: str) -> str:
     """Prepara o LaTeX para o pandoc, como no gerador do relatório."""
     texto = re.sub(r"\\nocite\{[^}]*\}", "", texto)
@@ -96,7 +166,12 @@ def main() -> int:
         print(f"ERRO: {TEX.name} não existe — rode antes gerar_tcc_normas.py")
         return 1
 
-    texto = normalizar(TEX.read_text(encoding="utf-8"))
+    texto = TEX.read_text(encoding="utf-8")
+    # a subfigure tem legenda propria e roubaria o numero da figura-mae
+    texto = sem_subfigure(texto)
+    texto = legendas_numeradas(texto)
+    texto = nota_depois_da_fonte(texto)
+    texto = normalizar(texto)
     with tempfile.NamedTemporaryFile("w", suffix=".tex", delete=False,
                                      encoding="utf-8", dir=str(ROOT)) as fh:
         fh.write(texto)
