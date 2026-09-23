@@ -2,7 +2,7 @@
 """
 gerar_guia_estudo.py  (versão do núcleo)
 ========================================
-Gera `entregaveis/guia_estudo_defesa.docx` — o roteiro de estudo para a banca.
+Gera `entregaveis/TCC_Ricardo_Calheiros_Guia_de_Estudo.docx` — o roteiro de estudo para a banca.
 
 Todo número vem de `params_nucleo.py`, que lê os csv de `outputs/tables/`: o
 guia nunca pode divergir do relatório. O gerador antigo
@@ -28,7 +28,7 @@ from params_nucleo import P, milhar, pct, pt
 
 ROOT = Path(__file__).resolve().parents[2]
 FIGS = ROOT / "outputs" / "figures"
-OUT = ROOT / "entregaveis" / "guia_estudo_defesa.docx"
+OUT = ROOT / "entregaveis" / "TCC_Ricardo_Calheiros_Guia_de_Estudo.docx"
 
 AZUL = (0x1F, 0x38, 0x64)
 AZUL_CLARO = (0x15, 0x65, 0xC0)

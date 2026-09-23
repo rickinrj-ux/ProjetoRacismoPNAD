@@ -2,7 +2,7 @@
 """
 gerar_apresentacao_executiva.py
 ===============================
-Gera `entregaveis/apresentacao_executiva.pptx` — 10 slides para gestores,
+Gera `entregaveis/TCC_Ricardo_Calheiros_Executiva.pptx` — 10 slides para gestores,
 congressos e público não técnico: mesma história do TCC, sem jargão.
 
 Todo número vem de `params_nucleo.py`, que lê os csv de `outputs/tables/`.
@@ -33,7 +33,7 @@ from pptx_helpers import (C_BLACK, C_BLUE, C_DARK, C_GRAY, C_LGRAY, C_RED,
 
 ROOT = Path(__file__).resolve().parents[2]
 FIGS = ROOT / "outputs" / "figures"
-OUT = ROOT / "entregaveis" / "apresentacao_executiva.pptx"
+OUT = ROOT / "entregaveis" / "TCC_Ricardo_Calheiros_Executiva.pptx"
 
 # ── números (todos dos csv) ───────────────────────────────────────────────────
 OR_CBO = P["OR_ocp_qualif_M2"]

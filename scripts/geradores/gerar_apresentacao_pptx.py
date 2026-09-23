@@ -1,6 +1,6 @@
 """
 gerar_apresentacao_pptx.py
-Gera apresentacao_tcc.pptx — 15 slides para defesa de TCC na banca.
+Gera entregaveis/TCC_Ricardo_Calheiros_Defesa.pptx — 15 slides para defesa de TCC na banca.
 Usa python-pptx (pip install python-pptx).
 """
 
@@ -54,7 +54,7 @@ ROOT    = Path(r"C:\Users\user\Documents\ProjetoRacismoPNAD")
 FIGURES = ROOT / "outputs" / "figures"
 TABLES  = ROOT / "outputs" / "tables"
 # DECK_OUT permite gerar numa pasta de teste sem tocar no entregável
-OUT_PPT = _Path(_os.environ.get("DECK_OUT") or (ROOT / "entregaveis" / "apresentacao_tcc.pptx"))
+OUT_PPT = _Path(_os.environ.get("DECK_OUT") or (ROOT / "entregaveis" / "TCC_Ricardo_Calheiros_Defesa.pptx"))
 (ROOT / "entregaveis").mkdir(exist_ok=True)
 
 # ── Paleta ────────────────────────────────────────────────────────────────────
