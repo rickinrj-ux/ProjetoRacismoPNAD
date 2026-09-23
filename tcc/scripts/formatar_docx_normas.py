@@ -28,6 +28,8 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -61,8 +63,15 @@ def formatar_corpo(doc: Document) -> tuple[int, int]:
         if RE_LEGENDA.match(texto) or RE_FONTE.match(texto):
             pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
             pf.first_line_indent = Cm(0)
-            pf.space_after = Pt(0)
             pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            # o título estava colado no parágrafo anterior; a fonte e a nota
+            # seguem coladas na tabela, que é como a norma mostra
+            if RE_LEGENDA.match(texto):
+                pf.space_before = Pt(12)
+                pf.space_after = Pt(2)
+            else:
+                pf.space_before = Pt(2)
+                pf.space_after = Pt(12)
             legendas += 1
         elif p.style.name.startswith("Heading") or RE_META.match(texto):
             pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
@@ -83,7 +92,10 @@ def formatar_tabelas(doc: Document) -> int:
     """Arial 11, espaçamento simples e sem negrito — o manual proíbe realce
     em negrito e código de cores nas tabelas (item 15.2)."""
     celulas = 0
+    numeros = 0
     for t in doc.tables:
+        bordas_da_norma(t)
+        numeros += alinhar_numeros(t)
         for linha in t.rows:
             for cel in linha.cells:
                 for p in cel.paragraphs:
@@ -95,7 +107,87 @@ def formatar_tabelas(doc: Document) -> int:
                         _fonte_do_run(r)
                         r.font.bold = False
                     celulas += 1
+    print(f"     {numeros} células numéricas alinhadas à direita")
     return celulas
+
+
+
+def _borda(tag: str, tamanho: int = 8) -> "OxmlElement":
+    """Uma regra horizontal preta; tamanho em oitavos de ponto (8 = 1 pt)."""
+    e = OxmlElement(f"w:{tag}")
+    e.set(qn("w:val"), "single")
+    e.set(qn("w:sz"), str(tamanho))
+    e.set(qn("w:color"), "000000")
+    return e
+
+
+def _sem_borda(tag: str) -> "OxmlElement":
+    e = OxmlElement(f"w:{tag}")
+    e.set(qn("w:val"), "nil")
+    return e
+
+
+def bordas_da_norma(t) -> None:
+    """Superior e inferior no cabeçalho, inferior no fim da tabela.
+
+    Sem bordas internas nem externas (item 15.2). É o desenho do booktabs, que
+    o pandoc descartou na conversão.
+    """
+    # zera tudo no nível da tabela
+    pr = t._tbl.tblPr
+    for antigo in pr.findall(qn("w:tblBorders")):
+        pr.remove(antigo)
+    b = OxmlElement("w:tblBorders")
+    for lado in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        b.append(_sem_borda(lado))
+    pr.append(b)
+
+    def _cel_borda(cel, cima=None, baixo=None):
+        tcPr = cel._tc.get_or_add_tcPr()
+        for antigo in tcPr.findall(qn("w:tcBorders")):
+            tcPr.remove(antigo)
+        tb = OxmlElement("w:tcBorders")
+        tb.append(_borda("top", cima) if cima else _sem_borda("top"))
+        tb.append(_sem_borda("left"))
+        tb.append(_borda("bottom", baixo) if baixo else _sem_borda("bottom"))
+        tb.append(_sem_borda("right"))
+        tcPr.append(tb)
+
+    if not t.rows:
+        return
+    for cel in t.rows[0].cells:                      # cabeçalho: traço acima e abaixo
+        _cel_borda(cel, cima=8, baixo=6)
+    for cel in t.rows[-1].cells:                     # fim da tabela: traço abaixo
+        _cel_borda(cel, baixo=8)
+
+    # cabeçalho repetido quando a tabela atravessa páginas
+    trPr = t.rows[0]._tr.get_or_add_trPr()
+    if not trPr.findall(qn("w:tblHeader")):
+        h = OxmlElement("w:tblHeader")
+        h.set(qn("w:val"), "true")
+        trPr.append(h)
+
+
+RE_NUMERO = re.compile(r"^\s*[−-]?[\d.]+(,\d+)?\s*%?\s*(\(.*\))?\s*$")
+
+
+def alinhar_numeros(t) -> int:
+    """Números à direita nas colunas de dados; a primeira coluna fica à
+    esquerda e o cabeçalho, centralizado (norma, item 15.2)."""
+    n = 0
+    for i, linha in enumerate(t.rows):
+        for j, cel in enumerate(linha.cells):
+            for par in cel.paragraphs:
+                if i == 0:
+                    par.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                elif j == 0:
+                    par.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                elif RE_NUMERO.match(par.text):
+                    par.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+                    n += 1
+                else:
+                    par.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    return n
 
 
 def main() -> int:
