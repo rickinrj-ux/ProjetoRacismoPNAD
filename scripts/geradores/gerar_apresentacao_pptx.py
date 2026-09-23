@@ -20,12 +20,41 @@ from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches as In, Pt
 import pandas as pd
 import numpy as np
-from params import P, fmt, fmtN, ame, or_str
+
+# Fonte única: os mesmos csv que alimentam o relatório. O params.py da raiz é da
+# versão estendida e trazia para cá números que o relatório já não sustenta
+# (OR 0,693 do logit-FE, ICC de UF do HLM de três níveis).
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / "tcc" / "scripts"))
+from params_nucleo import P as _PN, milhar, pt as _pt
+
+
+def fmt(v, dec=3):    return _pt(v, dec).replace("−", "-")
+def fmtN(n):          return milhar(n)
+def or_str(v, dec=3): return fmt(v, dec)
+def ame(v, dec=2):    return f"{fmt(v, dec)} p.p."
+
+
+# nomes curtos usados nos slides -> chaves de params_nucleo
+P = dict(_PN)
+P.update({
+    "OR_M1": _PN["OR_ocp_qualif_M1"],   "OR_M2": _PN["OR_ocp_qualif_M2"],
+    "AME_M1_pp": _PN["AME_ocp_qualif_M1"], "AME_M2_pp": _PN["AME_ocp_qualif_M2"],
+    "OR_M1_menor_pct": (1 - _PN["OR_ocp_qualif_M1"]) * 100,
+    "OR_M2_menor_pct": (1 - _PN["OR_ocp_qualif_M2"]) * 100,
+    "EVAL_M1": _PN["EV_ocp_qualif_M1"], "EVAL_M2": _PN["EV_ocp_qualif_M2"],
+    "OR_OCP_M2": _PN["OR_ocp_qualif_M2"], "OR_TOP10_M2": _PN["OR_y_top10_M2"],
+    "OR_TOP20_M2": _PN["OR_y_top20_M2"],
+    "ICC_UPA_pct": _PN["ICC_M0"] * 100,          # ICC de BAIRRO (o do modelo nulo)
+    "GAP_PCT": _PN["OB_SEM_GAP_PCT"],
+    "DOT_PCT": _PN["OB_SEM_DOT_PCT"], "RET_PCT": _PN["OB_SEM_RET_PCT"],
+    "DOT_PCT_COM": _PN["OB_COM_DOT_PCT"], "RET_PCT_COM": _PN["OB_COM_RET_PCT"],
+})
 
 ROOT    = Path(r"C:\Users\user\Documents\ProjetoRacismoPNAD")
 FIGURES = ROOT / "outputs" / "figures"
 TABLES  = ROOT / "outputs" / "tables"
-OUT_PPT = ROOT / "entregaveis" / "apresentacao_tcc.pptx"
+# DECK_OUT permite gerar numa pasta de teste sem tocar no entregável
+OUT_PPT = _Path(_os.environ.get("DECK_OUT") or (ROOT / "entregaveis" / "apresentacao_tcc.pptx"))
 (ROOT / "entregaveis").mkdir(exist_ok=True)
 
 # ── Paleta ────────────────────────────────────────────────────────────────────
@@ -183,7 +212,7 @@ def add_table_resumo(slide, headers, rows, l, t, w, h, col_w=None, font_size=12)
     return tbl
 
 
-def footer(slide, slide_num, total=29):
+def footer(slide, slide_num, total=20):   # mantido igual ao nº de slides
     add_rect(slide, 0, H-In(0.28), W, In(0.28), fill_rgb=C_DARK)
     add_text(slide,
              "Ricardo Calheiros  |  MBA USP/ESALQ  |  Racismo Estrutural e Mercado de Trabalho",
@@ -234,6 +263,44 @@ for i, (val, lbl) in enumerate([
 add_text(s, "Orientador: Edilson José Rodrigues",
          In(0.3), H-In(0.6), In(8), In(0.4),
          font_size=12, color=RGBColor(0x90,0xA4,0xAE), italic=True)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SLIDE 2 — EM TRÊS MINUTOS (resumo executivo: a resposta antes da evidência)
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header_bar(s, "Em três minutos", "O que foi medido, o que se achou e o que isso muda")
+
+_tres = [
+    ("O contexto",
+     f"Entre 2016 e 2025, um trabalhador negro ganhou em média {fmt(P['GAP_POOL'],1)}% a menos "
+     f"que um branco com a mesma escolaridade, idade e sexo."),
+    ("O desequilíbrio",
+     f"Comparando só pessoas do mesmo bairro, o gap cai quase à metade "
+     f"({fmt(P['MED_BAIRRO'],1)}% é mediado pela segregação residencial) — e ainda sobram "
+     f"{fmt(P['GAP_M3'],1)}%, dos quais {fmt(P['GAP_M4'],1)}% persistem dentro da mesma ocupação."),
+    ("A evidência",
+     f"Quatro métodos independentes sobre a população da PNAD Contínua "
+     f"({fmtN(P['N_UPAS'])} bairros): o bairro medeia metade do gap; "
+     f"{fmt(P['RET_PCT'],1)}% do gap são retornos diferenciais; a penalidade cresce no topo; "
+     f"e a chance de chegar a um cargo qualificado é {fmt(P['OR_M2_menor_pct'],0)}% menor."),
+    ("O que muda",
+     "Se o gargalo fosse escolaridade, ampliar o ensino resolveria. A barreira maior está no "
+     "acesso à ocupação — política de educação isolada tem retorno marginal decrescente."),
+]
+for _i, (_tit, _txt) in enumerate(_tres):
+    _y = In(1.35) + _i * In(1.35)
+    add_rect(s, In(0.4), _y, In(12.5), In(1.2), fill_rgb=C_LGRAY)
+    add_text(s, _tit, In(0.65), _y + In(0.12), In(2.6), In(0.4),
+             font_size=17, bold=True, color=C_DARK)
+    add_text(s, _txt, In(3.35), _y + In(0.12), In(9.3), In(1.0),
+             font_size=13.5, color=C_BLACK)
+
+add_rect(s, In(0.4), In(6.85), In(12.5), In(0.5), fill_rgb=C_RED)
+add_text(s, f"A barreira mais dura não é o salário, é a porta: {fmt(P['OR_M2_menor_pct'],0)}% "
+            f"menos chance de chegar a um cargo qualificado.",
+         In(0.6), In(6.9), In(12.1), In(0.42),
+         font_size=14, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
+footer(s, 2)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 2 — O PROBLEMA
@@ -378,39 +445,70 @@ add_text(s, "Discriminação de ACESSO (GLMM) + Discriminação de REMUNERAÇÃO
 footer(s, 5)
 
 # ══════════════════════════════════════════════════════════════════════════════
+# SLIDE 14 — JUSTIFICAÇÃO METODOLÓGICA
+# ══════════════════════════════════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header_bar(s, f"5. Por que multinível: {fmt(P['ICC_UPA_pct'], 0)}% da variação da renda está entre bairros",
+           f"Modelo nulo: τ²={fmt(P['TAU2_M0'], 4)} entre bairros e σ²={fmt(P['SIGMA2_M0'], 4)} dentro deles "
+           f"— ignorar essa estrutura invalida a inferência")
+
+add_img(s, FIGURES / "hlm_efeitos_uf_blup_upa.png", In(0.55), In(1.25), In(12.2))
+
+kpi_box(s, "ICC do bairro (UPA)", f"{fmt(P['ICC_UPA_pct'], 1)}%",
+        "τ²/(τ²+σ²) — Raudenbush & Bryk (2002)", In(0.35), In(4.75), w=In(4.0), val_color=C_BLUE)
+kpi_box(s, "Bairros na amostra", fmtN(P["N_UPAS"]),
+        "contra 27 UFs — daí UPA aleatória e UF fixa", In(4.55), In(4.75), w=In(4.2), val_color=C_BLUE)
+kpi_box(s, "LR do contexto do bairro", fmtN(P["LR_M2"]),
+        "M2 vs. M1 — o contexto não é ornamento", In(8.95), In(4.75), w=In(4.05), val_color=C_GREEN)
+
+bullet_box(s, [
+    "A PNAD amostra por conglomerados: ignorar a correlação intra-UPA subestima os erros-padrão (Moulton)",
+    "27 UFs são poucas para um terceiro nível aleatório — entram como 26 efeitos fixos, sem hipótese distribucional",
+    "Contraprova: tudo reestimado com efeitos fixos de UF e erro agrupado por UPA leva às mesmas conclusões",
+], In(0.35), In(6.15), In(12.6), In(1.0), font_size=12.5, dot_color=C_DARK)
+
+footer(s, 5)
+
+# ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 6 — HLM: DECOMPOSIÇÃO DO GAP
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "5. Metade do gap desaparece ao comparar pessoas do mesmo bairro",
-           "Do gap bruto de 19,3% ao resíduo de discriminação pura de 6,2%")
+header_bar(s, "6. Metade do gap desaparece ao comparar pessoas do mesmo bairro",
+           f"Do gap agregado de {fmt(P['GAP_POOL'], 1)}% ao que persiste dentro da mesma ocupação, "
+           f"{fmt(P['GAP_M4'], 1)}% — cada degrau acrescenta um bloco de controles")
 
-# Barra de decomposição visual
+# Cada barra é um degrau do step-up; os valores vêm de gap_decomposicao_stepup.csv
 levels = [
-    ("Gap BRUTO\n(M1)", 19.3, C_RED,   "Sem controles contextuais\nnem ocupacionais"),
-    ("Mediação UPA\n(M2)", 9.6, C_BLUE,  "Local de moradia explica\n52% do gap bruto"),
-    ("Gap LÍQUIDO\n(M3)", 9.7, C_AMBER, "Após contexto UPA + UF FE\n(discriminação residual)"),
-    ("Mediação Ocp.\n(M4)", 3.5, C_GREEN, "CBO + formalidade + horas\nexplicam mais 18,1%"),
-    ("Gap PURO\n(M4)", 6.2, C_RED,   "Discriminação residual\npós-ocupação"),
+    ("Agregado\n(sem bairro)", P["GAP_POOL"], C_RED,
+     "Individual + UF, comparando\npessoas de bairros diferentes"),
+    ("M1\n(mesmo bairro)", P["GAP_M1"], C_BLUE,
+     f"O bairro medeia {fmt(P['MED_BAIRRO'], 1)}% do gap agregado"),
+    ("M3\n(gap líquido)", P["GAP_M3"], C_AMBER,
+     "Após contexto do bairro e efeitos\nfixos de estado"),
+    ("M4\n(dentro da ocupação)", P["GAP_M4"], C_GREEN,
+     "Limite inferior: a ocupação é ela\nprópria resultado da barreira"),
 ]
-bar_top = In(1.3)
-bar_left = In(0.4)
-bar_w_total = In(11.8)
-max_val = 20.0
+bar_top = In(1.45)
+bar_left = In(2.0)
+bar_w_total = In(9.4)
+max_val = P["GAP_POOL"] * 1.05
 
 for i, (label, val, color, note) in enumerate(levels):
     bw = bar_w_total * (val / max_val)
-    add_rect(s, bar_left, bar_top + i*In(0.97), bw, In(0.72), fill_rgb=color)
-    add_text(s, f"{val:.1f}%", bar_left + bw + In(0.1), bar_top + i*In(0.97) + In(0.18),
-             In(0.8), In(0.4), font_size=15, bold=True, color=color)
-    add_text(s, label, In(0.05), bar_top + i*In(0.97) + In(0.05),
-             In(1.4), In(0.65), font_size=10, color=C_BLACK, align=PP_ALIGN.RIGHT, bold=True)
-    add_text(s, note, bar_left + bw + In(1.0), bar_top + i*In(0.97) + In(0.1),
-             In(5.5), In(0.55), font_size=10, color=C_GRAY, italic=True)
+    add_rect(s, bar_left, bar_top + i*In(1.15), bw, In(0.8), fill_rgb=color)
+    add_text(s, f"{fmt(val, 1)}%", bar_left + bw + In(0.12), bar_top + i*In(1.15) + In(0.2),
+             In(1.0), In(0.45), font_size=16, bold=True, color=color)
+    add_text(s, label, In(0.15), bar_top + i*In(1.15) + In(0.05),
+             In(1.7), In(0.75), font_size=10.5, color=C_BLACK, align=PP_ALIGN.RIGHT, bold=True)
+    add_text(s, note, bar_left + bw + In(1.15), bar_top + i*In(1.15) + In(0.12),
+             In(4.6), In(0.62), font_size=10, color=C_GRAY, italic=True)
 
-add_rect(s, In(0.4), In(6.35), In(12.0), In(0.5),
+add_rect(s, In(0.4), In(6.25), In(12.5), In(0.62),
          fill_rgb=RGBColor(0xFF,0xF9,0xE7), line_rgb=C_AMBER, line_pt=1)
-add_text(s, "Achado central: 70,0% do gap é explicado por mediação contextual (UPA) e ocupacional — mas 6,2% persiste como discriminação de remuneração pura.",
-         In(0.6), In(6.4), In(11.7), In(0.45),
+add_text(s, f"Achado central: {fmt(P['MED_ACUM_M4'], 1)}% do gap é mediado pelo bairro e pela ocupação "
+            f"— mas {fmt(P['GAP_M4'], 1)}% persistem dentro da mesma ocupação, e {fmt(P['GAP_M3'], 1)}% "
+            f"sem tratar a ocupação como característica.",
+         In(0.6), In(6.33), In(12.1), In(0.5),
          font_size=12.5, bold=True, color=C_DARK)
 footer(s, 6)
 
@@ -418,7 +516,7 @@ footer(s, 6)
 # SLIDE 7 — COMPOSIÇÃO OCUPACIONAL E GLASS CEILING
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "6. A ocupação explica muito — mas a ocupação é ela própria desigual",
+header_bar(s, "7. A ocupação explica muito — mas a ocupação é ela própria desigual",
            "Sub-representação sistemática nos grupos de alto prestígio")
 
 add_img(s, FIGURES / "comp_razao_grupo_cbo.png", In(0.3), In(1.2), In(6.5))
@@ -426,10 +524,14 @@ add_img(s, FIGURES / "comp_representacao_topo.png", In(7.0), In(1.2), In(6.0))
 
 add_rect(s, In(0.3), In(5.8), In(12.7), In(0.6),
          fill_rgb=RGBColor(0xFF,0xEB,0xEE), line_rgb=C_RED, line_pt=0.8)
+# razões lidas de composicao_por_grupo_cbo.csv (capitais)
+_comp = {r["grupo"]: float(r["razao_nn_bb"])
+         for r in pd.read_csv(TABLES / "composicao_por_grupo_cbo.csv").to_dict("records")
+         if r["area"] == "Capital"}
 add_text(s,
-    "Dirigentes: apenas 42 negros por 100 brancos na mesma função  |  "
-    "Top 5% das capitais: IR = 0,47 (negros são 47% do esperado)  |  "
-    "Elementares: 2,12× mais negros que brancos",
+    f"Dirigentes: {fmt(_comp['dirigente'] * 100, 0)} negros para cada 100 brancos na mesma função  |  "
+    f"Ocupações elementares: {fmt(_comp['elementar'], 2)}x mais negros que brancos  |  "
+    f"E a chance de acesso ao cargo qualificado é {fmt(P['OR_M2_menor_pct'], 0)}% menor (GLMM)",
     In(0.5), In(5.85), In(12.3), In(0.55),
     font_size=12, bold=True, color=C_RED, align=PP_ALIGN.CENTER)
 footer(s, 7)
@@ -438,7 +540,7 @@ footer(s, 7)
 # SLIDE 7 — OAXACA-BLINDER
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "7. Tratar a ocupação como “característica” corta a discriminação medida pela metade",
+header_bar(s, "8. Tratar a ocupação como “característica” corta a discriminação medida pela metade",
            f"Gap total {fmt(P['GAP_PCT'],1)}% | 84% explicado por diferenças nas características dos trabalhadores")
 
 add_img(s, FIGURES / "oaxaca_decomposicao.png", In(0.3), In(1.2), In(7.5))
@@ -446,8 +548,8 @@ add_img(s, FIGURES / "oaxaca_decomposicao.png", In(0.3), In(1.2), In(7.5))
 add_text(s, "Interpretação", In(8.1), In(1.2), In(5.0), In(0.4),
          font_size=16, bold=True, color=C_DARK)
 bullet_box(s, [
-    "84% = Efeito DOTAÇÕES\nNegros têm menor acesso a ocupações de prestígio, emprego formal, mais horas em subemprego",
-    "16% = Efeito RETORNOS\nO mercado remunera as mesmas características a taxas diferentes por raça",
+    f"{fmt(P['DOT_PCT_COM'],0)}% = Efeito DOTAÇÕES\nNegros têm menor acesso a ocupações de prestígio, emprego formal, mais horas em subemprego",
+    f"{fmt(P['RET_PCT_COM'],0)}% = Efeito RETORNOS\nO mercado remunera as mesmas características a taxas diferentes por raça",
     "Conclusão: discriminação opera primariamente no ACESSO, não no salário dentro da função",
 ], In(8.1), In(1.7), In(5.0), In(3.5), font_size=13, dot_color=C_BLUE)
 
@@ -459,45 +561,6 @@ add_text(s, "Combater APENAS desigualdade salarial é insuficiente. É preciso a
          In(8.25), In(5.77), In(4.7), In(0.6),
          font_size=12, color=C_BLACK)
 footer(s, 8)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 8 — GAP POR SUBGRUPO, MINCER E CICLO DE VIDA
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header_bar(s, "8. A penalidade cresce com a idade e não poupa nenhum subgrupo",
-           "Regressão Mincer com controles progressivos + curva de ciclo de vida racial")
-
-add_img(s, FIGURES / "fig4_gap_faixa_etaria.png", In(0.3), In(1.2), In(6.2), In(4.5))
-
-add_text(s, "Regressões Mincer progressivas", In(6.8), In(1.2), In(6.3), In(0.4),
-         font_size=15, bold=True, color=C_DARK)
-
-mincer_rows = [
-    ("M1 — Só raça",                   "−23,1%", C_RED),
-    ("M2 — + Sexo, educ., experiência", "−22,3%", C_RED),
-    ("M3 — + Efeitos fixos de UF",      "−7,9%",  C_AMBER),
-    ("M4 — + Horas, formal, setor",     "−7,0%",  C_AMBER),
-    ("M5 — + Ocupação CBO",             "−6,2%",  C_GREEN),
-]
-for i, (spec, gap, color) in enumerate(mincer_rows):
-    add_rect(s, In(6.8), In(1.72) + i * In(0.82), In(6.3), In(0.75),
-             fill_rgb=RGBColor(0xFF,0xEB,0xEE) if color==C_RED else
-                      (RGBColor(0xFF,0xF9,0xE7) if color==C_AMBER else RGBColor(0xE8,0xF5,0xE9)),
-             line_rgb=color, line_pt=0.8)
-    add_text(s, spec, In(6.95), In(1.76) + i * In(0.82), In(4.5), In(0.38),
-             font_size=11, color=C_BLACK)
-    add_text(s, gap,  In(11.5), In(1.76) + i * In(0.82), In(1.4), In(0.38),
-             font_size=14, bold=True, color=color, align=PP_ALIGN.RIGHT)
-
-add_rect(s, In(0.3), In(5.85), In(12.7), In(0.9),
-         fill_rgb=RGBColor(0xE3,0xF2,0xFD), line_rgb=C_DARK, line_pt=0.8)
-add_text(s,
-    "Ciclo de vida: gap de 9,1% (14–24 anos) cresce para 37,5% (35–44 anos) — a barreira racial "
-    "se aprofunda ao longo da carreira.  |  Interação negro×experiência (β=−0,0019, p<0,001): "
-    "o retorno à senioridade é menor para negros — glass ceiling de progressão longitudinal confirmado.",
-    In(0.5), In(5.9), In(12.3), In(0.8),
-    font_size=11.5, bold=True, color=C_DARK)
-footer(s, 9)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 10 — LOGIT MULTINÍVEL
@@ -691,29 +754,39 @@ footer(s, 14)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
 header_bar(s, "14. Sem impor forma funcional, a raça continua pesando na previsão da renda",
-           "XGBoost R²=0,6162 | Horas + CBO + Formalidade emergem como top preditores")
+           f"XGBoost com R² de teste {fmt(P['ML_XGB_R2'], 3)} | profundidade escolhida por validação cruzada ({P['CV_DEPTH']})")
 
 add_img(s, FIGURES / "shap_importance_xgb.png", In(0.3), In(1.2), In(6.8))
 
 add_text(s, "Destaques com as novas variáveis", In(7.4), In(1.2), In(5.8), In(0.4),
          font_size=16, bold=True, color=C_DARK)
 
-ranking = [
-    ("#1", "Renda média da UPA", "0,272", "Wilson (1987): onde mora supera o quanto estudou"),
-    ("#2", "Horas trabalhadas", "0,166", "Novo — VD4031 extraído do ZIP bruto"),
-    ("#3", "CBO: Profissionais", "0,119", "Novo — V4010 primeiro dígito"),
-    ("#4", "Emprego formal", "0,109", "Novo — VD4009 carteira/público"),
-    ("#11","Raça (negro)", "0,029", "−2,5% residual pós-ocupação"),
-]
+# ranking lido de shap_importance_comparada.csv: os quatro primeiros e a raça
+_shap = pd.read_csv(TABLES / "shap_importance_comparada.csv").sort_values("Rank_XGB")
+_notas = {
+    "Renda média UPA (exceto o próprio)": "Wilson (1987): onde mora pesa mais que o quanto estudou",
+    "Horas trabalhadas": "jornada — a variável de esforço declarado",
+    "CBO: Profissionais": "grupo ocupacional, a porta que o GLMM mede",
+    "Emprego formal (carteira)": "vínculo, também desfecho da discriminação",
+}
+ranking = []
+for _, _r in _shap.head(4).iterrows():
+    ranking.append((f"#{int(_r['Rank_XGB'])}", _r["Feature"][:30],
+                    fmt(_r["SHAP_mean_abs_XGB"], 3), _notas.get(_r["Feature"], "")))
+_raca = _shap[_shap["Feature"].str.startswith("Raça")].iloc[0]
+ranking.append((f"#{int(_raca['Rank_XGB'])}", "Raça (negro)",
+                fmt(_raca["SHAP_mean_abs_XGB"], 3),
+                f"sem a renda do bairro entre as features: {fmt(P['SHAP_RACA_SEM_UPA'], 3)}"))
 for i, (rank, feat, shap, note) in enumerate(ranking):
-    color = C_RED if rank == "#11" else (C_BLUE if rank == "#1" else C_BLACK)
+    destaque = (i == len(ranking) - 1)   # a linha da raça
+    color = C_RED if destaque else (C_BLUE if i == 0 else C_BLACK)
     add_rect(s, In(7.4), In(1.7)+i*In(0.88), In(5.8), In(0.82),
-             fill_rgb=RGBColor(0xFF,0xEB,0xEE) if rank == "#11" else C_LGRAY,
-             line_rgb=C_RED if rank == "#11" else C_GRAY, line_pt=0.5)
+             fill_rgb=RGBColor(0xFF,0xEB,0xEE) if destaque else C_LGRAY,
+             line_rgb=C_RED if destaque else C_GRAY, line_pt=0.5)
     add_text(s, rank, In(7.5), In(1.75)+i*In(0.88), In(0.5), In(0.4),
              font_size=12, bold=True, color=color)
     add_text(s, feat, In(8.05), In(1.75)+i*In(0.88), In(2.5), In(0.4),
-             font_size=12, bold=(rank in ["#1","#11"]), color=color)
+             font_size=12, bold=(destaque or i == 0), color=color)
     add_text(s, f"|SHAP|={shap}", In(10.65), In(1.75)+i*In(0.88), In(1.0), In(0.4),
              font_size=11, bold=True, color=color)
     add_text(s, note, In(8.05), In(2.1)+i*In(0.88), In(4.9), In(0.3),
@@ -722,42 +795,20 @@ for i, (rank, feat, shap, note) in enumerate(ranking):
 footer(s, 16)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# SLIDE 14 — JUSTIFICAÇÃO METODOLÓGICA
-# ══════════════════════════════════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header_bar(s, "15. Por que multinível: 37% da variação da renda está entre bairros",
-           f"LRT χ²=191.625 confirma hierarquia | ICC={fmt(P['ICC_HLM_M0_pct'],2)}% > limiar 5% | HLM supera OLS+FE em AIC")
-
-add_img(s, FIGURES / "modelos_loglik_aic.png", In(0.3), In(1.2), In(6.3))
-add_img(s, FIGURES / "modelos_lrt_icc.png",   In(6.8), In(1.2), In(6.2))
-
-kpi_box(s, "LRT HLM vs OLS (nulo)", "191.625",   "χ² Δk=1 — hierarquia confirmada",     In(0.3),  In(4.55), w=In(3.9), val_color=C_DARK)
-kpi_box(s, "ICC por UPA",           f"{fmt(P['ICC_HLM_M0_pct'],2)}%", "> 5% — Raudenbush & Bryk (2002)",     In(4.4),  In(4.55), w=In(3.5), val_color=C_BLUE)
-kpi_box(s, "AIC HLM Contextual",    "3.588.684", "OLS+FE(UF): 3.684.833 (+96k pior)",   In(8.1),  In(4.55), w=In(5.0), val_color=C_GREEN)
-
-bullet_box(s, [
-    "OLS ignora correlação intra-UPA → erros padrão subestimados → inferência inválida (θ OLS ≠ θ BLUP)",
-    "OLS+FE(UF) piora AIC vs OLS Individual: dummies de UF são grosseiras demais para capturar variação intra-estado",
-    "HLM 3 níveis (indivíduo > UPA > UF) é o único estimador com estrutura compatível com os dados e inferência válida",
-], In(0.3), In(5.95), In(12.7), In(1.15), font_size=13, dot_color=C_DARK)
-
-footer(s, 21)
-
-# ══════════════════════════════════════════════════════════════════════════════
 # SLIDE — RESUMO DOS RESULTADOS (tabela real)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "Os quatro métodos apontam para o mesmo lugar",
+header_bar(s, "15. Os quatro métodos apontam para o mesmo lugar",
            "Os quatro métodos convergem; a discriminação opera sobretudo no acesso às ocupações")
 add_table_resumo(
     s,
     ["Dimensão", "Método", "Resultado-chave"],
     [["Gap e mediação", "HLM (3 níveis)",
-      "Gap −19,1% (M1) → −6,2% (M4); 69,8% mediado por contexto e ocupação"],
+      f"Gap {fmt(P['GAP_POOL'],1)}% (agregado) → {fmt(P['GAP_M4'],1)}% (M4); {fmt(P['MED_ACUM_M4'],1)}% mediado por bairro e ocupação"],
      ["Composição × discriminação", "Oaxaca-Blinder",
-      "83,8% dotações (acesso/composição) / 16,2% não explicado"],
+      f"{fmt(P['DOT_PCT'],1)}% dotações / {fmt(P['RET_PCT'],1)}% não explicado (sem ocupação); {fmt(P['RET_PCT_COM'],1)}% com ocupação"],
      ["Teto de vidro (acesso)", "GLMM logístico",
-      f"OR {fmt(P['OR_OCP_M2'],3)} (cargo qualif.) → {fmt(P['OR_TOP10_M2'],3)} (top 10%); E-value ≥ 2,2"],
+      f"OR {fmt(P['OR_OCP_M2'],3)} (cargo qualif.) → {fmt(P['OR_TOP10_M2'],3)} (top 10%); E-value {fmt(P['EVAL_M2'],1)}"],
      ["Distribuição da renda", "Quantílica / RIF",
       "Gap −8,0% (q10) → −12,3% (q95); sticky floor: retornos 35% → 13%"],
      ["Interseccionalidade", "Oaxaca 4 grupos",
@@ -783,7 +834,7 @@ vertices = [
     (In(0.3),  In(1.3),  C_RED,   "DISCRIMINAÇÃO\nDE ACESSO",
      [f"GLMM: OR={or_str(P['OR_M2'])} para ocp. qualificada", f"AME={ame(P['AME_M2_pp'])} residual (M2)", "Persiste após todos os controles observáveis"]),
     (In(6.9),  In(1.3),  C_BLUE,  "DISCRIMINAÇÃO\nDE REMUNERAÇÃO",
-     ["HLM M4: gap residual 6,2%", "Quantile Reg.: cresce no topo (glass ceiling)", "SHAP: −2,5% efeito racial residual"]),
+     [f"HLM M4: gap de {fmt(P['GAP_M4'],1)}% dentro da ocupação", "Quantile Reg.: cresce no topo (glass ceiling)", "SHAP: −2,5% efeito racial residual"]),
     (In(3.6),  In(4.3),  C_DARK,  "PENALIDADE\nINTERSECCIONAL",
      ["Mulher Negra: gap de 96,4%", "Penalidade extra de +9,5 p.p. (não-aditiva)", "Raça×gênero como mecanismo próprio (Crenshaw)"]),
 ]
@@ -799,7 +850,7 @@ for l, t, color, title, items in vertices:
 
 add_rect(s, In(0.3), In(6.4), In(12.7), In(0.5),
          fill_rgb=RGBColor(0x1F,0x38,0x64), line_rgb=C_AMBER, line_pt=0)
-add_text(s, f"Oaxaca: 83,8% do gap é composição/ACESSO e 16,2% remuneração | GLMM mostra a barreira de acesso (OR={fmt(P['OR_OCP_M2'],3)}) | RIF: discriminação de preço maior na base (sticky floor)",
+add_text(s, f"Oaxaca: {fmt(P['DOT_PCT'],1)}% do gap é composição e {fmt(P['RET_PCT'],1)}% retornos | GLMM mostra a barreira de acesso (OR={fmt(P['OR_OCP_M2'],3)}) | RIF: discriminação de preço maior na base (sticky floor)",
          In(0.5), In(6.45), In(12.3), In(0.45),
          font_size=12, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
 footer(s, 22)
@@ -819,7 +870,7 @@ politicas = [
     (C_BLUE,  "Eixo 2 — Remuneração",
      ["Transparência salarial por raça/gênero\nobrigatória (empresas > 100 funcionários)",
       "Auditoria de igual pagamento por trabalho igual\ncom penalidades progressivas (gap HLM M4)",
-      "Piso salarial indexado nas categorias com\nmaior gap racial residual (6,2% HLM M4)"]),
+      f"Piso salarial indexado nas categorias com\nmaior gap racial residual ({fmt(P['GAP_M4'],1)}% no HLM M4)"]),
     (C_GREEN, "Eixo 3 — Acesso a Ocupações",
      ["Mentoria e acesso a redes profissionais\nqualificadas para egressos negros",
       "30% dos cargos DAS e liderança corporativa\npara negros até 2030",
@@ -875,14 +926,14 @@ footer(s, 29)
 s = prs.slides.add_slide(BLANK)
 add_rect(s, 0, 0, W, H, fill_rgb=C_DARK)
 add_rect(s, 0, 0, W, In(0.8), fill_rgb=RGBColor(0x0D,0x1F,0x3C))
-add_text(s, "29. Conclusão", In(0.4), In(0.1), In(12), In(0.65),
+add_text(s, "Conclusão", In(0.4), In(0.1), In(12), In(0.65),
          font_size=26, bold=True, color=C_WHITE, font_name="Calibri")
 
 numeros = [
-    ("19,3%",    "Gap racial bruto\n(M1 HLM)"),
-    ("6,2%",     "Discriminação pura\n(M4 HLM)"),
+    (f"{fmt(P['GAP_POOL'],1)}%", "Gap racial agregado\n(sem efeito de bairro)"),
+    (f"{fmt(P['GAP_M4'],1)}%", "Persiste dentro da\nmesma ocupação (M4)"),
     (f"OR={or_str(P['OR_M2'])}", "Acesso qualificado\n(GLMM M2, lme4)"),
-    ("χ²=191k",  "LRT confirma\nhierarquia UPA"),
+    (f"{fmt(P['ICC_UPA_pct'],0)}%", "da variação da renda\nestá entre bairros"),
 ]
 for i, (val, lbl) in enumerate(numeros):
     x = In(0.4) + i * In(3.2)
@@ -895,9 +946,12 @@ for i, (val, lbl) in enumerate(numeros):
 
 conclusoes = [
     "A desigualdade racial no mercado de trabalho brasileiro é estrutural, multicausal e resistente à convergência espontânea.",
-    f"A discriminação opera em dois estágios independentes: barreiras de ACESSO a ocupações qualificadas (GLMM: OR={or_str(P['OR_M2'])}, AME={ame(P['AME_M2_pp'])}) e discriminação de REMUNERAÇÃO dentro das mesmas funções (HLM M4: 6,2%).",
-    "O glass ceiling racial é real e crescente no topo da distribuição — confirmado formalmente pela regressão quantílica e consistente com o IR=0,47 nas capitais.",
-    "Políticas que atuam apenas no gap salarial direto atacam 16% do problema. Os 84% restantes requerem ação nas portas de entrada das ocupações de alto prestígio.",
+    f"A discriminação opera em dois estágios independentes: barreiras de ACESSO a ocupações qualificadas (GLMM: OR={or_str(P['OR_M2'])}, AME={ame(P['AME_M2_pp'])}) e discriminação de REMUNERAÇÃO dentro das mesmas funções (HLM M4: {fmt(P['GAP_M4'],1)}%).",
+    f"O teto de vidro é real e cresce no topo da distribuição: a penalidade condicional vai de "
+    f"{fmt(P['QR_GAP_Q10'],1)}% no q10 a {fmt(P['QR_GAP_Q90'],1)}% no q90 (Z={fmt(P['QR_Z'],1)}).",
+    f"Política que atua só no salário deixa de fora a barreira maior: a chance de acesso a cargo "
+    f"qualificado é {fmt(P['OR_M2_menor_pct'],0)}% menor e, no topo da renda, "
+    f"{fmt((1-P['OR_TOP10_M2'])*100,0)}% menor.",
 ]
 for i, texto in enumerate(conclusoes):
     add_rect(s, In(0.3), In(2.6)+i*In(0.95), In(12.7), In(0.82),
@@ -906,6 +960,13 @@ for i, texto in enumerate(conclusoes):
              font_size=13, color=C_WHITE, font_name="Calibri")
 
 add_rect(s, 0, H-In(0.5), W, In(0.5), fill_rgb=RGBColor(0x0D,0x1F,0x3C))
+add_rect(s, In(0.3), In(6.45), In(12.7), In(0.55), fill_rgb=RGBColor(0x0D,0x1F,0x3C),
+         line_rgb=C_AMBER, line_pt=1)
+add_text(s, f"Com a mesma escolaridade, idade, sexo e bairro, um trabalhador negro ganha "
+            f"{fmt(P['GAP_M3'],1)}% a menos — e a barreira mais dura não é o salário, é a porta.",
+         In(0.5), In(6.53), In(12.3), In(0.42),
+         font_size=14, bold=True, color=C_AMBER, align=PP_ALIGN.CENTER)
+
 add_text(s, "Ricardo Calheiros  |  MBA Data Science & Analytics  |  USP/ESALQ  |  rickinrj@gmail.com",
          In(0.3), H-In(0.45), In(12.7), In(0.4),
          font_size=11, color=RGBColor(0x90,0xA4,0xAE), align=PP_ALIGN.CENTER)

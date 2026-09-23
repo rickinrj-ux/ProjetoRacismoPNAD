@@ -31,8 +31,13 @@ TEX = ROOT / "relatorio_tcc_enxuto.tex"
 TABLES = ROOT / "outputs" / "tables"
 NUCLEO = [                                          # tcc/run_tcc.ps1
     "run_hlm_serie_completa.py", "run_hlm_stepup.py", "run_oaxaca_blinder.py",
-    "run_regressao_quantilica.py", "run_rif_decomp.py", "run_glmm_glassceil.py",
+    "run_ob_qr_melhorias.py", "run_rif_decomp.py", "run_glmm_glassceil.py",
+    "run_se_rif_interseccional.py",
 ]
+# Scripts de rodadas anteriores que não alimentam mais nenhuma tabela do
+# relatório: continuam no repositório, mas não devem gerar achado.
+LEGADOS = {"run_regressao_quantilica.py", "run_hlm_serie_s20pct.py",
+           "run_heckman.py", "run_sna.py", "run_po_topsis.py", "run_kmeans.py"}
 ROBUSTEZ = [
     "run_ml_shap.py", "run_konfound_evalues.py", "run_interseccionalidade.py",
     "run_vif_multicolinearidade.py", "run_hlm_vs_ols_justificacao.py",
@@ -298,6 +303,10 @@ def check_gap_interno(tex: str) -> None:
             "geração e reconferir o PDF.")
 
     n_obs = set(re.findall(r"N\s*=\s*\$?([\d.]{7,})", tex))
+    # N diferentes são esperados (cada modelo tem seus filtros); o problema é o N
+    # que aparece no texto sem estar declarado em nenhuma legenda de tabela.
+    legendas = " ".join(re.findall(r"\\caption\{(.*?)\}\s*\n", tex, re.S))
+    n_obs = {n for n in n_obs if n not in legendas}
     if len(n_obs) > 1:
         add("BAIXO", "FAV-91", "relatorio", f"Vários N citados como 'população': {sorted(n_obs)}.",
             "Declarar o N de cada modelo (filtros diferentes) em cada tabela.")
@@ -362,9 +371,14 @@ def check_scripts() -> None:
         # pesos amostrais
         if not re.search(r"V1028|weights=|pweight|freq_weights|var_weights", code):
             sem_peso.append(nome)
-        # OLS sem cov_type (o script de justificação compara SE ingênuo vs cluster de propósito)
+        # OLS sem cov_type. Duas isenções legítimas: o script de justificação
+        # compara SE ingênuo vs. cluster de propósito, e nas decomposições o fit
+        # só fornece coeficientes — o erro-padrão vem do bootstrap em blocos.
+        _isento = (nome == "run_hlm_vs_ols_justificacao.py"
+                   or bool(re.search(r"boot\w*.{0,60}UPA|UPA.{0,60}boot\w*|blocos? (de|por) UPA",
+                                     code, re.I | re.S)))
         for mm in (re.finditer(r"smf\.ols\([^\n]*\)\s*\.fit\(\s*\)", code)
-                   if nome != "run_hlm_vs_ols_justificacao.py" else ()):
+                   if not _isento else ()):
             add("MÉDIO", "MHE-22/MHE-81", nome, f"OLS com .fit() sem cov_type: `{mm.group(0)[:70]}…`",
                 "cov_type='cluster' (UPA) ou HC3; regra do máximo (MHE cap. 8).")
         if "quantreg" in code and "bootstrap" not in code.lower() and "boot" not in code.lower():
@@ -418,7 +432,11 @@ def check_visual(tex: str) -> None:
                 f"Nenhuma figura para {met} (só tabela). Figuras atuais: {len(figs)}.",
                 "Uma figura por método do núcleo: cascata (OB), coeficiente×quantil com IC (QR/RIF), "
                 "barras horizontais de OR com IC (GLMM), barras do β_negro M1→M4 (HLM).")
-    caps = re.findall(r"\\caption\{([^}]{0,120})", tex)
+    # SWD-55 vale para FIGURA: legenda de tabela é descritiva por convenção
+    # acadêmica (a ABNT pede que identifique o conteúdo, não que argumente).
+    caps = []
+    for amb in re.finditer(r"\\begin\{figure\}(.*?)\\end\{figure\}", tex, re.S):
+        caps += re.findall(r"\\caption\{([^}]{0,120})", amb.group(1))
     descritivos = [c for c in caps if re.match(r"\s*(Análise|Decomposição|Modelos|Desempenho|Dependence|Razões|Razoes)", c)]
     if descritivos:
         add("BAIXO", "SWD-55", "relatorio: legendas",
@@ -430,7 +448,8 @@ def check_slides() -> None:
     src = read(GERADORES[0])
     if not src:
         return
-    titulos = re.findall(r'header_bar\(s,\s*"([^"]+)"', src)
+    # o f no prefixo é opcional: títulos com número lido de csv são f-strings
+    titulos = re.findall(r'header_bar\(s,\s*f?"([^"]+)"', src)
     nums = [int(m.group(1)) for t in titulos if (m := re.match(r"(\d+)\.", t))]
     if nums and nums != list(range(nums[0], nums[0] + len(nums))):
         add("MÉDIO", "SWD-75/SWD-51", "gerar_apresentacao_pptx.py",
@@ -453,6 +472,100 @@ def check_slides() -> None:
             "Cinza + uma cor de destaque (azul); vermelho só para o dado que se quer destacar.")
 
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# D. Entregáveis binários (.pptx/.docx) contra os csv
+# ──────────────────────────────────────────────────────────────────────────────
+def _col_csv(arquivo: str, coluna: str, escala: float = 1.0) -> set[float]:
+    vals = set()
+    for r in csv_rows(arquivo):
+        try:
+            vals.add(float(r[coluna]) * escala)
+        except (TypeError, ValueError, KeyError):
+            pass
+    return vals
+
+
+def _formatos(vals, casas) -> set[str]:
+    saida = set()
+    for v in vals:
+        for d in casas:
+            saida.add(f"{v:.{d}f}".replace(".", ","))
+            saida.add(f"{abs(v):.{d}f}".replace(".", ","))
+    return saida
+
+
+def _texto_entregavel(p: Path) -> str:
+    """Extrai o texto de um .pptx ou .docx; devolve '' se a lib não existir."""
+    try:
+        if p.suffix == ".pptx":
+            from pptx import Presentation
+            pr = Presentation(str(p))
+            return "\n".join(sh.text_frame.text for sl in pr.slides for sh in sl.shapes
+                             if sh.has_text_frame)
+        from docx import Document
+        d = Document(str(p))
+        t = "\n".join(par.text for par in d.paragraphs)
+        for tb in d.tables:
+            for r in tb.rows:
+                t += "\n" + " ".join(c.text for c in r.cells)
+        return t
+    except Exception:
+        return ""
+
+
+def check_entregaveis() -> None:
+    """Todo número ancorado num rótulo (OR, ICC, AME, R², E-value) dentro de um
+    entregável tem de existir no csv correspondente. É a checagem que pega um
+    .pptx/.docx que deixou de acompanhar a reexecução das análises."""
+    ent = ROOT / "entregaveis"
+    if not ent.is_dir():
+        return
+
+    regras = {
+        "OR": (r"OR\s*[=:≈]?\s*(\d,\d{2,3})",
+               _formatos(_col_csv("glmm_glassceil_glmer.csv", "OR_negro")
+                         | _col_csv("glmm_glassceil_glmer.csv", "OR_inter_superior")
+                         | _col_csv("glmm_glassceil.csv", "OR_negro")
+                         | _col_csv("grupo_rg_4grupos_desfechos.csv", "OR_mulher_negra")
+                         | _col_csv("grupo_rg_4grupos_desfechos.csv", "OR_homem_negro")
+                         | _col_csv("grupo_rg_4grupos_desfechos.csv", "OR_mulher_branca"),
+                         (2, 3))),
+        "ICC": (r"ICC[^=\n]{0,20}[=:]\s*(\d{1,2},\d{1,2})\s*%",
+                _formatos(_col_csv("hlm_stepup_fit.csv", "icc_upa", 100)
+                          | _col_csv("glmm_glassceil_glmer.csv", "ICC_UPA", 100), (0, 1, 2))),
+        "AME": (r"AME\s*[=:]?\s*[−-]?\s*(\d{1,2},\d{1,2})",
+                _formatos(_col_csv("glmm_glassceil_glmer.csv", "AME_pp"), (1, 2))),
+        "R²": (r"R²\s*(?:de teste\s*)?[=:]?\s*(\d,\d{2,4})",
+               _formatos(_col_csv("ml_performance.csv", "R²")
+                         | _col_csv("ml_performance.csv", "R2_treino")
+                         | _col_csv("ml_cv_resumo.csv", "cv_r2_media")
+                         | _col_csv("ml_cv_resumo.csv", "teste_r2")
+                         | _col_csv("ml_cv_hiperparametros.csv", "r2")
+                         | _col_csv("ml_cv_hiperparametros.csv", "treino_r2"), (2, 3, 4))),
+        "E-value": (r"E-value[^=\n]{0,12}[=≥]\s*(\d,\d{1,2})",
+                    _formatos(_col_csv("evalues_glmm.csv", "E-value (OR)"), (1, 2))),
+    }
+
+    for p in sorted(ent.glob("*.pptx")) + sorted(ent.glob("*.docx")):
+        if p.name.startswith("~$"):        # arquivo de bloqueio do Word
+            continue
+        txt = _texto_entregavel(p)
+        if not txt:
+            continue
+        ruins = []
+        for rotulo, (padrao, validos) in regras.items():
+            if not validos:
+                continue
+            for m in re.finditer(padrao, txt):
+                if m.group(1) not in validos:
+                    ruins.append(f"{rotulo} = {m.group(1)}")
+        if ruins:
+            add("ALTO", "FONTE-ÚNICA/FAV-91", f"entregaveis/{p.name}",
+                f"Valores sem correspondência no csv: {', '.join(sorted(set(ruins))[:6])}.",
+                "O entregável não acompanhou a reexecução: regerá-lo lendo os csv "
+                "(params_nucleo.py) em vez de números escritos à mão.")
+
 # ──────────────────────────────────────────────────────────────────────────────
 def main() -> int:
     # stdout do Windows costuma ser cp1252 — forçar UTF-8 para não quebrar no hook
@@ -473,7 +586,7 @@ def main() -> int:
         check_gap_interno(tex); check_escopo(linhas); check_causal(linhas); check_visual(tex)
     else:
         add("ALTO", "ESCOPO", str(TEX), "relatorio_tcc_enxuto.tex não encontrado.", "")
-    check_scripts(); check_slides()
+    check_scripts(); check_slides(); check_entregaveis()
 
     ordem = {"ALTO": 0, "MÉDIO": 1, "BAIXO": 2, "INFO": 3}
     achados.sort(key=lambda a: ordem[a["nivel"]])
