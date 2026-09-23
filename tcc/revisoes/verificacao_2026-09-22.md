@@ -1,6 +1,6 @@
-# Verificação mecânica — 2026-09-22 22:02
+# Verificação mecânica — 2026-09-22 22:25
 
-Gatilho: `gerar_apresentacao_pptx.py`  
+Gatilho: `execução manual`  
 Achados: **0 ALTO**, 0 MÉDIO, 2 BAIXO, 4 INFO.
 
 | Nível | Critério | Onde | Achado | Correção |

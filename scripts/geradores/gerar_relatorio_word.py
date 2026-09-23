@@ -1,7 +1,16 @@
 """
 gerar_relatorio_word.py
 =======================
-Gera relatorio_tcc.docx — documento Word editável com todos os resultados.
+SUPERADO — não usar na entrega final.
+
+Gera relatorio_tcc.docx, da versão estendida: é um texto paralelo escrito à mão,
+com SNA e pesquisa operacional (fora do escopo) e números anteriores à revisão
+dos blocos 0–8. A saída de junho/2026 está em entregaveis/_arquivo/.
+
+O Word da entrega é `tcc/scripts/gerar_word_enxuto.py`, que converte o próprio
+relatorio_tcc_enxuto.tex — mesma fonte única de números do PDF. Este arquivo
+fica no repositório apenas para o histórico e para o branch mestrado-extenso.
+
 Usa python-docx + formatação ABNT (margens, fonte Times/Arial, espaçamento 1,5).
 """
 
@@ -11,6 +20,14 @@ from pathlib import Path as _Path
 _os.chdir(_Path(__file__).resolve().parents[2])
 _sys.path.insert(0, _os.getcwd())
 # --- fim bootstrap ---
+
+# Trava: gera a versão estendida (SNA/PO) com números superados.
+# Escapatória para o branch mestrado-extenso.
+if _os.environ.get("PERMITIR_GERADOR_SUPERADO") != "1":
+    print("gerar_relatorio_word.py está SUPERADO: use tcc/scripts/gerar_word_enxuto.py, "
+          "que converte o próprio relatorio_tcc_enxuto.tex.\n"
+          "Para rodar assim mesmo: PERMITIR_GERADOR_SUPERADO=1")
+    _sys.exit(1)
 
 import sys, io
 from pathlib import Path
