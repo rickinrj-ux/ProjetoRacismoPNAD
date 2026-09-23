@@ -159,7 +159,20 @@ def fit_mixed(name, formula, df, re_formula=None, reml=False, keep_re=False):
             res = model.fit(method="bfgs", maxiter=2000, reml=reml)
         except np.linalg.LinAlgError:
             logger.warning(f"[{name}] bfgs singular — tentando powell")
-            res = model.fit(method="powell", maxiter=500, reml=reml)
+            res = model.fit(method="powell", maxiter=3000, reml=reml)
+        # bfgs parava no M3 com converged=False: o efeito fixo ficava estável
+        # (variação de 0,03%), mas tau2 saía 12% acima do otimo. powell, sem
+        # gradiente, fecha; fica o ajuste de maior verossimilhanca.
+        if not getattr(res, "converged", True):
+            logger.warning(f"[{name}] bfgs nao convergiu — refazendo com powell")
+            try:
+                alt = model.fit(method="powell", maxiter=3000, reml=reml)
+                if float(alt.llf) > float(res.llf):
+                    logger.info(f"[{name}] powell melhor: llf {float(res.llf):.1f} -> "
+                                f"{float(alt.llf):.1f} (converged={alt.converged})")
+                    res = alt
+            except Exception as e:                       # pragma: no cover
+                logger.warning(f"[{name}] powell falhou ({e}); mantendo bfgs")
         msgs = [str(x.message) for x in w]
     L = Light()
     names = list(res.params.index)
