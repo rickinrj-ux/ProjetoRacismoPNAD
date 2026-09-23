@@ -547,6 +547,165 @@ a posição relativa das pessoas muito melhor do que o valor exato do salário d
      "foi escolhida por validação cruzada (Tabela~\\ref{tab:ml_cv}), e não por conveniência;\n"
      "os dois modelos usam o mesmo conjunto de \\emph{features} e a mesma partição de teste.", 0),
 
+    # ── Revisão de Literatura: arcabouço teórico, parâmetros brasileiros e
+    #    os artigos fundadores de cada método (antes só no \nocite) ──────────
+    ("rev-lit: teoria da discriminação antes da evidência",
+     r"\\subsection\{Desigualdade racial no mercado de trabalho brasileiro\}",
+     r"""\subsection{Por que haveria discriminação: as duas teorias}
+
+A economia do trabalho oferece duas explicações concorrentes para um
+diferencial salarial que sobrevive ao controle de produtividade observável, e
+elas importam porque implicam políticas distintas.
+\citeonline{becker1957} propôs a discriminação \emph{por preferência}: empregadores,
+colegas ou clientes têm uma desutilidade em transacionar com o grupo
+minoritário e, por isso, só o contratam a um salário menor. A previsão desse
+modelo é que a concorrência erode a discriminação --- empresas que discriminam
+pagam mais caro pela mesma produtividade e tendem a ser expulsas do mercado.
+\citeonline{arrow1973} formalizou a alternativa: a discriminação \emph{estatística},
+em que o empregador, diante de informação imperfeita sobre a produtividade
+individual, usa a raça como sinal da média do grupo. Aqui a concorrência não
+corrige nada; ao contrário, o equilíbrio se autoconfirma, porque o menor retorno
+esperado desestimula o investimento em qualificação por parte do grupo
+discriminado.
+
+A distinção tem consequência direta para a leitura dos resultados deste
+trabalho. O componente de \emph{retornos} da decomposição de Oaxaca--Blinder é
+compatível com as duas teorias, e os dados observacionais aqui usados não
+permitem separá-las --- uma limitação assumida explicitamente
+(Seção~\ref{sec:conclusao}). O que os dados permitem é testar uma implicação
+comum às duas: se a barreira opera sobretudo no \emph{acesso} às ocupações, e
+não apenas no preço pago dentro delas, então políticas de qualificação isoladas
+serão insuficientes sob qualquer das duas hipóteses teóricas.
+
+A tradição brasileira acrescenta uma terceira leitura. \citeonline{almeida2019}
+argumenta que o racismo não é desvio individual nem falha informacional, mas
+processo estrutural: as instituições reproduzem a desigualdade racial por
+mecanismos que independem da intenção dos agentes --- o que desloca a pergunta
+de ``quem discrimina'' para ``que arranjos produzem o resultado desigual''. É
+essa leitura que justifica investigar a segregação residencial e a segregação
+ocupacional como mecanismos, e não como controles.
+
+\subsection{Desigualdade racial no mercado de trabalho brasileiro}""", 0),
+
+    ("rev-lit: parâmetros empíricos brasileiros com números",
+     r"Trabalhos posteriores~\\cite\{henriques2001, soares2009\} confirmaram a\npersistência dessas diferenças mesmo após controlar por escolaridade,\nreforçando a hipótese de discriminação estrutural\.",
+     r"""\citeonline{henriques2001} documentou, para a década de 1990, que a escolaridade
+média de trabalhadores negros era de cerca de dois anos a menos que a de
+brancos e que essa diferença explicava apenas parte do diferencial de
+rendimentos. \citeonline{soares2009}, cobrindo 1976--2006, estimou por decomposição
+que em torno de metade do gap racial de rendimentos não era explicada por
+características observáveis --- parcela que sua análise atribui a
+discriminação salarial e a diferenças de qualidade da educação recebida. Esses
+são os parâmetros de referência com que os resultados deste trabalho dialogam
+na Seção~\ref{sec:discussao}; a comparação exige cautela, porque a magnitude do
+componente não explicado depende de quais controles se tratam como dotações
+(ver Seção~\ref{subsec:oaxaca_metodo}).""", 0),
+
+    # a subseção de resultados de QR/RIF não tinha rótulo, e a revisão passou a
+    # remeter a ela
+    ("rev-lit: rótulo da subseção de QR/RIF nos resultados",
+     '\\\\subsection\\{Regressão\\ Quantílica\\ e\\ RIF\\-OB:\\ teto\\ de\\ vidro\\ e\\ \\\\emph\\{sticky\\ floor\\}\\}',
+     '\\subsection{Regressão Quantílica e RIF-OB: teto de vidro e \\emph{sticky floor}}\n\\label{subsec:qr_rif}', 0),
+
+    ("rev-lit: decomposições, quantis e interseccionalidade",
+     r"\\subsection\{Interpretabilidade em machine learning: SHAP values\}",
+     r"""\subsection{Decomposições salariais e a distribuição do gap}
+
+O instrumental que separa ``ter características diferentes'' de ``receber
+preços diferentes'' vem de \citeonline{oaxaca1973} e \citeonline{blinder1973}, que
+propuseram, de forma independente, decompor a diferença de médias entre dois
+grupos em uma parcela de \emph{dotações} --- atribuível a diferenças nas
+características observáveis --- e outra de \emph{retornos}, atribuível a
+diferenças nos coeficientes com que essas características são remuneradas.
+\citeonline{oaxaca_ransom1999} mostraram, porém, que a repartição não é única: ela
+depende de quais variáveis se admite como dotação. Tratar a ocupação como
+característica do trabalhador desloca para a parcela explicada toda a
+desigualdade que opera pela porta de entrada da ocupação --- razão pela qual
+este trabalho reporta as duas especificações lado a lado.
+
+A decomposição de médias, contudo, descreve apenas o trabalhador médio.
+\citeonline{koenker1978} introduziram a regressão quantílica, que estima o efeito
+de um regressor em cada ponto da distribuição condicional e permite verificar
+se a penalidade racial é uniforme ou se cresce rumo ao topo --- a formulação
+estatística do teto de vidro. \citeonline{firpo2018} estenderam a decomposição para
+quantis \emph{incondicionais} por meio de regressões da função de influência
+recentrada (RIF), respondendo a uma pergunta distinta: de que é feito o gap em
+um dado ponto da distribuição de renda do país, e não da distribuição
+condicional a um perfil. As duas leituras são complementares e, como se verá,
+apontam para padrões aparentemente opostos que descrevem o mesmo fenômeno
+(Seção~\ref{subsec:qr_rif}).
+
+\subsection{Interseccionalidade}
+
+\citeonline{crenshaw1989} cunhou o conceito de interseccionalidade a partir da
+constatação de que a experiência de mulheres negras não é descrita pela soma
+das categorias ``mulher'' e ``negra'': há um efeito próprio da posição na
+interseção dos eixos, que análises que tratam raça e gênero separadamente não
+capturam. Empiricamente, isso implica testar se o diferencial do grupo excede a
+soma dos diferenciais isolados --- e, portanto, se políticas desenhadas para um
+eixo de cada vez deixam de fora justamente quem está na interseção.
+
+\subsection{Interpretabilidade em machine learning: SHAP values}""", 0),
+
+    # ── Metodologia: os três métodos do núcleo que só apareciam nos resultados
+    ("metodo: OB, QR/RIF e GLMM na metodologia, com os artigos fundadores",
+     r"\\subsection\{Random Forest, XGBoost e SHAP Values\}",
+     r"""\subsection{Decomposição de Oaxaca--Blinder}
+\label{subsec:oaxaca_metodo}
+
+Estimam-se equações de rendimento separadas para brancos e negros e
+decompõe-se a diferença de médias na forma \emph{twofold}
+\cite{oaxaca1973, blinder1973}, tomando a estrutura de preços dos brancos como
+referência não discriminatória:
+$\ln \bar W_B - \ln \bar W_N = (\bar X_B - \bar X_N)'\hat\beta_B +
+\bar X_N'(\hat\beta_B - \hat\beta_N)$, em que o primeiro termo é a parcela de
+dotações e o segundo, a de retornos. Duas especificações são reportadas:
+(A)~apenas capital humano e contexto de bairro, comparável à literatura; e
+(B)~acrescentando horas, formalidade e grupo ocupacional como dotações. Como
+adverte \citeonline{oaxaca_ransom1999}, a especificação~(B) subestima a
+discriminação total, porque a segregação ocupacional é ela própria seu
+produto --- por isso ela é lida como limite inferior, e não como a estimativa
+preferida. Os erros-padrão vêm de bootstrap em blocos de UPA, e não da fórmula
+analítica, que pressupõe independência entre observações \cite{cameron2008}.
+
+\subsection{Regressão quantílica e decomposição RIF}
+
+A regressão quantílica \cite{koenker1978} estima $\hat\beta(\tau)$ em cinco
+pontos da distribuição condicional ($\tau \in \{0{,}10;\ 0{,}25;\ 0{,}50;\
+0{,}75;\ 0{,}90\}$), permitindo testar se a penalidade racial é constante ao
+longo da distribuição. O teste de igualdade entre os quantis extremos usa
+bootstrap \emph{m-out-of-n} em blocos de UPA, com reescala $\sqrt{m/G}$
+\cite{bickel2008} --- necessária porque reamostrar todas as 40.969 UPAs a cada
+réplica seria proibitivo com 7,7~milhões de observações.
+Complementarmente, a decomposição RIF \cite{firpo2018} é aplicada aos quantis
+incondicionais da distribuição de renda, separando dotações e retornos em cada
+ponto.
+
+\subsection{Modelo logístico multinível de acesso}
+
+A barreira de entrada é modelada por um GLMM logístico com intercepto
+aleatório de UPA, estimado por \texttt{lme4::glmer} em R, para três desfechos
+binários: ocupar cargo qualificado (grupos CBO 1--4), estar no quintil superior
+e estar no decil superior da renda. A estrutura multinível é a mesma do HLM
+\cite{raudenbush2002}, agora com função de ligação logit; o ICC do nível de
+bairro é calculado por $\tau^2/(\tau^2 + \pi^2/3)$, a formulação de variância
+latente apropriada ao modelo logístico. Além da razão de chances, reporta-se o
+efeito marginal médio em pontos percentuais, porque a razão de chances não é
+interpretável como diferença de probabilidade.
+
+\subsection{Sensibilidade a variáveis omitidas}
+
+A hipótese de seleção em observáveis não é testável, mas é possível quantificar
+quanto de confundimento não observado seria necessário para anular os
+resultados. Reportam-se duas medidas: o \emph{E-value}
+\cite{vanderweele2017}, que é a associação mínima --- em razão de chances ---
+que um confundidor precisaria ter simultaneamente com a raça e com o desfecho
+para explicar o efeito observado; e o índice de \citeonline{frank2013}, que
+expressa a fração da estimativa que precisaria ser viés para invalidar a
+inferência.
+
+\subsection{Random Forest, XGBoost e SHAP Values}""", 0),
+
     # ── Títulos de ação nas figuras que ainda eram descritivas (SWD-55) ──
     ("rev-final SWD: título de ação na figura SHAP",
      r"\\caption\{Análise SHAP --- XGBoost \(\$N_\\text\{SHAP\}=50\.000\$\)\.\}",

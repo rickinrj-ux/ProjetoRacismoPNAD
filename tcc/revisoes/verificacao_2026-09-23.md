@@ -1,6 +1,6 @@
-# Verificação mecânica — 2026-09-23 16:11
+# Verificação mecânica — 2026-09-23 17:59
 
-Gatilho: `execução manual`  
+Gatilho: `gerar_word_enxuto.py`  
 Achados: **0 ALTO**, 0 MÉDIO, 0 BAIXO, 2 INFO.
 
 | Nível | Critério | Onde | Achado | Correção |
