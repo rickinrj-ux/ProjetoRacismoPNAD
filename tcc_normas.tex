@@ -1,0 +1,1522 @@
+% ══════════════════════════════════════════════════════════════════════════════
+% VERSÃO NORMATIVA — MBA USP/Esalq (Manual de Instruções e Normas, itens 15–19)
+% Gerada por tcc/scripts/gerar_tcc_normas.py. NÃO editar à mão.
+% ══════════════════════════════════════════════════════════════════════════════
+\documentclass[11pt, a4paper, oneside]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+% Arial: helvet é a métrica equivalente em LaTeX; no .docx a fonte vem do
+% template oficial, via --reference-doc
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm,
+            headsep=0.6cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{indentfirst}
+\setlength{\parindent}{1.25cm}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\graphicspath{{outputs/figures/}}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{subcaption}
+% Tabela 1. / Figura 1. — separador é ponto, e a legenda é 1 pt menor
+\captionsetup{font=small, labelfont=bf, labelsep=period,
+              justification=justified, singlelinecheck=false, skip=6pt}
+\usepackage{placeins}
+\usepackage[alf, abnt-etal-list=5]{abntex2cite}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\fontsize{8}{10}\selectfont Trabalho de Conclusão de Curso
+  apresentado para obtenção do título de especialista em Data Science e
+  Analytics -- 2026}
+\fancyfoot[R]{\fontsize{9}{11}\selectfont\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\setlength{\headheight}{28pt}
+% \note é usado nas tabelas geradas por outros scripts
+\providecommand{\note}[1]{\par\smallskip{\footnotesize #1}}
+\DeclareUnicodeCharacter{2212}{$-$}
+\DeclareUnicodeCharacter{0394}{$\Delta$}
+\DeclareUnicodeCharacter{2192}{$\rightarrow$}
+\DeclareUnicodeCharacter{00B2}{\textsuperscript{2}}
+\makeatletter
+\providecommand{\abntnextkey}{}
+\makeatother
+% seções e subseções sem numeração (norma), em negrito e à esquerda
+\usepackage{titlesec}
+\titleformat{\section}{\normalsize\bfseries}{}{0pt}{}
+\titleformat{\subsection}{\normalsize\bfseries}{}{0pt}{}
+\titlespacing*{\section}{0pt}{12pt}{6pt}
+\titlespacing*{\subsection}{1.25cm}{10pt}{6pt}
+
+\begin{document}
+
+
+% ── Folha de rosto: só título, autores e filiação (norma, item 16.1) ──────────
+\thispagestyle{fancy}
+\begin{center}
+\vspace*{2cm}
+{\fontsize{11}{14}\selectfont\bfseries
+Racismo estrutural no mercado de trabalho brasileiro: uma abordagem multinível
+e de decomposição salarial\par}
+
+\vspace{2\baselineskip}
+
+{\fontsize{11}{14}\selectfont
+Ricardo Gomes Calheiros\textsuperscript{1*}; Edilson José Rodrigues\textsuperscript{2}\par}
+\end{center}
+
+\vspace{\baselineskip}
+
+\begin{flushleft}
+{\fontsize{9}{11}\selectfont
+\textsuperscript{1*} Bacharel em Sistemas de Informação. E-mail autor
+correspondente: rickinrj@gmail.com\par
+\textsuperscript{2} Pós-doutor em Linguística Computacional. MBA USP/Esalq.
+E-mail: orientador@usp.br\par}
+\end{flushleft}
+
+\newpage
+
+
+% ── Título + Resumo + Palavras-chave (norma, item 16.2) ──────────────────────
+\begin{center}
+{\fontsize{11}{14}\selectfont\bfseries
+Racismo estrutural no mercado de trabalho brasileiro: uma abordagem multinível
+e de decomposição salarial\par}
+\end{center}
+
+\vspace{\baselineskip}
+\noindent\textbf{Resumo}
+\vspace{\baselineskip}
+
+\begin{singlespace}\noindent
+Este trabalho investigou o diferencial racial de rendimentos e as barreiras de
+acesso ocupacional no Brasil com a série completa da Pesquisa Nacional por
+Amostra de Domicílios Contínua, de 2016 a 2025, sobre 7.694.198
+observações da população ocupada com rendimento positivo em
+40.969 setores de amostragem. Quatro métodos foram aplicados de
+forma articulada: modelo linear hierárquico de dois níveis, com indivíduos
+aninhados em bairros e efeitos fixos de estado; decomposição de
+Oaxaca--Blinder; regressão quantílica com decomposição por função de influência
+recentrada; e modelo logístico multinível de acesso, estimado por máxima
+verossimilhança. Um modelo de aprendizado de máquina interpretável serviu de
+contraprova à forma funcional. O gap agregado foi de 19,1%, dos
+quais 47,0% resultaram da mediação pelo bairro de moradia;
+o diferencial que sobreviveu ao controle de capital humano, contexto e estado
+foi de 10,2%, e 7,0% persistiram dentro da mesma
+ocupação. A decomposição atribuiu 28,4% do gap a retornos
+diferenciais. O modelo de acesso estimou razão de chances de 0,699 para
+cargo qualificado e 0,654 para o décimo superior da renda, indicando
+barreira que se agrava no topo. A desvantagem da mulher negra excedeu em
+4,6 pontos percentuais a soma das penalidades de raça
+e de gênero isoladas. Concluiu-se que a discriminação operou sobretudo no
+acesso à ocupação, e não apenas no salário, de modo que políticas centradas
+apenas em escolaridade se mostraram insuficientes.
+\end{singlespace}
+
+\vspace{\baselineskip}
+\noindent\textbf{Palavras-chave}: diferencial racial de rendimentos;
+segregação residencial; teto de vidro; decomposição de Oaxaca--Blinder;
+interseccionalidade.
+
+\newpage
+
+% ── Título em inglês + Abstract + Keywords ───────────────────────────────────
+\begin{center}
+{\fontsize{11}{14}\selectfont\bfseries
+Structural racism in the Brazilian labour market: a multilevel and
+wage-decomposition approach\par}
+\end{center}
+
+\vspace{\baselineskip}
+\noindent\textbf{Abstract}
+\vspace{\baselineskip}
+
+\begin{singlespace}\noindent
+This study examined the racial earnings differential and occupational access
+barriers in Brazil using the complete series of the Brazilian Continuous
+National Household Sample Survey, from 2016 to 2025, covering
+7.694.198 observations of employed workers with positive earnings
+in 40.969 sampling units. Four methods were jointly applied: a
+two-level hierarchical linear model, with individuals nested in neighbourhoods
+and state fixed effects; an Oaxaca--Blinder decomposition; quantile regression
+with recentred influence function decomposition; and a multilevel logistic
+model of occupational access, estimated by maximum likelihood. An interpretable
+machine learning model served as a functional-form check. The aggregate gap was
+19,1%, of which 47,0% was mediated by
+neighbourhood of residence; the differential surviving controls for human
+capital, context and state was 10,2%, and 7,0%
+persisted within the same occupation. The decomposition attributed
+28,4% of the gap to differential returns. The access model
+estimated odds ratios of 0,699 for qualified occupations and 0,654 for
+the top income decile, indicating a barrier that tightens towards the top. The
+disadvantage faced by Black women exceeded the sum of the separate race and
+gender penalties by 4,6 percentage points. It was
+concluded that discrimination operated mainly in access to occupations, not
+only in wages, so that policies centred solely on schooling proved
+insufficient.
+\end{singlespace}
+
+\vspace{\baselineskip}
+\noindent\textbf{Keywords}: racial earnings gap; residential segregation; glass
+ceiling; Oaxaca--Blinder decomposition; intersectionality.
+
+\newpage
+
+
+\section*{Introdução}
+
+O Brasil é um dos países com maior desigualdade racial de renda no mundo, e a
+razão entre o rendimento médio de trabalhadores brancos e negros permanece acima
+de 1{:}1,5 em toda a série histórica disponível, mesmo quando se controlam
+escolaridade, experiência e setor de atividade \cite{ibge_pnad_2023}. A
+explicação usual atribui esse hiato a diferenças de qualificação; se ela fosse
+suficiente, a expansão do acesso ao ensino teria dissolvido o diferencial ao
+longo das últimas décadas, o que não ocorreu \cite{hasenbalg1979}. O quadro
+recente reforça o ponto: a Pesquisa de Orçamentos Familiares [POF] registrou
+queda de cerca de 30\% no Índice de Perda de Qualidade de Vida entre 2008 e
+2018, sem fechar o hiato racial \cite{ibge_pof_2019}, enquanto o índice de
+Gini do rendimento domiciliar per capita voltou a subir em 2025, puxado pelo
+topo da distribuição \cite{ibge_rendimentos_2025}.
+
+A teoria econômica oferece duas explicações concorrentes para um diferencial que
+sobrevive ao controle da produtividade observável, e elas implicam políticas
+distintas. \citeonline{becker1957} propôs a discriminação por preferência, em
+que o empregador incorre em desutilidade ao contratar o grupo minoritário e, por
+isso, só o faz a salário menor; nesse modelo, a concorrência tende a erodir a
+prática. \citeonline{arrow1973} formalizou a discriminação estatística, em que
+a raça é usada como sinal da produtividade média do grupo sob informação
+imperfeita; aqui o equilíbrio se autoconfirma, porque o menor retorno esperado
+desestimula o investimento em qualificação. A tradição brasileira acrescenta uma
+terceira leitura, na qual o racismo é processo estrutural reproduzido pelas
+instituições independentemente da intenção dos agentes \cite{almeida2019} —
+leitura que justifica tratar a segregação residencial e a segregação ocupacional
+como mecanismos, e não como controles estatísticos.
+
+A literatura empírica identifica três canais de reprodução dessa desigualdade: a
+discriminação direta em processos de seleção e promoção \cite{pager2007}; os
+efeitos de vizinhança, pelos quais a concentração de pobreza em bairros
+segregados reduz as redes de contato com o mercado formal \cite{wilson1987,
+sampson1997, marques2010}; e a subvalorização do capital humano negro, pela qual
+um mesmo nível de escolaridade rende menos \cite{henriques2001, soares2009}.
+Tratados isoladamente, esses mecanismos têm sido difíceis de quantificar de forma
+integrada e em escala nacional, e é essa lacuna que o presente trabalho enfrenta.
+
+Três hipóteses orientaram a investigação. A primeira supôs que parte relevante do
+diferencial racial de rendimentos é mediada pelo contexto do bairro de moradia, e
+não apenas por atributos individuais. A segunda supôs que a penalidade racial não
+é uniforme ao longo da distribuição de renda, mas se agrava no topo, configurando
+teto de vidro. A terceira supôs que a barreira opera antes do salário, no acesso
+às ocupações qualificadas, de modo que trabalhadores negros com o mesmo perfil
+observável enfrentam menor probabilidade de nelas ingressar.
+
+O objetivo deste trabalho foi identificar, isolar e quantificar os mecanismos da
+desigualdade racial de rendimentos e de acesso ocupacional no Brasil,
+distinguindo a parcela atribuível a diferenças de características da parcela
+atribuível a retornos diferenciais, e traduzindo o diagnóstico em implicações de
+política focadas no acesso a ocupações qualificadas.
+
+\newpage
+
+
+\section*{Implementação de Algoritmo(s) de Machine Learning}
+
+\subsection*{Base de dados: PNAD Contínua (2016--2025)}
+
+A PNAD Contínua é uma pesquisa amostral de domicílios conduzida
+trimestralmente pelo IBGE, com cobertura nacional e metodologia de painel
+rotativo. O microdado contém informações sobre características demográficas,
+escolaridade, inserção no mercado de trabalho e rendimentos para todos os
+moradores dos domicílios selecionados. Para este trabalho, foram processados
+todos os 40~trimestres disponíveis de 2016T1 a 2025T4, totalizando
+15.941.675~observações brutas, das quais 7.694.198 possuem renda positiva
+declarada e completude nas variáveis do modelo.
+
+A classificação racial segue o critério binário adotado pelos estudos
+de desigualdade racial no Brasil: {negro} = preto (código~2) +
+pardo (código~4); {branco} = branco (código~1), ambos da variável
+V2010 (cor ou raça autodeclarada).
+
+
+\paragraph{De que é feita a comparação: balanceamento e suporte comum.}
+Antes de qualquer controle, convém olhar em que brancos e negros diferem --- é o que
+mostra a Tabela~\ref{tab:balanceamento}. O maior desequilíbrio não está em escolaridade
+nem em horas: está em {onde se mora}. A composição racial do bairro tem diferença
+padronizada de −1,18 desvios --- uma ordem de grandeza acima de qualquer variável
+individual ---, seguida do desemprego local (−0,46) e da educação média do entorno
+(−0,30). É esse desequilíbrio que o nível~2 do modelo hierárquico absorve. As
+{dummies} de escolaridade, por sua vez, são condicionais ao registro da variável,
+cuja cobertura difere entre os grupos (73,7\% contra 65,3\% de não
+registro); por isso o indicador \texttt{educ\_missing} entra em todos os modelos e os
+retornos educacionais são lidos com a cautela registrada nas limitações.
+O suporte comum é amplo: 97,3\% das UPAs abrigam trabalhadores dos dois
+grupos e todas as células UF~$\times$~escolaridade contêm brancos e negros, de modo que a
+comparação não depende de extrapolação \cite{angrist2009}.
+\begin{table}[!ht]
+\centering
+\caption{Balanceamento entre trabalhadores brancos e negros \emph{antes} de qualquer
+controle --- a tabela que mostra de que é feita a comparação (Angrist \& Pischke, cap.~3).
+Diferença padronizada: $d = (\bar x_b - \bar x_n)/\sqrt{(s_b^2+s_n^2)/2}$; valores acima de
+$0{,}10$ em módulo indicam desequilíbrio relevante. População completa da PEA com renda
+positiva ($N = 7.694.198$; 3.259.516 brancos e 4.434.682 negros).}
+\label{tab:balanceamento}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Variável & Brancos & Negros & Diferença & $d$ \\
+\midrule
+log do rendimento & 7,577 & 7,151 & 0,425 & 0,47 \\
+Idade (centrada) & −1,638 & −3,110 & 1,472 & 0,11 \\
+Sexo feminino & 0,437 & 0,399 & 0,038 & 0,08 \\
+Fundamental completo & 0,003 & 0,009 & −0,006 & −0,07 \\
+Médio completo & 0,046 & 0,041 & 0,006 & 0,03 \\
+Superior completo & 0,198 & 0,278 & −0,080 & −0,19 \\
+Pós-graduação & 0,006 & 0,009 & −0,004 & −0,04 \\
+Escolaridade não registrada & 0,737 & 0,653 & 0,084 & 0,18 \\
+log(horas trabalhadas) & 3,644 & 3,598 & 0,045 & 0,11 \\
+Reside em área urbana & 0,813 & 0,773 & 0,039 & 0,10 \\
+Emprego formal & 0,493 & 0,439 & 0,054 & 0,11 \\
+Conta própria & 0,277 & 0,282 & −0,006 & −0,01 \\
+Trabalho doméstico & 0,049 & 0,079 & −0,030 & −0,12 \\
+CBO: dirigente & 0,055 & 0,023 & 0,032 & 0,16 \\
+CBO: profissional & 0,149 & 0,079 & 0,071 & 0,22 \\
+CBO: técnico & 0,090 & 0,066 & 0,023 & 0,09 \\
+\% negro na UPA ($z$) & −0,705 & 0,335 & −1,040 & −1,18 \\
+Desemprego na UPA ($z$) & −0,327 & 0,093 & −0,420 & −0,46 \\
+Educ. média na UPA ($z$) & −0,133 & 0,165 & −0,298 & −0,30 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\par\smallskip
+\footnotesize\emph{Suporte comum:} 97,3\% das UPAs têm
+trabalhadores dos dois grupos, e 100,0\% das células
+UF~$\times$~escolaridade também (100,0\% das observações
+estão em células com os dois grupos) --- a comparação não depende de extrapolar para
+regiões da amostra onde só existe um dos grupos.
+\par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
+\end{table}
+
+
+\subsection*{Modelo Linear Hierárquico: indivíduos em bairros (UPA), com efeitos fixos de UF}
+\label{subsec:hlm}
+
+A PNAD Contínua é amostrada por conglomerados: pessoas dentro de unidades primárias de
+amostragem (UPA, o proxy de bairro), dentro de estados. A hipótese substantiva do
+trabalho (H2) é que o {bairro} media parte do gap racial; o modelo, portanto, coloca
+a UPA no nível~2 e trata a UF como conjunto de efeitos fixos --- 27 unidades são poucas para
+um terceiro nível aleatório \cite{angrist2009}, e os 26 {dummies} absorvem todo o
+contexto estadual sem hipóteses distribucionais. O modelo de dois níveis é:
+
+\paragraph{Nível 1 --- indivíduo $i$ na UPA $j$:}
+\begin{equation*}
+\ln(W)_{ij} = \beta_{0j} + \beta_1\,\text{Negro}_{ij} + \beta_2\,\text{Sexo}_{ij}
+  + \beta_3\,X_{ij} + \beta_4\,X^2_{ij} + \sum_{e}\beta_{e}\,\text{Educ}_{e,ij}
+  + \boldsymbol{\beta}_{5}'\mathbf{Z}_{ij} + \varepsilon_{ij},
+  \qquad \varepsilon_{ij}\sim\mathcal{N}(0,\sigma^2)
+  \qquad\text{(1)}
+\end{equation*}
+em que $\mathbf{Z}$ reúne horas, situação urbana e ano (e, no M4, vínculo e grupo CBO).
+
+\paragraph{Nível 2 --- bairro $j$ (UPA):}
+\begin{equation*}
+\beta_{0j} = \gamma_{00} + \gamma_{01}\,\overline{\%\text{Negro}}_{j}
+  + \gamma_{02}\,\overline{\text{Desemprego}}_{j} + \gamma_{03}\,\overline{\text{Educ}}_{j}
+  + \sum_{k=2}^{27}\delta_k\,\text{UF}_{k(j)} + u_{0j},
+  \qquad u_{0j}\sim\mathcal{N}(0,\tau^2_{\text{UPA}})
+  \qquad\text{(2)}
+\end{equation*}
+O coeficiente $\gamma_{01}<0$ é a evidência de {duplo disadvantage}: morar em
+bairros com maior concentração de negros reduz o rendimento {independentemente}
+da raça individual. A correlação intraclasse
+\begin{equation*}
+\rho_{\text{UPA}} = \frac{\tau^2_{\text{UPA}}}{\tau^2_{\text{UPA}} + \sigma^2}
+  \qquad\text{(3)}
+\end{equation*}
+mede a fração da variância do log-rendimento que está {entre} bairros; valores
+acima de 5\% justificam o modelo multinível \cite{raudenbush2002}.
+
+\paragraph{Estratégia {step-up}.} Seguindo \citeonline{raudenbush2002}, os modelos
+são estimados em degraus aninhados: M0 (nulo: só o intercepto aleatório, que dá o ICC);
+M1 (+ capital humano e demografia); M2 (+ contexto do bairro, nível~2); M3 (+ efeitos
+fixos de UF) --- o modelo principal, que produz o \textbf{gap líquido}; e M4 (+ vínculo
+e grupo ocupacional), reportado como {limite inferior} porque ocupação e formalidade
+são desfechos da própria discriminação ({bad controls}, \citeonline{angrist2009}).
+Cada degrau é comparado ao anterior por teste de razão de verossimilhança (LR), e a
+redução de $\tau^2_{\text{UPA}}$ em relação ao M0 mede a variância entre bairros explicada
+pelos controles. Testa-se ainda uma {inclinação aleatória} de \texttt{negro} por UPA
+(M3 + $u_{1j}\text{Negro}_{ij}$, com covariância não estruturada) --- a penalidade racial
+varia entre bairros? --- por LR com dois graus de liberdade. Todos os modelos são
+estimados por máxima verossimilhança (ML), necessária para comparar efeitos fixos entre
+degraus; com $N=7{,}7$~milhões, REML e ML produzem os mesmos componentes de variância
+(no M0, $\hat\tau^2_{\text{UPA}} = 0,33698$ por ML e 0,33699 por REML;
+ICC idêntico até a quarta casa). A
+
+\subsection*{Decomposição de Oaxaca--Blinder}
+\label{subsec:oaxaca_metodo}
+
+Estimam-se equações de rendimento separadas para brancos e negros e
+decompõe-se a diferença de médias na forma {twofold}
+\cite{oaxaca1973, blinder1973}, tomando a estrutura de preços dos brancos como
+referência não discriminatória:
+$\ln \bar W_B - \ln \bar W_N = (\bar X_B - \bar X_N)'\hat\beta_B +
+\bar X_N'(\hat\beta_B - \hat\beta_N)$, em que o primeiro termo é a parcela de
+dotações e o segundo, a de retornos. Duas especificações são reportadas:
+(A)~apenas capital humano e contexto de bairro, comparável à literatura; e
+(B)~acrescentando horas, formalidade e grupo ocupacional como dotações. Como
+adverte \citeonline{oaxaca_ransom1999}, a especificação~(B) subestima a
+discriminação total, porque a segregação ocupacional é ela própria seu
+produto --- por isso ela é lida como limite inferior, e não como a estimativa
+preferida. Os erros-padrão vêm de bootstrap em blocos de UPA, e não da fórmula
+analítica, que pressupõe independência entre observações \cite{cameron2008}.
+
+\subsection*{Regressão quantílica e decomposição RIF}
+
+A regressão quantílica \cite{koenker1978} estima $\hat\beta(\tau)$ em cinco
+pontos da distribuição condicional ($\tau \in \{0{,}10;\ 0{,}25;\ 0{,}50;\
+0{,}75;\ 0{,}90\}$), permitindo testar se a penalidade racial é constante ao
+longo da distribuição. O teste de igualdade entre os quantis extremos usa
+bootstrap {m-out-of-n} em blocos de UPA, com reescala $\sqrt{m/G}$
+\cite{bickel2008} --- necessária porque reamostrar todas as 40.969 UPAs a cada
+réplica seria proibitivo com 7,7~milhões de observações.
+Complementarmente, a decomposição RIF \cite{firpo2018} é aplicada aos quantis
+incondicionais da distribuição de renda, separando dotações e retornos em cada
+ponto.
+
+\subsection*{Modelo logístico multinível de acesso}
+
+A barreira de entrada é modelada por um GLMM logístico com intercepto
+aleatório de UPA, estimado por \texttt{lme4::glmer} em R, para três desfechos
+binários: ocupar cargo qualificado (grupos CBO 1--4), estar no quintil superior
+e estar no decil superior da renda. A estrutura multinível é a mesma do HLM
+\cite{raudenbush2002}, agora com função de ligação logit; o ICC do nível de
+bairro é calculado por $\tau^2/(\tau^2 + \pi^2/3)$, a formulação de variância
+latente apropriada ao modelo logístico. Além da razão de chances, reporta-se o
+efeito marginal médio em pontos percentuais, porque a razão de chances não é
+interpretável como diferença de probabilidade.
+
+\subsection*{Sensibilidade a variáveis omitidas}
+
+A hipótese de seleção em observáveis não é testável, mas é possível quantificar
+quanto de confundimento não observado seria necessário para anular os
+resultados. Reportam-se duas medidas: o {E-value}
+\cite{vanderweele2017}, que é a associação mínima --- em razão de chances ---
+que um confundidor precisaria ter simultaneamente com a raça e com o desfecho
+para explicar o efeito observado; e o índice de \citeonline{frank2013}, que
+expressa a fração da estimativa que precisaria ser viés para invalidar a
+inferência.
+
+\subsection*{Inferência: erros-padrão agrupados, poucos clusters e pesos}
+\label{subsec:inferencia}
+
+A PNAD Contínua é uma amostra por conglomerados: pessoas da mesma unidade primária de amostragem (UPA, proxy de bairro) compartilham choques não observados, e os regressores de contexto variam apenas no nível da UPA. Tratar as $7{,}7$~milhões de observações como independentes subestima os erros-padrão pelo fator de Moulton $\sqrt{1+(\bar n-1)\rho}$ \cite{angrist2009}. Por isso, todos os modelos de regressão (OLS com efeitos fixos de UF, decomposição de Oaxaca--Blinder, regressão quantílica e logit) reportam erros-padrão {agrupados por UPA} (41.517 clusters) --- para a OB e a regressão quantílica, por bootstrap em blocos de UPA. O agrupamento por UF é mais conservador, mas com 27 clusters ($<42$) a inferência assintótica é pouco confiável \cite{angrist2009}; quando reportado, usa a distribuição $t$ com $G-1$ graus de liberdade. No HLM, o intercepto aleatório de UPA modela explicitamente a correlação intra-bairro, de modo que o erro-padrão do modelo já a incorpora (sob a hipótese de efeitos aleatórios); como contraprova, os coeficientes do HLM são comparados aos do OLS com efeitos fixos de UF e erro-padrão agrupado por UPA, que coincidem em sinal, magnitude e significância. No OLS com efeitos fixos de UF (especificação do M3), o erro-padrão de $\hat\beta_{\text{negro}}$ passa de 0,0006 (convencional) para 0,0011 (agrupado por UPA) e 0,0035 (agrupado por UF); para o regressor de contexto $\overline{\%\text{Negro}}_{\text{UPA}}$, que varia apenas no nível da UPA, a razão é de 7,3$\times$ (UPA) e 51,9$\times$ (UF) --- a assinatura do efeito Moulton. Como $|\hat\beta_{\text{negro}}|/\text{SE}$ permanece acima de 29 mesmo no agrupamento mais conservador, nenhuma conclusão sobre o gap racial depende da escolha do erro-padrão; a correção importa para os coeficientes contextuais e para as variáveis de UF. 
+
+\paragraph{Pesos amostrais.} Os modelos são estimados sem o peso amostral da PNAD (V1028), isto é, descrevem a regressão na amostra, não a regressão populacional \cite{angrist2009}. Como robustez, o M3 foi reestimado por mínimos quadrados ponderados com V1028 e erro-padrão agrupado por UPA: $\hat\beta_{\text{negro}}$ passa de -0,1009 para -0,0967 (gap de 9,6\% para 9,2\%), diferença sem relevância econômica; os demais resultados são não ponderados.
+
+\subsection*{Random Forest, XGBoost e SHAP Values}
+
+Para predição do log-rendimento, foram ajustados dois modelos de ensemble:
+(i)~{Random Forest} \cite{breiman2001} com 200 árvores e profundidade
+máxima 10; e (ii)~{XGBoost} \cite{chen2016} com 300 iterações, taxa de aprendizado
+$0{,}05$, profundidade máxima 10 e regularização $L_1/L_2$. A profundidade
+foi escolhida por validação cruzada (Tabela~\ref{tab:ml_cv}), e não por conveniência;
+os dois modelos usam o mesmo conjunto de {features} e a mesma partição de teste. Sobre o modelo XGBoost,
+foi aplicado o {TreeExplainer} da biblioteca SHAP
+\cite{lundberg2017} sobre um subsample de 50.000 observações para
+calcular os valores de Shapley de cada feature.
+
+
+\section*{Resultados e Discussão}
+
+\subsection*{Modelos Hierárquicos Lineares --- Mediação Contextual do Gap}
+\label{subsec:hlm_resultados}
+
+{Esta seção documenta como o território amplifica o gap racial:
+o bairro de moradia não é apenas contexto --- é parte do mecanismo de exclusão.}
+
+A Tabela~\ref{tab:hlm_resultados} apresenta os cinco degraus da estratégia
+{step-up}, do modelo nulo (M0) ao modelo com ocupação (M4), todos com intercepto
+aleatório por UPA e estimados por máxima verossimilhança sobre a população completa.
+{Como ler:} acompanhe a linha \textbf{Raça (negro)} da esquerda para a direita ---
+cada coluna acrescenta um bloco de controles e o coeficiente se aproxima de zero; as
+linhas de baixo dizem quanto da variância entre bairros cada bloco explica e se o degrau
+melhora o ajuste (LR).
+
+\paragraph{Quanto da renda é ``bairro'': o modelo nulo.}
+O M0 estima $\hat\tau^2_{\text{UPA}} = 0,3370$ e $\hat\sigma^2 = 0,5759$,
+ou seja, ICC$_{\text{UPA}} = 0,369$: \textbf{36,9\% da variância do
+log-rendimento está entre bairros}, muito acima do limiar de 5\% de
+\citeonline{raudenbush2002} e da parcela entre estados (cerca de 10\%, no modelo
+alternativo com UF aleatória usado como robustez). A estrutura aninhada não é um detalhe
+técnico: ignorá-la trataria como independentes pessoas que compartilham o mesmo mercado
+de trabalho local.
+
+\paragraph{Gap agregado {vs.} gap dentro do bairro (M1).}
+Com escolaridade, idade, sexo, horas, situação urbana e ano, mas {sem} nenhum
+efeito de bairro (OLS com efeitos fixos de UF, Subseção~\ref{subsec:inferencia}),
+trabalhadores negros recebem 19,1\% a menos que brancos comparáveis
+($\hat\beta = −0,2123$). O M1 acrescenta o intercepto aleatório de UPA e passa a
+comparar negros e brancos {do mesmo bairro}: $\hat\beta_{\text{negro}}^{M1} =
+−0,1124$ (IC~95\%: [−0,1135; −0,1113]), ou \textbf{10,6\% a menos}. A diferença
+entre os dois --- \textbf{47,0\% do gap agregado} --- é a parcela do gap
+racial que transita pela segregação residencial: negros e brancos com o mesmo capital
+humano não moram nos mesmos bairros, e os bairros pagam diferente. Esse é o teste da
+Hipótese~H2. Os controles individuais explicam, além disso, 55,2\% da
+variância entre bairros do M0: parte do que parecia ``bairro'' é composição de quem mora
+nele.
+
+\paragraph{O que faz de um bairro um bairro (M2).}
+As três covariáveis de nível~2 explicam 40,1\% da variância entre
+bairros que restava no M1 ($\hat\tau^2$ de 0,1509 para 0,0903; LR $=$
+19.536, 3 g.l., $p<0{,}001$). O coeficiente de composição racial,
+$\hat\gamma_{01} = −0,2189$ (SE 0,0017), indica que um desvio-padrão a mais
+na proporção de negros da UPA reduz o log-rendimento de {todos} os moradores em
+0,22 pontos --- da mesma ordem da penalidade individual --- a evidência mais
+direta do {duplo disadvantage}. O coeficiente individual mal se move
+($\hat\beta_{\text{negro}}^{M2} = −0,1076$): dentro do bairro, a penalidade racial
+não depende de quem são os vizinhos; o bairro opera pela {porta de entrada}
+(onde se consegue morar), não pelo salário de quem já está lá.
+
+\paragraph{Gap líquido (M3).}
+Com os efeitos fixos de UF, $\hat\beta_{\text{negro}}^{M3} = −0,1077$
+(IC~95\%: [−0,1087; −0,1066]): o \textbf{gap líquido de 10,2\%} é o diferencial que
+capital humano, contexto de bairro e estado não explicam --- limite inferior da
+discriminação direta sob seleção em observáveis. O ICC cai para 0,144 e os
+controles explicam 78,9\% da variância entre bairros do M0.
+
+\paragraph{Dentro da mesma ocupação (M4).}
+Acrescentar vínculo e grupo CBO leva a $\hat\beta_{\text{negro}}^{M4} = −0,0724$
+(7,0\%). A queda adicional --- 16,6\% do gap agregado --- não é
+``explicação'', é {canal}: a ocupação é ela própria resultado da barreira de acesso
+(Seção~\ref{subsec:glmm_resultados}), por isso o M4 é um limite inferior descritivo.
+
+\paragraph{A penalidade varia entre bairros.}
+A inclinação aleatória de \texttt{negro} por UPA é significativa (LR $=$ 38.657,
+2 g.l., $p<0{,}001$): $\hat\tau^2_1 = 0,0293$, desvio-padrão de 0,171
+log-pontos. Em bairros a um desvio-padrão da média a penalidade vai de
+−0,280 a 0,063 log-pontos --- a discriminação salarial tem geografia, e a
+covariância intercepto--inclinação de −0,0245 indica que a penalidade é
+maior nos bairros de renda-base mais alta. A Figura~\ref{fig:hlm_blups} contrasta os efeitos fixos de estado com os interceptos estimados para os bairros.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{hlm_efeitos_uf_blup_upa}
+  \caption{A variação entre bairros supera a variação entre estados. À esquerda, os
+  efeitos fixos de UF do M3 com IC~95\% (referência: primeira UF); à direita, a
+  distribuição dos interceptos aleatórios das UPAs ($u_{0j}$, BLUPs do M3).}
+  \label{fig:hlm_blups}
+\end{figure}
+\noindent{Como ler a Figura~\ref{fig:hlm_blups}:} cada ponto à esquerda é um estado;
+a largura do histograma à direita é o quanto a renda-base muda de um bairro para outro,
+já descontados capital humano, contexto e estado.
+
+\paragraph{Viés de variável omitida e sensibilidade.}
+O coeficiente racial é uma associação condicional: pela fórmula do viés de variável
+omitida \cite{angrist2009}, o coeficiente ``curto'' iguala o ``longo'' mais o efeito do
+omitido vezes sua relação com a raça. Qualidade da escola, habilidade não observada e
+redes de contato correlacionam-se negativamente com ser negro e positivamente com a
+renda: omiti-las {superestima} a penalidade --- o que faz do M3 um limite superior
+para o efeito de tratamento diferencial condicional a essas características. Na direção
+oposta, os controles que são desfechos (ocupação no M4) {subestimam}. O gap líquido
+deve ser lido entre esses dois limites. Para anular $\hat\beta^{M3}_{\text{negro}}$ seria
+preciso um viés de 99,0\% do coeficiente (Konfound, \citeonline{frank2013}), e o
+E-value do modelo de acesso (Tabela~\ref{tab:glmm_glassceil}) exige um confundidor
+associado à raça e ao desfecho com razão de risco $\geq 2,2$ --- mais forte que
+qualquer covariável observada.
+
+\begin{table}[htbp]
+\centering
+\caption{HLM de dois níveis (indivíduo em UPA) com efeitos fixos de UF --- estratégia \emph{step-up}, PNAD Contínua 2016--2025, população completa ($N = 7.689.426$; 40.295~UPAs; 27~UFs). Coeficientes com erro-padrão do modelo entre parênteses (a correlação intra-UPA já está no efeito aleatório). Estimação por máxima verossimilhança (ML), para os testes LR entre degraus; REML coincide. Todos os coeficientes com $|t| > 10$; a inferência relevante está nos intervalos de confiança, não nos asteriscos (MHE, cap.~8).}
+\label{tab:hlm_resultados}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Variável} & \textbf{M0} & \textbf{M1} & \textbf{M2} & \textbf{M3} & \textbf{M4} \\
+\midrule
+Intercepto & 7,3022 (0,0029) & 4,2579 (0,0051) & 4,2885 (0,0046) & 4,5538 (0,0116) & 4,7525 (0,0093) \\
+\textbf{Raça (negro)} & --- & −0,1124 (0,0006) & −0,1076 (0,0006) & −0,1077 (0,0006) & −0,0724 (0,0005) \\
+Sexo feminino & --- & −0,1944 (0,0005) & −0,1945 (0,0005) & −0,1945 (0,0005) & −0,2190 (0,0005) \\
+Idade (centrada) & --- & 0,0087 (2,1e-05) & 0,0087 (2,1e-05) & 0,0087 (2,1e-05) & 0,0092 (1,9e-05) \\
+Idade$^2$ & --- & −0,0005 (1,2e-06) & −0,0005 (1,2e-06) & −0,0005 (1,2e-06) & −0,0004 (1,1e-06) \\
+\addlinespace[3pt]
+\multicolumn{6}{l}{\textit{Escolaridade (ref.: fundamental incompleto)}} \\
+Educ.: fundamental completo & --- & −0,2007 (0,0038) & −0,2002 (0,0038) & −0,1986 (0,0038) & −0,1821 (0,0034) \\
+Educ.: médio completo & --- & −0,0537 (0,0027) & −0,0545 (0,0027) & −0,0547 (0,0027) & −0,0438 (0,0024) \\
+Educ.: superior completo & --- & 0,0521 (0,0025) & 0,0521 (0,0025) & 0,0523 (0,0025) & 0,0537 (0,0023) \\
+Educ.: pós-graduação & --- & −0,0034 (0,0036) & −0,0033 (0,0036) & −0,0030 (0,0036) & −0,0043 (0,0033) \\
+Educ.: não registrada & --- & 0,4228 (0,0025) & 0,4233 (0,0025) & 0,4237 (0,0025) & 0,2194 (0,0023) \\
+\addlinespace[3pt]
+\multicolumn{6}{l}{\textit{Inserção}} \\
+log(horas) & --- & 0,6823 (0,0006) & 0,6818 (0,0006) & 0,6815 (0,0006) & 0,5979 (0,0006) \\
+Urbano & --- & 0,4348 (0,0045) & 0,3771 (0,0036) & 0,3347 (0,0033) & 0,2026 (0,0026) \\
+\addlinespace[3pt]
+\multicolumn{6}{l}{\textit{Contexto de bairro --- nível 2 (UPA)}} \\
+\% negro na UPA ($z$) & --- & --- & −0,2189 (0,0017) & −0,2508 (0,0025) & −0,1812 (0,0020) \\
+Desemprego na UPA ($z$) & --- & --- & −0,0542 (0,0016) & −0,0338 (0,0015) & −0,0275 (0,0012) \\
+Educ. média na UPA ($z$) & --- & --- & 0,0055 (0,0013) & −0,0052 (0,0012) & 0,0054 (0,0010) \\
+\addlinespace[3pt]
+\multicolumn{6}{l}{\textit{Ocupação e vínculo (M4; \emph{bad controls})}} \\
+Emprego formal & --- & --- & --- & --- & 0,1776 (0,0006) \\
+Conta própria & --- & --- & --- & --- & −0,1725 (0,0007) \\
+Trab. doméstico & --- & --- & --- & --- & −0,1272 (0,0010) \\
+CBO: dirigente & --- & --- & --- & --- & 0,7777 (0,0013) \\
+CBO: profissional & --- & --- & --- & --- & 0,8720 (0,0010) \\
+CBO: técnico & --- & --- & --- & --- & 0,5009 (0,0010) \\
+CBO: administrativo & --- & --- & --- & --- & 0,2639 (0,0010) \\
+CBO: serviços & --- & --- & --- & --- & 0,1832 (0,0008) \\
+CBO: agropecuária & --- & --- & --- & --- & 0,0892 (0,0011) \\
+CBO: operário & --- & --- & --- & --- & 0,1976 (0,0009) \\
+CBO: operador & --- & --- & --- & --- & 0,2294 (0,0010) \\
+CBO: FFAA & --- & --- & --- & --- & 0,9199 (0,0024) \\
+\addlinespace[2pt]
+IC 95\% de $\beta_{\text{negro}}$ & --- & [−0,1135; −0,1113] & [−0,1087; −0,1065] & [−0,1087; −0,1066] & [−0,0734; −0,0714] \\
+Gap (\%) $= e^{\beta}-1$ & --- & −10,6 & −10,2 & −10,2 & −7,0 \\
+Efeitos fixos de UF & não & não & não & sim & sim \\
+\addlinespace[2pt] \midrule
+\multicolumn{6}{l}{\textit{Componentes de variância e ajuste}} \\
+$\hat\tau^2_{\text{UPA}}$ (nível 2) & 0,3370 & 0,1509 & 0,0903 & 0,0712 & 0,0430 \\
+$\hat\sigma^2$ (nível 1) & 0,5759 & 0,4244 & 0,4244 & 0,4244 & 0,3440 \\
+ICC$_{\text{UPA}}$ & 0,369 & 0,262 & 0,175 & 0,144 & 0,111 \\
+$\tau^2$ explicada vs.\ M0 (\%) & --- & 55,2 & 73,2 & 78,9 & 87,2 \\
+$-2\,$LL (deviance) & 17.751.140 & 15.384.825 & 15.365.289 & 15.356.451 & 13.729.450 \\
+AIC & 17.751.146 & 15.384.871 & 15.365.341 & 15.356.555 & 13.729.578 \\
+BIC & 17.751.187 & 15.385.190 & 15.365.702 & 15.357.275 & 13.730.465 \\
+LR vs.\ degrau anterior ($\chi^2$, g.l.) & --- & 2.366.315 (20) & 19.536 (3) & 8.838 (26) & 1.627.001 (12) \\
+$p$ do LR & --- & $<0{,}001$ & $<0{,}001$ & $<0{,}001$ & $<0{,}001$ \\
+\bottomrule
+\end{tabular}}
+
+\noindent\footnotesize\emph{Inclinação aleatória de \texttt{negro} por UPA (M3 + $u_{1j}$):} $\hat\tau^2_{1} = 0,0293$ (DP $= 0,171$ em log-pontos), cov$(u_0,u_1) = −0,0245$; LR $= 38.657$ (2 g.l.), $p<0{,}001$: a penalidade racial varia entre bairros; $\hat\beta_{\text{negro}}$ médio $= −0,1085$.
+\normalsize
+\par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
+\end{table}
+
+
+\subsection*{Modelos de Machine Learning e SHAP Values}
+\label{subsec:ml}
+
+A Tabela~\ref{tab:ml_perf} apresenta o desempenho preditivo dos dois modelos
+sobre o conjunto de teste ({hold-out} 20\%).
+
+\begin{table}[H]
+\centering
+\caption{Desempenho preditivo --- Random Forest, XGBoost e XGBoost sem renda de vizinhança (robustez ao problema do reflexo).
+          {Hold-out} 20\% da população ($N_\text{teste}\approx 1{,}54$ milhão).}
+\label{tab:ml_perf}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Modelo} & $R^2$ & \textbf{MAE} & \textbf{RMSE} & \textbf{Gap treino--teste} \\
+\midrule
+Random Forest & 0,5689 & 0,4557 & 0,6070 & 0,0015 \\
+\textbf{XGBoost} & \textbf{0,6280} & \textbf{0,4218} & \textbf{0,5639} & \textbf{0,0090} \\
+XGBoost (sem renda da UPA) & 0,5983 & 0,4402 & 0,5860 & 0,0092 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
+\end{table}
+\noindent{Como ler a Tabela~\ref{tab:ml_perf}:} R\textsuperscript{2} mais alto = melhor previsão; o {gap} treino--teste próximo de zero indica ausência de sobreajuste.
+
+O $R^2$ de teste de 0,62 (XGBoost) é elevado para dados de rendimento individual,
+onde a variância não observada (setor, cargo, tempo de serviço) responde
+pela maior parte do resíduo.
+
+\paragraph{Escolha de hiperparâmetros e validação cruzada.}
+A profundidade das árvores, a taxa de aprendizado e o número de iterações não foram
+fixados por conveniência: seis configurações foram comparadas numa partição de validação
+{dentro} do conjunto de treino --- o teste permanece intocado ---, e a vencedora foi
+submetida a validação cruzada $k$-{fold} ($k=5$) no treino completo
+(Tabela~\ref{tab:ml_cv}). A configuração escolhida (profundidade 10) alcança
+$R^2 = 0,6281 \pm 0,0007$ entre os {folds}, contra
+0,6143 $\pm$ 0,0007 da profundidade~6 usada na versão anterior deste
+trabalho, sem aumentar o sobreajuste. O desvio-padrão entre {folds} na quarta casa
+decimal mostra que, com 6.155.355 observações de treino, o desempenho não depende de
+qual parte dos dados é usada para validar --- a validação cruzada aqui serve menos para
+estimar incerteza e mais para justificar a especificação.
+\begin{table}[!ht]
+\centering
+\caption{Escolha de hiperparâmetros e validação cruzada do XGBoost (Alencar, 2024;
+Géron, 2021). Painel~A: seis configurações comparadas numa partição de validação
+\emph{dentro} do treino --- o conjunto de teste permanece intocado. Painel~B: validação
+cruzada $k$-\emph{fold} ($k=5$) no treino completo, com média e
+desvio-padrão entre \emph{folds}. População completa: 6.155.355 observações de
+treino e 1.538.839 de teste; nenhuma amostragem.}
+\label{tab:ml_cv}
+\small
+\begin{tabular}{lccccc}
+\multicolumn{6}{l}{\textbf{A. Busca na partição de validação}} \\
+\toprule
+Profundidade & Taxa de aprendizado & Árvores & $R^2$ & MAE & Sobreajuste \\
+\midrule
+\textbf{10} & 0,05 & 300 & 0,6279 & 0,4213 & 0,0112 \\
+8 & 0,05 & 600 & 0,6252 & 0,4229 & 0,0067 \\
+8 & 0,05 & 300 & 0,6207 & 0,4257 & 0,0040 \\
+6 & 0,10 & 300 & 0,6179 & 0,4275 & 0,0022 \\
+6 & 0,05 & 300 (atual) & 0,6140 & 0,4300 & 0,0013 \\
+4 & 0,05 & 300 & 0,6030 & 0,4370 & 0,0006 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.6em}
+\begin{tabular}{lccc}
+\multicolumn{4}{l}{\textbf{B. Validação cruzada no treino (5 \emph{folds})}} \\
+\toprule
+Configuração & $R^2$ (média $\pm$ dp) & MAE & RMSE \\
+\midrule
+Escolhida (profundidade 10) & 0,6281 $\pm$ 0,0007 & 0,4213 $\pm$ 0,0002 & 0,5628 $\pm$ 0,0003 \\
+Anterior (profundidade 6) & 0,6143 $\pm$ 0,0007 & 0,4300 $\pm$ 0,0001 & 0,5732 $\pm$ 0,0002 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\par\smallskip
+\footnotesize\emph{Como ler:} ``Sobreajuste'' é a diferença entre o $R^2$ de treino e o de
+validação --- valores próximos de zero indicam que o modelo não decorou os dados. A
+configuração escolhida melhora o $R^2$ em 1,4 ponto percentual sem aumentar o
+sobreajuste, e a variação entre \emph{folds} é da ordem de 0,0007 --- com 6,2~milhões de
+observações de treino, o desempenho praticamente não depende de qual pedaço dos dados é
+usado para validar. No conjunto de teste (intocado durante a escolha), $R^2 = 0,6280$.
+Na unidade original, o erro mediano de previsão é de R\$~538 por mês
+(37\% do rendimento observado), com correção de Duan para a
+retransformação do logaritmo.
+\par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
+\end{table}
+
+
+\paragraph{O erro na unidade original.} Os modelos preveem o {logaritmo} do
+rendimento; para o leitor, o que importa é o erro em reais. Retransformando com a correção
+de \citeonline{duan1983} (fator de {smearing} $= 1,178$), o erro mediano de
+previsão é de \textbf{R\$~538 por mês}, ou 37\% do rendimento
+observado --- a ordem de grandeza que se deve ter em mente ao ler o $R^2$: o modelo acerta
+a posição relativa das pessoas muito melhor do que o valor exato do salário de cada uma.
+
+\paragraph{Ausência de sobreajuste (população completa).}
+Estimado sobre a população (\mbox{$N=7.694.198$}; treino~80\%/teste~20\%),
+o método não-paramétrico não apresenta {overfitting}: o $R^2$ de treino e de
+teste praticamente coincidem ({gap}~$=0,0090$ para o XGBoost e
+para o Random Forest). Três evidências convergem: o {gap} treino--teste
+$\approx 0$; a razão $N \gg$ complexidade (modelos regularizados sobre 7,7~milhões de
+observações); e a estabilidade do $R^2$ de teste entre a subamostra de 20\% e a
+população (praticamente idêntico, $\approx 0{,}62$). Em suma, {ampliar} a base, de amostral para populacional, {reduz} --- não aumenta --- o risco de sobreajuste. A Tabela~\ref{tab:shap_importance} traz o ranking completo das variáveis nos dois modelos.
+
+\begin{table}[H]
+\centering
+\caption{Importância SHAP Comparada --- Random Forest e XGBoost. Predição de log-rendimento, PNAD 2016--2025 ($N_{\text{SHAP}}=50.000$). Valores: $|\text{SHAP}|$ médio. Destaque em negrito: variáveis raciais/contextuais.}
+\label{tab:shap_importance}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Feature} & \textbf{$|\text{SHAP}|$ RF} & \textbf{Rank RF} & \textbf{$|\text{SHAP}|$ XGB} & \textbf{Rank XGB} \\
+\midrule
+Renda média UPA (exceto o próprio) & 0,32538 & 1 & 0,25705 & 1 \\
+Horas trabalhadas & 0,16918 & 2 & 0,16727 & 2 \\
+CBO: Profissionais & 0,11711 & 4 & 0,12157 & 3 \\
+Emprego formal (carteira) & 0,14821 & 3 & 0,11753 & 4 \\
+Gênero (feminino) & 0,09288 & 5 & 0,09908 & 5 \\
+Idade (centralizada) & 0,06494 & 6 & 0,09663 & 6 \\
+Educ.: não registrada & 0,03203 & 9 & 0,07138 & 7 \\
+Conta própria & 0,02089 & 10 & 0,06304 & 8 \\
+CBO: Técnicos & 0,03709 & 8 & 0,04778 & 9 \\
+CBO: Dirigentes & 0,04052 & 7 & 0,04102 & 10 \\
+\textbf{Raça (negro)} & 0,00006 & 24 & 0,03140 & 11 \\
+CBO: Serviços/Vendas & 0,00052 & 20 & 0,03046 & 12 \\
+\textbf{Desemprego na UPA} & 0,00073 & 17 & 0,02735 & 13 \\
+\textbf{\% Negro no Estado} & 0,00075 & 16 & 0,02493 & 14 \\
+CBO: Operários & 0,00072 & 18 & 0,02415 & 15 \\
+CBO: Op. Máquinas & 0,00005 & 25 & 0,02239 & 16 \\
+CBO: Administrativo & 0,00234 & 14 & 0,01974 & 17 \\
+Trabalho doméstico & 0,00651 & 12 & 0,01873 & 18 \\
+\textbf{Desemprego no Estado} & 0,00036 & 21 & 0,01746 & 19 \\
+CBO: Agropecuária & 0,00133 & 15 & 0,01583 & 20 \\
+Idade² (experiência) & 0,00641 & 13 & 0,01534 & 21 \\
+\textbf{\% Negro na UPA} & 0,00010 & 22 & 0,01320 & 22 \\
+CBO: FFAA/Polícia & 0,01110 & 11 & 0,01311 & 23 \\
+Educ. média UPA & 0,00009 & 23 & 0,01157 & 24 \\
+Educ. média Estado & 0,00067 & 19 & 0,00908 & 25 \\
+Educ.: superior completo & 0,00001 & 26 & 0,00517 & 26 \\
+Educ.: médio completo & 0,00001 & 26 & 0,00475 & 27 \\
+Educ.: fundamental completo & 0,00000 & 28 & 0,00104 & 28 \\
+Educ.: pós-graduação & 0,00000 & 28 & 0,00011 & 29 \\
+\bottomrule
+\end{tabular}
+}
+\par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
+\end{table}
+\noindent{Como ler a Tabela~\ref{tab:shap_importance}:} variáveis ordenadas pela importância média ($|\text{SHAP}|$); valores maiores = maior peso na previsão da renda. A Figura~\ref{fig:shap_bee} mostra a distribuição dos valores de contribuição por variável.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}
+    \includegraphics[width=\textwidth]{shap_beeswarm_xgb}
+    \caption{Beeswarm: distribuição de SHAP por feature (XGBoost).}
+    \label{fig:shap_bee}
+  \end{subfigure}
+  \caption{Contexto do bairro e jornada dominam a previsão de renda; a raça aparece na 11\textsuperscript{a} posição entre 29 preditores (SHAP, XGBoost, $N_\text{SHAP}=50.000$).}
+  \label{fig:shap}
+\end{figure}
+\noindent{Como ler a Figura~\ref{fig:shap}:} cada ponto é um trabalhador; quanto mais à direita (ou maior a barra), maior o efeito da variável na renda prevista. A cor indica se o valor da variável é alto ou baixo.
+
+A Tabela~\ref{tab:shap_importance} mostra o \textbf{contexto do bairro} entre os
+preditores de maior peso do rendimento individual. A variável usada aqui é a renda
+média da UPA {excluindo o próprio indivíduo} ({leave-one-out}): a média que
+inclui a própria pessoa é mecanicamente correlacionada com seu rendimento --- o
+problema do reflexo \cite{manski1993} --- e inflaria artificialmente a importância do
+território. Mesmo sem essa contaminação, o bairro permanece entre os preditores de
+primeira ordem, o que é consistente com a hipótese de \citeonline{wilson1987}; a
+leitura correta, porém, é de {mediação} territorial --- choques comuns ao bairro
+(mercado de trabalho local, transporte, redes) afetam todos os moradores --- e não de
+efeito causal de um vizinho sobre o outro. Como checagem extrema, o mesmo XGBoost
+estimado {sem qualquer} renda de vizinhança perde pouco poder preditivo
+($R^2 = 0,598$ contra 0,628 do modelo completo) e, nele, a contribuição
+média da raça é praticamente a mesma (0,031 contra 0,031 em
+$|\text{SHAP}|$): o sinal racial não é um artefato da variável de contexto ---
+muda apenas a posição relativa no {ranking} (17\textsuperscript{a} de
+28, contra 11\textsuperscript{a} de 29), porque as demais
+variáveis absorvem parte do que o território explicava.
+
+A variável racial ocupa o 11$^\circ$ lugar no ranking de
+importância mesmo após controlar por todos os demais fatores, com SHAP
+médio de $-0{,}0469$ para trabalhadores negros --- equivalente a uma
+penalidade de 4,6\% sobre o rendimento predito que não pode ser atribuída
+a diferenças em educação, experiência, gênero ou contexto de moradia. A Figura~\ref{fig:shap_wf} ilustra como a previsão de um caso individual é composta.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.62\textwidth]{shap_waterfall_C_negro_baixa_renda_xgb}
+  \caption{Como a previsão de um caso é construída: decomposição SHAP individual
+  ({waterfall}) de um trabalhador negro de baixa renda. Valores em log-pontos; a
+  contribuição da variável racial aparece isolada das demais.}
+  \label{fig:shap_wf}
+\end{figure}
+\noindent{Como ler a Figura~\ref{fig:shap_wf}:} cada linha é uma variável de \textbf{um} trabalhador --- não de uma média. A barra mostra quanto aquela variável empurra a previsão para cima ou para baixo, partindo da previsão média da base até a previsão final do caso. Serve para ver como o modelo compõe uma decisão, não para generalizar.
+
+% ── NÚCLEO: decomposições e acesso (inserido pela versão enxuta) ──
+\par
+\medskip
+
+\subsection*{Decomposição do gap por mediação contextual e ocupacional}
+A Tabela~\ref{tab:mediacao} resume o resultado central dos modelos HLM: à medida
+que se adiciona o bairro (intercepto aleatório e contexto da UPA), o estado e a ocupação,
+o gap racial encolhe de 19,1\% (agregado) para 7,0\% (M4). {Como ler:} acompanhe a coluna
+$\beta_{\text{negro}}$ aproximando-se de zero linha a linha --- a fração do gap já
+explicada aparece em ``Mediação acum.''; o que resta no M4 é a penalidade que
+nenhum atributo observável explica.
+\begin{table}[!ht]
+\centering
+\caption{Decomposição do gap salarial racial por mediação contextual e ocupacional
+(HLM de dois níveis, indivíduos em UPA, com efeitos fixos de UF; PNAD Contínua
+2016--2025, população completa). Cada linha
+acrescenta um bloco de controles ao anterior; à medida que se adiciona contexto e ocupação,
+o gap encolhe e a mediação acumulada cresce.}
+\label{tab:mediacao}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrr}
+\toprule
+Modelo (controles acumulados) & $\beta_{\text{negro}}$ & Gap (\%) & Mediação acum. (\%) \\
+\midrule
+Agregado: individual + UF, sem efeito de bairro (OLS) & −0,2123 & −19,1 & --- \\
+M1: + intercepto aleatório de bairro (UPA) & −0,1124 & −10,6 & 47,0 \\
+M2: + contexto do bairro (UPA) & −0,1076 & −10,2 & 49,3 \\
+M3: + efeitos fixos de UF (gap líquido) & −0,1077 & −10,2 & 49,3 \\
+M4: + ocupação e formalidade (limite inferior) & −0,0724 & −7,0 & 65,9 \\
+\bottomrule
+\end{tabular}
+}
+\par\smallskip
+\footnotesize\emph{Como ler:} cada linha adiciona algo à anterior. $\beta_{\text{negro}}$
+é a penalidade racial em log-rendimento (mais próximo de zero = menor gap); ``Gap (\%)'' é a
+penalidade em \% de renda; ``Mediação acum.''\ é a fração do gap agregado (primeira linha) já
+explicada. O salto da primeira para a segunda linha é a mediação pela segregação residencial:
+comparar negros e brancos \emph{do mesmo bairro} reduz o gap quase à metade. Do modelo agregado
+ao M4 o gap cai de 19,1\% para 7,0\%: 65,9\% do gap é mediado por
+onde a pessoa mora, o estado e a ocupação que acessa --- e a penalidade de 7,0\% persiste
+dentro da mesma ocupação (limite inferior, pois a ocupação é ela própria resultado da barreira de acesso).
+\par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
+\end{table}
+ A Figura~\ref{fig:hlm_gap} resume a sequência de degraus em barras.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{fig_hlm_gap}
+  \caption{Metade do gap racial desaparece ao comparar pessoas do mesmo bairro --- e o que
+  sobra não é explicado por escolaridade, idade, sexo, estado nem ocupação. Barras:
+  $\hat\beta_{\text{negro}}$ de cada modelo; traço: IC~95\% (estreito pelo $N$ de milhões);
+  rótulo: gap em \% de renda. Em azul, o M3 (gap líquido).}
+  \label{fig:hlm_gap}
+\end{figure}
+\noindent{Como ler a Figura~\ref{fig:hlm_gap}:} cada barra é um modelo da sequência e, de cima para baixo, acrescenta-se um bloco de controles ao anterior. O comprimento da barra é a penalidade racial em log-rendimento e o rótulo dentro dela, a mesma penalidade em \% de renda; o traço fino é o intervalo de confiança de 95\% com erro-padrão agrupado por UPA. Em azul, o M3 --- o gap líquido.
+
+\subsection*{Decomposição de Oaxaca--Blinder: composição {vs.}\ discriminação}
+A decomposição de Oaxaca--Blinder separa o gap bruto de log-rendimento
+(0,4255 log-pontos, ou 53,0\%) em uma parcela explicada por diferenças de
+dotações e uma parcela não explicada (retornos diferenciais --- limite inferior da
+discriminação). A Tabela~\ref{tab:oaxaca_blinder} apresenta duas especificações,
+porque ocupação e formalidade são {bad controls} (Angrist \& Pischke, 2009):
+são elas próprias resultado da discriminação. Em (A), com os controles do HLM~M3
+(capital humano e contexto de UPA), 28,4\% do gap não é explicado por
+características observáveis; em (B), tratando também horas, formalidade e grupo
+CBO como dotações, a parcela não explicada cai para 16,2\% --- a
+discriminação salarial {dentro} da ocupação. A diferença entre as duas
+(12,2 pontos percentuais) é a parcela da discriminação que opera pela
+{porta de entrada} das ocupações, e não pelo salário --- exatamente o que o
+GLMM de acesso mede adiante. {Como ler:} em cada coluna, Dotações $+$ Não
+explicado $=100\%$; os erros-padrão vêm de bootstrap em blocos por UPA.
+
+\paragraph{Pressupostos das regressões por grupo.} As duas regressões auxiliares
+(brancos e negros) foram submetidas aos testes de Breusch--Pagan e RESET
+(Fávero \& Belfiore, cap.~12). Há heterocedasticidade --- esperada em log-rendimento ---
+mas de magnitude modesta: o $R^2$ da regressão auxiliar do Breusch--Pagan é 0,061
+(brancos) e 0,065 (negros), e é justamente por isso que os erros-padrão são
+agrupados por UPA e a decomposição usa bootstrap em blocos. O RESET rejeita a forma
+funcional linear, mas o ganho de $R^2$ ao acrescentar potências do valor predito é de
+0,0009 (brancos) e 0,0038 (negros) --- irrelevante para a decomposição. Com $N$
+de milhões, ambos os testes rejeitam qualquer hipótese nula pontual; o que importa é a
+magnitude, não o $p$-valor \cite{angrist2009}.
+\begin{table}[!ht]
+\centering
+\caption{Decomposição de Oaxaca--Blinder (\emph{twofold}, referência: estrutura de preços
+dos brancos) do gap salarial racial em duas especificações. (A)~\emph{Capital humano +
+contexto}: escolaridade, idade, sexo e contexto de UPA --- os mesmos controles do HLM~M3;
+a parcela não explicada é comparável à da literatura. (B)~\emph{Acesso}: (A) + horas,
+formalidade e grupo CBO tratados como dotações --- a parcela não explicada é a discriminação
+\emph{dentro} da ocupação, um limite inferior, pois a segregação ocupacional é ela própria
+discriminatória (Oaxaca \& Ransom, 1999; ver o GLMM de acesso, Tabela~\ref{tab:glmm_glassceil}).
+População completa da PEA com renda positiva ($N = 7.694.198$; 40.969~UPAs).
+Erros-padrão entre parênteses: bootstrap em blocos por UPA (500 réplicas).}
+\label{tab:oaxaca_blinder}
+
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+& \multicolumn{2}{c}{(A) Sem ocupação} & \multicolumn{2}{c}{(B) Acesso (com ocupação)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Componente & log-pontos (SE) & \% do gap & log-pontos (SE) & \% do gap \\
+\midrule
+Gap total (branco $-$ negro) & 0,4255 (0,0034) & 100,0 & 0,4255 (0,0034) & 100,0 \\
+Dotações (características observáveis) & 0,3046 (0,0038) & 71,6 & 0,3566 (0,0036) & 83,8 \\
+Não explicado (retornos / discriminação) & 0,1209 (0,0018) & 28,4 & 0,0689 (0,0013) & 16,2 \\
+\bottomrule
+\end{tabular}
+}
+\par\smallskip
+\footnotesize\emph{Como ler:} em cada especificação, Dotações $+$ Não explicado $=$ Gap total.
+De (A) para (B), parte do ``não explicado'' migra para ``dotações'' porque a ocupação passa a
+ser tratada como característica --- é exatamente a parcela da discriminação que opera pela
+\emph{porta de entrada}, e não pelo salário.
+\par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
+\end{table}
+ A Figura~\ref{fig:ob_cascata} apresenta as duas especificações em forma de cascata.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{fig_ob_cascata}
+  \caption{Tratar a ocupação como ``característica'' derruba pela metade a discriminação
+  medida: de 28,4\% para 16,2\% do gap. A parcela que some é a que opera
+  na porta de entrada das ocupações --- medida adiante pelo modelo de acesso.}
+  \label{fig:ob_cascata}
+\end{figure}
+\noindent{Como ler a Figura~\ref{fig:ob_cascata}:} cada painel é uma cascata lida da esquerda para a direita. A primeira barra é o gap total em log-rendimento; a segunda desconta a parcela atribuída a diferenças de características (dotações); a terceira, em azul, é o que sobra sem explicação. A única diferença entre os painéis é se a ocupação entra ou não como característica.
+
+\subsection*{Regressão Quantílica e RIF-OB: teto de vidro e {sticky floor}}
+\label{subsec:qr_rif}
+A regressão quantílica estima o gap em cada ponto da distribuição de renda; a
+RIF-OB separa, por quantil, dotação e retorno. A Tabela~\ref{tab:qr_melhorias}
+mostra o gap crescendo ao longo da distribuição (teto de vidro no gap bruto); a
+Tabela~\ref{tab:rif_ob} revela o padrão complementar: o componente de retorno
+(discriminação proporcional) é maior na base e {decresce} rumo ao topo
+({sticky floor}). {Como ler:} na Tabela~\ref{tab:rif_ob}, Dotações $+$
+Retornos $=100\%$ em cada quantil; siga a coluna Retornos caindo de $35{,}1\%$ (q10)
+a $12{,}9\%$ (q90) --- a discriminação de preço pesa mais na base.
+
+\paragraph{Por que os dois padrões não se contradizem.} A regressão quantílica
+estima quantis {condicionais}: $\hat\beta(\tau)$ compara negros e brancos na
+mesma posição {dentro} da distribuição de pessoas com o mesmo perfil observável.
+O crescimento de $|\hat\beta(\tau)|$ ao longo de $\tau$ significa que a dispersão
+condicional do rendimento é maior entre brancos --- {fanning out} na linguagem de
+\citeonline{angrist2009} ---, e não que ``os negros do topo sofrem mais'': quantis não
+seguem indivíduos, e a leitura em termos de pessoas exigiria invariância de posto, que
+não se testa aqui. A RIF-OB, ao contrário, decompõe quantis {incondicionais} da
+distribuição de renda \cite{firpo2018}: responde ``de que é feito o gap no q10 da renda
+do país''. Como a composição observável concentra negros na base, a parcela de retornos
+é maior ali; e como há mais dispersão condicional no topo, o coeficiente condicional
+cresce com $\tau$. Os dois resultados são complementares --- um é sobre o {preço}
+pago a características, o outro sobre a {distribuição} de características.
+\begin{table}[H]
+\centering
+\caption{Regressão quantílica: coeficiente $\hat{\beta}_{\text{negro}}$ por quantil e sexo.
+         Gap~(\%) $= (e^{\hat{\beta}}-1)\times 100$.
+         M3: controles individuais + contexto UPA + UF efeito fixo. População completa.
+         Entre parênteses (coluna Global): erro-padrão por bootstrap em blocos por UPA.
+         $^{***}p<0{,}001$ em todos os quantis e grupos.}
+\label{tab:qr_melhorias}
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+& \multicolumn{2}{c}{Global} & \multicolumn{2}{c}{Homens} & \multicolumn{2}{c}{Mulheres} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Quantil & $\hat{\beta}$ (SE) & Gap~(\%) & $\hat{\beta}$ & Gap~(\%) & $\hat{\beta}$ & Gap~(\%) \\
+\midrule
+$\tau=0.10$ & $-0.0832$ (0.0019) & $-8.0\%$ & $-0.0608$ & $-5.9\%$ & $-0.1160$ & $-11.0\%$ \\
+$\tau=0.25$ & $-0.0734$ (0.0013) & $-7.1\%$ & $-0.0605$ & $-5.9\%$ & $-0.0915$ & $-8.7\%$ \\
+$\tau=0.50$ & $-0.0813$ (0.0012) & $-7.8\%$ & $-0.0739$ & $-7.1\%$ & $-0.0899$ & $-8.6\%$ \\
+$\tau=0.75$ & $-0.1039$ (0.0013) & $-9.9\%$ & $-0.1012$ & $-9.6\%$ & $-0.1049$ & $-10.0\%$ \\
+$\tau=0.90$ & $-0.1235$ (0.0019) & $-11.6\%$ & $-0.1244$ & $-11.7\%$ & $-0.1155$ & $-10.9\%$ \\
+$\tau=0.95$ & $-0.1317$ (0.0024) & $-12.3\%$ & $-0.1327$ & $-12.4\%$ & $-0.1244$ & $-11.7\%$ \\
+\midrule
+\textbf{Δ (q90−q10)} & $\mathbf{-4.03\text{pp}}***$ (0.0024) & \multicolumn{2}{c}{$Z = -16.95$} & \multicolumn{2}{c}{$p = 1.84e-64$} \\
+\bottomrule
+\end{tabular}
+\note{Teste de heterogeneidade quantílica (Koenker-Bassett style):
+      $H_0$: $\hat{\beta}(q)$ constante para todo $q$.
+      SE por bootstrap em blocos por UPA, ``$m$ de $n$'' ($B=200$; $m=1.229$ das $40.969$ UPAs por réplica; SE escalado por $\sqrt{m/G}$, Bickel \& Sakov, 2008). Sem a escala (conservador): $Z=-2.94$, $p=3.3e-03$.}
+\par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
+\end{table}
+
+\begin{table}[!ht]
+\centering
+\caption{Decomposição RIF-OB (Firpo, Fortin \& Lemieux, 2018) do gap salarial racial
+por quantil incondicional, em formato \emph{two-fold} (referência: estrutura de preços
+dos brancos). Dotações: diferença de características observáveis (capital humano, ocupação,
+contexto). Retornos: parcela não explicada (componente discriminatório). Dotações + Retornos
+$=100\%$ do gap em cada quantil. Padrão \emph{sticky floor}: o componente de retornos
+(discriminação de mercado) é maior na base e decresce rumo ao topo. PNAD Contínua 2016--2025,
+população completa. Entre parênteses: erro-padrão por bootstrap em blocos por UPA.}
+\label{tab:rif_ob}
+\begin{tabular}{lrrrr}
+\toprule
+Quantil & Gap obs. (SE) & Dotações (\%) & Retornos (\%) & $N$ \\
+\midrule
+q10 & 0,559 (0,007) & 64,9 (0,8) & 35,1 (0,7) & 7.694.198 \\
+q25 & 0,310 (0,009) & 68,8 (0,9) & 31,2 (0,6) & 7.694.198 \\
+q50 & 0,378 (0,008) & 72,7 (0,9) & 27,3 (0,4) & 7.694.198 \\
+q75 & 0,470 (0,010) & 75,5 (1,1) & 24,5 (0,4) & 7.694.198 \\
+q90 & 0,483 (0,011) & 87,1 (1,9) & 12,9 (0,9) & 7.694.198 \\
+\bottomrule
+\end{tabular}
+\par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
+\end{table}
+ A Figura~\ref{fig:qr_rif} põe os dois ângulos lado a lado.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.98\textwidth]{fig_qr_rif}
+  \caption{Teto de vidro e piso pegajoso são o mesmo fenômeno visto de dois ângulos. À
+  esquerda, a penalidade em quantis {condicionais} cresce rumo ao topo (faixa: IC~95\%
+  por bootstrap em blocos de UPA); à direita, a parcela não explicada dos quantis
+  {incondicionais} da renda é maior na base.}
+  \label{fig:qr_rif}
+\end{figure}
+\noindent{Como ler a Figura~\ref{fig:qr_rif}:} à esquerda, cada ponto é a penalidade racial estimada num quantil {condicional} $\tau$ (eixo vertical em log-pontos $\times100$), e a faixa é o intervalo de 95\% por bootstrap em blocos de UPA. À direita, cada barra é um quantil {incondicional} da renda e soma 100\%: a parte azul é a parcela não explicada, com o valor escrito dentro.
+
+\subsection*{GLMM logístico: o teto de vidro no acesso}
+\label{subsec:glmm_resultados}
+O modelo logístico multinível (\texttt{lme4::glmer}, intercepto aleatório de UPA e
+efeitos fixos de UF, estimado por Laplace na população completa) modela a probabilidade
+de três desfechos --- cargo qualificado (CBO~1--4), renda no top~20\% e no top~10\% ---
+em quatro degraus paralelos aos do HLM: M1 individual, M2 + contexto do bairro, M3 +
+vínculo (formalidade, setor público, conta própria, doméstico --- {bad controls},
+logo limite inferior) e M4 + interação \texttt{negro}$\times$credencial. A
+Tabela~\ref{tab:glmm_glassceil} traz {odds ratios}, efeitos marginais, ICC e
+E-values; a Tabela~\ref{tab:glmm_ajuste}, o ajuste e o desempenho de classificação.
+
+\paragraph{O acesso também é ``bairro''.} No M1, a correlação intraclasse latente é de
+0,198 para o cargo qualificado e 0,350 para o top~10\%: entre
+20\% e 35\% da variância latente do acesso está entre
+bairros. O teste de razão de verossimilhança do M2 contra o logit sem efeito aleatório
+(LR $=$ 411.007 para o cargo; 337.418 para o top~10\%, 1~g.l., $p<0{,}001$)
+mostra que o efeito aleatório de UPA é indispensável --- o logit {pooled} trataria
+como independentes pessoas do mesmo mercado local.
+
+\paragraph{A porta é mais estreita para negros --- e mais ainda no topo.} No M2,
+controlados escolaridade, sexo, idade, horas, estado e contexto do bairro, a chance de
+um trabalhador negro ocupar cargo qualificado é OR~$=$~0,699 (IC~95\%
+0,696--0,702) da de um branco do mesmo bairro --- \textbf{30\% menos
+chance}, ou 5,5 pontos percentuais de probabilidade. No top~20\% da renda o
+OR é 0,688 e no top~10\%, 0,654 (35\% menos chance): o
+teto se aperta à medida que se sobe. {Como ler:} OR $<1$ é desvantagem; o AME traduz
+o OR em probabilidade e é a medida a reter (MHE, cap.~3).
+
+\paragraph{Vínculo e credencial não desfazem a barreira.} Descontar o vínculo
+empregatício (M3) muda pouco o OR do cargo qualificado (0,691) e do top~10\%
+(0,656): a barreira não é um artefato da informalidade. No M4, a interação com
+a credencial é OR~$=$~1,069 para o superior completo e 1,060 para
+a pós-graduação: o diploma atenua a penalidade sem eliminá-la, e o OR combinado do negro com superior
+completo é 0,735 --- a credencial não neutraliza a barreira de acesso. A Figura~\ref{fig:glmm_or} reúne as razões de chance dos três desfechos e dos modelos de cada um.
+
+\paragraph{Ajuste e classificação.} O M2 discrimina bem os desfechos: AUC de
+0,831 (com efeitos aleatórios) e 0,790 (só efeitos fixos) para o
+cargo qualificado; no {cutoff} de Youden (0,30) a sensibilidade é
+0,82 e a especificidade 0,68. O teste de Hosmer--Lemeshow
+rejeita a calibração perfeita em todos os degraus --- inevitável com $N=7{,}7$~milhões
+(MHE, cap.~8) ---, mas a estatística cai a cerca de metade quando se acrescenta o
+vínculo (M3), sinal de calibração melhor; entre M1 e M2 ela praticamente não muda. O logit com efeitos fixos de UF e erro-padrão agrupado por UPA (última coluna
+da Tabela~\ref{tab:glmm_glassceil}) reproduz os OR do GLMM: a conclusão não depende da
+hipótese de efeitos aleatórios.
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{fig_glmm_or}
+  \caption{A porta é mais estreita para trabalhadores negros --- e estreita ainda mais no
+  topo da renda. Razão de chances de acesso (negro {vs.}\ branco do mesmo bairro) com
+  IC~95\%, por desfecho e degrau; em azul, o modelo com contexto de bairro (M2).}
+  \label{fig:glmm_or}
+\end{figure}
+\noindent{Como ler a Figura~\ref{fig:glmm_or}:} cada ponto é uma razão de chances e a linha horizontal, seu intervalo de confiança de 95\%; a linha tracejada em~1 marca a paridade, de modo que quanto mais à esquerda, maior a desvantagem. Os blocos são os três desfechos e, dentro de cada um, os modelos; em azul, o M2, que compara pessoas do mesmo bairro.
+
+\begin{table}[!ht]
+\centering
+\caption{GLMM logístico (lme4::\texttt{glmer}, intercepto aleatório de UPA e efeitos fixos de UF) --- teto de vidro ocupacional e salarial. \emph{Odds ratio} do coeficiente \texttt{negro} com IC~95\%, efeito marginal médio (AME: diferença média de probabilidade predita, em pontos percentuais), ICC da UPA $=\tau^2/(\tau^2+\pi^2/3)$ e E-value (VanderWeele \& Ding, 2017). Coluna final: OR do logit com efeitos fixos de UF e erro-padrão agrupado por UPA (robustez). População completa da PEA com renda positiva ($N = 7.694.198$; 40.969~UPAs). M3 acrescenta o vínculo (formalidade, setor público, conta própria, doméstico), que é desfecho da própria discriminação: limite inferior. Todos os OR com $p<0{,}001$; com $N$ desta ordem, a inferência relevante está nos IC e nos E-values.}
+\label{tab:glmm_glassceil}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccccc}
+\toprule
+Desfecho & Modelo & OR (IC 95\%) & AME (p.p.) & ICC$_{\text{UPA}}$ & E-value & E-value (IC) & OR logit-FE \\
+\midrule
+Cargo qualificado (CBO 1--4) & M1 individual + UF & 0,691 [0,688; 0,694] & −5,68 & 0,198 & 2,25 & 2,24 & 0,555 \\
+ & M2 + contexto do bairro & 0,699 [0,696; 0,702] & −5,49 & 0,159 & 2,21 & 2,20 & 0,705 \\
+ & M3 + vínculo (limite inf.) & 0,691 [0,688; 0,694] & −4,79 & 0,162 & 2,25 & 2,24 & 0,705 \\
+ & M4 + negro$\times$credencial & 0,688 [0,684; 0,691] & −4,79 & 0,162 & 2,27 & 2,25 & 0,699 \\
+\midrule
+Top 20\% de renda & M1 individual + UF & 0,680 [0,677; 0,683] & −4,89 & 0,281 & 2,30 & 2,29 & 0,540 \\
+ & M2 + contexto do bairro & 0,688 [0,685; 0,691] & −4,74 & 0,219 & 2,27 & 2,25 & 0,691 \\
+ & M3 + vínculo (limite inf.) & 0,690 [0,687; 0,693] & −4,43 & 0,227 & 2,26 & 2,24 & 0,691 \\
+ & M4 + negro$\times$credencial & 0,689 [0,685; 0,692] & −4,43 & 0,227 & 2,26 & 2,25 & 0,694 \\
+\midrule
+Top 10\% de renda & M1 individual + UF & 0,643 [0,639; 0,647] & −3,10 & 0,350 & 2,49 & 2,46 & 0,457 \\
+ & M2 + contexto do bairro & 0,654 [0,650; 0,659] & −2,97 & 0,262 & 2,43 & 2,41 & 0,656 \\
+ & M3 + vínculo (limite inf.) & 0,656 [0,651; 0,660] & −2,80 & 0,265 & 2,42 & 2,40 & 0,656 \\
+ & M4 + negro$\times$credencial & 0,661 [0,657; 0,666] & −2,80 & 0,265 & 2,39 & 2,37 & 0,664 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip
+\footnotesize\emph{Como ler:} OR $<1$ = menor chance de acesso para trabalhadores negros do que para brancos de mesmo perfil \emph{e do mesmo bairro}; quanto mais perto de zero, maior a barreira. O E-value é a força mínima de associação (razão de risco) que um confundidor não observado precisaria ter com a raça \emph{e} com o desfecho para anular o OR; o E-value (IC) faz o mesmo para o limite do intervalo. A coluna logit-FE mostra que a conclusão não depende da hipótese de efeitos aleatórios.
+\par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
+\end{table}
+
+\begin{table}[!ht]
+\centering
+\caption{GLMM logístico --- ajuste e desempenho de classificação por degrau. LR vs.\ pooled: teste de razão de verossimilhança do M2 contra o logit sem efeito aleatório (fronteira, $p/2$); AUC com efeitos aleatórios (ajuste na amostra) e só com efeitos fixos; \emph{cutoff} de Youden (maximiza sensibilidade $+$ especificidade) com as taxas correspondentes; Hosmer--Lemeshow em 10 decis. Com $N = 7{,}7$~milhões qualquer desvio de calibração é ``significativo'' --- o $\chi^2$ deve ser lido como magnitude relativa entre degraus, não como teste (MHE, cap.~8).}
+\label{tab:glmm_ajuste}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccccccc}
+\toprule
+Desfecho & Modelo & $-2\,$LL & AIC & LR vs.\ pooled & AUC (RE) & AUC (FE) & Cutoff & Sens./Espec. & HL $\chi^2$ \\
+\midrule
+Cargo qualificado (CBO 1--4) & M1 individual + UF & 7.068.424 & 7.068.498 & --- & 0,831 & 0,766 & 0,30 & 0,82/0,68 & 8.378 \\
+ & M2 + contexto do bairro & 7.059.978 & 7.060.058 & 411.007 & 0,831 & 0,790 & 0,30 & 0,82/0,68 & 8.576 \\
+ & M3 + vínculo (limite inf.) & 6.089.887 & 6.089.975 & --- & 0,882 & 0,856 & 0,31 & 0,83/0,77 & 5.269 \\
+ & M4 + negro$\times$credencial & 6.089.819 & 6.089.911 & --- & 0,882 & 0,856 & 0,31 & 0,83/0,77 & 5.178 \\
+\midrule
+Top 20\% de renda & M1 individual + UF & 6.104.884 & 6.104.958 & --- & 0,844 & 0,770 & 0,22 & 0,78/0,74 & 4.038 \\
+ & M2 + contexto do bairro & 6.094.129 & 6.094.209 & 469.691 & 0,844 & 0,798 & 0,22 & 0,78/0,74 & 4.070 \\
+ & M3 + vínculo (limite inf.) & 5.779.565 & 5.779.653 & --- & 0,862 & 0,821 & 0,22 & 0,79/0,76 & 1.584 \\
+ & M4 + negro$\times$credencial & 5.779.560 & 5.779.652 & --- & 0,862 & 0,821 & 0,23 & 0,78/0,77 & 1.597 \\
+\midrule
+Top 10\% de renda & M1 individual + UF & 3.713.826 & 3.713.900 & --- & 0,878 & 0,788 & 0,10 & 0,82/0,77 & 4.049 \\
+ & M2 + contexto do bairro & 3.702.360 & 3.702.440 & 337.418 & 0,878 & 0,830 & 0,10 & 0,82/0,77 & 3.949 \\
+ & M3 + vínculo (limite inf.) & 3.502.169 & 3.502.257 & --- & 0,893 & 0,852 & 0,11 & 0,82/0,80 & 1.934 \\
+ & M4 + negro$\times$credencial & 3.502.075 & 3.502.167 & --- & 0,893 & 0,852 & 0,11 & 0,82/0,80 & 1.869 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
+\end{table}
+ A Tabela~\ref{tab:interseccional} decompõe o diferencial de cada grupo contra o homem branco.
+
+\subsection*{Interseccionalidade: raça e gênero no acesso e no topo}
+\begin{table}[!ht]
+\centering
+\caption{Decomposição interseccional (raça $\times$ gênero) do gap de rendimento
+\emph{vs.}\ o Homem Branco (grupo de referência). Dotações: parcela explicada por
+características observáveis; Retornos: parcela não explicada (discriminação). Penalidade
+extra: o quanto o gap da Mulher Negra excede a soma das penalidades de raça e de gênero
+isoladas (efeito interseccional puro, Crenshaw, 1989). PNAD Contínua, população completa
+($N$ do grupo de referência --- homens brancos --- na última linha da nota). Entre
+parênteses: erro-padrão por bootstrap em blocos por UPA.}
+\label{tab:interseccional}
+
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrr}
+\toprule
+Grupo & Gap vs HB (\%) & Dotações (\%) & Retornos (\%) & Penal.\ extra (p.p.) & $N$ do grupo \\
+\midrule
+Mulher Branca & 19,7 (0,2) & −51,9 (1,0) & 151,9 (1,0) & --- & 1.423.994 \\
+Homem Negro & 56,3 (0,6) & 73,9 (0,4) & 26,1 (0,4) & --- & 2.664.739 \\
+Mulher Negra & 80,6 (0,6) & 35,3 (0,4) & 64,7 (0,4) & 4,6 & 1.769.943 \\
+\bottomrule
+\end{tabular}
+}
+\par\smallskip
+\footnotesize\emph{Como ler:} ``Gap vs HB'' é a desvantagem de renda de cada grupo
+\emph{vs.}\ o Homem Branco; Dotações $+$ Retornos $=100\%$ do gap. A Mulher Negra tem o
+maior gap e ainda uma penalidade \emph{extra} que não se reduz à soma de ``ser negro'' e
+``ser mulher'' --- a marca da interseccionalidade. O sinal negativo das dotações da Mulher
+Branca indica que suas características observáveis \emph{superam} as do homem branco: todo
+o gap vem de retornos diferenciais. Grupo de referência: 1.835.522 homens brancos.
+\par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
+\end{table}
+
+\label{subsec:interseccional}
+
+Os modelos anteriores tratam raça e gênero de forma aditiva. Uma leitura
+{interseccional} pergunta se a desvantagem de ser negra {e} mulher é a
+soma das partes. Reespecificamos o GLMM de acesso com um fator de quatro grupos
+(\texttt{grupo\_rg}: homem branco [referência], mulher branca, homem negro, mulher
+negra) e a interação \texttt{negro$\times$sexo\_fem}, em três desfechos: acesso a
+ocupação qualificada (CBO~1--4), renda no top~20\% e no top~10\%. A Tabela~\ref{tab:interseccional} traz a decomposição de Oaxaca--Blinder dos quatro grupos contra o homem branco, e a Figura~\ref{fig:interseccional}, as razões de chance nos três desfechos.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{grupo_rg_interseccional}
+  \caption{A mulher negra entra na categoria, mas não chega ao topo: razões de chance dos quatro grupos raça$\times$gênero {vs.}~homem
+  branco, em três desfechos. A mulher negra é {alçada} no acesso à categoria,
+  mas torna-se a {mais excluída} no topo da renda.}
+  \label{fig:interseccional}
+\end{figure}
+\noindent{Como ler a Figura~\ref{fig:interseccional}:} cada barra é um grupo raça$\times$gênero; a altura é o gap vs.\ o homem branco --- a mulher negra acumula as duas penalidades.
+
+O resultado revela uma \textbf{inversão} (Figura~\ref{fig:interseccional}). No
+\textbf{acesso à categoria} qualificada, a mulher negra tem OR~$=1,33$
+--- {acima} do homem branco ---, porque o efeito de gênero é positivo nesse
+desfecho (profissões credenciadas feminizadas, em CBO~1--4); o grupo mais penalizado
+é o \textbf{homem negro} (OR~$=0,65$). No \textbf{topo da renda},
+porém, o quadro {inverte}: a mulher negra passa a ser a \textbf{mais excluída}
+de todos --- OR~$=0,34$ no decil superior, abaixo da mulher branca
+($=0,49$) e do homem negro ($=0,65$). A
+interação \texttt{negro$\times$sexo\_fem} é {sub-aditiva} em todos os desfechos
+(OR~$=1,14$ no acesso; $=1,07$ no top~10\%):
+a penalidade racial é ligeiramente menor entre mulheres, mas isso não impede que a
+mulher negra acumule a barreira racial {e} o teto de vidro de gênero exatamente
+onde mais importa para a ascensão --- o topo da distribuição.
+
+Esse achado refina a tese central: o teto de vidro não é racial nem sexualmente neutro
+--- recai com força máxima sobre a mulher negra, que pode {entrar} em ocupações
+qualificadas, mas é sistematicamente barrada de {chegar ao topo} da remuneração.
+
+\subsection*{Multicolinearidade do Modelo M4: Análise VIF}
+\label{subsec:vif}
+
+Para verificar se a inclusão simultânea dos 9~dummies
+CBO e das variáveis de vínculo empregatício (\texttt{emprego\_formal},
+\texttt{conta\_propria}, \texttt{trab\_domestico}) introduz colinearidade
+problemática no Modelo~M4, calculou-se o {Variance Inflation Factor} (VIF)
+sobre subsample de 200.000 observações da PEA com renda positiva.
+Dos $24$ preditores analisados, VIF máximo~$= 22,25$
+(Educ.: não registrada); 2~variável crítica
+(VIF~$> 10$); 1~variável alta ($5$--$10$);
+1~variável moderada ($2$--$5$);
+20~variáveis baixas ($< 2$).
+Os dois VIF acima de 10 são \texttt{educ\_missing} (22,25) e
+\texttt{educ\_superior\_completo} (19,45) --- colinearidade {por construção}
+dentro do bloco educacional, já que o indicador de escolaridade não registrada é
+quase o complemento das {dummies} de conclusão (Fávero \& Belfiore,
+cap.~12). Ela infla o erro-padrão dos retornos educacionais, que por isso são lidos
+com cautela, mas \textbf{não} contamina o coeficiente de interesse: o VIF de
+\texttt{negro} é 1,37 e o das variáveis de contexto da UPA fica abaixo de
+1,8. Entre os {dummies} de CBO e as variáveis de vínculo --- a
+colinearidade que se temia no M4 --- o VIF máximo é 2,09. A especificação
+do M4 dispensa, portanto, ortogonalização ou eliminação de preditores; o que ela
+não dispensa é a ressalva de {bad control} (Seção~\ref{subsec:hlm_resultados}).
+
+
+\label{sec:discussao}
+
+\paragraph{Nota terminológica.}
+Três conceitos próximos, mas distintos, percorrem este trabalho e não devem ser
+confundidos. \textbf{Mediação contextual} (HLM) é a fração do gap bruto que
+{desaparece} ao se controlar o local de moradia (UPA/UF) --- mede o
+quanto da penalidade racial transita {pelo} território.
+\textbf{Efeito dotação} (Oaxaca--Blinder) é a parcela do gap atribuível a
+{diferenças nas características observáveis} entre brancos e negros
+(escolaridade, ocupação, contexto), por oposição ao \textbf{efeito retornos}
+(preços diferenciais pagos às mesmas características).
+\textbf{Gap líquido} é o diferencial que {persiste} após o controle de
+capital humano e contexto (M3): 10,2\%. \textbf{Gap residual pós-ocupação} é o
+que resta ao se controlar também ocupação e formalidade (M4): 7,0\% --- um limite
+inferior, pois a ocupação é ela própria resultado da barreira de acesso. Em suma: a mediação contextual responde
+``por onde passa o gap''; a decomposição de dotações, ``de que ele é feito''; e o
+gap líquido, ``o que sobra sem explicação''.
+
+\paragraph{Da diagnose às políticas.}
+O diagnóstico das duas barreiras revela gargalos simultâneos --- exclusão de
+acesso às ocupações qualificadas e penalidade salarial que persiste dentro delas
+--- que se reforçam mutuamente. A consequência para o desenho de políticas é
+direta: nenhuma intervenção unidimensional (só cotas de acesso, só fiscalização
+salarial, só escolaridade) atinge as duas barreiras ao mesmo tempo; a magnitude
+relativa de cada uma, estimada aqui, é o insumo para priorizá-las.
+
+\paragraph{O que este trabalho acrescenta ao debate.}
+\citeonline{hasenbalg1979} identificou a discriminação racial como estrutural,
+sem poder quantificar mecanismos em escala nacional.
+\citeonline{henriques2001} documentou o gap educacional racial, mas não separou
+o efeito educacional do de redes e contexto.
+\citeonline{soares2009} estimou, com dados de 2006, que cerca de 50\% do gap
+salarial seria ``inexplicado'' --- interpretado como discriminação direta.
+Este trabalho, com dados de 2016--2025 e metodologias não disponíveis
+a Soares, decompõe essa {caixa preta}. Na especificação comparável à dele
+(capital humano e contexto, sem ocupação), 28,4\% do gap bruto são retornos
+diferenciais --- limite inferior da discriminação direta --- e 71,6\% são
+diferenças de dotações; quando a ocupação é tratada como dotação, o não explicado
+cai para 16,2\%, e 83,8\% passam a ser dotações --- mas essas dotações são, elas mesmas,
+produto da barreira de acesso às ocupações qualificadas (GLMM), que este
+trabalho quantifica em conjunto com a penalidade salarial.
+A contribuição central não é mostrar que o gap existe --- isso a
+literatura já sabia desde \citeonline{hasenbalg1979} ---,
+mas demonstrar que ele é sustentado por um
+\textbf{sistema combinado} em que discriminação de acesso, segregação
+residencial e penalidade salarial se reforçam mutuamente, tornando
+insuficientes políticas focadas em um único mecanismo.
+
+\paragraph{Diálogo com o quadro macro recente do IBGE.}
+Os resultados convergem com o retrato macroestrutural mais recente. A melhora
+multidimensional captada pela POF não eliminou o gap racial de qualidade de vida
+(0{,}183 para chefes pretos/pardos {vs.}~0{,}122 para brancos), e a renda
+voltou a concentrar-se no topo em 2025 (Gini do rendimento domiciliar
+{per capita} de 0{,}491)~\cite{ibge_pof_2019, ibge_rendimentos_2025}.
+Cabe uma ressalva metodológica: o Gini estimado neste trabalho refere-se ao
+\textbf{rendimento do trabalho entre ocupados} (em torno de 0{,}48), conceito
+distinto do Gini domiciliar {per capita} de todas as fontes do IBGE ---
+níveis próximos, mas medidas diferentes que podem divergir em tendência, pois a
+alta de 2025 é puxada por renda {não}-trabalho do topo, que não transita
+pelo rendimento dos ocupados. Nesse mesmo conceito, a desigualdade {interna}
+é maior entre brancos ($=0,485$) do que entre negros
+($=0,449$) --- não por equidade, mas por confinamento dos
+negros ao piso da distribuição, o reverso distribucional do teto de vidro.
+O contraste territorial reforça a tese: o Distrito
+Federal, de maior renda {per capita} do país, é também a UF de {maior}
+penalidade racial salarial em nossos modelos regionais --- riqueza média elevada e
+desigualdade racial aguda coexistem no mesmo território.
+
+\paragraph{Triangulação com o Índice de Progresso Social (IPS).}
+O IPS municipal (Imazon e parceiros, 2026) --- que avalia a qualidade de vida dos
+5.570 municípios brasileiros a partir de 57 indicadores sociais e ambientais ---
+oferece corroboração externa e multidimensional do eixo territorial desta tese.
+Uma integração {fina} com o nosso proxy de bairro (UPA) é, contudo,
+inviável: o painel público da PNAD não divulga o município (apenas UF e a situação
+capital/RM/interior), e o IPS é municipal --- portanto mais agregado que a UPA, que
+é sub-municipal. O IPS, assim, não valida o achado de {bairro} (situa-se
+acima dele na escala), mas ecoa o gradiente macro: as regiões de menor progresso
+social (Norte e Nordeste) coincidem com as de maior penalidade racial em nossos
+modelos. Empregamo-lo, portanto, como evidência {convergente} do caráter
+territorial da desigualdade --- não como fonte de dados integrada, e ressalvando que
+o IPS mede progresso social geral, não desigualdade racial.
+
+\paragraph{A segregação residencial como multiplicador da desigualdade.}
+O achado mais robusto desta análise é que 47,0\% do gap salarial racial
+condicional a capital humano é mediado pelo bairro de moradia --- muito além do que modelos
+cross-sectionais típicos, que ignoram a estrutura aninhada dos dados,
+seriam capazes de estimar. O coeficiente contextual
+$\hat{\gamma}_{01} = −0,2189$ por desvio-padrão da proporção de negros na UPA
+indica que a penalidade de viver em bairro segregado é da mesma ordem
+de grandeza da própria penalidade individual de ser negro --- e que 36,9\%
+da variância do rendimento está entre bairros, não entre pessoas.
+Isso sugere que políticas de redistribuição de renda que não enfrentem
+a segregação residencial terão eficácia limitada sobre o gap racial.
+
+\paragraph{Subvalorização do capital humano negro.}
+A decomposição de Oaxaca--Blinder atribui 28,4\% do gap a {retornos}
+diferenciais --- as mesmas características de capital humano e contexto rendem
+menos a trabalhadores negros --- e ainda 16,2\% quando a própria posição
+ocupacional é descontada; a decomposição RIF mostra que essa parcela chega a 35\%
+na base da distribuição. O GLMM acrescenta que a
+credencial educacional não neutraliza a barreira de acesso (OR de \texttt{negro}
+próximo de 0,7 mesmo entre os mais escolarizados). Juntas, essas evidências indicam
+um duplo obstáculo ao retorno educacional: além da penalidade direta mensurada
+pelo HLM, o acesso desigual às ocupações que convertem credenciais em renda.
+\citeonline{granovetter1973} oferece o mecanismo plausível --- redes de indicação
+que não cruzam fronteiras sociais ---, hipótese que este trabalho não testa
+diretamente e que fica como agenda.
+
+\paragraph{Persistência da discriminação direta.}
+O gap líquido de 10,2\%, estimado após controlar por todos os vetores
+de transmissão contextual, representa um piso para a discriminação direta
+não explicada por diferenças observáveis. Os valores SHAP reforçam essa
+interpretação: a variável racial mantém o 11$^\circ$ lugar
+na importância preditiva do XGBoost mesmo quando o modelo tem acesso
+completo às variáveis educacionais, demográficas e contextuais.
+Essa evidência é consistente com os experimentos de auditoria de
+\citeonline{pager2007}, que demonstram experimentalmente a discriminação
+racial em processos seletivos.
+
+\paragraph{Lenta convergência racial.}
+A redução de apenas 2,4\%
+do gap em dez anos --- equivalente a 0,001 ponto de log-rendimento por ano
+($\delta = 0{,}000847$, $p = 0{,}077$, WLS 2016--2025)
+--- sugere que, ao ritmo atual, a convergência racial levaria mais de um
+século para eliminar o diferencial observado em 2016.
+Essa constatação não trivializa avanços recentes em políticas de cotas
+e acesso ao ensino superior, mas evidencia que reformas no campo da
+educação, sem intervenção simultânea nos mecanismos de segregação
+residencial e de acesso às redes profissionais, são insuficientes.
+
+\paragraph{Ancoragem em políticas públicas existentes.}
+As barreiras estimadas não são abstrações: cada uma corresponde a um instrumento
+jurídico-institucional já existente no Brasil, cuja intensificação ou
+aperfeiçoamento os resultados sugerem.
+A \textbf{barreira de acesso} (GLMM, OR~$=0,699$ para CBO~1--4 no modelo com
+contexto) dialoga diretamente com a {Lei~12.990/2014}, que reserva 20\% das
+vagas em concursos públicos federais a candidatos negros, e cujo escopo o
+diagnóstico sugere ampliar para níveis hierárquicos superiores --- onde o teto de
+vidro é mais severo (OR(top~10\%)~$=0,654$).
+A \textbf{qualificação e o acesso ao ensino superior} correspondem ao
+{Prouni} e ao {Fies}, bem como ao legado do {PRONATEC}; o
+achado de que as mesmas credenciais rendem menos a trabalhadores negros (efeito
+retornos da decomposição de Oaxaca--Blinder) indica que tais programas precisam ser
+combinados a mecanismos de inserção ocupacional, sob pena de retorno marginal
+decrescente.
+O \textbf{combate à discriminação direta} encontra base na {Lei~9.029/1995}
+(que proíbe práticas discriminatórias na relação de trabalho) e no {Estatuto
+da Igualdade Racial} ({Lei~12.288/2010}), cuja fiscalização o gap líquido de
+10,2\% --- e a penalidade de 7,0\% que persiste dentro da mesma ocupação ---
+justifica reforçar.
+
+\subsection*{Limitações e escopo de validade}
+
+\paragraph{Natureza inferencial {vs.}\ preditiva dos modelos.}
+Os resultados devem ser lidos sob dois regimes epistemológicos distintos.
+Os modelos HLM, a decomposição de Oaxaca--Blinder, a regressão quantílica e
+o modelo logístico de acesso produzem {estimativas de associação condicional}:
+medem o diferencial racial que persiste após o controle de covariáveis
+observáveis, sob o pressuposto de seleção em observáveis. Não constituem, por
+si sós, prova de causalidade no sentido contrafactual, pois não derivam de
+desenho experimental ou quase-experimental. Já o XGBoost e os valores SHAP têm
+finalidade {preditiva e interpretativa}: quantificam a contribuição de
+cada variável para a {previsão} do rendimento --- não o efeito causal
+de manipulá-la. A convergência entre os dois regimes (a raça permanece preditora
+de primeira ordem {e} mantém coeficiente negativo significante sob
+controle exaustivo) é o que confere robustez ao diagnóstico; ainda assim, a
+linguagem causal foi deliberadamente evitada.
+
+\paragraph{Cobertura da variável de escolaridade.}
+A escolaridade detalhada (\texttt{educ\_cat}) está registrada para cerca de
+31\% da PEA no painel público utilizado. Para preservar o $N$ completo, os
+níveis de instrução entram como {dummies} de conclusão acompanhadas de
+um indicador explícito de não-registro (\texttt{educ\_missing}), de modo que a
+categoria de referência não confunda ``baixa escolaridade'' com ``dado ausente''.
+Testes de sensibilidade mostram que o coeficiente racial é estável a essa
+especificação (variação inferior a~1\%); ainda assim, os retornos educacionais
+devem ser interpretados com a cautela própria de uma variável parcialmente
+observada.
+
+\paragraph{Condicionar em quem tem renda positiva.}
+Todos os modelos de rendimento são estimados entre ocupados com renda positiva. Isso é
+{condicionar no desfecho} (\citeonline{angrist2009}, cap.~3): se a discriminação
+também reduz a probabilidade de estar ocupado, o gap salarial condicional mistura o
+efeito sobre o salário com a seleção de quem permanece na amostra. A direção provável do
+viés é de {subestimação}: se os trabalhadores negros que conseguem se manter
+ocupados são positivamente selecionados em atributos não observados, o gap entre os
+observados é menor que o gap potencial na população. O modelo logístico de acesso trata
+diretamente a outra metade do problema --- a probabilidade de chegar à ocupação
+qualificada --- e a correção de Heckman, estimada na versão estendida deste trabalho,
+indicou seleção não nula ($\hat\lambda$ significativo), com o coeficiente racial estável
+em sinal e ordem de grandeza. A leitura correta é, portanto: o gap líquido aqui reportado
+é o gap {entre ocupados}, não o gap potencial de toda a população em idade ativa.
+
+\paragraph{As hipóteses, uma a uma, e o que acontece se falharem.}
+Seguindo a recomendação de ``ser o próprio cético'' (\citeonline{angrist2009}, cap.~8):
+\begin{enumerate}
+  \item \textbf{Seleção em observáveis (CIA).} O gap líquido só é o efeito do tratamento
+    diferencial se, condicional a $X$, a raça for ``como se'' aleatória. Não é: qualidade
+    da escola, habilidade não medida e redes ficam fora. Se esses omitidos correlacionam
+    negativamente com ser negro e positivamente com renda, o coeficiente {superestima}
+    a discriminação --- por isso o gap líquido é apresentado como limite superior dessa
+    leitura, e o Konfound/E-value quantificam quanto de confundimento seria preciso.
+  \item \textbf{{Bad controls}.} Ocupação, formalidade e horas são desfechos da
+    própria discriminação. Com eles (M4, Oaxaca-Blinder de acesso) o resultado é um
+    {limite inferior descritivo}: a parcela que opera pela porta de entrada some da
+    conta. Sem eles (M3, especificação~(A) da Oaxaca-Blinder) tem-se o gap total
+    condicional a capital humano e bairro. As duas versões são reportadas lado a lado.
+  \item \textbf{Reflexo (Manski).} A renda média do bairro inclui o próprio indivíduo; usada
+    como preditor, é mecanicamente informativa. Nos modelos de acesso ela foi removida e,
+    no XGBoost, substituída pela média {leave-one-out}; ainda assim, choques comuns ao
+    bairro impedem leitura causal do coeficiente contextual.
+  \item \textbf{Efeitos aleatórios.} O HLM e o GLMM supõem que o efeito de bairro não é
+    correlacionado com os regressores. Como contraprova, todos os coeficientes foram
+    reestimados com efeitos fixos de UF e erro-padrão agrupado por UPA, com as mesmas
+    conclusões (Subseção~\ref{subsec:inferencia}).
+  \item \textbf{Pesos e desenho amostral.} As estimativas são não ponderadas: descrevem a
+    regressão na amostra. A robustez ponderada pelo peso da PNAD muda o gap em menos de
+    meio ponto percentual.
+  \item \textbf{Correlação intragrupo.} Ignorá-la subestimaria os erros-padrão (Moulton);
+    todos os modelos reportam erro-padrão agrupado por UPA ou o modelam por efeito
+    aleatório, e o agrupamento por UF usa $t$ com $G-1$ graus de liberdade.
+  \item \textbf{Significância com $N$ grande.} Com 7,7 milhões de observações, quase tudo é
+    ``significativo''; a leitura privilegia magnitude, intervalos de confiança e E-values,
+    não asteriscos.
+\end{enumerate}
+
+\paragraph{Desenho transversal e direções futuras.}
+O caráter transversal do painel público impede a análise de trajetórias
+individuais; o painel rotativo completo com microdado identificado e a extensão
+à RAIS permitiriam investigar mobilidade e o teto de vidro em cargos de liderança
+com identificação de firma. A análise de redes de co-residência, a tipologia
+por agrupamento e a priorização de políticas por pesquisa operacional,
+desenvolvidas em versão estendida deste trabalho, ficam como agenda.
+
+\bigskip
+
+\noindent\textbf{Declaração de uso de inteligência artificial.}
+Na elaboração deste trabalho foram utilizadas ferramentas de inteligência
+artificial (Claude Code, da Anthropic) como apoio à implementação e depuração de
+código (Python e R), à geração de figuras e tabelas e à formatação dos documentos.
+A concepção da pesquisa, a escolha das metodologias, a interpretação dos resultados
+e a redação final são de responsabilidade do autor, que revisou, validou e responde
+por todo o conteúdo.
+
+% ══════════════════════════════════════════════════════════════════════════════
+
+
+\subsection*{Declaração de uso de inteligência artificial}
+Na elaboração deste trabalho foram utilizadas ferramentas de inteligência
+artificial (Claude Code, da Anthropic) como apoio à implementação e depuração de
+código (Python e R), à geração de figuras e tabelas e à formatação dos documentos.
+A concepção da pesquisa, a escolha das metodologias, a interpretação dos resultados
+e a redação final são de responsabilidade do autor, que revisou, validou e responde
+por todo o conteúdo.
+
+% ══════════════════════════════════════════════════════════════════════════════
+
+
+\section*{Conclusão}
+
+A desigualdade racial no mercado de trabalho brasileiro não se reduziu a um
+desconto salarial isolado: operou como um sistema de barreiras em camadas, que
+começou antes do primeiro salário e persistiu ao longo da trajetória
+profissional. Comparados trabalhadores de mesma escolaridade, idade, sexo e
+bairro, o diferencial de rendimento foi de 10,2%, e
+7,0% permaneceram dentro da mesma ocupação — parcela que deve ser
+lida como limite inferior, já que a própria ocupação é resultado da barreira de
+acesso.
+
+O achado mais relevante para o debate de políticas foi o da barreira de entrada.
+Com o mesmo perfil observável e no mesmo bairro, trabalhadores negros tiveram
+cerca de 30\% menos chance de ocupar cargo qualificado e 35\%
+menos chance de alcançar o décimo superior da renda. Aumentar a escolaridade sem
+intervir nos mecanismos de seleção e promoção produz, portanto, retorno marginal
+decrescente: as credenciais existem, mas os canais que as convertem em mobilidade
+permanecem estreitos.
+
+O contexto de moradia respondeu por 47,0% do diferencial
+agregado, o que indica que política de renda que ignore o território tem eficácia
+limitada. A desvantagem da mulher negra excedeu em
+4,6 pontos percentuais a soma das penalidades de raça e
+de gênero isoladas, de modo que intervenções desenhadas para um eixo de cada vez
+deixam de fora justamente quem está na interseção.
+
+Os resultados são estimativas de associação condicional, e não de efeito causal
+no sentido contrafactual. Ainda assim, a convergência de quatro métodos
+independentes sobre a população completa, a magnitude dos diferenciais e a
+robustez a confundimento não observado sustentam o diagnóstico: a discriminação
+operou sobretudo no acesso à ocupação, e políticas unidimensionais — centradas
+apenas em escolaridade, apenas em fiscalização salarial ou apenas em cotas — são
+insuficientes para desmontá-lo.
+
+
+\newpage
+\bibliography{relatorio_tcc}
+\bibliographystyle{abntex2-alf}
+
+\end{document}
