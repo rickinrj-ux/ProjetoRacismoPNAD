@@ -78,6 +78,10 @@ function Build-Relatorio {
     # 3. pós-processa -> relatorio_tcc_enxuto.tex
     Write-Host "  -> tcc/scripts/gerar_relatorio_enxuto.py" -ForegroundColor Green
     & $Python (Join-Path $PSScriptRoot "scripts\gerar_relatorio_enxuto.py")
+    # 4. mesma fonte, saída Word (entregaveis/relatorio_tcc_enxuto.docx)
+    Write-Host "  -> tcc/scripts/gerar_word_enxuto.py" -ForegroundColor Green
+    & $Python (Join-Path $PSScriptRoot "scripts\gerar_word_enxuto.py")
+    if ($LASTEXITCODE -ne 0) { Write-Host "  [AVISO] Word não gerado (pypandoc_binary ausente?)" -ForegroundColor Yellow }
 }
 
 if ($Relatorio) {
