@@ -787,6 +787,7 @@ a diferenças em educação, experiência, gênero ou contexto de moradia.
   contribuição da variável racial aparece isolada das demais.}
   \label{fig:shap_wf}
 \end{figure}
+\noindent\emph{Como ler a Figura~\ref{fig:shap_wf}:} cada linha é uma variável de \textbf{um} trabalhador --- não de uma média. A barra mostra quanto aquela variável empurra a previsão para cima ou para baixo, partindo da previsão média da base até a previsão final do caso. Serve para ver como o modelo compõe uma decisão, não para generalizar.
 
 % ── NÚCLEO: decomposições e acesso (inserido pela versão enxuta) ──
 \noindent\rule{\textwidth}{1pt}\par
@@ -814,6 +815,7 @@ nenhum atributo observável explica.
   rótulo: gap em \% de renda. Em azul, o M3 (gap líquido).}
   \label{fig:hlm_gap}
 \end{figure}
+\noindent\emph{Como ler a Figura~\ref{fig:hlm_gap}:} cada barra é um modelo da sequência e, de cima para baixo, acrescenta-se um bloco de controles ao anterior. O comprimento da barra é a penalidade racial em log-rendimento e o rótulo dentro dela, a mesma penalidade em \% de renda; o traço fino é o intervalo de confiança de 95\% com erro-padrão agrupado por UPA. Em azul, o M3 --- o gap líquido.
 
 \subsection{Decomposição de Oaxaca--Blinder: composição \emph{vs.}\ discriminação}
 A decomposição de Oaxaca--Blinder separa o gap bruto de log-rendimento
@@ -851,6 +853,7 @@ magnitude, não o $p$-valor \cite{angrist2009}.
   na porta de entrada das ocupações --- medida adiante pelo modelo de acesso.}
   \label{fig:ob_cascata}
 \end{figure}
+\noindent\emph{Como ler a Figura~\ref{fig:ob_cascata}:} cada painel é uma cascata lida da esquerda para a direita. A primeira barra é o gap total em log-rendimento; a segunda desconta a parcela atribuída a diferenças de características (dotações); a terceira, em azul, é o que sobra sem explicação. A única diferença entre os painéis é se a ocupação entra ou não como característica.
 
 \subsection{Regressão Quantílica e RIF-OB: teto de vidro e \emph{sticky floor}}
 A regressão quantílica estima o gap em cada ponto da distribuição de renda; a
@@ -887,6 +890,7 @@ pago a características, o outro sobre a \emph{distribuição} de característic
   \emph{incondicionais} da renda é maior na base.}
   \label{fig:qr_rif}
 \end{figure}
+\noindent\emph{Como ler a Figura~\ref{fig:qr_rif}:} à esquerda, cada ponto é a penalidade racial estimada num quantil \emph{condicional} $\tau$ (eixo vertical em log-pontos $\times100$), e a faixa é o intervalo de 95\% por bootstrap em blocos de UPA. À direita, cada barra é um quantil \emph{incondicional} da renda e soma 100\%: a parte azul é a parcela não explicada, com o valor escrito dentro.
 
 \subsection{GLMM logístico: o teto de vidro no acesso}
 \label{subsec:glmm_resultados}
@@ -940,6 +944,7 @@ hipótese de efeitos aleatórios.
   IC~95\%, por desfecho e degrau; em azul, o modelo com contexto de bairro (M2).}
   \label{fig:glmm_or}
 \end{figure}
+\noindent\emph{Como ler a Figura~\ref{fig:glmm_or}:} cada ponto é uma razão de chances e a linha horizontal, seu intervalo de confiança de 95\%; a linha tracejada em~1 marca a paridade, de modo que quanto mais à esquerda, maior a desvantagem. Os blocos são os três desfechos e, dentro de cada um, os modelos; em azul, o M2, que compara pessoas do mesmo bairro.
 
 \input{outputs/tables/glmm_glassceil.tex}
 \input{outputs/tables/glmm_ajuste.tex}

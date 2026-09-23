@@ -485,6 +485,39 @@ texto, n_it = inserir_apos_linha(
     r"\input{outputs/tables/ob_interseccional_tcc.tex}")
 
 LEGENDAS = [
+    # Divisão de trabalho (SWD-55/56): o título da figura afirma o achado; a nota
+    # "Como ler" explica só a mecânica — o que é cada barra, faixa ou linha de
+    # referência. A nota nunca repete a conclusão.
+    (r"\label{fig:hlm_gap}", r"\end{figure}",
+     r"\noindent\emph{Como ler a Figura~\ref{fig:hlm_gap}:} cada barra é um modelo da "
+     r"sequência e, de cima para baixo, acrescenta-se um bloco de controles ao anterior. "
+     r"O comprimento da barra é a penalidade racial em log-rendimento e o rótulo dentro "
+     r"dela, a mesma penalidade em \% de renda; o traço fino é o intervalo de confiança de "
+     r"95\% com erro-padrão agrupado por UPA. Em azul, o M3 --- o gap líquido."),
+    (r"\label{fig:ob_cascata}", r"\end{figure}",
+     r"\noindent\emph{Como ler a Figura~\ref{fig:ob_cascata}:} cada painel é uma cascata "
+     r"lida da esquerda para a direita. A primeira barra é o gap total em log-rendimento; "
+     r"a segunda desconta a parcela atribuída a diferenças de características (dotações); "
+     r"a terceira, em azul, é o que sobra sem explicação. A única diferença entre os "
+     r"painéis é se a ocupação entra ou não como característica."),
+    (r"\label{fig:qr_rif}", r"\end{figure}",
+     r"\noindent\emph{Como ler a Figura~\ref{fig:qr_rif}:} à esquerda, cada ponto é a "
+     r"penalidade racial estimada num quantil \emph{condicional} $\tau$ (eixo vertical em "
+     r"log-pontos $\times100$), e a faixa é o intervalo de 95\% por bootstrap em blocos de "
+     r"UPA. À direita, cada barra é um quantil \emph{incondicional} da renda e soma 100\%: "
+     r"a parte azul é a parcela não explicada, com o valor escrito dentro."),
+    (r"\label{fig:glmm_or}", r"\end{figure}",
+     r"\noindent\emph{Como ler a Figura~\ref{fig:glmm_or}:} cada ponto é uma razão de "
+     r"chances e a linha horizontal, seu intervalo de confiança de 95\%; a linha tracejada "
+     r"em~1 marca a paridade, de modo que quanto mais à esquerda, maior a desvantagem. Os "
+     r"blocos são os três desfechos e, dentro de cada um, os modelos; em azul, o M2, que "
+     r"compara pessoas do mesmo bairro."),
+    (r"\label{fig:shap_wf}", r"\end{figure}",
+     r"\noindent\emph{Como ler a Figura~\ref{fig:shap_wf}:} cada linha é uma variável de "
+     r"\textbf{um} trabalhador --- não de uma média. A barra mostra quanto aquela variável "
+     r"empurra a previsão para cima ou para baixo, partindo da previsão média da base até "
+     r"a previsão final do caso. Serve para ver como o modelo compõe uma decisão, não para "
+     r"generalizar."),
     (r"\label{fig:shap}", r"\end{figure}",
      r"\noindent\emph{Como ler a Figura~\ref{fig:shap}:} cada ponto é um trabalhador; "
      r"quanto mais à direita (ou maior a barra), maior o efeito da variável na renda "
