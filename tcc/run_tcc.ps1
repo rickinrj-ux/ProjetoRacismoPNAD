@@ -82,10 +82,13 @@ function Build-Relatorio {
     Write-Host "  -> tcc/scripts/gerar_word_enxuto.py" -ForegroundColor Green
     & $Python (Join-Path $PSScriptRoot "scripts\gerar_word_enxuto.py")
     if ($LASTEXITCODE -ne 0) { Write-Host "  [AVISO] Word não gerado (pypandoc_binary ausente?)" -ForegroundColor Yellow }
-    # 5. guia de estudo da defesa (números lidos dos csv por params_nucleo.py)
-    Write-Host "  -> tcc/scripts/gerar_guia_estudo.py" -ForegroundColor Green
-    & $Python (Join-Path $PSScriptRoot "scripts\gerar_guia_estudo.py")
-    if ($LASTEXITCODE -ne 0) { throw "Falha em gerar_guia_estudo.py (exit $LASTEXITCODE)" }
+    # 5. demais entregáveis — todos lêem os números via params_nucleo.py
+    foreach ($e in @("gerar_guia_estudo.py", "gerar_apresentacao_executiva.py",
+                     "gerar_resultados_preliminares.py")) {
+        Write-Host "  -> tcc/scripts/$e" -ForegroundColor Green
+        & $Python (Join-Path $PSScriptRoot "scripts\$e")
+        if ($LASTEXITCODE -ne 0) { throw "Falha em $e (exit $LASTEXITCODE)" }
+    }
 }
 
 if ($Relatorio) {

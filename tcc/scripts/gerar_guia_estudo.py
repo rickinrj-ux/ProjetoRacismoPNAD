@@ -653,7 +653,12 @@ para("Guia gerado automaticamente por tcc/scripts/gerar_guia_estudo.py a partir 
      "novo para que os números acompanhem.", size=9, italic=True, color=CINZA)
 
 OUT.parent.mkdir(exist_ok=True)
-doc.save(str(OUT))
+try:
+    doc.save(str(OUT))
+except PermissionError:
+    print(f"ERRO: {OUT.name} está aberto no Word — feche o arquivo e rode de novo.\n"
+          f"      (o arquivo em disco continua sendo a versão anterior)")
+    raise SystemExit(1)
 print(f"OK -> {OUT.relative_to(ROOT)}  ({OUT.stat().st_size // 1024} KB)")
 print(f"     {len(doc.paragraphs)} parágrafos, {len(doc.tables)} tabelas, "
       f"{len(P)} parâmetros lidos dos csv")

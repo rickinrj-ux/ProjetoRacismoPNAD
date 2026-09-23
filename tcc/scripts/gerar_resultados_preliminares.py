@@ -2,30 +2,25 @@
 gerar_resultados_preliminares.py
 ================================
 Monta o documento de RESULTADOS PRELIMINARES no modelo MBA USP/Esalq
-(Template Resultados Preliminares_PT), puxando todos os números de params.py
-(fonte única de verdade). Estrutura: Título, Autores, Resumo, Palavras-chave,
-Introdução, Material e Métodos, Resultados Preliminares, Considerações,
-Referências. Formatação: Times New Roman 12, espaçamento 1,5, justificado,
-títulos de seção em negrito e alinhados à esquerda. Sem os textos de instrução.
+(Template Resultados Preliminares_PT). Estrutura: Título, Autores, Resumo,
+Palavras-chave, Introdução, Material e Métodos, Resultados Preliminares,
+Limitações, Considerações, Referências. Formatação: Times New Roman 12,
+espaçamento 1,5, justificado, títulos de seção em negrito à esquerda.
 
-Saída: Resultados_Preliminares_TCC.docx
+Todos os números vêm de `params_nucleo.py`, que lê os csv de outputs/tables/ —
+os mesmos do relatório. A versão anterior (scripts/geradores/) lia o params.py
+da raiz e csv da série estendida, e por isso ficou com números que o relatório
+já não sustenta.
+
+Saída: entregaveis/Resultados_Preliminares_TCC.docx
 """
 
-# --- bootstrap raiz do projeto (reorg estrutura) ---
+# --- bootstrap raiz do projeto ---
 import os as _os, sys as _sys
 from pathlib import Path as _Path
 _os.chdir(_Path(__file__).resolve().parents[2])
-_sys.path.insert(0, _os.getcwd())
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
 # --- fim bootstrap ---
-
-# SUPERADO: lia o params.py da raiz e csv da série estendida (HLM de três níveis).
-# O entregável atual sai de tcc/scripts/gerar_resultados_preliminares.py, que lê os números dos csv.
-# A trava evita sobrescrever o arquivo bom; escapatória para o branch
-# mestrado-extenso.
-if _os.environ.get("PERMITIR_GERADOR_SUPERADO") != "1":
-    print("gerar_resultados_preliminares.py está SUPERADO: use tcc/scripts/gerar_resultados_preliminares.py.\n"
-          "Para rodar assim mesmo: PERMITIR_GERADOR_SUPERADO=1")
-    _sys.exit(1)
 
 import sys
 from pathlib import Path
@@ -34,13 +29,20 @@ from docx import Document
 from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.enum.table import WD_TABLE_ALIGNMENT
-from params import P, fmt, fmtN, or_str, ame
+from params_nucleo import P, milhar, pt as _pt
 
 sys.stdout.reconfigure(encoding="utf-8")
 ROOT = Path.cwd()
 FIG  = ROOT / "outputs" / "figures"
 OUT  = ROOT / "entregaveis" / "Resultados_Preliminares_TCC.docx"
 (ROOT / "entregaveis").mkdir(exist_ok=True)
+
+# compatibilidade com os helpers do documento (pt-BR, sem o menos tipográfico,
+# que o Word do template não renderiza bem em tabela)
+def fmt(v, dec=3):  return _pt(v, dec).replace("−", "-")
+def fmtN(n):        return milhar(n)
+def or_str(v, dec=3): return fmt(v, dec)
+def ame(v, dec=2):  return f"AME {fmt(v, dec)} p.p."
 
 def g(k, d=0.0): return P.get(k, d)
 def pa(v, dec=1): return fmt(abs(v), dec)   # |valor| em pt-BR
@@ -117,25 +119,32 @@ def tabela(legenda, headers, rows):
 
 # ── Carrega resultados dos CSV canônicos (para as tabelas) ─────────────────────
 TBL = ROOT / "outputs" / "tables"
-_med = pd.read_csv(TBL / "gap_decomposicao_serie_completo.csv")
-_oba = pd.read_csv(TBL / "ob_acesso.csv").iloc[0]
-_glm = pd.read_csv(TBL / "glmm_glassceil_full.csv")
-_ev  = pd.read_csv(TBL / "evalues_glmm.csv")
-_itx = pd.read_csv(TBL / "interseccional_ob4grupos.csv")
+_oba = pd.read_csv(TBL / "ob_acesso.csv").set_index("espec")
+_itx = pd.read_csv(TBL / "interseccional_ob4grupos_nucleo.csv")
+
 
 def _glm_m2(des):
-    r = _glm[(_glm.desfecho == des) & (_glm.modelo == "M2")].iloc[0]
-    e = _ev[(_ev.Desfecho == des) & (_ev.Modelo == "M2")]
-    ev = fmt(float(e["E-value (OR)"].iloc[0]), 2) if len(e) else "---"
-    return [fmt(r.OR_negro, 3), fmt(r.AME_pp, 1), ev]
+    """GLMM de verdade (lme4::glmer) — M2 é o modelo com contexto de bairro."""
+    return [fmt(g(f"OR_{des}_M2"), 3), fmt(g(f"AME_{des}_M2"), 1),
+            fmt(g(f"EV_{des}_M2"), 2)]
 
-_MEDLBL = {"M1_Individual": "M1 (individual)", "M2_Localidade": "M2 (+ contexto UPA)",
-           "M3_Completo": "M3 (+ UF)", "M4_Ocupacao": "M4 (+ ocupação)"}
-_med_rows = [[_MEDLBL.get(r["Modelo"], r["Modelo"]), fmt(r["b_negro"], 4), fmt(r["Gap%"], 1),
-              ("—" if pd.isna(r["Mediacao_total%"]) else fmt(r["Mediacao_total%"], 1))]
-             for r in _med.to_dict("records")]
-_oba_rows = [["Dotação (composição: capital humano e ocupação)", fmt(_oba["pct_dotacao"], 1)],
-             ["Coeficiente (não explicado / discriminação)", fmt(_oba["pct_coeficiente"], 1)]]
+
+# step-up do HLM de dois níveis, com o gap agregado (OLS + UF) como referência
+_med_rows = [["Agregado (individual + UF, sem bairro)", fmt(g("B_POOL"), 4),
+              f"-{fmt(g('GAP_POOL'), 1)}", "—"]]
+_MEDLBL = {"M1": "M1 (+ intercepto aleatório de UPA)", "M2": "M2 (+ contexto da UPA)",
+           "M3": "M3 (+ efeitos fixos de UF)", "M4": "M4 (+ ocupação e formalidade)"}
+for _m in ("M1", "M2", "M3", "M4"):
+    _med_rows.append([_MEDLBL[_m], fmt(g(f"B_{_m}"), 4), f"-{fmt(g(f'GAP_{_m}'), 1)}",
+                      fmt(g(f"MED_ACUM_{_m}"), 1)])
+
+# as duas especificações da Oaxaca-Blinder, lado a lado (MHE-25)
+_oba_rows = [
+    ["Dotações — (A) capital humano e contexto", fmt(g("OB_SEM_DOT_PCT"), 1),
+     fmt(g("OB_COM_DOT_PCT"), 1)],
+    ["Retornos — parcela não explicada", fmt(g("OB_SEM_RET_PCT"), 1),
+     fmt(g("OB_COM_RET_PCT"), 1)],
+]
 _itx_rows = [[r["grupo"], fmt(r["gap_pct"], 1), fmt(r["end_pct"], 1), fmt(r["ret_pct"], 1),
               ("—" if abs(r["penalidade_extra_pct"]) < 1e-6 else fmt(r["penalidade_extra_pct"], 1))]
              for r in _itx.to_dict("records")]
@@ -153,17 +162,21 @@ doc.add_paragraph()
 # ── Resumo ────────────────────────────────────────────────────────────────────
 secao("Resumo")
 par(f"A desigualdade racial no mercado de trabalho brasileiro foi investigada com a PNAD "
-    f"Contínua (2016–2025; {fmtN(int(g('N_GLMM',7694198)))} observações da população "
-    f"economicamente ativa), integrando econometria multinível, decomposições do gap e "
-    f"aprendizado de máquina interpretável. Os resultados preliminares indicam que a "
-    f"discriminação opera em camadas: uma barreira de acesso a ocupações qualificadas "
-    f"(GLMM logístico, OR={or_str(g('OR_M2',0.69))}), uma penalidade salarial residual e um "
-    f"teto de vidro que se agrava no topo da distribuição (OR de acesso ao decil superior "
-    f"= {or_str(g('OR_TOP10_M1',0.45))}). Mais de metade do diferencial salarial é mediada "
-    f"pelo contexto de moradia (UPA); a decomposição de Oaxaca-Blinder atribui 83,8% do gap a "
-    f"diferenças de dotações (sobretudo de ocupação) e 16,2% à parcela não explicada, enquanto a "
-    f"penalidade recai de forma agravada sobre a mulher negra (penalidade interseccional de "
-    f"+9,5 p.p.).")
+    f"Contínua (2016–2025; {fmtN(g('N_GLMM'))} observações da população economicamente "
+    f"ativa com rendimento positivo), integrando econometria multinível, decomposições do "
+    f"gap e aprendizado de máquina interpretável. Os resultados indicam que a discriminação "
+    f"opera em camadas: uma barreira de acesso a ocupações qualificadas (GLMM logístico "
+    f"com intercepto aleatório de bairro, OR={or_str(g('OR_ocp_qualif_M2'))}) que se agrava "
+    f"no topo da distribuição (OR de acesso ao decil superior = "
+    f"{or_str(g('OR_y_top10_M2'))}) e uma penalidade salarial que persiste sob controle "
+    f"exaustivo. Do gap agregado de {pa(g('GAP_POOL'))}%, {pa(g('MED_BAIRRO'))}% é mediado "
+    f"pelo contexto de moradia (UPA), restando um gap líquido de {pa(g('GAP_M3'))}% e "
+    f"{pa(g('GAP_M4'))}% dentro da mesma ocupação; a decomposição de Oaxaca-Blinder atribui "
+    f"{pa(g('OB_SEM_RET_PCT'))}% do gap a retornos diferenciais quando a ocupação não é "
+    f"tratada como dotação, e {pa(g('OB_COM_RET_PCT'))}% quando é — limite inferior, pois o "
+    f"acesso à ocupação é ele próprio desigual. A penalidade recai de forma agravada sobre a "
+    f"mulher negra, com efeito interseccional de +{pa(g('INT_PENAL_EXTRA'))} p.p. além da "
+    f"soma dos eixos de raça e de gênero.")
 kv("Palavras-chave: ", "gap salarial racial; modelos hierárquicos; teto de vidro; "
    "decomposição de Oaxaca-Blinder; interseccionalidade.")
 
@@ -205,7 +218,7 @@ par("O objetivo deste trabalho é identificar, isolar e quantificar os mecanismo
 secao("Material e Métodos")
 sub("Base de dados")
 par(f"Utilizou-se a Pesquisa Nacional por Amostra de Domicílios Contínua (PNAD Contínua/"
-    f"IBGE), série completa de 2016 a 2025, totalizando {fmtN(int(g('N_GLMM',7694198)))} "
+    f"IBGE), série completa de 2016 a 2025, totalizando {fmtN(g('N_GLMM'))} "
     f"observações da população economicamente ativa com rendimento positivo após o "
     f"tratamento dos dados. As variáveis incluíram raça (preto/pardo agregados em 'negro'), "
     f"gênero, idade, escolaridade, jornada, vínculo, grupo ocupacional (CBO) e indicadores "
@@ -213,9 +226,11 @@ par(f"Utilizou-se a Pesquisa Nacional por Amostra de Domicílios Contínua (PNAD
     f"unidade da federação (UF). Os dados são de acesso público; nenhum indivíduo é "
     f"identificável.")
 sub("Modelos multiníveis: HLM e GLMM")
-par("Estimaram-se modelos lineares hierárquicos (HLM) para o logaritmo do rendimento, com "
-    "efeitos aleatórios de UPA e UF, decompondo o gap bruto em mediação contextual e "
-    "penalidade residual (Raudenbush; Bryk, 2002). O acesso a ocupações qualificadas e ao "
+par("Estimaram-se modelos lineares hierárquicos (HLM) de dois níveis para o logaritmo do "
+    "rendimento — indivíduos aninhados em UPA, com a UF como conjunto de efeitos fixos, já "
+    "que 27 unidades são poucas para um terceiro nível aleatório —, em estratégia step-up "
+    "que decompõe o gap agregado em mediação contextual e penalidade residual (Raudenbush; "
+    "Bryk, 2002). O acesso a ocupações qualificadas e ao "
     "topo da distribuição de renda foi modelado por GLMM logístico (lme4::glmer, R), com "
     "efeito aleatório de UPA. A robustez dos achados foi avaliada por E-values (VanderWeele; "
     "Ding, 2017).")
@@ -248,8 +263,8 @@ par("Os resultados preliminares sustentam uma tese central: a desigualdade racia
 sub("A falha da explicação meritocrática")
 par(f"Se o rendimento fosse função apenas do capital humano, controlar escolaridade, "
     f"experiência e jornada deveria dissolver o gap racial — o que não ocorre. A decomposição "
-    f"de Oaxaca-Blinder atribui cerca de {pa(g('DOT_PCT',83.5),0)}% do diferencial a diferenças "
-    f"de dotações e apenas {pa(g('RET_PCT',16.5),0)}% a retornos diferenciais. O ponto decisivo, "
+    f"de Oaxaca-Blinder atribui {pa(g('OB_SEM_DOT_PCT'),0)}% do diferencial a diferenças "
+    f"de dotações e {pa(g('OB_SEM_RET_PCT'),0)}% a retornos diferenciais. O ponto decisivo, "
     f"porém, está na COMPOSIÇÃO dessas dotações (Figura 1): os fatores que mais explicam o gap "
     f"não são educacionais, mas CONTEXTUAIS e OCUPACIONAIS — a proporção de negros na UPA e o "
     f"acesso a grupos ocupacionais de prestígio. As dotações não são, portanto, mérito neutro: "
@@ -261,15 +276,15 @@ figura("oaxaca_por_variavel.png",
 
 sub("Camada 1 — A barreira de acesso e o teto de vidro")
 par(f"A primeira camada é a exclusão da PORTA DE ENTRADA. O GLMM logístico multinível estima "
-    f"que um trabalhador negro idêntico a um branco tem cerca de "
-    f"{fmt(round((1-g('OR_M2',0.69))*100),0)}% menos chance de ocupar um cargo qualificado "
-    f"(OR={or_str(g('OR_M2',0.69))}; {ame(g('AME_M2_pp',-4.84))}). A barreira não é uniforme ao "
-    f"longo da hierarquia: ela se agrava no topo (Figura 2) — o odds ratio de acesso cai de "
-    f"{or_str(g('OR_TOP20_M1',0.536))} no quintil superior de renda para "
-    f"{or_str(g('OR_TOP10_M1',0.4533))} no decil superior. É um teto de vidro de ACESSO: quanto "
-    f"mais valiosa a posição, mais opaco o filtro racial. O elevado ICC de UPA "
-    f"({pa(g('ICC_M1_pct',22.2),1)}%) já antecipa que essa barreira tem raiz territorial — o fio "
-    f"que conecta as camadas.")
+    f"que um trabalhador negro com a mesma escolaridade, sexo, idade, estado e bairro que um "
+    f"branco tem {fmt((1 - g('OR_ocp_qualif_M2')) * 100, 0)}% menos chance de ocupar um cargo "
+    f"qualificado (OR={or_str(g('OR_ocp_qualif_M2'))}; {ame(g('AME_ocp_qualif_M2'), 1)}). A "
+    f"barreira não é uniforme ao longo da hierarquia: ela se agrava no topo (Figura 2) — o "
+    f"odds ratio de acesso cai de {or_str(g('OR_y_top20_M2'))} no quintil superior de renda "
+    f"para {or_str(g('OR_y_top10_M2'))} no decil superior. É um teto de vidro de ACESSO: "
+    f"quanto mais valiosa a posição, mais opaco o filtro racial. O ICC de UPA no modelo nulo "
+    f"de acesso ({pa(g('ICC_ocp_qualif_M1') * 100, 1)}%) já antecipa que essa barreira tem "
+    f"raiz territorial — o fio que conecta as camadas.")
 figura("glmm_glassceil_forest.png",
        "Figura 2. GLMM — odds ratios de acesso por desfecho: o gradiente decrescente rumo ao "
        "topo da renda caracteriza o teto de vidro de acesso (OR < 1 = barreira).", w=14)
@@ -281,17 +296,17 @@ tabela("Tabela 1. GLMM logístico (M2, população completa) — teto de vidro d
         ["Top 20% de renda"] + _glm_m2("y_top20"),
         ["Top 10% de renda"] + _glm_m2("y_top10")])
 par(f"Uma leitura interseccional (quatro grupos raça×gênero, referência = homem branco) revela uma "
-    f"inversão. No ACESSO à categoria, a mulher negra é alçada (OR={fmt(g('GRG_MN_OCP',1.33),2)}, "
+    f"inversão. No ACESSO à categoria, a mulher negra é alçada (OR={fmt(g('GRG_MN_OCP_QUALIF'),2)}, "
     f"acima do homem branco, por profissões feminizadas em CBO 1–4) e o mais penalizado é o homem "
-    f"negro (OR={fmt(g('GRG_HN_OCP',0.65),2)}); mas no TOPO da renda o quadro inverte e a mulher negra "
-    f"torna-se a MAIS excluída de todos (OR={fmt(g('GRG_MN_TOP10',0.34),2)} no decil superior, abaixo "
+    f"negro (OR={fmt(g('GRG_HN_OCP_QUALIF'),2)}); mas no TOPO da renda o quadro inverte e a mulher negra "
+    f"torna-se a MAIS excluída de todos (OR={fmt(g('GRG_MN_TOP10'),2)} no decil superior, abaixo "
     f"da mulher branca e do homem negro). A interação é sub-aditiva, mas o teto de vidro recai com "
     f"força máxima sobre a mulher negra (Figura 2b).")
 figura("grupo_rg_interseccional.png",
        "Figura 2b. Interseccionalidade raça×gênero: a mulher negra é alçada no acesso à categoria, "
        "mas a mais excluída no topo da renda (OR vs. homem branco).", w=14)
 par(f"Um indicador distribucional reforça o teto de vidro. O Gini da renda do trabalho é MAIOR entre "
-    f"brancos ({fmt(g('GINI_BRANCO_TRAB',0.485),3)}) do que entre negros ({fmt(g('GINI_NEGRO_TRAB',0.449),3)}) "
+    f"brancos ({fmt(g('GINI_BRANCO'),3)}) do que entre negros ({fmt(g('GINI_NEGRO'),3)}) "
     f"— em todos os anos da série. Isso não é equidade entre negros: é CONFINAMENTO AO PISO (renda "
     f"homogeneamente baixa), o reverso distribucional da barreira de acesso ao topo. Quem é barrado do "
     f"topo achata-se na base. Cabe a ressalva de que este Gini refere-se ao rendimento do TRABALHO entre "
@@ -310,7 +325,7 @@ par("Por que as dotações são desiguais? A segunda camada responde: em parte, 
     "interpretamos como evidência de mediação territorial, e não como 'determinante' causal "
     "isolado. É esse eixo territorial que dá unidade às demais camadas.")
 figura("shap_importance_xgb.png",
-       "Figura 3. Importância SHAP (XGBoost, R²≈0,62): o contexto territorial (renda média da "
+       f"Figura 3. Importância SHAP (XGBoost, R² de teste {fmt(g('ML_XGB_R2'), 3)}): o contexto territorial (renda média da "
        "UPA) está entre os preditores de maior peso, sinalizando o eixo territorial da "
        "desigualdade — interpretado como mediação, não como determinante causal isolado.", w=14)
 par("Esse eixo territorial encontra corroboração externa no Índice de Progresso Social (IPS) municipal "
@@ -319,29 +334,38 @@ par("Esse eixo territorial encontra corroboração externa no Índice de Progres
     "proxy de bairro (UPA) é inviável — a PNAD não divulga o município e o IPS é municipal, mais "
     "agregado que a UPA —, de modo que o IPS entra como evidência convergente do caráter territorial, "
     "não como fonte de dados integrada.")
-tabela("Tabela 2. Decomposição do gap por mediação (HLM de três níveis, PNAD Contínua 2016–2025). "
-       "Cada modelo acrescenta controles ao anterior; o gap encolhe de −19,1% (M1) para −6,2% (M4), "
-       "com 69,8% mediado por contexto de moradia e ocupação.",
+tabela(f"Tabela 2. Decomposição do gap por mediação (HLM de dois níveis — indivíduos em UPA, "
+       f"com efeitos fixos de UF; PNAD Contínua 2016–2025, população completa). Cada modelo "
+       f"acrescenta controles ao anterior; o gap encolhe de {pa(g('GAP_POOL'))}% (agregado) "
+       f"para {pa(g('GAP_M4'))}% (M4), com {pa(g('MED_ACUM_M4'))}% mediado por contexto de "
+       f"moradia e ocupação.",
        ["Modelo (controles acumulados)", "β negro", "Gap (%)", "Mediação acum. (%)"],
        _med_rows)
-tabela("Tabela 3. Decomposição de Oaxaca-Blinder (especificação de acesso, com ocupação e contexto "
-       "como dotações; população completa). Dotações + Coeficiente = 100% do gap. Ressalva (Oaxaca & "
-       "Ransom, 1999): incluir ocupação como dotação subestima a discriminação — daí a complementaridade "
-       "com o GLMM de acesso (Tabela 1).",
-       ["Componente", "% do Gap"],
+tabela("Tabela 3. Decomposição de Oaxaca-Blinder em duas especificações (população completa; "
+       "erros-padrão por bootstrap em blocos de UPA). Dotações + Retornos = 100% do gap. "
+       "(A) trata apenas capital humano e contexto como dotações; (B) acrescenta ocupação, "
+       "formalidade e jornada. Ressalva (Oaxaca & Ransom, 1999): incluir a ocupação como "
+       "dotação subestima a discriminação, pois a segregação ocupacional é ela própria "
+       "discriminatória — daí a complementaridade com o GLMM de acesso (Tabela 1).",
+       ["Componente", "(A) sem ocupação (%)", "(B) com ocupação (%)"],
        _oba_rows)
 
 sub("Camada 3 — A penalidade interseccional")
-par("As duas primeiras camadas — acesso e território — combinam-se de forma agravada na "
-    "interseção de raça e gênero. A decomposição interseccional mostra que a Mulher Negra "
-    "acumula a maior desvantagem (gap de 96,4% vs. o Homem Branco) e, além disso, uma penalidade "
-    "EXTRA de 9,5 pontos percentuais que não se reduz à soma das penalidades de raça e de gênero "
-    "isoladas — a marca da interseccionalidade (Crenshaw, 1989). As camadas reforçam-se "
-    "mutuamente: a barreira de acesso e o eixo territorial pesam de modo desigual sobre os "
-    "diferentes grupos.")
-tabela("Tabela 4. Decomposição interseccional (raça × gênero) do gap vs. o Homem Branco. "
-       "Dotações + Retornos = 100% do gap. A Mulher Negra acumula o maior gap (96,4%) e uma "
-       "penalidade extra de 9,5 p.p. não redutível à soma dos eixos de raça e gênero (Crenshaw, 1989).",
+par(f"As duas primeiras camadas — acesso e território — combinam-se de forma agravada na "
+    f"interseção de raça e gênero. A decomposição interseccional mostra que a Mulher Negra "
+    f"acumula a maior desvantagem (gap de {pa(g('INT_MULHER_NEGRA_GAP'))}% vs. o Homem "
+    f"Branco) e, além disso, uma penalidade EXTRA de {pa(g('INT_PENAL_EXTRA'))} pontos "
+    f"percentuais que não se reduz à soma das penalidades de raça e de gênero isoladas — a "
+    f"marca da interseccionalidade (Crenshaw, 1989). A interação é sub-aditiva: o efeito "
+    f"próprio da combinação existe e é menor que o dobro das penalidades isoladas. As "
+    f"camadas reforçam-se mutuamente: a barreira de acesso e o eixo territorial pesam de "
+    f"modo desigual sobre os diferentes grupos.")
+tabela(f"Tabela 4. Decomposição interseccional (raça × gênero) do gap vs. o Homem Branco "
+       f"(população completa; erro-padrão por bootstrap em blocos de UPA). Dotações + "
+       f"Retornos = 100% do gap. A Mulher Negra acumula o maior gap "
+       f"({pa(g('INT_MULHER_NEGRA_GAP'))}%) e uma penalidade extra de "
+       f"{pa(g('INT_PENAL_EXTRA'))} p.p. não redutível à soma dos eixos de raça e gênero "
+       f"(Crenshaw, 1989).",
        ["Grupo", "Gap vs HB (%)", "Dotações (%)", "Retornos (%)", "Penal. extra (p.p.)"],
        _itx_rows)
 figura("grupo_rg_interseccional.png",
@@ -351,7 +375,7 @@ figura("grupo_rg_interseccional.png",
 # ── Considerações preliminares ────────────────────────────────────────────────
 secao("Limitações e escopo de validade")
 par("Natureza inferencial vs. preditiva. Os modelos HLM, Oaxaca-Blinder, regressão quantílica e "
-    "correção de Heckman produzem estimativas de ASSOCIAÇÃO CONDICIONAL — o diferencial racial que "
+    "o GLMM logístico de acesso produzem estimativas de ASSOCIAÇÃO CONDICIONAL — o diferencial racial que "
     "persiste sob controle de observáveis —, e não prova causal contrafactual. O XGBoost e os "
     "valores SHAP têm finalidade PREDITIVA e interpretativa: medem a contribuição de cada variável "
     "para a previsão do rendimento, não o efeito causal de manipulá-la. A linguagem causal foi "
@@ -361,23 +385,44 @@ par("Cobertura da escolaridade. A escolaridade detalhada está registrada para c
     "explícito de não-registro (educ_missing), de modo que a categoria-base não confunda baixa "
     "escolaridade com dado ausente. O coeficiente racial é estável a essa especificação (variação "
     "inferior a 1%).")
-par("Especificação da decomposição de Oaxaca-Blinder. A repartição entre composição e discriminação "
-    "depende de quais controles se tratam como dotações. Adota-se a especificação de acesso (ocupação "
-    "e contexto como dotações; 83,8% de composição), coerente com a leitura de que a discriminação age "
-    "sobretudo no acesso às ocupações — medido diretamente pelo GLMM. Como alerta Oaxaca e Ransom "
-    "(1999), tratar a ocupação como dotação tende a subestimar a discriminação total, já que a "
-    "segregação ocupacional é, ela própria, discriminatória; daí a complementaridade entre os métodos.")
+par(f"Especificação da decomposição de Oaxaca-Blinder. A repartição entre composição e "
+    f"discriminação depende de quais controles se tratam como dotações, e por isso as duas "
+    f"especificações são reportadas lado a lado: sem a ocupação, a parcela não explicada é "
+    f"{pa(g('OB_SEM_RET_PCT'))}%; com ela, {pa(g('OB_COM_RET_PCT'))}%. Como alerta Oaxaca e "
+    f"Ransom (1999), tratar a ocupação como dotação tende a subestimar a discriminação total, "
+    f"já que a segregação ocupacional é, ela própria, discriminatória — a segunda leitura é, "
+    f"portanto, um limite inferior descritivo, e daí a complementaridade com o GLMM de acesso.")
+par("Bad controls. Pelo mesmo motivo, ocupação, formalidade e jornada são desfechos da "
+    "própria discriminação (Angrist; Pischke, 2009, cap. 3). Os modelos que os incluem (M4 e "
+    "a especificação B) são apresentados como limite inferior; os que não os incluem (M3 e a "
+    "especificação A), como o gap condicional a capital humano e bairro.")
+par("Condicionamento em rendimento positivo. Todos os modelos de rendimento são estimados "
+    "entre ocupados com renda positiva, o que é condicionar no desfecho. A direção provável "
+    "do viés é de subestimação, caso os trabalhadores negros que permanecem ocupados sejam "
+    "positivamente selecionados em atributos não observados; o GLMM de acesso trata "
+    "diretamente a outra metade do problema.")
+par("Inferência. Como a PNAD amostra por conglomerados, todos os modelos reportam erro-padrão "
+    "agrupado por UPA ou modelam o bairro como efeito aleatório; as decomposições usam "
+    "bootstrap em blocos de UPA. No agrupamento por UF, com 27 clusters, usa-se t com G−1 "
+    "graus de liberdade. As estimativas são não ponderadas — descrevem a regressão na "
+    "amostra —, e a robustez ponderada pelo peso V1028 altera o gap em menos de meio ponto "
+    "percentual.")
 
 secao("Considerações Preliminares")
-par("Tomados em conjunto, os resultados parciais convergem para a tese central: a desigualdade "
-    "racial no trabalho brasileiro é um SISTEMA DE BARREIRAS EM CAMADAS — acesso, remuneração e "
-    "interseccionalidade — com forte mediação do TERRITÓRIO (o contexto de moradia responde por "
-    "mais da metade do gap). O gap é majoritariamente composição (Oaxaca: 83,8%), mas a composição "
-    "é produto da discriminação no acesso às ocupações (GLMM: OR≈0,705) e convive com discriminação "
-    "salarial residual, maior na base da distribuição (sticky floor). A consequência prescritiva é "
-    "direta: políticas unidimensionais são insuficientes; a intervenção deve ser multidimensional e "
-    "centrada no acesso a ocupações qualificadas. As próximas etapas incluem o refinamento das "
-    "análises de robustez e a consolidação das recomendações.")
+par(f"Tomados em conjunto, os resultados convergem para a tese central: a desigualdade racial "
+    f"no trabalho brasileiro é um SISTEMA DE BARREIRAS EM CAMADAS — acesso, remuneração e "
+    f"interseccionalidade — com forte mediação do TERRITÓRIO: o contexto de moradia responde "
+    f"por {pa(g('MED_BAIRRO'))}% do gap agregado. Boa parte do diferencial é composição "
+    f"(Oaxaca-Blinder: {pa(g('OB_SEM_DOT_PCT'))}% de dotações na especificação sem ocupação), "
+    f"mas a composição é ela mesma produto da discriminação no acesso às ocupações (GLMM: "
+    f"OR={or_str(g('OR_ocp_qualif_M2'))}, com gradiente até "
+    f"{or_str(g('OR_y_top10_M2'))} no decil superior) e convive com penalidade salarial "
+    f"que persiste sob controle exaustivo — {pa(g('GAP_M3'))}% de gap líquido e "
+    f"{pa(g('GAP_M4'))}% dentro da mesma ocupação — maior na base da distribuição em termos "
+    f"de retornos (sticky floor). A consequência prescritiva é direta: políticas "
+    f"unidimensionais são insuficientes; a intervenção deve ser multidimensional e centrada "
+    f"no acesso a ocupações qualificadas. As próximas etapas incluem o refinamento das "
+    f"análises de robustez e a consolidação das recomendações.")
 
 # ── Referências ───────────────────────────────────────────────────────────────
 secao("Referências")

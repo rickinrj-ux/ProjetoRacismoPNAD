@@ -188,6 +188,21 @@ def carregar() -> dict:
         if g:
             P[f"INT_{g}_SE"] = _f(r.get("se_gap_pct") or r.get("se_gap"))
 
+    # Interseccionalidade no acesso (GLMM por grupo raça×gênero) — é a fonte da
+    # figura grupo_rg_interseccional.png usada no relatório
+    for r in _rows("grupo_rg_4grupos_desfechos.csv"):
+        d = r["desfecho"].upper().replace("Y_", "")
+        P[f"GRG_MB_{d}"] = _f(r["OR_mulher_branca"])
+        P[f"GRG_HN_{d}"] = _f(r["OR_homem_negro"])
+        P[f"GRG_MN_{d}"] = _f(r["OR_mulher_negra"])
+        P[f"GRG_INT_{d}"] = _f(r["OR_interacao"])
+
+    # Gini intra-raça da renda do trabalho entre ocupados (ponderado por V1028)
+    for r in _rows("gini_raca.csv"):
+        chave = {"Total": "TOTAL", "Brancos": "BRANCO", "Negros": "NEGRO"}.get(r["grupo"])
+        if chave:
+            P[f"GINI_{chave}"] = _f(r["gini"])
+
     # Machine learning: desempenho, validação cruzada e SHAP
     APELIDO = {"Random Forest": "RF", "XGBoost": "XGB",
                "XGBoost (sem renda da UPA)": "XGB_SEM_UPA"}
