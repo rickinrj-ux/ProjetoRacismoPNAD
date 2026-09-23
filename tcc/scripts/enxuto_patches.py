@@ -706,6 +706,14 @@ inferência.
 
 \subsection{Random Forest, XGBoost e SHAP Values}""", 0),
 
+    ("tipografia: legenda 1 pt menor, justificada, e barreira de floats",
+     '\\\\usepackage\\{caption\\}',
+     '\\usepackage{caption}\n% Legenda 1 pt menor que o corpo (em 12 pt, \\small = 11 pt), justificada e com\n% o rótulo em negrito; e um pouco de ar entre a legenda e o objeto.\n\\captionsetup{font=small, labelfont=bf, justification=justified,\n              singlelinecheck=false, skip=6pt}\n% placeins: nenhuma figura ou tabela atravessa para a subseção seguinte\n\\usepackage{placeins}\n\\let\\oldsubsectionFB\\subsection\n\\renewcommand{\\subsection}{\\FloatBarrier\\oldsubsectionFB}', 0),
+
+    ("rev-final: remeter à tabela interseccional, que ninguém citava",
+     'ocupação\\ qualificada\\ \\(CBO\\~1\\-\\-4\\),\\ renda\\ no\\ top\\~20\\\\%\\ e\\ no\\ top\\~10\\\\%\\.',
+     'ocupação qualificada (CBO~1--4), renda no top~20\\% e no top~10\\%. A Tabela~\\ref{tab:interseccional} traz a decomposição de Oaxaca--Blinder dos quatro grupos contra o homem branco, e a Figura~\\ref{fig:interseccional}, as razões de chance nos três desfechos.', 0),
+
     # ── Títulos de ação nas figuras que ainda eram descritivas (SWD-55) ──
     ("rev-final SWD: título de ação na figura SHAP",
      r"\\caption\{Análise SHAP --- XGBoost \(\$N_\\text\{SHAP\}=50\.000\$\)\.\}",
