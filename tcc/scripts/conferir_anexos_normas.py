@@ -46,7 +46,9 @@ a(("Margens 2,5 cm nos quatro lados",
        for m in ("top_margin", "bottom_margin", "left_margin", "right_margin"))))
 a(("Cabeçalho preenchido (sem lacunas do modelo)", "_____" not in cab))
 a(("Cabeçalho em Arial 8", 'w:sz w:val="16"' in cab))
-a(("Logo do programa no cabeçalho", "graphicData" in cab or "<w:drawing" in cab))
+# imagem de verdade: blip com embed. Procurar só por "drawing" dava OK
+# para o conector reto do template, e o logo faltava no Word.
+a(("Logo do programa no cabeçalho", "r:embed" in cab and "<a:blip" in cab))
 a(("Numeração desde a folha de rosto",
    'w:type="first"' not in xml or "titlePg" not in xml))
 a(("Autores separados por ponto e vírgula", "Calheiros1*; Edilson" in txt))

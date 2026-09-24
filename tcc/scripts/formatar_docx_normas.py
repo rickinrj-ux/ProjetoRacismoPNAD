@@ -27,7 +27,8 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 
 from docx import Document
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
+from docx.enum.text import (WD_ALIGN_PARAGRAPH, WD_LINE_SPACING,
+                            WD_TAB_ALIGNMENT)
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
@@ -347,6 +348,46 @@ def numero_em_todas_as_paginas(doc) -> None:
     for sec in doc.sections:
         sec.different_first_page_header_footer = False
 
+
+LOGO = ROOT / "outputs" / "figures" / "logo_mba_usp_esalq.png"
+
+
+def _tem_imagem(cabecalho) -> bool:
+    """Imagem de verdade: um blip com embed, não o conector reto do template."""
+    xml = cabecalho._element.xml
+    return "r:embed" in xml or "<a:blip" in xml
+
+
+def inserir_logo(doc) -> int:
+    """Põe o logo do programa à direita do texto do cabeçalho.
+
+    O pandoc perde a imagem do template: resta o conector reto, sem `r:embed`.
+    Aqui o logo é reinserido com o relacionamento refeito, num tab à direita
+    da margem — o layout do anexo da página 61.
+    """
+    if not LOGO.exists():
+        print(f"  [AVISO] logo não encontrado em {LOGO.name}; cabeçalho sem imagem")
+        return 0
+
+    n = 0
+    for sec in doc.sections:
+        for cab in (sec.header, sec.first_page_header, sec.even_page_header):
+            if cab is None or _tem_imagem(cab):
+                continue
+            par = cab.paragraphs[0] if cab.paragraphs else cab.add_paragraph()
+            if not par.text.strip():
+                continue
+            # tab à direita, na margem: o texto fica à esquerda e o logo à direita
+            pf = par.paragraph_format
+            pf.tab_stops.clear_all()
+            pf.tab_stops.add_tab_stop(
+                sec.page_width - sec.left_margin - sec.right_margin,
+                WD_TAB_ALIGNMENT.RIGHT)
+            run = par.add_run("\t")
+            run.add_picture(str(LOGO), height=Cm(0.9))
+            n += 1
+    return n
+
 def main() -> int:
     if not ALVO.exists():
         print(f"ERRO: {ALVO.name} não existe — rode antes gerar_tcc_normas_docx.py")
@@ -363,6 +404,7 @@ def main() -> int:
         s.left_margin = s.right_margin = Cm(2.5)
 
     cab = preencher_cabecalho(doc)
+    logos = inserir_logo(doc)
     numero_em_todas_as_paginas(doc)
     corpo, legendas = formatar_corpo(doc)
     celulas = formatar_tabelas(doc)
@@ -374,7 +416,8 @@ def main() -> int:
         return 1
 
     print(f"OK -> {ALVO.relative_to(ROOT)}")
-    print(f"     cabeçalho preenchido em {cab} parágrafo(s); numeração desde a folha de rosto")
+    print(f"     cabeçalho preenchido em {cab} parágrafo(s), logo inserido em "
+          f"{logos}; numeração desde a folha de rosto")
     print(f"     {corpo} parágrafos de corpo (Arial 11, 1,5, recuo 1,25 cm, "
           f"justificado)")
     print(f"     {legendas} legendas/fontes (simples, sem recuo)")
