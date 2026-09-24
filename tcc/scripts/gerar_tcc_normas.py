@@ -254,6 +254,30 @@ def numeros_por_extenso(doc: str) -> str:
     return "".join(partes)
 
 
+NOTA_LOG = (
+    '\\footnote{Os modelos têm o logaritmo do rendimento como variável dependente, de modo que o coeficiente está em log-pontos. A variação percentual correspondente é $(e^{\\hat\\beta}-1)\\times 100$, e não $\\hat\\beta\\times 100$: para $\\hat\\beta=-0{,}2123$, por exemplo, tem-se $-19{,}1\\%$, e não $-21{,}2\\%$. As duas leituras se aproximam quando o coeficiente é pequeno e divergem à medida que ele cresce em módulo; todos os percentuais de gap deste trabalho usam a primeira forma.}'
+)
+
+
+def nota_sobre_log(doc: str) -> str:
+    """Explica, uma única vez, a conversão de log-pontos para percentual.
+
+    Sem isso o leitor confere "beta = -0,2123" contra "19,1%" pela conta linear
+    e conclui que há erro. A nota entra na primeira frase que apresenta um gap
+    em % ao lado do coeficiente.
+    """
+    marca = "trabalhadores negros recebem "
+    i = doc.find(marca)
+    if i < 0:
+        print("  [AVISO] ponto de inserção da nota sobre log não encontrado")
+        return doc
+    fim = doc.find("$)", i)                 # fecha o parêntese do coeficiente
+    if fim < 0:
+        return doc
+    fim += 2
+    return doc[:fim] + NOTA_LOG + doc[fim:]
+
+
 def refs_penduradas(doc: str) -> dict[str, int]:
     """\\ref e \\eqref cujo \\label não existe mais no documento.
 
@@ -336,6 +360,7 @@ def main() -> int:
     doc = "\n".join(partes)
     doc = sem_numeracao_titulo(sem_italico(sem_barreiras(doc)))
     doc = chamar_antes(doc)
+    doc = nota_sobre_log(doc)
     doc = expandir_inputs(doc)
     doc = fonte_nas_tabelas(doc)
     doc = numerar_equacoes(doc)

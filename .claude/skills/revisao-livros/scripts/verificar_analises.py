@@ -566,6 +566,105 @@ def check_entregaveis() -> None:
                 "O entregável não acompanhou a reexecução: regerá-lo lendo os csv "
                 "(params_nucleo.py) em vez de números escritos à mão.")
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# E. Remissões e leitura de coeficientes em log
+# ──────────────────────────────────────────────────────────────────────────────
+def check_remissoes() -> None:
+    """Remissão que chega quebrada ao leitor.
+
+    Nasceu de um defeito real: ao resolver \\ref em texto (a norma não numera
+    seções), o título ia nu para dentro dos parênteses e o leitor o lia como
+    parte da enumeração — "(OLS com efeitos fixos de UF, Inferência:
+    erros-padrão agrupados, poucos clusters e pesos)".
+    """
+    # só os entregáveis: no .tex o \ref ainda não foi resolvido, e é o correto
+    alvos: list[Path] = []
+    ent = ROOT / "entregaveis"
+    if ent.is_dir():
+        alvos += [p for p in ent.glob("*.docx") if not p.name.startswith("~$")]
+
+    for alvo in alvos:
+        if not alvo.exists():
+            continue
+        txt = read(alvo) if alvo.suffix == ".tex" else _texto_entregavel(alvo)
+        if not txt:
+            continue
+        onde = alvo.name
+
+        crus = set(re.findall(r"\[(?:fig|tab|sec|subsec|eq):[^\]]+\]", txt))
+        if crus:
+            add("ALTO", "REMISSÃO/FAV-91", onde,
+                f"Rótulo cru no texto: {sorted(crus)[:4]}.",
+                "Resolver a referência para 'Tabela N', 'Figura N' ou o nome da "
+                "seção antes de entregar.")
+
+        # título de seção solto dentro de parênteses, depois de vírgula
+        for m in re.finditer(r"\(([^()]{0,60}),\s*([A-ZÁÉÍÓÚÂÊÔÃÕÇ][^()]{6,60}:"
+                             r"[^()]{6,80})\)", txt):
+            add("MÉDIO", "REMISSÃO/SWD-06", onde,
+                f"Título de seção solto dentro de parênteses: "
+                f"\u201c…{m.group(2)[:56]}…\u201d.",
+                "Redigir a remissão ('ver a seção X') em vez de inserir o título "
+                "nu, que o leitor lê como continuação da frase.")
+
+        for m in re.finditer(r"\b(Tabela|Figura)\s+\1\s+\d", txt):
+            add("ALTO", "REMISSÃO", onde,
+                f"Palavra duplicada na chamada: “{m.group(0)[:40]}…”.",
+                "A resolução da referência repetiu a palavra que já estava no "
+                "texto; consumir a palavra anterior ao \\ref.")
+
+        for m in re.finditer(r"\b(A|a)\s+(Figura|Tabela)\s+(?![\d~\\])", txt):
+            trecho = txt[m.start():m.start() + 54].replace("\n", " ")
+            add("MÉDIO", "REMISSÃO", onde,
+                f"Chamada sem número: \u201c{trecho}…\u201d.",
+                "A referência ficou órfã (o alvo saiu do documento) ou não foi "
+                "resolvida.")
+
+
+def check_log_linear() -> None:
+    """Coeficiente em log ao lado do percentual: a diferença precisa de nota.
+
+    Com a variável dependente em logaritmo, a variação percentual é
+    (e^b − 1)×100, não b×100. Quem confere pela conta linear encontra outro
+    número e supõe erro — aconteceu na revisão. A checagem confirma que a
+    conversão exponencial explica o par e exige a explicação no documento.
+    """
+    import math
+
+    alvo = ROOT / "tcc_normas.tex"
+    if not alvo.exists():
+        return
+    txt = read(alvo)
+
+    # pares "beta = -0,2123" ... "19,1%" na mesma vizinhança
+    pares = []
+    for m in re.finditer(r"hat\\beta[^$]{0,60}=\s*(−|-)?\s*0\{?,\}?(\d{3,4})", txt):
+        b = -float("0." + m.group(2))
+        viz = txt[max(0, m.start() - 320):m.start() + 320]
+        for pm in re.finditer(r"(\d{1,2})\{?,\}?(\d)\\%", viz):
+            pctv = float(f"{pm.group(1)}.{pm.group(2)}")
+            exponencial = abs((math.exp(b) - 1) * 100)
+            linear = abs(b) * 100
+            if abs(pctv - exponencial) < 0.15 and abs(linear - exponencial) > 0.5:
+                pares.append((b, pctv, linear))
+                break
+
+    if not pares:
+        return
+    explica = re.search(r"e\^\{?\\?hat?\\?beta\}?\s*-\s*1|\(e\^|exponencial",
+                        txt) or "log-pontos" in txt and "\\footnote" in txt
+    if not explica:
+        b, pctv, linear = pares[0]
+        add("MÉDIO", "LEITURA-LOG/SWD-06", "tcc_normas.tex",
+            f"O texto traz \u03b2 = {b:.4f} e {pctv}%, que só fecham pela conversão "
+            f"exponencial; pela leitura linear seriam {linear:.1f}%. "
+            f"{len(pares)} par(es) nessa situação.",
+            "Explicar uma vez, em nota de rodapé, que a variação percentual é "
+            "(e^\u03b2 \u2212 1)\u00d7100 — sem isso o leitor confere pela conta linear e "
+            "supõe erro.")
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 def main() -> int:
     # stdout do Windows costuma ser cp1252 — forçar UTF-8 para não quebrar no hook
@@ -587,6 +686,7 @@ def main() -> int:
     else:
         add("ALTO", "ESCOPO", str(TEX), "relatorio_tcc_enxuto.tex não encontrado.", "")
     check_scripts(); check_slides(); check_entregaveis()
+    check_remissoes(); check_log_linear()
 
     ordem = {"ALTO": 0, "MÉDIO": 1, "BAIXO": 2, "INFO": 3}
     achados.sort(key=lambda a: ordem[a["nivel"]])

@@ -141,6 +141,10 @@ def resolver_referencias(texto: str) -> str:
         faltando.add(alvo)
         return ""                      # melhor nada do que "[rotulo]" no texto
 
+    # consome a palavra que antecede o \\ref: o texto escreve "Tabela~\\ref{x}"
+    # e a troca traria "Tabela N", produzindo "Tabela Tabela N"
+    texto = re.sub(r"\b(?:Tabela|Figura)s?~?\s*\\ref\{([^}]+)\}",
+                   lambda m: _sub(m), texto)
     texto = re.sub(r"\\ref\{([^}]+)\}", _sub, texto)
 
     # remissão a seção: "Subseção~SEC:Nome" -> "ver a seção Nome". Sem isso o
