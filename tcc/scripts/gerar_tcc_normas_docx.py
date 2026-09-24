@@ -124,10 +124,13 @@ def resolver_referencias(texto: str) -> str:
         for lm in re.finditer(r"\\label\{([^}]+)\}", m.group(2)):
             mapa[lm.group(1)] = f"{rot[amb]} {cont[amb]}"
 
-    # seções e subseções: o rótulo costuma vir na linha seguinte ao título
+    # seções e subseções: o rótulo costuma vir na linha seguinte ao título.
+    # O título longo vira o nome curto (o que vem antes dos dois-pontos), para
+    # a remissão não engolir a frase que a contém.
     for m in re.finditer(r"\\(?:sub)?section\*?\{([^}]*)\}\s*\n?\s*\\label\{([^}]+)\}",
                          texto):
-        mapa[m.group(2)] = m.group(1)
+        titulo = m.group(1).split(":")[0].split("---")[0].strip()
+        mapa[m.group(2)] = "SEC:" + titulo
 
     faltando: set[str] = set()
 
@@ -139,9 +142,12 @@ def resolver_referencias(texto: str) -> str:
         return ""                      # melhor nada do que "[rotulo]" no texto
 
     texto = re.sub(r"\\ref\{([^}]+)\}", _sub, texto)
-    # "Seção~Nome" e "Subseção~Nome" ficam redundantes depois da troca
-    texto = re.sub(r"\((?:Sub)?[Ss]e[çc][ãa]o~?\s*\)", "(", texto)
-    texto = re.sub(r"(?:Sub)?[Ss]e[çc][ãa]o~", "", texto)
+
+    # remissão a seção: "Subseção~SEC:Nome" -> "ver a seção Nome". Sem isso o
+    # título fica solto dentro dos parênteses e parece parte da enumeração.
+    texto = re.sub(r"(?:Sub)?[Ss]e[çc][ãa]o~?\s*SEC:", "ver a seção ", texto)
+    texto = re.sub(r"\bSEC:", "seção ", texto)                 # remissões soltas
+    texto = re.sub(r",\s*(ver a seção)", r"; \1", texto)        # ", ver" -> "; ver"
     if faltando:
         print(f"  [AVISO] rótulos sem destino: {sorted(faltando)}")
     return texto

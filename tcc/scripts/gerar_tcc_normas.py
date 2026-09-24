@@ -129,9 +129,8 @@ CHAMADAS = {
     "tab:shap_importance":
         "A Tabela~\\ref{tab:shap_importance} traz o ranking completo das "
         "variáveis nos dois modelos.",
-    "fig:shap_bee":
-        "A Figura~\\ref{fig:shap_bee} mostra a distribuição dos valores de "
-        "contribuição por variável.",
+    # fig:shap_bee não entra: é uma subfigure, absorvida pela figura-mãe na
+    # conversão para .docx — a chamada da mãe (fig:shap) já a cobre
     "fig:shap_wf":
         "A Figura~\\ref{fig:shap_wf} ilustra como a previsão de um caso "
         "individual é composta.",
