@@ -34,6 +34,8 @@ PREAMBULO = r"""% ════════════════════�
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[brazil]{babel}
+% termos estrangeiros nao devem ser hifenizados pelas regras do portugues
+\hyphenation{Scien-ce Ana-ly-tics boots-trap}
 % Arial: helvet é a métrica equivalente em LaTeX; no .docx a fonte vem do
 % template oficial, via --reference-doc
 \usepackage{helvet}
@@ -64,9 +66,13 @@ PREAMBULO = r"""% ════════════════════�
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\fontsize{8}{10}\selectfont Trabalho de Conclusão de Curso
-  apresentado para obtenção do título de especialista em Data Science e
-  Analytics -- 2026}
+% cabeçalho do modelo (anexo, p. 61): texto justificado à esquerda em Arial 8
+% e o logo do programa no canto superior direito
+\fancyhead[L]{\parbox[b]{0.78\textwidth}{\fontsize{8}{10}\selectfont
+  Trabalho de Conclusão de Curso apresentado para obtenção do título de
+  especialista em Data\nolinebreak\ Science e Analytics -- 2026}}
+\fancyhead[R]{\IfFileExists{outputs/figures/logo_mba_usp_esalq.png}
+  {\includegraphics[height=0.9cm]{logo_mba_usp_esalq}}{}}
 \fancyfoot[R]{\fontsize{9}{11}\selectfont\thepage}
 \renewcommand{\headrulewidth}{0pt}
 \setlength{\headheight}{28pt}
@@ -90,29 +96,34 @@ PREAMBULO = r"""% ════════════════════�
 """
 
 FOLHA_ROSTO = r"""
-% ── Folha de rosto: só título, autores e filiação (norma, item 16.1) ──────────
+% ── Folha de rosto (manual, item 16.1 e anexo da p. 61) ──────────────────────
+% Layout do modelo: cabeçalho, título logo abaixo, dois espaços de caractere
+% até os autores, um espaço até a filiação. Espaçamento simples na folha toda.
 \thispagestyle{fancy}
+\begin{singlespace}
+
 \begin{center}
-\vspace*{2cm}
-{\fontsize{11}{14}\selectfont\bfseries
+{\fontsize{11}{13}\selectfont\bfseries
 Racismo estrutural no mercado de trabalho brasileiro: uma abordagem multinível
 e de decomposição salarial\par}
+\end{center}
 
-\vspace{2\baselineskip}
+\vspace{2\baselineskip}      % dois espaços de caractere
 
-{\fontsize{11}{14}\selectfont
+\begin{center}
+{\fontsize{11}{13}\selectfont
 Ricardo Gomes Calheiros\textsuperscript{1*}; Edilson José Rodrigues\textsuperscript{2}\par}
 \end{center}
 
-\vspace{\baselineskip}
+\vspace{\baselineskip}       % um espaço de caractere
 
-\begin{flushleft}
 {\fontsize{9}{11}\selectfont
-\textsuperscript{1*} Especialista em Finanças, Controladoria e Auditoria.
+\noindent\textsuperscript{1*} Especialista em Finanças, Controladoria e Auditoria.
 E-mail autor correspondente: rickinrj@gmail.com\par
-\textsuperscript{2} Doutor em Engenharia Elétrica. MBA USP/Esalq.
+\noindent\textsuperscript{2} Doutor em Engenharia Elétrica. MBA USP/Esalq.
 E-mail: orientador@usp.br\par}
-\end{flushleft}
+
+\end{singlespace}
 
 \newpage
 """
