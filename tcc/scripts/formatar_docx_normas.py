@@ -51,8 +51,29 @@ def _fonte_do_run(run) -> None:
         run.font.color.rgb = RGBColor(0, 0, 0)
 
 
+SECOES = {"Resumo", "Abstract", "Introdução", "Conclusão", "Referências",
+          "Implementação de Algoritmo(s) de Machine Learning",
+          "Resultados e Discussão", "Agradecimentos"}
+
+# linha do corpo, em pontos: "um espaço de caractere" dos anexos
+ESPACO = 14
+
+
+def _e_referencia(texto: str) -> bool:
+    """Entrada da lista de referências: SOBRENOME, Nome. Título…"""
+    return bool(re.match(r"^[A-ZÀ-Ü][A-ZÀ-Ü\s'-]{2,}(,|;)\s", texto))
+
+
 def formatar_corpo(doc: Document) -> tuple[int, int]:
+    """Aplica a formatação que os anexos cotam para cada bloco do documento.
+
+    Percorre em ordem, mantendo a seção corrente: o Resumo e o Abstract pedem
+    espaçamento simples e sem recuo, as Referências pedem à esquerda e sem
+    recuo, e o corpo das demais seções pede 1,5 com recuo de 1,25 cm.
+    """
     corpo = legendas = 0
+    secao = ""
+
     for p in doc.paragraphs:
         texto = p.text.strip()
         for r in p.runs:
@@ -60,12 +81,23 @@ def formatar_corpo(doc: Document) -> tuple[int, int]:
         if not texto:
             continue
         pf = p.paragraph_format
+
+        if texto in SECOES:                       # título de seção
+            secao = texto
+            for r in p.runs:
+                r.font.bold = True
+            pf.line_spacing = 1.5
+            pf.first_line_indent = Cm(0)
+            pf.left_indent = Cm(0)
+            pf.space_before = Pt(ESPACO)          # um espaço de caractere antes
+            pf.space_after = Pt(ESPACO)           # e outro depois
+            pf.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            continue
+
         if RE_LEGENDA.match(texto) or RE_FONTE.match(texto):
             pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
             pf.first_line_indent = Cm(0)
             pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-            # o título estava colado no parágrafo anterior; a fonte e a nota
-            # seguem coladas na tabela, que é como a norma mostra
             if RE_LEGENDA.match(texto):
                 pf.space_before = Pt(12)
                 pf.space_after = Pt(2)
@@ -73,18 +105,47 @@ def formatar_corpo(doc: Document) -> tuple[int, int]:
                 pf.space_before = Pt(2)
                 pf.space_after = Pt(12)
             legendas += 1
-        elif p.style.name.startswith("Heading") or RE_META.match(texto):
+            continue
+
+        if secao in ("Resumo", "Abstract") or texto.startswith(
+                ("Palavras-chave", "Keywords")):
+            # anexo p. 62: simples, justificado, SEM recuo na primeira linha
             pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
             pf.first_line_indent = Cm(0)
-            pf.space_before = Pt(12)
-            pf.space_after = Pt(6)
-            pf.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        else:
-            pf.line_spacing = 1.5
-            pf.first_line_indent = Cm(1.25)
-            pf.space_after = Pt(0)
+            pf.space_before = Pt(0)
+            pf.space_after = Pt(ESPACO) if texto.startswith(
+                ("Palavras-chave", "Keywords")) else Pt(0)
             pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
             corpo += 1
+            continue
+
+        if secao == "Referências" or _e_referencia(texto):
+            # anexo p. 65: à esquerda, simples, sem recuo, uma linha entre elas
+            pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
+            pf.first_line_indent = Cm(0)
+            pf.left_indent = Cm(0)
+            pf.space_before = Pt(0)
+            pf.space_after = Pt(6)
+            pf.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            corpo += 1
+            continue
+
+        if p.style.name.startswith("Heading"):    # subtítulo
+            for r in p.runs:
+                r.font.bold = True
+            pf.line_spacing = 1.5
+            pf.first_line_indent = Cm(1.25)       # subtítulo tem recuo (16.4)
+            pf.space_before = Pt(ESPACO)
+            pf.space_after = Pt(ESPACO)
+            pf.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            continue
+
+        pf.line_spacing = 1.5                     # corpo das demais seções
+        pf.first_line_indent = Cm(1.25)
+        pf.space_after = Pt(0)
+        pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        corpo += 1
+
     return corpo, legendas
 
 
@@ -244,6 +305,48 @@ def ajustar_larguras(t) -> None:
                 continue
 
 
+
+CURSO = "Data Science e Analytics"
+ANO_DEFESA = "2026"
+
+
+def preencher_cabecalho(doc) -> int:
+    """Troca as lacunas do cabeçalho do template pelos dados do trabalho.
+
+    O cabeçalho vem do template (com o logo do programa), mas com os campos em
+    branco: "especialista em _________ (Nome do curso) – ____ (ano da defesa)".
+    """
+    n = 0
+    for sec in doc.sections:
+        for cab in (sec.header, sec.first_page_header, sec.even_page_header):
+            if cab is None:
+                continue
+            for par in cab.paragraphs:
+                if "_" not in par.text:
+                    continue
+                # junta tudo no primeiro run: o texto vem picado em vários
+                inteiro = par.text
+                inteiro = re.sub(r"_{2,}\s*\(Nome do curso\)", CURSO, inteiro)
+                inteiro = re.sub(r"_{2,}\s*\(ano da defesa\)", ANO_DEFESA, inteiro)
+                inteiro = re.sub(r"\s{2,}", " ", inteiro).strip()
+                for i, r in enumerate(par.runs):
+                    r.text = inteiro if i == 0 else ""
+                    if i == 0:
+                        r.font.name = FONTE_NOME
+                        r.font.size = Pt(8)
+                n += 1
+    return n
+
+
+def numero_em_todas_as_paginas(doc) -> None:
+    """A contagem começa na folha de rosto (norma, item 16.1).
+
+    O template define um rodapé próprio para a primeira página, e ele chega
+    vazio; sem isso, a folha de rosto sairia sem o número 1.
+    """
+    for sec in doc.sections:
+        sec.different_first_page_header_footer = False
+
 def main() -> int:
     if not ALVO.exists():
         print(f"ERRO: {ALVO.name} não existe — rode antes gerar_tcc_normas_docx.py")
@@ -259,6 +362,8 @@ def main() -> int:
         s.top_margin = s.bottom_margin = Cm(2.5)
         s.left_margin = s.right_margin = Cm(2.5)
 
+    cab = preencher_cabecalho(doc)
+    numero_em_todas_as_paginas(doc)
     corpo, legendas = formatar_corpo(doc)
     celulas = formatar_tabelas(doc)
 
@@ -269,6 +374,7 @@ def main() -> int:
         return 1
 
     print(f"OK -> {ALVO.relative_to(ROOT)}")
+    print(f"     cabeçalho preenchido em {cab} parágrafo(s); numeração desde a folha de rosto")
     print(f"     {corpo} parágrafos de corpo (Arial 11, 1,5, recuo 1,25 cm, "
           f"justificado)")
     print(f"     {legendas} legendas/fontes (simples, sem recuo)")

@@ -1,6 +1,6 @@
-# Verificação mecânica — 2026-09-23 22:13
+# Verificação mecânica — 2026-09-23 22:19
 
-Gatilho: `gerar_tcc_normas_docx.py`  
+Gatilho: `execução manual`  
 Achados: **0 ALTO**, 0 MÉDIO, 0 BAIXO, 2 INFO.
 
 | Nível | Critério | Onde | Achado | Correção |
