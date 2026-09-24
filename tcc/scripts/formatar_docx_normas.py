@@ -388,6 +388,97 @@ def inserir_logo(doc) -> int:
             n += 1
     return n
 
+
+TEMPLATE = Path(r"C:\Users\user\Downloads\Template TCC - Implementação de "
+                r"Algoritmo(s) de Machine Learning (251, 252) (1).docx")
+
+
+def transplantar_cabecalho(caminho: Path) -> bool:
+    """Copia o cabeçalho do template para dentro do .docx gerado.
+
+    O template ancora o logo em posição absoluta (wp:anchor). O pandoc perde a
+    imagem e mantém só o conector reto, e reinseri-la por tabulação não
+    reproduz o layout. Copiando o XML, os relacionamentos e a mídia, o
+    cabeçalho fica idêntico ao do modelo.
+    """
+    import shutil
+    import zipfile
+
+    if not TEMPLATE.exists():
+        print("  [AVISO] template não encontrado; cabeçalho fica como veio")
+        return False
+
+    with zipfile.ZipFile(TEMPLATE) as tz:
+        nomes = tz.namelist()
+        hdr = next((n for n in nomes if re.fullmatch(r"word/header\d+\.xml", n)), None)
+        if not hdr:
+            return False
+        xml_hdr = tz.read(hdr)
+        rels_nome = f"word/_rels/{Path(hdr).name}.rels"
+        xml_rels = tz.read(rels_nome) if rels_nome in nomes else b""
+        # a mídia que o cabeçalho referencia
+        alvos = re.findall(rb'Target="([^"]+)"', xml_rels)
+        midia = {}
+        for alvo in alvos:
+            caminho_midia = "word/" + alvo.decode().lstrip("./")
+            if caminho_midia in nomes:
+                midia[caminho_midia] = tz.read(caminho_midia)
+
+    # texto do cabeçalho com os campos preenchidos
+    texto = xml_hdr.decode("utf-8")
+    texto = re.sub(r"_{3,}\s*", "", texto)
+    texto = texto.replace("(Nome do curso)", CURSO)
+    texto = texto.replace("(ano da defesa)", ANO_DEFESA)
+    xml_hdr = texto.encode("utf-8")
+
+    tmp = caminho.with_suffix(".tmp.docx")
+    with zipfile.ZipFile(caminho) as orig, \
+            zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as novo:
+        subst = {"word/header1.xml": xml_hdr,
+                 "word/_rels/header1.xml.rels": xml_rels}
+        subst.update(midia)
+        for item in orig.infolist():
+            dados = subst.pop(item.filename, None)
+            novo.writestr(item, dados if dados is not None else orig.read(item.filename))
+        for nome, dados in subst.items():          # mídia que ainda não existia
+            novo.writestr(nome, dados)
+    shutil.move(str(tmp), str(caminho))
+    return True
+
+
+# blocos que a norma manda começar em página nova (item 16 e anexos)
+INICIAM_PAGINA = ("Racismo estrutural no mercado de trabalho brasileiro",
+                  "Structural racism in the Brazilian labour market")
+
+
+def quebras_de_pagina(doc) -> int:
+    """Insere as quebras que a conversão perdeu.
+
+    O \\newpage do LaTeX não sobrevive ao pandoc: o .docx chegava sem nenhuma
+    quebra, e o Resumo subia para a folha de rosto.
+    """
+    n = 0
+    vistos = 0
+    for p in doc.paragraphs:
+        t = p.text.strip()
+        if not t.startswith(INICIAM_PAGINA):
+            continue
+        vistos += 1
+        if vistos == 1:                 # o da folha de rosto não leva quebra
+            continue
+        if p.runs and "w:br" in p.runs[0]._element.xml:
+            continue
+        r = p.runs[0] if p.runs else p.add_run()
+        r._element.insert(0, _quebra_xml())
+        n += 1
+    return n
+
+
+def _quebra_xml():
+    br = OxmlElement("w:br")
+    br.set(qn("w:type"), "page")
+    return br
+
 def main() -> int:
     if not ALVO.exists():
         print(f"ERRO: {ALVO.name} não existe — rode antes gerar_tcc_normas_docx.py")
@@ -404,7 +495,7 @@ def main() -> int:
         s.left_margin = s.right_margin = Cm(2.5)
 
     cab = preencher_cabecalho(doc)
-    logos = inserir_logo(doc)
+    quebras = quebras_de_pagina(doc)
     numero_em_todas_as_paginas(doc)
     corpo, legendas = formatar_corpo(doc)
     celulas = formatar_tabelas(doc)
@@ -416,8 +507,10 @@ def main() -> int:
         return 1
 
     print(f"OK -> {ALVO.relative_to(ROOT)}")
-    print(f"     cabeçalho preenchido em {cab} parágrafo(s), logo inserido em "
-          f"{logos}; numeração desde a folha de rosto")
+    if transplantar_cabecalho(ALVO):
+        print("     cabeçalho e logo transplantados do template oficial")
+    print(f"     {quebras} quebra(s) de página inserida(s); numeração desde a "
+          f"folha de rosto")
     print(f"     {corpo} parágrafos de corpo (Arial 11, 1,5, recuo 1,25 cm, "
           f"justificado)")
     print(f"     {legendas} legendas/fontes (simples, sem recuo)")

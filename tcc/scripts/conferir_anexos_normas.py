@@ -36,6 +36,27 @@ def prox_corpo(nome):
     return None
 
 
+
+
+def _quebra_entre(doc, antes: str, depois: str) -> bool:
+    """Existe quebra de página entre os dois trechos?
+
+    É o que faltava: sem quebra, o Resumo sobe para a folha de rosto, e nenhuma
+    propriedade de parágrafo denuncia isso.
+    """
+    achou_antes = False
+    for par in doc.paragraphs:
+        t = par.text.strip()
+        if achou_antes:
+            if 'w:type="page"' in par._p.xml:
+                return True
+            if t.startswith(depois):
+                return False
+        if antes in t:
+            achou_antes = True
+    return False
+
+
 sec = d.sections[0]
 checks = []
 a = checks.append
@@ -100,6 +121,26 @@ a((f"Referências ({len(refs)}): à esquerda, simples, sem recuo",
    bool(refs) and refs[0].paragraph_format.line_spacing in (1.0, None)
    and not refs[0].paragraph_format.first_line_indent
    and str(refs[0].paragraph_format.alignment).startswith("LEFT")))
+
+
+# ── paginação (item 16.1 e 16.2): o que a conferência anterior não via ───────
+quebras = xml.count('w:type="page"')
+a((f"Quebras de página presentes ({quebras})", quebras >= 2))
+
+# ordem dos blocos: a folha de rosto termina antes do Resumo
+def _pos(trecho: str) -> int:
+    return txt.find(trecho)
+
+pos_filiacao = _pos("E-mail autor correspondente")
+pos_resumo = _pos("\nResumo")
+pos_abstract = _pos("\nAbstract")
+pos_intro = _pos("\nIntrodução")
+a(("Resumo depois da folha de rosto",
+   -1 < pos_filiacao < pos_resumo))
+a(("Resumo começa em página nova (quebra entre ele e a capa)",
+   _quebra_entre(d, "E-mail autor correspondente", "Resumo")))
+a(("Abstract depois do Resumo", pos_resumo < pos_abstract))
+a(("Introdução depois do Abstract", pos_abstract < pos_intro))
 
 # ── proibições ───────────────────────────────────────────────────────────────
 a(("Sem Sumário (o formato não o prevê)", "Sumário" not in txt[:3000]))
