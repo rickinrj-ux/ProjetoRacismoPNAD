@@ -50,7 +50,9 @@ FORA_DO_NUCLEO = [   # métodos parqueados no branch mestrado-extenso (tcc/ESCOP
     (r"Cluster~?\d|K-means|[Cc]lustering [Ss]ocioecon|tipologia[s]? de vulnerabilidade", "Clustering"),  # "clustering" de SE é estatística, não método
     (r"seis metodologias|três metodologias|cinco metodologias", "contagem de métodos desatualizada"),
 ]
-CAUSAL = r"\bcomprova\w*|\bprova(m|do|da)?\s+que|efeito causal|\bdetermina(m|nte)?\b|\bcausa(m|do|ndo)?\b"
+# "por causa de" e "a causa de" são locuções, não afirmação causal: ficam de fora
+CAUSAL = (r"\bcomprova\w*|\bprova(m|do|da)?\s+que|efeito causal|"
+          r"\bdetermina(m|nte)?\b|(?<!por )(?<!a )\bcausa(m|do|ndo)?\b")
 
 achados: list[dict] = []
 
@@ -570,6 +572,87 @@ def check_entregaveis() -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # E. Remissões e leitura de coeficientes em log
 # ──────────────────────────────────────────────────────────────────────────────
+
+# ── N6 — carga cognitiva (SWD-30, SWD-40, SWD-71) ──────────────────────────
+NUM_CARGA = re.compile(r"(?<![\w,.])\d+(?:[.,]\d+)?")
+# convenção e endereço não são carga: g.l., p-valores, IC nominal, leis, artigos
+SEM_CARGA = re.compile(
+    r"p\s*[<=]\s*0\{?,?\}?\d+|~?95\\%|IC~?95|\d+~?g\.l\.|\(\d+\)\s*,?\s*\$p"
+    r"|Lei~?[\d.]+/\d{4}|art\.~?\d+|n[íi]vel~?\d|cap\.~?\d+|\bCBO~?1--4\b"
+    r"|top~?\d+\\%|\\ref\{[^}]*\}|\\cite\w*\{[^}]*\}|20\d{2}--20\d{2}")
+
+
+def _sem_notas(t: str) -> str:
+    """Remove \\footnote{...} contando chaves: o conteúdo aninha vários níveis."""
+    fora, i = [], 0
+    while True:
+        j = t.find(r"\footnote{", i)
+        if j < 0:
+            fora.append(t[i:])
+            return "".join(fora)
+        fora.append(t[i:j])
+        k, prof = j + len(r"\footnote{"), 1
+        while k < len(t) and prof:
+            prof += (t[k] == "{") - (t[k] == "}")
+            k += 1
+        i = k
+
+
+def _prosa(t: str) -> str:
+    t = SEM_CARGA.sub(" ", _sem_notas(t))
+    t = re.sub(r"\\[a-zA-Z]+\*?", " ", t)
+    return re.sub(r"[{}$\\~]", " ", t)
+
+
+def check_carga_cognitiva(tex: str) -> None:
+    corpo = re.sub(r"\\begin\{(table|figure|tabular|equation\*?)\}.*?\\end\{\1\}",
+                   " ", tex, flags=re.S)
+    # no enxuto são duas seções (Resultados; Discussão e Prescrição); no normativo,
+    # uma só (Resultados e Discussão). Mede-se de uma delas até a Conclusão.
+    m = re.search(r"\\section\*?\{Resultados\b.*?\}(.*?)"
+                  r"\\section\*?\{Conclusão\}", corpo, re.S)
+    if not m:
+        return
+    sec = m.group(1)
+
+    pesados, sem_pergunta = [], []
+    blocos = re.split(r"\\subsection\*?\{([^}]*)\}", sec)
+    for i in range(1, len(blocos), 2):
+        nome, txt = blocos[i], blocos[i + 1]
+
+        # abre com número? (SWD-71: falta o parágrafo de pergunta)
+        abertura = _prosa(txt.split("\\paragraph")[0])
+        # NUM_CARGA (e não `\d`) para não confundir rótulo de modelo,
+        # como "M4" ou "H2", com resultado numérico
+        if NUM_CARGA.search(" ".join(abertura.split()[:15])):
+            sem_pergunta.append(nome[:44])
+
+        partes = re.split(r"\\paragraph\{([^}]*)\}", txt)
+        itens = [("(abertura)", partes[0])]
+        itens += [(partes[k], partes[k + 1]) for k in range(1, len(partes), 2)]
+        for rot, p in itens:
+            c = _prosa(p)
+            w, n = len(c.split()), len(NUM_CARGA.findall(c))
+            if w < 40:
+                continue
+            d = n / w * 100
+            # denso de verdade, ou muitos números mesmo num parágrafo longo
+            if d > 6.0 or (n > 6 and d > 4.5):
+                pesados.append(f"{nome[:22]} | {rot[:34]} ({n} em {w} = {d:.1f}%)")
+
+    if pesados:
+        add("MÉDIO", "SWD-30/SWD-40", "relatorio",
+            f"{len(pesados)} parágrafo(s) de prosa com carga numérica alta "
+            f"(acima de 6%, ou mais de 6 números acima de 4,5%): {pesados[:6]}.",
+            "Manter na linha de leitura só o que a banca vai citar; erro-padrão, IC, "
+            "estatísticas de teste e componentes de variância vivem na tabela ou em nota.")
+    if sem_pergunta:
+        add("BAIXO", "SWD-71", "relatorio",
+            f"{len(sem_pergunta)} subseção(ões) de resultado abrem com número nas "
+            f"primeiras 15 palavras: {sem_pergunta}.",
+            "Abrir com uma ou duas frases que digam o que está para ser descoberto e "
+            "por que importa; o número entra depois da pergunta.")
+
 def check_remissoes() -> None:
     """Remissão que chega quebrada ao leitor.
 
@@ -687,6 +770,8 @@ def main() -> int:
         add("ALTO", "ESCOPO", str(TEX), "relatorio_tcc_enxuto.tex não encontrado.", "")
     check_scripts(); check_slides(); check_entregaveis()
     check_remissoes(); check_log_linear()
+    if tex:
+        check_carga_cognitiva(tex)
 
     ordem = {"ALTO": 0, "MÉDIO": 1, "BAIXO": 2, "INFO": 3}
     achados.sort(key=lambda a: ordem[a["nivel"]])

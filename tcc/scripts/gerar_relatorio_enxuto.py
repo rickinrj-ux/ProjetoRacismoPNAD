@@ -157,48 +157,77 @@ a $12{,}9\%$ (q90) --- a discriminação de preço pesa mais na base.
 
 \subsection{GLMM logístico: o teto de vidro no acesso}
 \label{subsec:glmm_resultados}
-O modelo logístico multinível (\texttt{lme4::glmer}, intercepto aleatório de UPA e
-efeitos fixos de UF, estimado por Laplace na população completa) modela a probabilidade
-de três desfechos --- cargo qualificado (CBO~1--4), renda no top~20\% e no top~10\% ---
-em quatro degraus paralelos aos do HLM: M1 individual, M2 + contexto do bairro, M3 +
-vínculo (formalidade, setor público, conta própria, doméstico --- \emph{bad controls},
-logo limite inferior) e M4 + interação \texttt{negro}$\times$credencial. A
+Até aqui a pergunta foi quanto um trabalhador negro ganha a menos. Ela pressupõe que
+negros e brancos estejam disputando as mesmas vagas. E se a barreira for anterior ao
+salário --- se ela estiver em \emph{quais} posições cada um consegue alcançar? É a
+pergunta desta subseção, e ela importa porque muda o alvo da política: se a desigualdade
+se produz no salário, o remédio é fiscalização de remuneração; se ela se produz no
+acesso, nenhuma política salarial a alcança. Três desfechos respondem --- ocupar cargo
+qualificado (CBO~1--4), estar no top~20\% e no top~10\% da renda ---, cada um estimado
+em quatro degraus paralelos aos do HLM, com intercepto aleatório de UPA e efeitos fixos
+de UF.\footnote{\texttt{lme4::glmer}, aproximação de Laplace sobre a população completa.
+Os degraus são: M1 individual; M2 $+$ contexto do bairro; M3 $+$ vínculo (formalidade,
+setor público, conta própria, doméstico), que é desfecho da própria discriminação e por
+isso faz do M3 um limite inferior; M4 $+$ interação \texttt{negro}$\times$credencial. A
 Tabela~\ref{tab:glmm_glassceil} traz \emph{odds ratios}, efeitos marginais, ICC e
-E-values; a Tabela~\ref{tab:glmm_ajuste}, o ajuste e o desempenho de classificação.
+E-values; a Tabela~\ref{tab:glmm_ajuste}, o ajuste e a classificação.}
 
-\paragraph{O acesso também é ``bairro''.} No M1, a correlação intraclasse latente é de
-@@G_ICC_CBO_M1@@ para o cargo qualificado e @@G_ICC_T10_M1@@ para o top~10\%: entre
-@@G_ICC_CBO_M1_PCT@@\% e @@G_ICC_T10_M1_PCT@@\% da variância latente do acesso está entre
-bairros. O teste de razão de verossimilhança do M2 contra o logit sem efeito aleatório
-(LR $=$ @@G_LR_CBO@@ para o cargo; @@G_LR_T10@@ para o top~10\%, 1~g.l., $p<0{,}001$)
-mostra que o efeito aleatório de UPA é indispensável --- o logit \emph{pooled} trataria
-como independentes pessoas do mesmo mercado local.
+\paragraph{O acesso também é ``bairro''.}
+A primeira coisa que o modelo mostra é que a lógica territorial do HLM se repete aqui.
+Entre \textbf{@@G_ICC_CBO_M1_PCT@@\% e @@G_ICC_T10_M1_PCT@@\% da variância latente do
+acesso está entre bairros}\footnote{Correlação intraclasse latente do M1:
+@@G_ICC_CBO_M1@@ para o cargo qualificado e @@G_ICC_T10_M1@@ para o top~10\%, com
+ICC $= \tau^2/(\tau^2+\pi^2/3)$. O teste de razão de verossimilhança contra o logit sem
+efeito aleatório dá LR $=$ @@G_LR_CBO@@ para o cargo e @@G_LR_T10@@ para o top~10\%
+(1~g.l., $p<0{,}001$).} --- ou seja, saber apenas em que bairro alguém mora já antecipa
+boa parte da chance de essa pessoa chegar a um cargo qualificado, antes de se conhecer
+sua escolaridade. E a fração é maior para o top~10\% do que para o cargo qualificado:
+quanto mais alto o degrau, mais o endereço pesa.
 
-\paragraph{A porta é mais estreita para negros --- e mais ainda no topo.} No M2,
-controlados escolaridade, sexo, idade, horas, estado e contexto do bairro, a chance de
-um trabalhador negro ocupar cargo qualificado é OR~$=$~@@G_OR_CBO_M2@@ (IC~95\%
-@@G_CI_CBO_M2@@) da de um branco do mesmo bairro --- \textbf{@@G_PCT_CBO_M2@@\% menos
-chance}, ou @@G_AME_CBO_M2@@ pontos percentuais de probabilidade. No top~20\% da renda o
-OR é @@G_OR_T20_M2@@ e no top~10\%, @@G_OR_T10_M2@@ (@@G_PCT_T10_M2@@\% menos chance): o
-teto se aperta à medida que se sobe. \emph{Como ler:} OR $<1$ é desvantagem; o AME traduz
-o OR em probabilidade e é a medida a reter (MHE, cap.~3).
+\paragraph{A porta é mais estreita para negros --- e estreita ainda mais no topo.}
+Comparando pessoas do mesmo bairro, com a mesma escolaridade, sexo, idade, jornada e
+estado, a chance de um trabalhador negro ocupar cargo qualificado é
+OR~$=$~@@G_OR_CBO_M2@@\footnote{IC~95\% @@G_CI_CBO_M2@@. \emph{Odds ratio} abaixo de~1 é
+desvantagem; acima de~1, vantagem.} da chance de um branco --- \textbf{@@G_PCT_CBO_M2@@\%
+menos chance}. Traduzido para probabilidade, que é a medida a reter
+\cite{angrist2009}, são \textbf{@@G_AME_CBO_M2@@ pontos percentuais} a menos de chegar
+lá. E a porta estreita à medida que se sobe: no top~10\% da renda o OR cai para
+@@G_OR_T10_M2@@, \textbf{@@G_PCT_T10_M2@@\% menos chance}. Não é o mesmo fenômeno do
+salário visto de outro ângulo --- é uma barreira que age antes, na distribuição das
+posições, e que nenhuma política de remuneração igual alcançaria.
 
-\paragraph{Vínculo e credencial não desfazem a barreira.} Descontar o vínculo
-empregatício (M3) muda pouco o OR do cargo qualificado (@@G_OR_CBO_M3@@) e do top~10\%
-(@@G_OR_T10_M3@@): a barreira não é um artefato da informalidade. No M4, a interação com
-a credencial é OR~$=$~@@G_ORI_SUP_CBO@@ para o superior completo e @@G_ORI_POS_CBO@@ para
-a pós-graduação: o diploma @@G_INTER_TXT@@, e o OR combinado do negro com superior
-completo é @@G_OR_CBO_SUP@@ --- a credencial não neutraliza a barreira de acesso.
+Vale guardar a frase: a desigualdade racial no mercado de trabalho brasileiro não começa
+no contracheque, começa na porta.
 
-\paragraph{Ajuste e classificação.} O M2 discrimina bem os desfechos: AUC de
-@@G_AUC_CBO_M2@@ (com efeitos aleatórios) e @@G_AUCFE_CBO_M2@@ (só efeitos fixos) para o
-cargo qualificado; no \emph{cutoff} de Youden (@@G_CUT_CBO_M2@@) a sensibilidade é
-@@G_SENS_CBO_M2@@ e a especificidade @@G_ESP_CBO_M2@@. O teste de Hosmer--Lemeshow
-rejeita a calibração perfeita em todos os degraus --- inevitável com $N=7{,}7$~milhões
-(MHE, cap.~8) ---, mas a estatística cai a cerca de metade quando se acrescenta o
-vínculo (M3), sinal de calibração melhor; entre M1 e M2 ela praticamente não muda. O logit com efeitos fixos de UF e erro-padrão agrupado por UPA (última coluna
-da Tabela~\ref{tab:glmm_glassceil}) reproduz os OR do GLMM: a conclusão não depende da
+\paragraph{Vínculo e credencial não desfazem a barreira.}
+Duas explicações alternativas se apresentam naturalmente, e o modelo testa as duas. A
+primeira é a informalidade: a barreira seria um artefato de negros estarem mais em
+vínculos precários. Descontar o vínculo (M3) praticamente não move o OR do cargo
+qualificado (@@G_OR_CBO_M3@@) nem o do top~10\% (@@G_OR_T10_M3@@), de modo que não é
+isso. A segunda é o diploma: bastaria credenciar-se. A interação
+\texttt{negro}$\times$credencial do M4 é de @@G_ORI_SUP_CBO@@ para o superior completo e
+@@G_ORI_POS_CBO@@ para a pós-graduação --- o diploma @@G_INTER_TXT@@ ---, mas o OR
+combinado de um trabalhador negro com superior completo ainda é @@G_OR_CBO_SUP@@. A
+credencial reduz a barreira; não a neutraliza. A Figura~\ref{fig:glmm_or} reúne as razões
+de chance dos três desfechos e dos modelos de cada um.
+
+\paragraph{Seria preciso um confundidor mais forte que qualquer variável observada.}
+O modelo separa bem quem acessa de quem não acessa\footnote{AUC de @@G_AUC_CBO_M2@@ com
+efeitos aleatórios e @@G_AUCFE_CBO_M2@@ só com efeitos fixos, para o cargo qualificado;
+no \emph{cutoff} de Youden (@@G_CUT_CBO_M2@@), sensibilidade @@G_SENS_CBO_M2@@ e
+especificidade @@G_ESP_CBO_M2@@. O teste de Hosmer--Lemeshow rejeita a calibração
+perfeita em todos os degraus --- inevitável com $N$ de milhões \cite{angrist2009} ---,
+mas a estatística cai a cerca de metade ao se acrescentar o vínculo (M3).}, mas a
+pergunta que interessa não é essa: é se a desvantagem poderia ser obra de algo que o
+modelo não viu. O E-value responde quanto um confundidor omitido teria de ser forte para
+anular o resultado, e aqui ele vale \textbf{@@G_EV_CBO_M2@@}: seria preciso uma
+característica não medida associada tanto a ser negro quanto a ocupar cargo qualificado
+com razão de risco de pelo menos @@G_EV_CBO_M2@@ em ambas as pontas --- mais forte do que
+qualquer covariável efetivamente observada nestes dados, escolaridade inclusive. Por fim,
+o logit com efeitos fixos de UF e erro-padrão agrupado por UPA (última coluna da
+Tabela~\ref{tab:glmm_glassceil}) reproduz os mesmos OR: a conclusão não depende da
 hipótese de efeitos aleatórios.
+
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.95\textwidth]{fig_glmm_or}
@@ -913,6 +942,11 @@ if _gap and _fit and _coef:
                    "@@HLM_MED_BAIRRO@@": _pt(_medb), "@@HLM_MED_BAIRRO_EN@@": _pten(_medb),
                    "@@HLM_MED_OCC@@": _pt((abs(_b["M3"]) - abs(_b["M4"])) / abs(_bp) * 100),
                    "@@HLM_RESID_PCT@@": _pt(abs(_b["M4"]) / abs(_bp) * 100)})
+        # a "régua" da narrativa: fração do gap agregado já mediada em cada degrau,
+        # a mesma conta da coluna "Mediação acum." da Tabela tab:mediacao
+        _V.update({f"@@HLM_MED_ACUM_{_m}@@":
+                   _pt((abs(_bp) - abs(_b[_m])) / abs(_bp) * 100)
+                   for _m in ("M1", "M2", "M3", "M4")})
 _glmer = {(r["desfecho"], r["modelo"]): r for r in _rd("glmm_glassceil_glmer.csv")}
 _src = _glmer if _glmer else _glm            # bloco 4: o glmer é a fonte; logit-FE é robustez
 if _src:
@@ -995,6 +1029,7 @@ if _mlp:
     _V2 = {}
     if "XGBoost" in _mlp:
         _V2["@@ML_R2_XGB@@"] = _pt(_mlp["XGBoost"]["R²"], 3)
+        _V2["@@ML_GAP_XGB@@"] = _pt(_mlp["XGBoost"]["gap_overfit"], 4)
     if "XGBoost (sem renda da UPA)" in _mlp:
         _V2["@@ML_R2_SR@@"] = _pt(_mlp["XGBoost (sem renda da UPA)"]["R²"], 3)
     _rk = [r for r in _imp_sr if r["Feature"].startswith("Raça")]

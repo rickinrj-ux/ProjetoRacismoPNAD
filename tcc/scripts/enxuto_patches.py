@@ -15,6 +15,18 @@ import re
 
 S = re.S
 
+
+def flex(literal: str) -> str:
+    """Regex que casa `literal` ignorando como os espaços e quebras caíram.
+
+    Passos anteriores do gerador reflowam parágrafos; fixar a coluna em que a
+    linha quebra faria o patch deixar de casar por um motivo que não é o dele.
+    O marcador NUM (entre cifrões) casa um número já materializado no texto-fonte,
+    que o substituto devolve como token, para a resolução única a partir do csv.
+    """
+    partes = [re.escape(p) for p in literal.split()]
+    return r"\s+".join(partes).replace(re.escape("$NUM$"), r"[\d.,]+")
+
 PATCHES = [
     # ── Bloco 0.1 — PO ────────────────────────────────────────────────────────
     ("0.1 título",
@@ -285,72 +297,109 @@ ICC idêntico até a quarta casa). A
      r"""\subsection{Modelos Hierárquicos Lineares --- Mediação Contextual do Gap}
 \label{subsec:hlm_resultados}
 
-\textit{Esta seção documenta como o território amplifica o gap racial:
-o bairro de moradia não é apenas contexto --- é parte do mecanismo de exclusão.}
+Quanto do gap racial sobrevive à comparação entre dois trabalhadores que moram no
+mesmo bairro? A pergunta separa duas histórias muito diferentes. Se quase nada
+sobrevive, o diferencial de renda é sobretudo consequência de onde negros e brancos
+conseguem morar. Se quase tudo sobrevive, o bairro é cenário, e a diferença se produz
+pessoa a pessoa, dentro da mesma rua. A Tabela~\ref{tab:hlm_resultados} responde em
+cinco degraus, do modelo nulo (M0) ao modelo com ocupação (M4), todos com intercepto
+aleatório por UPA e estimados por máxima verossimilhança sobre a população completa:
+acompanhe a linha \textbf{Raça (negro)} da esquerda para a direita e veja o coeficiente
+aproximar-se de zero à medida que cada degrau acrescenta um bloco de controles.
 
-A Tabela~\ref{tab:hlm_resultados} apresenta os cinco degraus da estratégia
-\emph{step-up}, do modelo nulo (M0) ao modelo com ocupação (M4), todos com intercepto
-aleatório por UPA e estimados por máxima verossimilhança sobre a população completa.
-\emph{Como ler:} acompanhe a linha \textbf{Raça (negro)} da esquerda para a direita ---
-cada coluna acrescenta um bloco de controles e o coeficiente se aproxima de zero; as
-linhas de baixo dizem quanto da variância entre bairros cada bloco explica e se o degrau
-melhora o ajuste (LR).
+\paragraph{Mais de um terço da diferença de renda está entre bairros, não dentro deles.}
+Antes de qualquer controle, o modelo nulo reparte a variação do log-rendimento em duas
+parcelas: a que separa um bairro de outro e a que separa dois vizinhos. O ICC da UPA é
+de @@HLM_ICC0@@\footnote{$\hat\tau^2_{\text{UPA}} = @@HLM_TAU0@@$ (variância entre
+bairros) e $\hat\sigma^2 = @@HLM_SIG0@@$ (variância entre pessoas do mesmo bairro), com
+ICC $= \hat\tau^2/(\hat\tau^2+\hat\sigma^2)$.} --- isto é, \textbf{@@HLM_ICC0_PCT@@\% da
+variância do log-rendimento está entre bairros}. Em linguagem de leitor: de toda a
+diferença de renda entre duas pessoas sorteadas ao acaso no país, mais de um terço já
+está dada antes de se saber qualquer coisa sobre elas, apenas por morarem em bairros
+diferentes. É muito acima do limiar de 5\% a partir do qual \citeonline{raudenbush2002}
+consideram indispensável tratar a estrutura aninhada, e maior do que a parcela entre
+estados (cerca de 10\%, no modelo alternativo com UF aleatória usado como robustez).
+Ignorar essa estrutura trataria como independentes pessoas que compartilham o mesmo
+mercado de trabalho local.
 
-\paragraph{Quanto da renda é ``bairro'': o modelo nulo.}
-O M0 estima $\hat\tau^2_{\text{UPA}} = @@HLM_TAU0@@$ e $\hat\sigma^2 = @@HLM_SIG0@@$,
-ou seja, ICC$_{\text{UPA}} = @@HLM_ICC0@@$: \textbf{@@HLM_ICC0_PCT@@\% da variância do
-log-rendimento está entre bairros}, muito acima do limiar de 5\% de
-\citeonline{raudenbush2002} e da parcela entre estados (cerca de 10\%, no modelo
-alternativo com UF aleatória usado como robustez). A estrutura aninhada não é um detalhe
-técnico: ignorá-la trataria como independentes pessoas que compartilham o mesmo mercado
-de trabalho local.
-
-\paragraph{Gap agregado \emph{vs.} gap dentro do bairro (M1).}
+\paragraph{Comparar vizinhos apaga quase metade do gap.}
 Com escolaridade, idade, sexo, horas, situação urbana e ano, mas \emph{sem} nenhum
 efeito de bairro (OLS com efeitos fixos de UF, Subseção~\ref{subsec:inferencia}),
-trabalhadores negros recebem @@HLM_GAP_POOL@@\% a menos que brancos comparáveis
-($\hat\beta = @@HLM_B_POOL@@$). O M1 acrescenta o intercepto aleatório de UPA e passa a
-comparar negros e brancos \emph{do mesmo bairro}: $\hat\beta_{\text{negro}}^{M1} =
-@@HLM_B1@@$ (IC~95\%: @@HLM_B1_IC@@), ou \textbf{@@HLM_GAP1@@\% a menos}. A diferença
-entre os dois --- \textbf{@@HLM_MED_BAIRRO@@\% do gap agregado} --- é a parcela do gap
-racial que transita pela segregação residencial: negros e brancos com o mesmo capital
-humano não moram nos mesmos bairros, e os bairros pagam diferente. Esse é o teste da
-Hipótese~H2. Os controles individuais explicam, além disso, @@HLM_TAU_EXPL_M1@@\% da
-variância entre bairros do M0: parte do que parecia ``bairro'' é composição de quem mora
-nele.
+trabalhadores negros recebem \textbf{@@HLM_GAP_POOL@@\% a menos} que brancos comparáveis
+($\hat\beta = @@HLM_B_POOL@@$). O M1 acrescenta o intercepto aleatório de UPA --- na
+prática, um nível de renda próprio para cada bairro --- e com ele a comparação deixa de
+ser entre todos os trabalhadores do país e passa a ser entre negros e brancos \emph{do
+mesmo bairro}: a penalidade cai para \textbf{@@HLM_GAP1@@\%}\footnote{$\hat\beta_{\text{negro}}^{M1} = @@HLM_B1@@$, IC~95\%: @@HLM_B1_IC@@.}. Medida na régua do gap agregado,
+\textbf{@@HLM_MED_BAIRRO@@\% da distância já foi percorrida} --- percorrida no sentido de
+atribuída a um fator observável, e não no sentido de explicada sem discriminação, já que
+o bairro em que se consegue morar é ele próprio produto de exclusão. Esse é o teste da
+Hipótese~H2, e ele passa: negros e brancos com o mesmo capital humano não moram nos
+mesmos bairros, e os bairros pagam diferente. Os controles individuais explicam, além
+disso, @@HLM_TAU_EXPL_M1@@\% da variância entre bairros do M0 --- parte do que parecia
+``bairro'' é composição de quem mora nele.
 
-\paragraph{O que faz de um bairro um bairro (M2).}
-As três covariáveis de nível~2 explicam @@HLM_TAU_EXPL_M2_REL@@\% da variância entre
-bairros que restava no M1 ($\hat\tau^2$ de @@HLM_TAU_M1@@ para @@HLM_TAU_M2@@; LR $=$
-@@HLM_LR2@@, 3 g.l., $p<0{,}001$). O coeficiente de composição racial,
-$\hat\gamma_{01} = @@HLM_G01@@$ (SE @@HLM_G01_SE@@), indica que um desvio-padrão a mais
-na proporção de negros da UPA reduz o log-rendimento de \emph{todos} os moradores em
-@@HLM_G01_ABS@@ pontos --- da mesma ordem da penalidade individual --- a evidência mais
-direta do \textit{duplo disadvantage}. O coeficiente individual mal se move
-($\hat\beta_{\text{negro}}^{M2} = @@HLM_B2@@$): dentro do bairro, a penalidade racial
-não depende de quem são os vizinhos; o bairro opera pela \emph{porta de entrada}
-(onde se consegue morar), não pelo salário de quem já está lá.
+\noindent Vale guardar a frase: quase metade do gap racial não separa duas pessoas,
+separa dois endereços. Resta saber o que, num endereço, produz essa diferença.
 
-\paragraph{Gap líquido (M3).}
-Com os efeitos fixos de UF, $\hat\beta_{\text{negro}}^{M3} = @@HLM_B3@@$
-(IC~95\%: @@HLM_B3_IC@@): o \textbf{gap líquido de @@HLM_GAP3@@\%} é o diferencial que
-capital humano, contexto de bairro e estado não explicam --- limite inferior da
-discriminação direta sob seleção em observáveis. O ICC cai para @@HLM_ICC3@@ e os
-controles explicam @@HLM_TAU_EXPL_M3@@\% da variância entre bairros do M0.
+\paragraph{O bairro pesa pela porta de entrada, não pelo salário de quem já entrou.}
+O M2 pergunta o que, num bairro, faz a renda ser mais alta ou mais baixa, e responde com
+três covariáveis de nível~2 que juntas explicam @@HLM_TAU_EXPL_M2_REL@@\% da variância
+entre bairros que restava no M1\footnote{$\hat\tau^2$ cai de @@HLM_TAU_M1@@ para
+@@HLM_TAU_M2@@; LR $=$ @@HLM_LR2@@, 3 g.l., $p<0{,}001$.}. A mais eloquente é a
+composição racial: $\hat\gamma_{01} = @@HLM_G01@@$ significa que um desvio-padrão a mais
+na proporção de moradores negros da UPA reduz o rendimento de \emph{todos} os moradores,
+negros e brancos, em @@HLM_G01_ABS@@ log-pontos --- praticamente a mesma magnitude da
+penalidade que um trabalhador negro carrega individualmente. É a evidência mais direta
+do \emph{duplo disadvantage}: ser negro custa, e morar onde moram os negros custa outra
+vez, inclusive para quem não é negro. Já o coeficiente individual mal se move (de $@@HLM_B1@@$
+para $@@HLM_B2@@$): dentro do bairro, a penalidade racial não depende de quem
+são os vizinhos.
 
-\paragraph{Dentro da mesma ocupação (M4).}
-Acrescentar vínculo e grupo CBO leva a $\hat\beta_{\text{negro}}^{M4} = @@HLM_B4@@$
-(@@HLM_GAP4@@\%). A queda adicional --- @@HLM_MED_OCC@@\% do gap agregado --- não é
-``explicação'', é \emph{canal}: a ocupação é ela própria resultado da barreira de acesso
-(Seção~\ref{subsec:glmm_resultados}), por isso o M4 é um limite inferior descritivo.
+\noindent Vale guardar a frase: o bairro não desconta o salário de quem já trabalha
+nele --- ele decide quem consegue morar ali. A desigualdade territorial age antes da
+folha de pagamento.
 
-\paragraph{A penalidade varia entre bairros.}
-A inclinação aleatória de \texttt{negro} por UPA é significativa (LR $=$ @@HLM_LR_RS@@,
-2 g.l., $p<0{,}001$): $\hat\tau^2_1 = @@HLM_TAU1@@$, desvio-padrão de @@HLM_SD1@@
-log-pontos. Em bairros a um desvio-padrão da média a penalidade vai de
-@@HLM_RS_LO@@ a @@HLM_RS_HI@@ log-pontos --- a discriminação salarial tem geografia, e a
-covariância intercepto--inclinação de @@HLM_COV01@@ indica que a penalidade é
-@@HLM_COV01_TXT@@ nos bairros de renda-base mais alta.
+\paragraph{Acrescentar o estado não move a régua.}
+Com os efeitos fixos de UF, a penalidade é de \textbf{@@HLM_GAP3@@\%}
+($\hat\beta_{\text{negro}}^{M3} = @@HLM_B3@@$). Na régua do gap
+agregado, @@HLM_MED_ACUM_M3@@\% --- praticamente os mesmos @@HLM_MED_BAIRRO@@\% do M1. O
+dado relevante aqui é o que \emph{não} aconteceu: depois que a comparação já é entre
+vizinhos, nem o contexto do bairro (M2) nem a unidade da federação (M3) retiram mais
+nada do diferencial. É esse patamar que este trabalho chama de \textbf{gap líquido}: o
+que capital humano, contexto de bairro e estado não explicam --- limite inferior da
+discriminação direta sob seleção em observáveis, e não uma medida de
+discriminação.\footnote{IC~95\% de $\hat\beta_{\text{negro}}^{M3}$: @@HLM_B3_IC@@. O ICC cai para @@HLM_ICC3@@ e os controles acumulados explicam
+@@HLM_TAU_EXPL_M3@@\% da variância entre bairros do M0; a escada completa está nas linhas
+inferiores da Tabela~\ref{tab:hlm_resultados}.}
+
+\paragraph{Dentro da mesma ocupação o gap encolhe --- o que não é o mesmo que explicá-lo.}
+O M4 acrescenta vínculo e grupo ocupacional, e a penalidade cai para
+\textbf{@@HLM_GAP4@@\%} ($\hat\beta_{\text{negro}}^{M4} = @@HLM_B4@@$). A régua vai a
+\textbf{@@HLM_MED_ACUM_M4@@\% do gap agregado}. A tentação é ler esse número como ``dois
+terços do gap estão explicados'', e é precisamente essa leitura que o desenho do estudo
+não autoriza: a ocupação não é uma característica que a pessoa traz consigo, é um
+resultado ao qual ela precisou obter acesso --- e o acesso é justamente onde a
+Subseção~\ref{subsec:glmm_resultados} encontra a barreira mais forte. Controlar por
+ocupação é, portanto, descontar do gap uma parte do próprio gap. Por isso o M4 é um
+limite inferior descritivo, e não o número a citar como a penalidade racial brasileira.
+
+\noindent Vale guardar a frase: @@HLM_GAP4@@\% é onde a régua termina, não onde o gap
+verdadeiro está. O número deste trabalho é o gap líquido de @@HLM_GAP3@@\% do M3; o
+@@HLM_GAP4@@\% mede o que sobra depois de descontar um canal que é ele próprio
+discriminatório.
+
+\paragraph{A penalidade não é a mesma em todo bairro.}
+Até aqui a penalidade racial foi tratada como um número único. Deixá-la variar de bairro
+para bairro melhora significativamente o ajuste (LR $=$ @@HLM_LR_RS@@, 2 g.l.,
+$p<0{,}001$), e o desvio-padrão dessa variação é de @@HLM_SD1@@
+log-pontos\footnote{$\hat\tau^2_1 = @@HLM_TAU1@@$, componente de variância da inclinação
+aleatória de \texttt{negro} por UPA.}. Em bairros a um desvio-padrão de cada lado da
+média, a penalidade vai de @@HLM_RS_LO@@ a @@HLM_RS_HI@@ log-pontos: há bairros em que o
+diferencial é mais do que o dobro da média e bairros em que ele se inverte. A
+discriminação salarial tem geografia --- e a covariância entre intercepto e inclinação
+(@@HLM_COV01@@) indica que a penalidade é @@HLM_COV01_TXT@@ nos bairros de renda-base
+mais alta. A Figura~\ref{fig:hlm_blups} contrasta os efeitos fixos de estado com os
+interceptos estimados para os bairros.
 
 \begin{figure}[htbp]
   \centering
@@ -364,7 +413,7 @@ covariância intercepto--inclinação de @@HLM_COV01@@ indica que a penalidade �
 a largura do histograma à direita é o quanto a renda-base muda de um bairro para outro,
 já descontados capital humano, contexto e estado.
 
-\paragraph{Viés de variável omitida e sensibilidade.}
+\paragraph{O gap verdadeiro está entre dois limites, e nenhum confundidor plausível o anula.}
 O coeficiente racial é uma associação condicional: pela fórmula do viés de variável
 omitida \cite{angrist2009}, o coeficiente ``curto'' iguala o ``longo'' mais o efeito do
 omitido vezes sua relação com a raça. Qualidade da escola, habilidade não observada e
@@ -759,6 +808,232 @@ inferência.
      "sistema de barreiras em camadas que começa antes do primeiro salário, na\n"
      "porta de entrada das ocupações qualificadas, e persiste ao longo de toda a\n"
      "trajetória profissional.", 0),
+
+    # ---------------------------------------------------------------------
+    # N3/N4/N5 — narrativa da subseção de machine learning
+    # ---------------------------------------------------------------------
+    ("N3.2 ML: abertura com a pergunta que justifica o método",
+     flex(r"A Tabela~\ref{tab:ml_perf} apresenta o desempenho preditivo dos dois modelos "
+          r"sobre o conjunto de teste (\textit{hold-out} 20\%)."),
+     r"""Todos os modelos até aqui impuseram uma forma à realidade: rendimento linear nos
+controles, efeitos que se somam, penalidade racial constante. E se a forma estiver
+errada --- se o gap que os coeficientes mostram for, em alguma medida, artefato da
+equação escolhida? Árvores de decisão respondem a essa objeção porque não pressupõem
+forma nenhuma: descobrem sozinhas interações e não linearidades e, com os valores SHAP,
+dizem quanto cada variável pesou em cada previsão. Se a raça aparecer entre os
+preditores relevantes de um modelo que nunca foi instruído a procurá-la, o achado deixa
+de depender da especificação. A Tabela~\ref{tab:ml_perf} traz o desempenho dos modelos
+sobre o conjunto de teste, separado antes de qualquer ajuste.""", 0),
+
+    ("N5 ML: aparato da validação cruzada desce para nota",
+     flex(r"A configuração escolhida (profundidade @@CV_DEPTH@@) alcança "
+          r"$R^2 = @@CV_R2@@ \pm @@CV_R2_DP@@$ entre os \emph{folds}, contra "
+          r"@@CV_R2_ANT@@ $\pm$ @@CV_R2_ANT_DP@@ da profundidade~6 usada na versão anterior deste "
+          r"trabalho, sem aumentar o sobreajuste. O desvio-padrão entre \emph{folds} na quarta casa "
+          r"decimal mostra que, com @@CV_N_TREINO@@ observações de treino, o desempenho não depende de "
+          r"qual parte dos dados é usada para validar --- a validação cruzada aqui serve menos para "
+          r"estimar incerteza e mais para justificar a especificação."),
+     r"""A configuração escolhida melhora o $R^2$ sem aumentar o sobreajuste em relação à
+usada na versão anterior deste trabalho.\footnote{Profundidade @@CV_DEPTH@@, com
+$R^2 = @@CV_R2@@ \pm @@CV_R2_DP@@$ entre os \emph{folds}, contra
+@@CV_R2_ANT@@ $\pm$ @@CV_R2_ANT_DP@@ da profundidade~6 anterior, sobre
+@@CV_N_TREINO@@ observações de treino.} Com um treino desse tamanho, a variação entre
+\emph{folds} cai na quarta casa decimal: aqui a validação cruzada serve menos para
+estimar incerteza e mais para justificar a especificação.""", 0),
+
+    ("N5 ML: sobreajuste --- rótulo que afirma, aparato em nota",
+     flex(r"\paragraph{Ausência de sobreajuste (população completa).} "
+          r"Estimado sobre a população (\mbox{$N=$NUM$$}; treino~80\%/teste~20\%), "
+          r"o método não-paramétrico não apresenta \textit{overfitting}: o $R^2$ de treino e de "
+          r"teste praticamente coincidem (\textit{gap}~$=$NUM$$ para o XGBoost e "
+          r"para o Random Forest). Três evidências convergem: o \textit{gap} treino--teste "
+          r"$\approx 0$; a razão $N \gg$ complexidade (modelos regularizados sobre 7,7~milhões de "
+          r"observações); e a estabilidade do $R^2$ de teste entre a subamostra de 20\% e a "
+          r"população (praticamente idêntico, $\approx 0{,}62$). Em suma, \emph{ampliar} a base, "
+          r"de amostral para populacional, \emph{reduz} --- não aumenta --- o risco de sobreajuste."),
+     r"""\paragraph{Ampliar a base reduz o risco de sobreajuste, em vez de aumentá-lo.}
+A objeção usual a modelos flexíveis é que eles decoram os dados em vez de aprender com
+eles --- e quem decorou prevê bem o que já viu e mal o que não viu. Não é o caso aqui, e
+a razão é o tamanho da base: o $R^2$ de treino e o de teste praticamente coincidem, com
+diferença de @@ML_GAP_XGB@@\footnote{População completa, $N=@@N_OBS@@$, com 80\% para
+treino e 20\% para teste; o mesmo \emph{gap} aparece no Random Forest.}. Três evidências
+convergem: a diferença entre treino e teste é praticamente nula; o número de observações
+supera em muitas ordens de grandeza a complexidade dos modelos, todos regularizados; e o
+$R^2$ de teste quase não muda ao se passar de uma subamostra para a população inteira. É
+o contrário da intuição corrente: ampliar a base, de amostral para populacional, reduz o
+risco de sobreajuste em vez de aumentá-lo.""", 0),
+
+    ("N5 SHAP: posições de ranking descem para nota",
+     flex(r"muda apenas a posição relativa no \emph{ranking} (@@SHAP_RANK_SR@@\textsuperscript{a} de "
+          r"@@SHAP_NFEAT_SR@@, contra @@SHAP_RANK@@\textsuperscript{a} de @@SHAP_NFEAT@@), porque as demais "
+          r"variáveis absorvem parte do que o território explicava."),
+     r"""muda apenas a posição relativa no \emph{ranking},\footnote{@@SHAP_RANK_SR@@\textsuperscript{a}
+de @@SHAP_NFEAT_SR@@ variáveis no modelo sem renda de vizinhança, contra
+@@SHAP_RANK@@\textsuperscript{a} de @@SHAP_NFEAT@@ no modelo completo.} porque as demais
+variáveis absorvem parte do que o território explicava.""", 0),
+
+
+    ("N3.7/N5 VIF: a objeção antes do inventário",
+     r"Para verificar se a inclusão simultânea dos 9~dummies\s+"
+     r"CBO e das variáveis de vínculo empregatício \(\\texttt\{emprego\\_formal\},\s+"
+     r"\\texttt\{conta\\_propria\}, \\texttt\{trab\\_domestico\}\) introduz colinearidade\s+"
+     r"problemática no Modelo~M4, calculou-se o \\textit\{Variance Inflation Factor\} \(VIF\)\s+"
+     r"sobre subsample de ([\d.]+) observações da PEA com renda positiva\.\s+"
+     r"(Dos .*?variáveis baixas \(\$< 2\$\)\.)",
+     lambda m: (
+         "Os controles do M4 estão brigando entre si? A pergunta é legítima: o modelo "
+         "empilha nove indicadores de grupo ocupacional sobre três de vínculo, e variáveis "
+         "muito próximas entre si inflam o erro-padrão umas das outras, a ponto de tornar "
+         "instável justamente o coeficiente que interessa. O \\textit{Variance Inflation "
+         "Factor} mede esse efeito: quanto a variância de cada estimativa cresce "
+         "em razão das demais. A resposta, aqui, é que há colinearidade --- mas não onde ela "
+         "importaria.\\footnote{Calculado sobre " + m.group(1) + " observações da PEA com "
+         "renda positiva. " + m.group(2) + "}"),
+     S),
+
+
+    ("N3.6 interseccionalidade: a pergunta antes da especificação",
+     flex(r"Os modelos anteriores tratam raça e gênero de forma aditiva. Uma leitura "
+          r"\textit{interseccional} pergunta se a desvantagem de ser negra \emph{e} mulher é a "
+          r"soma das partes. Reespecificamos o GLMM de acesso com um fator de quatro grupos "
+          r"(\texttt{grupo\_rg}: homem branco [referência], mulher branca, homem negro, mulher "
+          r"negra) e a interação \texttt{negro$\times$sexo\_fem}, em três desfechos: acesso a "
+          r"ocupação qualificada (CBO~1--4), renda no top~20\% e no top~10\%."),
+     r"""Raça e gênero simplesmente se somam? Todos os modelos até aqui responderam que sim,
+por construção: tratadas como penalidades aditivas, a desvantagem de ser negra \emph{e}
+mulher seria a de ser negro mais a de ser mulher. \citeonline{crenshaw1989} desconfia
+dessa aritmética, e a desconfiança é testável --- basta trocar os dois indicadores
+separados por um único fator de quatro grupos e deixar que os dados digam se a soma
+fecha.\footnote{GLMM de acesso reespecificado com \texttt{grupo\_rg} (homem branco como
+referência, mulher branca, homem negro, mulher negra) e a interação
+\texttt{negro$\times$sexo\_fem}, em três desfechos: ocupação qualificada (CBO~1--4),
+renda no top~20\% e no top~10\%.}""", 0),
+
+    ("N4.6 interseccionalidade: a inversão em dois tempos",
+     r"O resultado revela uma \\textbf\{inversão\} \(Figura~\\ref\{fig:interseccional\}\)\. No\s+"
+     r"\\textbf\{acesso à categoria\} qualificada, a mulher negra tem OR~\$=([\d,]+)\$\s+"
+     r"--- \\emph\{acima\} do homem branco ---, porque o efeito de gênero é positivo nesse\s+"
+     r"desfecho \(profissões credenciadas feminizadas, em CBO~1--4\); o grupo mais penalizado\s+"
+     r"é o \\textbf\{homem negro\} \(OR~\$=([\d,]+)\$\)\. No \\textbf\{topo da renda\},\s+"
+     r"porém, o quadro \\emph\{inverte\}: a mulher negra passa a ser a \\textbf\{mais excluída\}\s+"
+     r"de todos --- OR~\$=([\d,]+)\$ no decil superior, abaixo da mulher branca\s+"
+     r"\(\$=([\d,]+)\$\) e do homem negro \(\$=([\d,]+)\$\)\. A\s+"
+     r"interação \\texttt\{negro\$\\times\$sexo\\_fem\} é \\textit\{sub-aditiva\} em todos os desfechos\s+"
+     r"\(OR~\$=([\d,]+)\$ no acesso; \$=([\d,]+)\$ no top~10\\%\):\s+"
+     r"a penalidade racial é ligeiramente menor entre mulheres, mas isso não impede que a\s+"
+     r"mulher negra acumule a barreira racial \\emph\{e\} o teto de vidro de gênero exatamente\s+"
+     r"onde mais importa para a ascensão --- o topo da distribuição\.",
+     lambda m: (
+         "\\paragraph{Na entrada, a mulher negra não é o grupo mais barrado.}\n"
+         "No acesso à ocupação qualificada a resposta contraria a expectativa: a mulher negra\n"
+         "tem OR~$=" + m.group(1) + "$, ou seja, mais chance do que o homem branco de\n"
+         "referência. A razão é que o efeito de gênero é positivo nesse desfecho --- boa parte\n"
+         "das profissões credenciadas de CBO~1--4 é feminizada ---, e ele compensa a penalidade\n"
+         "racial. O grupo mais penalizado na entrada é o \\textbf{homem negro}\n"
+         "(OR~$=" + m.group(2) + "$). Se a análise parasse aqui, concluiria que a\n"
+         "interseccionalidade não se confirma nestes dados.\n\n"
+         "\\paragraph{No topo, a ordem se inverte e ela passa a ser a mais excluída.}\n"
+         "No decil superior de renda o quadro vira: a mulher negra tem OR~$=" + m.group(3) + "$,\n"
+         "abaixo da mulher branca ($" + m.group(4) + "$) e do homem negro\n"
+         "($" + m.group(5) + "$). Em linguagem de leitor: a chance de uma mulher negra\n"
+         "chegar aos 10\\% mais ricos é cerca de um terço da chance de um homem branco com a\n"
+         "mesma escolaridade, idade, jornada, estado e bairro. A vantagem de gênero que a\n"
+         "alçava na entrada desaparece exatamente onde a ascensão se decide, e o que sobra é a\n"
+         "soma das duas barreiras.\\footnote{A interação \\texttt{negro$\\times$sexo\\_fem} é\n"
+         "\\emph{sub-aditiva} em todos os desfechos (OR~$=" + m.group(6) + "$ no acesso;\n"
+         "$=" + m.group(7) + "$ no top~10\\%): a penalidade racial é um pouco menor entre\n"
+         "mulheres do que entre homens, o que atenua a soma sem desfazê-la.}\n\n"
+         "Vale guardar a frase: a mulher negra entra na categoria, mas não chega ao topo."),
+     S),
+
+
+    ("N5 discussão: convergência lenta --- e tênue demais para se afirmar",
+     r"\\paragraph\{Lenta convergência racial\.\}\s+"
+     r"A redução de apenas ([\d.,]+)\\%\s+"   # ponto decimal: a vírgula só é normalizada depois dos patches
+     r"do gap em dez anos --- equivalente a ([\d,]+) ponto de log-rendimento por ano\s+"
+     r"\(\$\\delta = ([\d\{\},]+)\$, \$p = ([\d\{\},]+)\$, WLS 2016--2025\)\s+"
+     r"--- sugere que, ao ritmo atual, a convergência racial levaria mais de um\s+"
+     r"século para eliminar o diferencial observado em 2016\.\s+"
+     r"Essa constatação não trivializa avanços recentes em políticas de cotas\s+"
+     r"e acesso ao ensino superior, mas evidencia que reformas no campo da\s+"
+     r"educação, sem intervenção simultânea nos mecanismos de segregação\s+"
+     r"residencial e de acesso às redes profissionais, são insuficientes\.",
+     lambda m: (
+         "\\paragraph{No ritmo observado, a convergência levaria mais de um século --- "
+         "se houver convergência.}\n"
+         "Em dez anos o gap encolheu " + m.group(1) + "\\%. É pouco, e é pouco de um modo\n"
+         "que convém enunciar com precisão. Pelo valor pontual da tendência, eliminar o\n"
+         "diferencial observado em 2016 levaria mais de um século. Mas a inclinação é tão\n"
+         "tênue que não se distingue de zero pelos critérios convencionais de\n"
+         "significância\\footnote{$\\delta = " + m.group(3) + "$ log-ponto por ano, "
+         "$p = " + m.group(4) + "$, por mínimos quadrados ponderados sobre 2016--2025; "
+         "equivalente a cerca de " + m.group(2) + " ponto de log-rendimento ao ano.}: os "
+         "dados não\n"
+         "autorizam afirmar que exista convergência, apenas que, se existir, ela é lenta a\n"
+         "ponto de ser irrelevante para quem está vivo hoje. Nada disso trivializa os avanços\n"
+         "recentes em políticas de cotas e de acesso ao ensino superior. Diz, sim, que reformas\n"
+         "no campo educacional, sem intervenção simultânea nos mecanismos de segregação\n"
+         "residencial e de acesso a redes profissionais, são insuficientes --- que é\n"
+         "precisamente o que a sequência de modelos deste trabalho mostrou."),
+     S),
+
+    ("N5 discussão: ressalva de comparabilidade do Gini desce para nota",
+     r"Cabe uma ressalva metodológica: o Gini estimado neste trabalho refere-se ao\s+"
+     r"\\textbf\{rendimento do trabalho entre ocupados\} \(em torno de ([\d\{\},]+)\), conceito\s+"
+     r"distinto do Gini domiciliar \\emph\{per capita\} de todas as fontes do IBGE ---\s+"
+     r"níveis próximos, mas medidas diferentes que podem divergir em tendência, pois a\s+"
+     r"alta de 2025 é puxada por renda \\emph\{não\}-trabalho do topo, que não transita\s+"
+     r"pelo rendimento dos ocupados\. Nesse mesmo conceito, a desigualdade",
+     lambda m: (
+         "As duas medidas não são a mesma coisa, e a diferença importa para não se ler "
+         "tendência onde há mudança de conceito.\\footnote{O Gini estimado neste trabalho "
+         "refere-se ao rendimento do trabalho entre ocupados (em torno de " + m.group(1) +
+         "), ao passo que o do IBGE é domiciliar \\emph{per capita} e de todas as fontes. "
+         "Os níveis são próximos, mas as medidas podem divergir em tendência: a alta de 2025 "
+         "é puxada por renda não-trabalho do topo, que não transita pelo rendimento dos "
+         "ocupados.} No conceito adotado aqui, a desigualdade"),
+     S),
+
+
+    ("N3.3 Oaxaca--Blinder: composição ou preço, a pergunta antes do método",
+     flex(r"A decomposição de Oaxaca--Blinder separa o gap bruto de log-rendimento"),
+     r"""De que é feito o gap? Duas explicações rivalizam desde \citeonline{becker1957}, e
+elas pedem políticas opostas. Ou negros e brancos chegam ao mercado com características
+diferentes e o mercado paga igual por características iguais --- o gap é
+\emph{composição}, e a política tem de agir antes do mercado, na escola e na formação.
+Ou chegam com as mesmas características e o mercado paga diferente --- o gap é
+\emph{preço}, e a política tem de agir dentro dele, na contratação e na fiscalização.
+A distinção é empírica, e a decomposição de Oaxaca--Blinder foi construída para fazê-la.
+
+A decomposição de Oaxaca--Blinder separa o gap bruto de log-rendimento""", 0),
+
+    ("N3.4 quantílica: teto de vidro ou piso pegajoso, a pergunta antes do método",
+     flex(r"A regressão quantílica estima o gap em cada ponto da distribuição de renda; a"),
+     r"""A penalidade racial é a mesma em toda a distribuição de renda? Nada obriga que seja,
+e as duas possibilidades apontam para lugares diferentes. Se ela crescer rumo ao topo, o
+problema é um teto de vidro: quanto mais alto se sobe, mais a cor pesa, e o alvo da
+política são as posições de comando. Se for maior na base, o problema é um piso
+pegajoso, e concentrar esforços nas elites profissionais erra o alvo por inteiro. Os
+resultados a seguir mostram que as duas leituras estão corretas --- porque respondem a
+perguntas diferentes, e a subseção termina explicando por que não se contradizem.
+
+A regressão quantílica estima o gap em cada ponto da distribuição de renda; a""", 0),
+
+
+    ("N5 discussão: índices da POF descem para nota",
+     r"A melhora\s+multidimensional captada pela POF não eliminou o gap racial de qualidade de vida\s+"
+     r"\(([\d\{\},]+) para chefes pretos/pardos \\emph\{vs\.\}~([\d\{\},]+) para brancos\), e a renda\s+"
+     r"voltou a concentrar-se no topo em 2025 \(Gini do rendimento domiciliar\s+"
+     r"\\emph\{per capita\} de ([\d\{\},]+)\)~\\cite\{ibge_pof_2019, ibge_rendimentos_2025\}\.",
+     lambda m: (
+         "A melhora multidimensional captada pela POF não eliminou o gap racial de "
+         "qualidade de vida, e a renda voltou a concentrar-se no topo em 2025.\\footnote{"
+         "Índice de qualidade de vida de " + m.group(1) + " para chefes pretos ou pardos, "
+         "contra " + m.group(2) + " para brancos; Gini do rendimento domiciliar "
+         "\\emph{per capita} de " + m.group(3) + " em 2025 "
+         "\\cite{ibge_pof_2019, ibge_rendimentos_2025}.}"),
+     S),
+
 ]
 
 
@@ -767,7 +1042,9 @@ def aplicar(texto: str, verbose: bool = True) -> str:
     falhas = []
     for pid, pat, rep, flags in PATCHES:
         # lambda: substituto literal (o re nao interpreta escapes do LaTeX no substituto)
-        texto, n = re.subn(pat, lambda m, r=rep: r, texto, count=1, flags=flags)
+        # substituto invocável: reaproveita trechos capturados sem redigitá-los
+        sub = rep if callable(rep) else (lambda m, r=rep: r)
+        texto, n = re.subn(pat, sub, texto, count=1, flags=flags)
         if n != 1:
             falhas.append(pid)
     # cabeçalhos "BARREIRA": régua + título + subtítulo no mesmo parágrafo estouravam a largura
