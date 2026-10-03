@@ -54,10 +54,10 @@ CHECKPOINT_DIR = OUT_TAB / "rif_checkpoints"
 QUANTIS_DEFAULT = [0.10, 0.25, 0.50, 0.75, 0.90]
 
 CONTROLES = (
-    "educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
+    "educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
     " + idade_c + idade_sq + sexo_fem"
     " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
-    " + C(UF_str)"
+    " + C(UF_str) + C(Ano)"
 )
 
 
@@ -67,7 +67,7 @@ def carregar_dados(sample_frac: Optional[float] = None) -> pd.DataFrame:
     df = pd.read_parquet(FEATURES_PATH)
     df = df[df["log_renda"].notna() & (df["log_renda"] > 0) & df["negro"].notna()].copy()
     df["UF_str"] = df["UF"].astype(str)
-    req = ["educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+    req = ["educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
            "idade_c", "idade_sq", "sexo_fem",
            "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z"]
     df = df.dropna(subset=req).reset_index(drop=True)

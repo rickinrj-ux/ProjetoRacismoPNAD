@@ -68,7 +68,7 @@ FIGURES = Path("outputs/figures"); FIGURES.mkdir(parents=True, exist_ok=True)
 
 _IND = ("negro + sexo_fem + idade_c + idade_sq"
         " + educ_fund_completo + educ_medio_completo + educ_superior_completo"
-        " + educ_pos_graduacao + educ_missing + log_horas + urbano + C(Ano)")
+        " + educ_pos_graduacao + log_horas + urbano + C(Ano)")
 _UPA = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
 _OCC = ("emprego_formal + conta_propria + trab_domestico"
         " + ocp_dirigente + ocp_profissional + ocp_tecnico + ocp_administrativo"
@@ -84,7 +84,7 @@ ROTULOS = {"M0": "M0 nulo", "M1": "M1 individual", "M2": "M2 + contexto UPA",
            "M3": "M3 + UF (efeitos fixos)", "M4": "M4 + ocupação"}
 MODEL_VARS = ["log_renda", "negro", "sexo_fem", "idade_c", "idade_sq",
               "educ_fund_completo", "educ_medio_completo", "educ_superior_completo",
-              "educ_pos_graduacao", "educ_missing", "log_horas", "urbano", "Ano",
+              "educ_pos_graduacao", "log_horas", "urbano", "Ano",
               "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
               "emprego_formal", "conta_propria", "trab_domestico",
               "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
@@ -92,7 +92,7 @@ MODEL_VARS = ["log_renda", "negro", "sexo_fem", "idade_c", "idade_sq",
               "UPA", "UF"]
 KEY_VARS = ["Intercept", "negro", "sexo_fem", "idade_c", "idade_sq",
             "educ_fund_completo", "educ_medio_completo", "educ_superior_completo",
-            "educ_pos_graduacao", "educ_missing", "log_horas", "urbano",
+            "educ_pos_graduacao", "log_horas", "urbano",
             "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
             "emprego_formal", "conta_propria", "trab_domestico",
             "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
@@ -442,8 +442,9 @@ def write_tex(R, seq, fit_df, gap_df, n_upa, n_uf, lr_rs, p_rs):
              rf"($N = {fmtN(R['M0'].n)}$; {fmtN(n_upa)}~UPAs; {n_uf}~UFs). "
              r"Coeficientes com erro-padrão do modelo entre parênteses (a correlação intra-UPA já está "
              r"no efeito aleatório). Estimação por máxima verossimilhança (ML), para os testes LR entre "
-             r"degraus; REML coincide. Todos os coeficientes com $|t| > 10$; "
-             r"a inferência relevante está nos intervalos de confiança, não nos asteriscos (MHE, cap.~8).}")
+             r"degraus; REML coincide. Com $N$ desta ordem quase todo coeficiente é significante; "
+             r"a inferência relevante está nos intervalos de confiança, não nos asteriscos "
+             r"\cite[cap.~8]{angrist2009}.}")
     L.append(r"\label{tab:hlm_resultados}")
     L.append(r"\resizebox{\textwidth}{!}{%")
     L.append(r"\begin{tabular}{l" + "c" * len(cols) + "}")
@@ -452,7 +453,7 @@ def write_tex(R, seq, fit_df, gap_df, n_upa, n_uf, lr_rs, p_rs):
     L += [hdr + r" \\", r"\midrule"]
     grupos = [("", ["Intercept", "negro", "sexo_fem", "idade_c", "idade_sq"]),
               (r"\textit{Escolaridade (ref.: fundamental incompleto)}",
-               ["educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao", "educ_missing"]),
+               ["educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao"]),
               (r"\textit{Inserção}", ["log_horas", "urbano"]),
               (r"\textit{Contexto de bairro --- nível 2 (UPA)}", ["pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z"]),
               (r"\textit{Ocupação e vínculo (M4; \emph{bad controls})}",

@@ -166,3 +166,154 @@ e todo o pipeline de ML/SHAP reexecutado para manter tabela, ranking e figuras c
   Python: scripts de patch devem ser escritos com a ferramenta Write e só então executados.
 - `\resizebox` em tabela larga tem de ser aplicado **no gerador** e no `.tex` já materializado;
   caso contrário a próxima execução do gerador desfaz a correção.
+
+---
+
+# Rodada de entrega (aberta em 2026-10-02)
+
+Origem: releitura completa (`releitura_2026-10-02.md`: 80 itens do texto + 40 dos decks/Word),
+erro da escolaridade (V3009A → VD3004), renda nominal (deflator + efeito de ano) e auditoria
+`/adhd` do wrangling (join, layout e códigos: limpos). Regra: nenhum número digitado —
+`caca_fosseis.py --vivos` e `conferir_numeros_entregaveis.py` em zero antes de dar por pronto.
+
+Legenda: 🖥 reestimação · ✍ texto/gerador · 🎨 layout · ❓ decisão do autor
+
+## Bloco E0 — Reestimação completa (🖥, ⏱ ~16 h de máquina) — em andamento desde 12:50
+
+- [x] E0.1 VD3004 extraída dos 40 ZIPs; features reconstruídas; `checar_escolaridade.py` OK
+      (cobertura 100%; ≥ superior 17,9%; brancos 25,6% × negros 12,6%; renda real +0,16 2016→25)
+- [x] E0.2 (fila principal 26/26 OK em 03/10 10:27; pós-reestimação OK 10:51) `fila_reestima.ps1`: HLM (7 degraus) → GLMM 12 → RIF/SE → RIF pontual → OB/QR →
+      QR por área → série OLS → Oaxaca → logit-FE → Konfound → CV → VIF → Gini → HLM 3 níveis
+      → grupo raça×gênero → série anual M3 → tendência → SHAP
+- [x] E0.3 (tcc/revisoes/antes_depois_2026-10-03.md; todos convergiram; ob_acesso.csv só muda no E6, gerado com o relatório) Conferir convergência de todos os modelos e comparar com `_backup_pre_educ/`
+      (tabela antes × depois para o autor)
+- [x] E0.4 `run_konfound_evalues.py` neutralizado (legado, só com `--legado`): β digitados e logit-FE; o TCC usa hlm_stepup_konfound.csv e gerar_tabela_glmm.py
+      (β M1 −0,215 × −0,112) — hoje fora dos entregáveis, mas produz figura inconsistente
+
+- [ ] E0.5 Escada educacional (pedido 02/10): `run_hlm_negro_por_educ.py` (M3 + negro:C(nivel),
+      5 níveis, LR vs M3) roda pela `fila_pos_reestima.ps1` (espera o FIM_FILA). tab2 ganhou a
+      dimensão "Nível (núcleo)" (gap bruto, entra pela fila_loo2/tabelas_compl). Texto e figura
+      `fig:hlm_negro_educ` montados do csv em `gerar_relatorio_enxuto.py` (antes do parágrafo dos limites)
+      + figura de retas por nível (`hlm_negro_por_educ_retas.png`) + `run_hlm_negro_educ_uf.py`
+      (UF × nível, HLM V-known de Raudenbush & Bryk cap. 7: OLS within-UPA por UF + efeitos aleatórios
+      DerSimonian-Laird por nível; mapa de calor de BLUPs e τ por nível). Falta: texto e entrada no
+      documento das duas figuras novas (depois dos números)
+- [ ] E0.6 Figuras de efeitos aleatórios (pedido 02/10): `tcc/scripts/gerar_figuras_efeitos_aleatorios.py`
+      → `hlm_variancia_escada.png` (τ², σ² e explicada M0→M4; já gerada com os números novos) e
+      `hlm_encolhimento.png` (BLUP do M0 × desvio bruto, λ = τ²/(τ²+σ²/n)). Falta: entrar no
+      documento e no deck da Defesa (Fávero), com texto condicional
+
+- [~] E0.7 Escada (03/10): within-UPA nacional = HLM (9,4×9,6% … 1,1×1,1%) — o desenho não muda a
+      conclusão; a média do mapa é ENTRE ESTADOS (DL), não do país: rótulo corrigido, mapa regerado
+      após a fila_escada. LR da escada rodando (fila_escada.ps1)
+
+- [x] E0.8 (03/10) Regressão do LOO do desemprego na reconstrução de 02/10: corrigido em
+      `feature_engineering.py` (UPA e UF), teste em `checar_escolaridade.py`; impacto medido nulo
+      em β_negro (5ª casa); por decisão do autor, sem reestimar. Na próxima reconstrução da base o
+      teste passa
+
+## Bloco E1 — Texto que a correção da escolaridade e da renda invalida (✍)
+
+- [x] E1.1 (texto-base: parágrafo de renda deflacionada + efeito de ano + jornada habitual; parágrafo novo da VD3004; tabela de simetria; deck s2/s3) Método: escolaridade = VD3004 (nível alcançado) + pós pela V3009A; dummies
+      cumulativas de conclusão de ciclo; renda deflacionada (deflator oficial PNADC, reais do
+      2º tri/2026) e efeito de ano em todos os métodos; jornada é a HABITUAL (VD4031)
+- [x] E1.2 (base e Guia; a pergunta da fragilidade passou a bad control) Apagar o parágrafo "Cobertura da variável de escolaridade" (31%, `educ_missing`,
+      sensibilidade) do texto-base e do Guia (l. ~633); tirar `_EDUC_SENS_TXT`/`EDUC_COBERTURA`
+- [x] E1.3 (rótulos "ou mais") Tabela de balanceamento sem a linha "Escolaridade não registrada"; marcadores
+      `@@BAL_MISS_*@@` e o parágrafo que os usa
+- [x] E1.4 (@@VIF_ABERTURA@@ condicional ao csv) Parágrafo do VIF (`@@VIF_MISS@@`) — reescrever conforme o VIF com dummies cumulativas
+- [x] E1.5 (parágrafo de pesos já existe e é regravado pelo hlm_serie; deflator por UF no método) Limitações: pesos amostrais (V1028) não usados nas estimativas; deflator por UF
+- [x] E1.6 (tab1/tab2 entram na fila_loo2; R$ do ML e slide 4 dizem a base) Tabela descritiva (`tab1`, `tab2`) e slide de descritivos: refazer em reais constantes
+
+## Bloco E2 — Decisões do autor (❓, recomendação de texto pronta para aprovar, após E0)
+
+- [ ] E2.1 "A discriminação opera sobretudo no acesso" × números (OB: porta 12,4 pp × dentro
+      16,5 pp; HLM: ⅓ × ⅔) — reformular a tese central
+- [ ] E2.2 Escada do HLM não aninhada (agregado com UF fixa; M1 sem; M3 com) — mediação de 47%
+      mistura duas mudanças; reestimar um degrau (🖥) ou explicitar
+- [ ] E2.3 Interseccionalidade: "+4,6 pp acima da soma" é artefato de escala; em log-pontos é
+      sub-aditivo (coerente com o GLMM) — leitura única em resumo, abstract, conclusão, decks
+- [ ] E2.4 Limite superior × inferior (M3/M4/OB) — um enquadramento só
+- [ ] E2.5 Horas na especificação (A) do Oaxaca × "controles do M3" × limitações (bad control)
+- [ ] E2.6 Resultados regionais citados sem tabela (capitais × interior, DF, N/NE): incluir ou tirar
+- [ ] E2.7 E-value para desfecho comum (√OR) e benchmark das covariáveis
+- [ ] E2.8 "Na base, a maior parte do gap é preço" (35,5% não é maioria) — 4 entregáveis
+- [ ] E2.9 E-mail real do orientador na folha de rosto
+- [ ] E2.10 Lei 12.990/2014: conferir se foi substituída (Lei 15.142/2025?)
+
+- [x] E2.12 (aprovado 02/10: fundamental entrou em Oaxaca, OB/QR, QR por área, RIF e logit-FE, antes de a fila chegar; perfis contrafactuais do logit-FE corrigidos para dummies cumulativas) Especificação: Oaxaca, QR e RIF não têm educ_fund_completo (HLM, GLMM e OB
+      interseccional têm). Com dummies cumulativas, a referência mistura sem instrução com
+      fundamental completo/médio incompleto. Incluir antes que a fila_reestima chegue em rif/ob_qr?
+
+- [x] E2.15 (aprovado e aplicado 03/10: retas no corpo, parágrafo "O diploma quase iguala o salário, mas não abre a porta" na Discussão, abertura do parágrafo de políticas da Conclusão, slide 9b da Defesa — tudo condicional aos números)
+- [x] E2.14 (aprovado e aplicado 03/10: frase_sintese/titulo_bairro/frase_diploma em params_nucleo, condicionais; Resumo, Abstract, Conclusão, Defesa s2/s6/s9/s15/s23, Executiva, Guia, figura do step-up) MANCHETE MUDA (preliminar, 02/10 14:17): com a escolaridade correta e a renda
+      deflacionada, β_negro do M3 = −0,0629 (gap ≈ 6,1%) contra −0,1102 (10,4%) antes; M1 −0,0669.
+      Reler tese, resumo, títulos e decks quando a fila fechar (todos já vêm do params; o
+      risco são as frases qualitativas: "um em cada dez", "metade do gap" etc.)
+
+- [ ] E2.13 Obras citadas sem entrada no .bib — preciso dos dados exatos (não invento referência):
+      Alencar (2024), apostila "Árvores, Redes e Ensembles I" USP/ESALQ — nome completo do autor;
+      Géron (2021) — edição usada (original ou tradução Alta Books); Imazon e parceiros (2026) —
+      título do relatório do IPS municipal; Fávero & Belfiore (cap. 12) — edição do livro
+
+## Bloco E3 — Correções de texto da releitura (✍, MÉDIO/BAIXO)
+
+- [x] E3.1 (tabela de ajuste, figura, Guia e Defesa) Rótulos A1–A4 no GLMM em figura, tabela, Guia e decks (hoje M1–M4)
+- [x] E3.2 (seis quantis; topo = q90 em todo lugar; conclusão condicional; @@QR_SEXO@@ descreve as colunas por sexo a partir do csv; q95 por área fica para o E2.6) QR: declarar τ = 0,95 no método; conclusão em termos condicionais; comentar coluna por sexo
+- [x] E3.3 (texto e decks; narrativa social mantém o coloquial) Odds × probabilidade ("30% menos chance" → "chances 30% menores" ou AME)
+- [x] E3.4 (@@G_FE_TXT@@ e @@G_HL_QUEDA@@ calculados dos csv) "logit-FE reproduz os mesmos OR" vale a partir do A2; "HL cai à metade" → 30–45%
+- [x] E3.5 ("teto de vidro entre pares, piso pegajoso na renda do país: duas perguntas, dois padrões" em figura, legenda, Guia e Executiva; QR deixa de ser "gap bruto") Teto de vidro × piso pegajoso: uma formulação (figura, texto, conclusão)
+- [x] E3.6 (legenda da RIF declara os controles = Oaxaca sem ocupação + UF; frase compara RIF q50 com OB (A), não (B); linguagem causal da legenda removida) RIF × Oaxaca: declarar especificação e conciliar (27,8% × 16,5%)
+- [x] E3.7 ("importância preditiva não desprezível"; RF com folha mínima e max_features) "Raça preditora de primeira ordem" → "não desprezível"; RF: informar max_features
+- [x] E3.8 (Heckman deixa de ser resultado e vira extensão, texto e Guia; SNA/TOPSIS/k-means já não aparecem) Resíduos da versão estendida (Heckman, SNA, k-means, TOPSIS) nas Limitações
+- [x] E3.9 (IPQV = perda; MQO sem pesos nomeado; N por método na seção de dados; top 10% não é acesso) IPQV ("perda de qualidade de vida"), transição dos dois Gini, N de cada método na seção
+      de dados, MQO equivalente na nota de pesos, top 10% ≠ acesso
+- [x] E3.10 (ordem: HLM, mediação, OB, QR/RIF, GLMM, interseccional, ML, VIF; Como ler duplicado sai do texto; nota da CV enxuta e sem "sem aumentar o sobreajuste"; chamada de float após título de seção vai para depois do título) Subseção de mediação no lugar certo; um só "Como ler" por tabela; duplicações
+      (R$ 540, variação entre folds); frase solta antes da tabela interseccional ("três grupos")
+- [x] E3.11 (frases suavizadas; H1–H3 rotuladas, remissões alinhadas — bairro é H1 — e retomada condicional na Conclusão) Linguagem causal residual (l. 1520, 1542, 1610, 1573, 519); H1–H3 rotuladas e retomadas
+- [x] E3.12 ("Vale guardar a frase" fica só na 1ª; "centrada" unificado; "as dummies"; itálico tirado também das tabelas via \input; 4 citações viram \cite; travessões —/--- saem iguais no PDF, mantidos. Bib: ver E2.13) BAIXO: "dupla desvantagem", gênero de "dummies", travessões, "Vale guardar a frase" ×5,
+      grafias (centrada/centralizada, 11°), \emph perdido no gerador de normas, citações em texto
+      puro → \cite, obras faltantes no .bib (Alencar 2024, Géron 2021, Imazon 2026)
+
+## Bloco E4 — Word de entrega (🎨, conversor `gerar_tcc_normas_docx.py`)
+
+- [~] E4.1 (fonte por nº de colunas e largura mínima 0,07 feitas; paisagem pendente) Larguras de coluna fixas nas tabelas largas (4, 6A, 11, 12, 13, 14, 3); paisagem nas p. 32–34
+- [x] E4.2 Filtrar `\cmidrule` cru (Tabelas 9 e 10)
+- [x] E4.3 Chamadas de nota de rodapé em sobrescrito (hoje "0,69714")
+- [x] E4.4 (``\emph{Como ler:}`` virava ``\emphNota``; painéis saem do table; subfigure herda a largura) Título "Referências"; notas que começam com ":"; legenda duplicada da Tabela 6;
+      figura de waterfalls partida em duas páginas
+
+## Bloco E5 — Decks, Guia e figuras (🎨)
+
+- [x] E5.1 (s3 "multinível" e título contido; s5 faixas sem sobreposição; s9 nota dentro da barra longa; s10 só a figura do título em largura total; s12 cartões compactos e "chance (odds)"; s17 nome inteiro e |SHAP| sem quebra; s19 caixas mais baixas; s22 numerado e convergência condicional à inclinação — conferir visualmente no E6) Defesa: s3 ("mestrado", cabeçalho cortado), s5/s12/s15/s19 caixas transbordando,
+      s9 anotação cortada, s10 figuras ilegíveis, s17 cartões quebrando números, s22 sem número
+- [x] E5.2 (s3 "com todos os registros"/UPAs; s6 título em uma linha e remissão ao GLMM; s7 figura com altura limitada) Executiva: s3 "sem amostragem", s6 título sobre subtítulo e "(slide anterior)" errado,
+      s7 texto sobre os eixos
+- [x] E5.3 (coluna passa a ICC do M2) Guia: tabela do GLMM mistura A2 (OR/AME) com A1 (ICC/AUC)
+- [x] E5.4 (títulos em português, vírgula via `src/figuras_ptbr.py`, laranja só na raça; fig1 em R$ constantes; composição com `ativar()` no savefig) Figuras SHAP (beeswarm e waterfalls) em português e vírgula decimal; figuras do deck
+      com ponto decimal (densidade, composição)
+
+- [x] E5.5 (02/10: as três APROVADAS pelo autor — SHAP 50 mil, KDE da fig1, 20% das Mincer) Amostragens pré-existentes a confirmar com o autor (regra: nunca amostrar sem ok):
+      SHAP em 50 mil casos do treino (`run_ml_shap.py`, SHAP_SAMPLE); KDE da fig1 com
+      reamostragem ponderada de 50 mil; `gerar_tabelas_complementares.py` sorteia 20% para
+      as Mincer tab3/tab4 (não usadas no TCC)
+
+## Bloco E6 — Regeneração e portões (✍, ⏱ ~30 min de máquina)
+
+- Nota (02/10): `fila_loo2.ps1` ganhou `tabelas_compl` (tab1/tab2 → MED_BR, GAP_MEDIANA…) e
+  `composicao` — estavam fora de toda fila e não receberiam a deflação. Rodar com
+  `-Desde tabelas_compl` (os passos de análise anteriores já estão na fila_reestima).
+
+- [ ] E6.1 `fila_loo2.ps1 -Desde tabelas_compl` (tabelas, figuras, relatório, PDFs, Word,
+      decks, Guia, Narrativa)
+- [ ] E6.2 Portões: `caca_fosseis.py --vivos` = 0; `conferir_numeros_entregaveis.py` = 0;
+      `validate_consistency.py` = 0; anexos 26/26; hook dos livros 0 ALTO;
+      `auditar_wrangling.py` e `checar_escolaridade.py` OK
+- [ ] E6.3 Conferência visual: exportar todos os slides e páginas do Word e olhar
+
+## Bloco E7 — Releitura final e fechamento
+
+- [ ] E7.1 Releitura corrida (texto) + conferência visual (decks/Word) só sobre o que mudou
+- [ ] E7.2 Atualizar `RETOMADA_reestimacao_loo.md`, `releitura_2026-10-02.md` e memória
+- [ ] E7.3 Commits (código / resultados e entregáveis) e tag de entrega
+- [ ] E7.4 Versão para o orientador

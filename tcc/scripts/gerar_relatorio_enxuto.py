@@ -80,16 +80,14 @@ BLOCO_NUCLEO = r"""% ── NÚCLEO: decomposições e acesso (inserido pela ver
 \subsection{Decomposição do gap por mediação contextual e ocupacional}
 A Tabela~\ref{tab:mediacao} resume o resultado central dos modelos HLM: à medida
 que se adiciona o bairro (intercepto aleatório e contexto da UPA), o estado e a ocupação,
-o gap racial encolhe de @@HLM_GAP_POOL@@\% (agregado) para @@HLM_GAP4@@\% (M4). \emph{Como ler:} acompanhe a coluna
-$\beta_{\text{negro}}$ aproximando-se de zero linha a linha --- a fração do gap já
-explicada aparece em ``Mediação acum.''; o que resta no M4 é a penalidade que
-nenhum atributo observável explica.
+o gap racial encolhe de @@HLM_GAP_POOL@@\% (agregado) para @@HLM_GAP4@@\% (M4); o que resta
+no M4 é a penalidade que nenhum atributo observável explica.
 \input{outputs/tables/gap_mediacao_tcc.tex}
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.92\textwidth]{fig_hlm_gap}
-  \caption{Metade do gap racial desaparece ao comparar pessoas do mesmo bairro --- e o que
+  \caption{@@TITULO_BAIRRO@@ --- e o que
   sobra não é explicado por escolaridade, idade, sexo, estado nem ocupação. Barras:
   $\hat\beta_{\text{negro}}$ de cada modelo; traço: IC~95\% (estreito pelo $N$ de milhões);
   rótulo: gap em \% de renda. Em azul, o M3 (gap líquido).}
@@ -101,7 +99,7 @@ A decomposição de Oaxaca--Blinder separa o gap bruto de log-rendimento
 (@@OB_GAP@@ log-pontos, ou @@OB_GAP_PCT@@\%) em uma parcela explicada por diferenças de
 dotações e uma parcela não explicada (retornos diferenciais --- limite inferior da
 discriminação). A Tabela~\ref{tab:oaxaca_blinder} apresenta duas especificações,
-porque ocupação e formalidade são \emph{bad controls} (Angrist \& Pischke, 2009):
+porque ocupação e formalidade são \emph{bad controls} \cite{angrist2009}:
 são elas próprias resultado da discriminação. Em (A), com os controles do HLM~M3
 (capital humano e contexto de UPA), @@OB_A_COEF@@\% do gap não é explicado por
 características observáveis; em (B), tratando também horas, formalidade e grupo
@@ -109,8 +107,7 @@ CBO como dotações, a parcela não explicada cai para @@OB_B_COEF@@\% --- a
 discriminação salarial \emph{dentro} da ocupação. A diferença entre as duas
 (@@OB_DIF@@ pontos percentuais) é a parcela da discriminação que opera pela
 \emph{porta de entrada} das ocupações, e não pelo salário --- exatamente o que o
-GLMM de acesso mede adiante. \emph{Como ler:} em cada coluna, Dotações $+$ Não
-explicado $=100\%$; os erros-padrão vêm de bootstrap em blocos por UPA.
+GLMM de acesso mede adiante. Os erros-padrão vêm de bootstrap em blocos por UPA.
 
 \paragraph{Pressupostos das regressões por grupo.} As duas regressões auxiliares
 (brancos e negros) foram submetidas aos testes de Breusch--Pagan e RESET
@@ -136,19 +133,21 @@ magnitude, não o $p$-valor \cite{angrist2009}.
 \subsection{Regressão Quantílica e RIF-OB: teto de vidro e \emph{sticky floor}}
 A regressão quantílica estima o gap em cada ponto da distribuição de renda; a
 RIF-OB separa, por quantil, dotação e retorno. A Tabela~\ref{tab:qr_melhorias}
-mostra o gap crescendo ao longo da distribuição (teto de vidro no gap bruto); a
+mostra a penalidade \emph{condicional} crescendo rumo ao topo (teto de vidro entre
+pessoas de mesmo perfil); a
 Tabela~\ref{tab:rif_ob} revela o padrão complementar: o componente de retorno
 (discriminação proporcional) é maior na base e \emph{decresce} rumo ao topo
 (\emph{sticky floor}). \emph{Como ler:} na Tabela~\ref{tab:rif_ob}, Dotações $+$
-Retornos $=100\%$ em cada quantil; siga a coluna Retornos caindo de $35{,}1\%$ (q10)
-a $12{,}9\%$ (q90) --- a discriminação de preço pesa mais na base.
+Retornos $=100\%$ em cada quantil; siga a coluna Retornos caindo de $@@RIF_RET_Q10@@\%$ (q10)
+a $@@RIF_RET_Q90@@\%$ (q90) --- a discriminação de preço pesa mais na base.
 \input{outputs/tables/qr_melhorias.tex}
 \input{outputs/tables/rif_decomp_tcc.tex}
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.98\textwidth]{fig_qr_rif}
-  \caption{Teto de vidro e piso pegajoso são o mesmo fenômeno visto de dois ângulos. À
+  \caption{Teto de vidro entre pares, piso pegajoso na renda do país: duas perguntas,
+  dois padrões. À
   esquerda, a penalidade em quantis \emph{condicionais} cresce rumo ao topo (faixa: IC~95\%
   por bootstrap em blocos de UPA); à direita, a parcela não explicada dos quantis
   \emph{incondicionais} da renda é maior na base.}
@@ -164,11 +163,12 @@ pergunta desta subseção, e ela importa porque muda o alvo da política: se a d
 se produz no salário, o remédio é fiscalização de remuneração; se ela se produz no
 acesso, nenhuma política salarial a alcança. Três desfechos respondem --- ocupar cargo
 qualificado (CBO~1--4), estar no top~20\% e no top~10\% da renda ---, cada um estimado
-em quatro degraus paralelos aos do HLM, com intercepto aleatório de UPA e efeitos fixos
+em quatro degraus próprios, rotulados A1 a A4 para não se confundirem com os do HLM
+---aos quais não correspondem um a um---, com intercepto aleatório de UPA e efeitos fixos
 de UF.\footnote{\texttt{lme4::glmer}, aproximação de Laplace sobre a população completa.
-Os degraus são: M1 individual; M2 $+$ contexto do bairro; M3 $+$ vínculo (formalidade,
+Os degraus são: A1 individual; A2 $+$ contexto do bairro; A3 $+$ vínculo (formalidade,
 setor público, conta própria, doméstico), que é desfecho da própria discriminação e por
-isso faz do M3 um limite inferior; M4 $+$ interação \texttt{negro}$\times$credencial. A
+isso faz do A3 um limite inferior; A4 $+$ interação \texttt{negro}$\times$credencial. A
 Tabela~\ref{tab:glmm_glassceil} traz \emph{odds ratios}, efeitos marginais, ICC e
 E-values; a Tabela~\ref{tab:glmm_ajuste}, o ajuste e a classificação.}
 
@@ -188,24 +188,25 @@ quanto mais alto o degrau, mais o endereço pesa.
 Comparando pessoas do mesmo bairro, com a mesma escolaridade, sexo, idade, jornada e
 estado, a chance de um trabalhador negro ocupar cargo qualificado é
 OR~$=$~@@G_OR_CBO_M2@@\footnote{IC~95\% @@G_CI_CBO_M2@@. \emph{Odds ratio} abaixo de~1 é
-desvantagem; acima de~1, vantagem.} da chance de um branco --- \textbf{@@G_PCT_CBO_M2@@\%
-menos chance}. Traduzido para probabilidade, que é a medida a reter
+desvantagem; acima de~1, vantagem.} da chance de um branco --- \textbf{chances (\emph{odds})
+@@G_PCT_CBO_M2@@\% menores}. Traduzido para probabilidade, que é a medida a reter
 \cite{angrist2009}, são \textbf{@@G_AME_CBO_M2@@ pontos percentuais} a menos de chegar
-lá. E a porta estreita à medida que se sobe: no top~10\% da renda o OR cai para
-@@G_OR_T10_M2@@, \textbf{@@G_PCT_T10_M2@@\% menos chance}. Não é o mesmo fenômeno do
+lá. E a desvantagem cresce à medida que se sobe na renda: para chegar ao top~10\% ---
+que já não é o acesso a uma ocupação, mas a uma faixa de rendimento --- o OR cai para
+@@G_OR_T10_M2@@, \textbf{chances @@G_PCT_T10_M2@@\% menores}. Não é o mesmo fenômeno do
 salário visto de outro ângulo --- é uma barreira que age antes, na distribuição das
 posições, e que nenhuma política de remuneração igual alcançaria.
 
-Vale guardar a frase: a desigualdade racial no mercado de trabalho brasileiro não começa
+Em síntese, a desigualdade racial no mercado de trabalho brasileiro não começa
 no contracheque, começa na porta.
 
 \paragraph{Vínculo e credencial não desfazem a barreira.}
 Duas explicações alternativas se apresentam naturalmente, e o modelo testa as duas. A
 primeira é a informalidade: a barreira seria um artefato de negros estarem mais em
-vínculos precários. Descontar o vínculo (M3) praticamente não move o OR do cargo
+vínculos precários. Descontar o vínculo (A3) praticamente não move o OR do cargo
 qualificado (@@G_OR_CBO_M3@@) nem o do top~10\% (@@G_OR_T10_M3@@), de modo que não é
 isso. A segunda é o diploma: bastaria credenciar-se. A interação
-\texttt{negro}$\times$credencial do M4 é de @@G_ORI_SUP_CBO@@ para o superior completo e
+\texttt{negro}$\times$credencial do A4 é de @@G_ORI_SUP_CBO@@ para o superior completo e
 @@G_ORI_POS_CBO@@ para a pós-graduação --- o diploma @@G_INTER_TXT@@ ---, mas o OR
 combinado de um trabalhador negro com superior completo ainda é @@G_OR_CBO_SUP@@. A
 credencial reduz a barreira; não a neutraliza. A Figura~\ref{fig:glmm_or} reúne as razões
@@ -217,7 +218,7 @@ efeitos aleatórios e @@G_AUCFE_CBO_M2@@ só com efeitos fixos, para o cargo qua
 no \emph{cutoff} de Youden (@@G_CUT_CBO_M2@@), sensibilidade @@G_SENS_CBO_M2@@ e
 especificidade @@G_ESP_CBO_M2@@. O teste de Hosmer--Lemeshow rejeita a calibração
 perfeita em todos os degraus --- inevitável com $N$ de milhões \cite{angrist2009} ---,
-mas a estatística cai a cerca de metade ao se acrescentar o vínculo (M3).}, mas a
+mas a estatística cai @@G_HL_QUEDA@@ ao se acrescentar o vínculo (A3).}, mas a
 pergunta que interessa não é essa: é se a desvantagem poderia ser obra de algo que o
 modelo não viu. O E-value responde quanto um confundidor omitido teria de ser forte para
 anular o resultado, e aqui ele vale \textbf{@@G_EV_CBO_M2@@}: seria preciso uma
@@ -225,15 +226,14 @@ característica não medida associada tanto a ser negro quanto a ocupar cargo qu
 com razão de risco de pelo menos @@G_EV_CBO_M2@@ em ambas as pontas --- mais forte do que
 qualquer covariável efetivamente observada nestes dados, escolaridade inclusive. Por fim,
 o logit com efeitos fixos de UF e erro-padrão agrupado por UPA (última coluna da
-Tabela~\ref{tab:glmm_glassceil}) reproduz os mesmos OR: a conclusão não depende da
-hipótese de efeitos aleatórios.
+Tabela~\ref{tab:glmm_glassceil}) @@G_FE_TXT@@
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.95\textwidth]{fig_glmm_or}
   \caption{A porta é mais estreita para trabalhadores negros --- e estreita ainda mais no
   topo da renda. Razão de chances de acesso (negro \emph{vs.}\ branco do mesmo bairro) com
-  IC~95\%, por desfecho e degrau; em azul, o modelo com contexto de bairro (M2).}
+  IC~95\%, por desfecho e degrau; em azul, o modelo com contexto de bairro (A2).}
   \label{fig:glmm_or}
 \end{figure}
 
@@ -253,7 +253,7 @@ Este trabalho investiga o \textit{gap} salarial racial e as barreiras estruturai
 à progressão de carreira de profissionais negros no Brasil, combinando econometria
 multinível e métodos de decomposição salarial sobre a série histórica completa da
 Pesquisa Nacional por Amostra de Domicílios Contínua (PNAD Contínua) de 2016 a 2025
-(15,9~milhões de observações brutas). A estratégia empírica articula quatro métodos
+(@@P:N_BRUTO:1:milhoes@@~milhões de observações brutas). A estratégia empírica articula quatro métodos
 complementares --- modelo linear hierárquico (HLM), decomposição de Oaxaca--Blinder,
 regressão quantílica com decomposição RIF e modelo logístico multinível (GLMM) ---,
 validados por \textit{machine learning} interpretável (XGBoost + SHAP).
@@ -272,8 +272,8 @@ formalidade são tratadas como dotações, essa parcela cai para @@OB_B_COEF@@\%
 limite inferior da discriminação salarial \emph{dentro} da ocupação, pois o acesso
 à ocupação é ele próprio desigual. A decomposição RIF por quantil mostra um padrão de
 \textit{sticky floor}: esse componente de retorno é maior na base da distribuição
-(35,1\% no q10) e decresce rumo ao topo (12,9\% no q90). A discriminação opera,
-portanto, sobretudo no \emph{acesso} às ocupações --- canal que o GLMM mede diretamente.
+(@@RIF_RET_Q10@@\% no q10) e decresce rumo ao topo (@@RIF_RET_Q90@@\% no q90). A desigualdade opera,
+portanto, também no \emph{acesso} às ocupações --- canal que o GLMM mede diretamente.
 
 O GLMM logístico de acesso (intercepto aleatório de UPA) confirma o teto de vidro
 ocupacional: controlados escolaridade, sexo, idade, estado e contexto do bairro,
@@ -299,7 +299,7 @@ ABSTRACT_EN = r"""\begin{abstract}
 This study investigates the racial wage gap and structural barriers to career
 progression for Black professionals in Brazil, combining multilevel econometrics and
 wage-decomposition methods on the full historical series of Brazil's Continuous
-National Household Sample Survey (PNAD Contínua) from 2016 to 2025 (15.9~million raw
+National Household Sample Survey (PNAD Contínua) from 2016 to 2025 (@@P:N_BRUTO:1:milhoes_en@@~million raw
 observations). The empirical strategy articulates four complementary methods --- a
 hierarchical linear model (HLM), the Oaxaca--Blinder decomposition, quantile
 regression with RIF decomposition, and a multilevel logistic model (GLMM) ---,
@@ -320,8 +320,8 @@ formality are treated as endowments, this share falls to @@OB_B_COEF_EN@@\% --- 
 bound on within-occupation wage discrimination, since access to occupations is itself
 unequal. The quantile RIF decomposition reveals a
 \textit{sticky floor}: this returns component is largest at the bottom of the
-distribution (35.1\% at q10) and declines toward the top (12.9\% at q90). Discrimination
-thus operates mainly on \emph{access} to occupations --- which the GLMM measures directly.
+distribution (@@P:RIF_RET_Q10:1:en@@\% at q10) and declines toward the top (@@P:RIF_RET_Q90:1:en@@\% at q90). Inequality
+thus also operates on \emph{access} to occupations --- which the GLMM measures directly.
 
 The multilevel logistic model (random intercept by census tract) confirms an
 occupational glass ceiling: controlling for education, sex, age, state, and neighbourhood
@@ -545,16 +545,21 @@ LEGENDAS = [
      r"\noindent\emph{Como ler a Figura~\ref{fig:shap_wf}:} cada linha é uma variável de "
      r"\textbf{um} trabalhador --- não de uma média. A barra mostra quanto aquela variável "
      r"empurra a previsão para cima ou para baixo, partindo da previsão média da base até "
-     r"a previsão final do caso. Serve para ver como o modelo compõe uma decisão, não para "
-     r"generalizar."),
+     r"a previsão final do caso. Compare a linha \emph{Raça (negro)} nos dois painéis: "
+     r"é a mesma variável, com o sinal trocado --- soma no branco, subtrai no negro. "
+     r"Serve para ver como o modelo compõe uma decisão, não para generalizar: a "
+     r"magnitude média está na Figura~\ref{fig:shap}, sobre os 50 mil casos."),
     (r"\label{fig:shap}", r"\end{figure}",
      r"\noindent\emph{Como ler a Figura~\ref{fig:shap}:} cada ponto é um trabalhador; "
      r"quanto mais à direita (ou maior a barra), maior o efeito da variável na renda "
      r"prevista. A cor indica se o valor da variável é alto ou baixo."),
     (r"\label{fig:interseccional}", r"\end{figure}",
-     r"\noindent\emph{Como ler a Figura~\ref{fig:interseccional}:} cada barra é um grupo "
-     r"raça$\times$gênero; a altura é o gap vs.\ o homem branco --- a mulher negra acumula "
-     r"as duas penalidades."),
+     r"\noindent\emph{Como ler a Figura~\ref{fig:interseccional}:} cada linha é um grupo "
+     r"raça$\times$gênero e cada ponto, a razão de chances contra o homem branco, cuja "
+     r"referência é a linha tracejada em 1; abaixo dela, o grupo tem menos chance que ele. "
+     r"Siga a linha azul da esquerda para a direita: a mulher negra começa acima da "
+     r"referência no acesso à categoria e termina como o grupo mais distante dela no topo "
+     r"da renda."),
     (r"\label{tab:ml_perf}", r"\end{table}",
      r"\noindent\emph{Como ler a Tabela~\ref{tab:ml_perf}:} R\textsuperscript{2} mais alto "
      r"= melhor previsão; o \emph{gap} treino--teste próximo de zero indica ausência de "
@@ -676,11 +681,7 @@ mostra a Tabela~\ref{tab:balanceamento}. O maior desequilíbrio não está em es
 nem em horas: está em \emph{onde se mora}. A composição racial do bairro tem diferença
 padronizada de @@BAL_D_UPA@@ desvios --- uma ordem de grandeza acima de qualquer variável
 individual ---, seguida do desemprego local (@@BAL_D_DES@@) e da educação média do entorno
-(@@BAL_D_EDU@@). É esse desequilíbrio que o nível~2 do modelo hierárquico absorve. As
-\textit{dummies} de escolaridade, por sua vez, são condicionais ao registro da variável,
-cuja cobertura difere entre os grupos (@@BAL_MISS_B@@ contra @@BAL_MISS_N@@ de não
-registro); por isso o indicador \texttt{educ\_missing} entra em todos os modelos e os
-retornos educacionais são lidos com a cautela registrada nas limitações.
+(@@BAL_D_EDU@@). É esse desequilíbrio que o nível~2 do modelo hierárquico absorve.
 O suporte comum é amplo: @@BAL_UPA_MISTA@@\% das UPAs abrigam trabalhadores dos dois
 grupos e todas as células UF~$\times$~escolaridade contêm brancos e negros, de modo que a
 comparação não depende de extrapolação \cite{angrist2009}.
@@ -697,14 +698,14 @@ if _bal:
         "@@BAL_D_UPA@@": _pt0(_bal["pct_negro_upa_z"]["d_cohen"]),
         "@@BAL_D_DES@@": _pt0(_bal["tx_desemprego_upa_z"]["d_cohen"]),
         "@@BAL_D_EDU@@": _pt0(_bal["media_educ_upa_z"]["d_cohen"]),
-        "@@BAL_MISS_B@@": _pt0(float(_bal["educ_missing"]["media_branco"]) * 100, 1) + r"\%",
-        "@@BAL_MISS_N@@": _pt0(float(_bal["educ_missing"]["media_negro"]) * 100, 1) + r"\%",
     }
     import csv as _c3
     with (Path("outputs/tables") / "balanceamento.tex").open(encoding="utf-8") as _f3:
         _t3 = _f3.read()
     _mm = re.search(r"(\d+,\d)\\% das UPAs", _t3)
-    _bal_vals["@@BAL_UPA_MISTA@@"] = _mm.group(1) if _mm else "97,3"
+    # sem valor de reserva: se a tabela mudar de formato, o marcador fica cru e o aviso
+    # de marcadores não preenchidos dispara (um "97,3" fixo passaria calado)
+    _bal_vals["@@BAL_UPA_MISTA@@"] = _mm.group(1) if _mm else "@@BAL_UPA_MISTA@@"
     for _k, _v in _bal_vals.items():
         texto = texto.replace(_k, _v)
 if "@@BAL_" in texto:
@@ -734,7 +735,7 @@ superior da renda, @@G_PCT_T10_M2@@\% menor.
 
 \medskip
 \noindent\textbf{A evidência.} Quatro métodos independentes, sobre a população completa da
-PNAD Contínua (cerca de 7,7~milhões de observações em @@N_UPAS@@ bairros --- o $N$
+PNAD Contínua (cerca de @@P:N_GLMM:1:milhoes@@~milhões de observações em @@N_UPAS@@ bairros --- o $N$
 exato varia com os filtros de cada método e consta da sua tabela): um modelo hierárquico que
 separa pessoa e bairro; a decomposição de Oaxaca--Blinder, que separa ``ter
 características diferentes'' de ``receber preços diferentes''; a regressão quantílica com
@@ -848,7 +849,7 @@ if _pop.exists():
             r"isto é, descrevem a regressão na amostra, não a regressão populacional "
             r"\cite{angrist2009}. Como robustez, o M3 foi reestimado por mínimos quadrados ponderados "
             r"com V1028 e erro-padrão agrupado por UPA: $\hat\beta_{\text{negro}}$ passa de "
-            f"{_pt2(_o['b_negro'])} para {_pt2(_w['b_negro'])} "
+            f"{_pt2(_o['b_negro'])} (MQO equivalente, sem pesos) para {_pt2(_w['b_negro'])} "
             f"(gap de {_pt2(abs(float(_o['Gap%'])), 1)}\\% para {_pt2(abs(float(_w['Gap%'])), 1)}\\%), "
             r"diferença sem relevância econômica; os demais resultados são não ponderados. "
         )
@@ -861,7 +862,7 @@ _SUBSEC = (
     r"independentes subestima os erros-padrão pelo fator de Moulton "
     r"$\sqrt{1+(\bar n-1)\rho}$ \cite{angrist2009}. Por isso, todos os modelos de regressão "
     r"(OLS com efeitos fixos de UF, decomposição de Oaxaca--Blinder, regressão quantílica e "
-    r"logit) reportam erros-padrão \emph{agrupados por UPA} (41.517 clusters) --- para a OB e a "
+    r"logit) reportam erros-padrão \emph{agrupados por UPA} (@@N_UPAS@@ clusters) --- para a OB e a "
     r"regressão quantílica, por bootstrap em blocos de UPA. O agrupamento por UF é mais "
     r"conservador, mas com 27 clusters ($<42$) a inferência assintótica é pouco confiável "
     r"\cite{angrist2009}; quando reportado, usa a distribuição $t$ com $G-1$ graus de liberdade. "
@@ -870,6 +871,12 @@ _SUBSEC = (
     r"contraprova, os coeficientes do HLM são comparados aos do OLS com efeitos fixos de UF e "
     r"erro-padrão agrupado por UPA, que coincidem em sinal, magnitude e significância. "
     + _txt_num + "\n\n" + _txt_peso + "\n\n"
+    # A tabela recolhe num lugar só o que estava espalhado pelo texto: quem
+    # avalia precisa ver de uma vez o que foi testado e o que se fez a respeito.
+    + r"\paragraph{O conjunto das verificações.} A Tabela~\ref{tab:robustez} "
+      r"reúne os diagnósticos aplicados ao longo do trabalho, o resultado de cada um e a "
+      r"providência que ele motivou." "\n\n"
+    + r"\input{outputs/tables/robustez}" "\n\n"
 )
 texto, _ni = re.subn(r"(?=\\subsection\{Random Forest, XGBoost e SHAP Values\})",
                      lambda m: _SUBSEC, texto, count=1)
@@ -886,6 +893,14 @@ def _rd(name):
         return list(_csv.DictReader(_f))
 _gap = {r["Modelo"]: r for r in _rd("gap_decomposicao_stepup.csv")}
 _fit = {r["modelo"]: r for r in _rd("hlm_stepup_fit.csv")}
+# robustez de três níveis: só existe se o modelo em R já tiver sido rodado
+def _num3(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None            # o M0 é nulo: não tem b_negro
+_niv3 = {r["modelo"]: {k: (v if k == "modelo" else _num3(v)) for k, v in r.items()}
+         for r in _rd("hlm_tres_niveis.csv")}
 _coef = {(r["modelo"], r["variavel"]): r for r in _rd("hlm_stepup_coefs.csv")}
 _konf = {r["modelo"]: r for r in _rd("hlm_stepup_konfound.csv")}
 _glm = {(r["desfecho"], r["modelo"]): r for r in _rd("glmm_glassceil_full.csv")}
@@ -911,6 +926,27 @@ if _gap and _fit and _coef:
         "@@HLM_ICC0@@": _pt(_fit["M0"]["icc_upa"], 3), "@@HLM_ICC0_PCT@@": _pt(float(_fit["M0"]["icc_upa"]) * 100),
         "@@HLM_ICC0_PCT_EN@@": _pten(float(_fit["M0"]["icc_upa"]) * 100),
         "@@HLM_ICC3@@": _pt(_fit["M3"]["icc_upa"], 3),
+        # HLM de três níveis (robustez): separa em bairro e estado o que o modelo
+        # de dois níveis credita inteiro ao território. Lido de hlm_tres_niveis.csv.
+        **({
+            "@@N3_ICC_UF0@@":  _pt(_niv3["M0"]["icc_uf"] * 100),
+            "@@N3_ICC_UPA0@@": _pt(_niv3["M0"]["icc_upa"] * 100),
+            "@@N3_ICC_UF2@@":  _pt(_niv3["M2"]["icc_uf"] * 100),
+            "@@N3_ICC_UPA2@@": _pt(_niv3["M2"]["icc_upa"] * 100),
+            "@@N3_B_NEGRO@@":  _pt(_niv3["M2"]["b_negro"], 4),
+            "@@N3_NOTA@@": (
+                r"\footnote{Estimado com " + r"\texttt{lme4} sobre a mesma "
+                r"população. A especificação do trabalho "
+                r"continua sendo a de dois níveis: 27 estados são poucos para estimar "
+                r"uma variância com precisão, e o efeito fixo absorve o contexto estadual "
+                r"sem hipótese distribucional. O ponto desta checagem é outro: o "
+                r"coeficiente racial não depende dessa escolha --- vale "
+                # o par certo do M2 de três níveis (UF aleatória) é o M3 de dois níveis
+                # (UF fixa); o M2 de dois níveis não tem UF nenhuma
+                + _pt(_gap["M3"]["b_negro"], 4) + r" com a UF como efeito fixo e "
+                + _pt(_niv3["M2"]["b_negro"], 4) + r" com a UF como nível aleatório.}"
+            ),
+        } if _niv3 else {}),
         "@@HLM_TAU_EXPL_M1@@": _pt(_fit["M1"]["pct_tau2_explicada_vs_M0"]),
         "@@HLM_TAU_EXPL_M2@@": _pt(_fit["M2"]["pct_tau2_explicada_vs_M0"]),
         "@@HLM_TAU_EXPL_M3@@": _pt(_fit["M3"]["pct_tau2_explicada_vs_M0"]),
@@ -996,6 +1032,28 @@ if _glmer:
         "@@G_EV_CBO_M2@@": _pt(_ev(_g("ocp_qualif", "M2", "OR_negro")), 1),
         "@@G_EV_CBO_M2_EN@@": _pten(_ev(_g("ocp_qualif", "M2", "OR_negro")), 1),
     })
+    # Hosmer-Lemeshow: queda do A2 para o A3 em cada desfecho (antes: "cai à metade", fóssil)
+    _hl = [1 - _g(d, "M3", "HL_chi2") / _g(d, "M2", "HL_chi2")
+           for d in ("ocp_qualif", "y_top20", "y_top10")]
+    _V2_hl = (f"entre {_pt(min(_hl) * 100, 0)}\\% e {_pt(max(_hl) * 100, 0)}\\%"
+              if max(_hl) - min(_hl) > 0.05 else f"cerca de {_pt(sum(_hl) / 3 * 100, 0)}\\%")
+    texto = texto.replace("@@G_HL_QUEDA@@", _V2_hl)
+    # logit-FE × GLMM: a concordância só vale com o contexto do bairro (A2 em diante)
+    if _glm:
+        _fe1, _fe2 = (float(_glm[("ocp_qualif", m)]["OR_negro"]) for m in ("M1", "M2"))
+        _gl1, _gl2 = _g("ocp_qualif", "M1", "OR_negro"), _g("ocp_qualif", "M2", "OR_negro")
+        if abs(_fe2 - _gl2) < 0.02:
+            _fe_txt = (f"reproduz os OR a partir do A2 (cargo qualificado: {_pt(_fe2, 3)} contra "
+                       f"{_pt(_gl2, 3)})"
+                       + (f"; no A1, sem o contexto do bairro, dá {_pt(_fe1, 3)} contra "
+                          f"{_pt(_gl1, 3)}, porque sem o intercepto de UPA o contexto omitido é "
+                          r"absorvido pelo coeficiente racial" if abs(_fe1 - _gl1) >= 0.02 else "")
+                       + ". Com o contexto do bairro no modelo, a conclusão não depende da "
+                         "hipótese de efeitos aleatórios.")
+        else:
+            _fe_txt = (f"dá OR de {_pt(_fe2, 3)} no A2, contra {_pt(_gl2, 3)} do GLMM: a "
+                       "magnitude depende da hipótese de efeitos aleatórios, o sinal não.")
+        texto = texto.replace("@@G_FE_TXT@@", _fe_txt)
 for _k, _v in _V.items():
     texto = texto.replace(_k, _v)
 # REML vs ML do modelo nulo (FAV-73): a comparação não cabia na tabela
@@ -1013,12 +1071,60 @@ _vif = {r["predictor"]: float(r["VIF"]) for r in _rd("vif_m4_preditores.csv")}
 if _vif:
     _ctx = [v for k, v in _vif.items() if k.endswith("_upa_z")]
     _occ = [v for k, v in _vif.items() if k.startswith("ocp_") or k in ("emprego_formal", "conta_propria", "trab_domestico")]
-    for _k, _v in {"@@VIF_MISS@@": _pt(_vif.get("educ_missing", float("nan")), 2),
-                   "@@VIF_SUP@@": _pt(_vif.get("educ_superior_completo", float("nan")), 2),
+    # abertura condicional: quais VIF passam de 10 e se estão todos no bloco educacional
+    # (as dummies cumulativas são aninhadas: quem tem superior tem médio e fundamental)
+    _altos = sorted(((k, v) for k, v in _vif.items() if v > 10), key=lambda kv: -kv[1])
+    _nome = lambda k: r"\texttt{" + k.replace("_", r"\_") + "}"
+    if not _altos:
+        _mx = max(_vif.items(), key=lambda kv: kv[1])
+        _abre = (f"Nenhum preditor do M4 tem VIF acima de 10; o maior é o de {_nome(_mx[0])} "
+                 f"({_pt(_mx[1], 2)}).")
+    else:
+        _lista = ", ".join(f"{_nome(k)} ({_pt(v, 2)})" for k, v in _altos)
+        _abre = (f"{'O VIF acima de 10 é o de' if len(_altos) == 1 else 'Os VIF acima de 10 são os de'} "
+                 f"{_lista}.")
+        if all(k.startswith("educ_") for k, _ in _altos):
+            _abre += (r" É colinearidade \emph{por construção} dentro do bloco educacional: as "
+                      r"\textit{dummies} de conclusão são cumulativas e, portanto, aninhadas "
+                      r"(Fávero \& Belfiore, cap.~12). Ela infla o erro-padrão dos retornos "
+                      r"educacionais, que por isso são lidos com cautela.")
+    for _k, _v in {"@@VIF_ABERTURA@@": _abre,
                    "@@VIF_NEGRO@@": _pt(_vif.get("negro", float("nan")), 2),
                    "@@VIF_CTX_MAX@@": _pt(max(_ctx) if _ctx else float("nan"), 1),
                    "@@VIF_OCC_MAX@@": _pt(max(_occ) if _occ else float("nan"), 2)}.items():
         texto = texto.replace(_k, _v)
+# QR por sexo (bloco 5.6) — @@QR_SEXO@@: o padrão de cada coluna da Tabela da QR, descrito
+# a partir do csv (crescente, em U ou decrescente), sem afirmar o que os números não mostram
+_qr = {}
+for _r in _rd("qr_melhorias.csv"):
+    _qr.setdefault(_r["grupo"], {})[round(float(_r["quantil"]) * 100)] = abs(float(_r["gap_pct"]))
+
+
+def _padrao_qr(g):
+    g10, g50, g90 = g[10], g[50], g[90]
+    if g10 > 1.1 * g50 and g90 > 1.1 * g50:
+        return "U"
+    return "cresce" if g90 > g10 else "cai"
+
+
+if {"Homens", "Mulheres"} <= set(_qr):
+    _fq = lambda v: _pt(v, 1) + r"\%"
+    _partes = []
+    for _nome, _rot in (("Homens", "entre homens"), ("Mulheres", "entre mulheres")):
+        _g = _qr[_nome]
+        _p = _padrao_qr(_g)
+        if _p == "U":
+            _partes.append(f"{_rot}, a penalidade é maior nas duas pontas --- {_fq(_g[10])} no q10, "
+                           f"{_fq(_g[50])} na mediana e {_fq(_g[90])} no q90 ---, de modo que ao teto "
+                           r"de vidro se soma um piso pegajoso \emph{condicional}")
+        else:
+            _partes.append(f"{_rot}, ela {'cresce' if _p == 'cresce' else 'diminui'} de "
+                           f"{_fq(_g[10])} (q10) para {_fq(_g[90])} (q90)")
+    _qrs = (r"\paragraph{Por sexo.} As colunas por sexo da Tabela~\ref{tab:qr_melhorias} "
+            r"mostram que o padrão não é o mesmo para todos: " + "; ".join(_partes) + ".")
+    texto = texto.replace("@@QR_SEXO@@", _qrs)
+else:
+    texto = texto.replace("@@QR_SEXO@@", "")
 if "@@VIF_" in texto:
     print("  [AVISO] placeholders @@VIF_...@@ não preenchidos!")
 
@@ -1087,6 +1193,154 @@ pendentes = []
 for rot in set(rotulos_removidos):
     if re.search(r"\\(ref|autoref|cref|eqref)\{" + re.escape(rot) + r"\}", texto):
         pendentes.append(rot)
+
+# A subseção de Inferência (_SUBSEC) entra depois da primeira substituição de
+# @@N_UPAS@@ e trazia o marcador cru para o documento: segunda passada aqui.
+if _nupas:
+    texto = texto.replace("@@N_UPAS@@", f"{int(float(_nupas)):,}".replace(",", "."))
+# Parcela de retornos da RIF-OB em q10 e q90, na mesma conta da tab:rif_ob
+# (corrigir_tabela_rif.py: ret / gap_rif) — antes estava escrita à mão no texto.
+for _r in _rd0("rif_ob_decomposicao.csv"):
+    if _r.get("q_label") in ("q10", "q90"):
+        _v = float(_r["ret"]) / float(_r["gap_rif"]) * 100
+        texto = texto.replace(f"@@RIF_RET_{_r['q_label'].upper()}@@", f"{_v:.1f}".replace(".", "{,}"))
+# Marcador genérico @@P:CHAVE[:casas[:modo]]@@ — qualquer número do texto pode vir
+# direto de params_nucleo, em vez de ser digitado (e virar fóssil na reestimação).
+# modos: en (ponto decimal, para o Abstract), mil (milhar com ponto), milhoes (÷10⁶),
+#        um_menos (100·(1−v), p.ex. OR 0,697 → 30,3% menos), x100, abs.
+_sys.path.insert(0, str(Path(__file__).resolve().parent))
+from params_nucleo import P as _PN  # noqa: E402
+
+
+# Penalidade racial por nível de escolaridade (robustez do HLM, pedido do autor em
+# 02/10/2026; run_hlm_negro_por_educ.py). Texto montado do csv: descreve o padrão que os
+# números mostrarem, sem afirmar de antemão onde a penalidade é maior.
+def _bloco_negro_por_educ() -> str:
+    niv = [("SEMFUND", "sem fundamental completo"), ("FUND", "com fundamental completo"),
+           ("MEDIO", "com médio completo"), ("SUP", "com superior completo"),
+           ("POS", "com pós-graduação")]
+    if not all(f"NE_GAP_{k}" in _PN for k, _ in niv):
+        print("  [AVISO] hlm_negro_por_educ.csv ausente: bloco da escada educacional omitido")
+        return ""
+    v = lambda x, d=1: f"{x:.{d}f}".replace(".", "{,}")
+    g = {k: _PN[f"NE_GAP_{k}"] for k, _ in niv}
+    rot = dict(niv)
+    k_max, k_min = max(g, key=g.get), min(g, key=g.get)
+    sem, pos = g["SEMFUND"], g["POS"]
+    if abs(pos - sem) < 1:
+        forma = (f"é praticamente a mesma nas duas pontas da escada ({v(sem)}\\% entre quem "
+                 f"está {rot['SEMFUND']} e {v(pos)}\\% {rot['POS']})")
+    else:
+        forma = (f"{'cresce' if pos > sem else 'diminui'} da base para o topo da escada: "
+                 f"{v(sem)}\\% entre quem está {rot['SEMFUND']} e {v(pos)}\\% entre quem está "
+                 f"{rot['POS']}")
+    extremo = ""
+    if k_max not in ("SEMFUND", "POS") or k_min not in ("SEMFUND", "POS"):
+        extremo = (f" O maior valor está entre quem está {rot[k_max]} ({v(g[k_max])}\\%) e o menor, "
+                   f"entre quem está {rot[k_min]} ({v(g[k_min])}\\%).")
+    teste = ""
+    if "NE_LR" in _PN:
+        p = _PN["NE_LR_P"]
+        teste = (f" O teste de razão de verossimilhança contra o M3, que impõe uma penalidade "
+                 f"única, {'rejeita' if p < 0.05 else 'não rejeita'} a igualdade entre os níveis "
+                 f"(LR $= {v(_PN['NE_LR'], 0)}$, 4~g.l., "
+                 + (r"$p<0{,}001$" if p < 0.001 else f"$p = {v(p, 3)}$") + ").")
+    bruto = ""
+    if all(f"GAPBRUTO_{k}" in _PN for k in ("SEMFUND", "POS")):
+        bruto = (f" Sem controles, o gap mediano é de {v(_PN['GAPBRUTO_SEMFUND'])}\\% {rot['SEMFUND']} "
+                 f"e de {v(_PN['GAPBRUTO_POS'])}\\% {rot['POS']}; a diferença entre o bruto e o "
+                 f"condicional, em cada nível, é o que idade, sexo, jornada, bairro e estado "
+                 f"explicam ali.")
+    return (r"""
+\paragraph{A penalidade ao longo da escada educacional.}
+O M3 impõe uma única penalidade racial a todos os níveis de escolaridade. Reestimado com o
+coeficiente de raça livre em cada nível --- mesma especificação, mesma população ---, ele mostra
+que a penalidade condicional """ + forma + "." + extremo + teste + bruto
+            + f" A composição também difere: os negros são {v(_PN['NE_PCTNEG_SEMFUND'], 0)}\\% de quem "
+            f"está {rot['SEMFUND']} e {v(_PN['NE_PCTNEG_POS'], 0)}\\% de quem está {rot['POS']}. "
+            r"Como no restante do trabalho, são diferenças condicionais entre pessoas comparáveis, "
+            r"não o efeito de estudar mais." + r"""
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{hlm_negro_por_educ_retas}
+  \caption{Retorno de cada nível de escolaridade e penalidade racial dentro dele: M3 do
+  núcleo com o coeficiente de raça estimado em cada nível.}
+  \label{fig:hlm_negro_educ}
+\end{figure}
+\noindent\emph{Como ler a Figura~\ref{fig:hlm_negro_educ}:} cada reta é um nível de
+escolaridade e vai do trabalhador branco (à esquerda) ao negro (à direita). A altura da reta
+é o rendimento do nível em relação ao branco sem fundamental completo; a inclinação é a
+penalidade racial dentro do nível, escrita à direita.
+""")
+
+
+# Discussão: "diploma × porta" (E2.15, aprovado em 03/10/2026) — liga a escada salarial à
+# interação negro×credencial do GLMM; só afirma o contraste se os números o mostrarem.
+def _bloco_diploma_porta() -> str:
+    ks = ("NE_GAP_POS", "NE_GAP_SEMFUND", "PCTPOS_ocp_qualif", "PCTSUP_ocp_qualif")
+    if not all(k in _PN for k in ks):
+        return ""
+    v = lambda x, d=1: f"{x:.{d}f}".replace(".", "{,}")
+    sal_pos, sal_base = _PN["NE_GAP_POS"], _PN["NE_GAP_SEMFUND"]
+    ac_pos, ac_sup = _PN["PCTPOS_ocp_qualif"], _PN["PCTSUP_ocp_qualif"]
+    if not (sal_pos < 3 and ac_pos >= 10):
+        return ""                         # o contraste não se sustenta: nada a afirmar
+    return (r"""
+\paragraph{O diploma quase iguala o salário, mas não abre a porta.}
+As duas barreiras respondem de modo diferente à escolaridade. A penalidade salarial é de """
+            + f"{v(sal_base)}\\% entre quem não tem fundamental completo e cai a {v(sal_pos)}\\% na "
+            r"pós-graduação (Figura~\ref{fig:hlm_negro_educ}); a desvantagem de acesso, não: com "
+            f"superior completo, as chances de um trabalhador negro chegar a um cargo qualificado "
+            f"seguem {v(ac_sup, 0)}\\% menores que as de um branco de mesmo perfil e bairro, e com "
+            f"pós-graduação, {v(ac_pos, 0)}\\% menores (GLMM, degrau A4, "
+            r"Tabela~\ref{tab:glmm_glassceil}). A escolaridade se associa a quase toda a convergência "
+            r"salarial, mas não à de acesso. Duas cautelas: são diferenças condicionais entre "
+            r"pessoas comparáveis, não o efeito de estudar mais --- quem chega à pós-graduação é um "
+            r"grupo selecionado ---, e as razões de chances do A4 incluem o vínculo, o que faz delas "
+            r"um limite inferior da desvantagem.""" + "\n")
+
+
+_dp = _bloco_diploma_porta()
+_anc_dp = r"\paragraph{A segregação residencial como multiplicador da desigualdade.}"
+if _dp and _anc_dp in texto:
+    texto = texto.replace(_anc_dp, _dp + "\n" + _anc_dp, 1)
+elif _dp:
+    print("  [AVISO] âncora do parágrafo diploma × porta não encontrada")
+
+# frases-manchete compartilhadas (params_nucleo): síntese e título do bairro
+from params_nucleo import titulo_bairro as _tit_bairro, frase_sintese as _fr_sint  # noqa: E402
+texto = (texto.replace("@@FRASE_SINTESE@@", _fr_sint(_PN).replace("%", r"\%"))
+              .replace("@@TITULO_BAIRRO@@", _tit_bairro(_PN).replace("%", r"\%")))
+
+
+_blk = _bloco_negro_por_educ()
+if _blk:
+    _ancora = r"\paragraph{O gap verdadeiro está entre dois limites"
+    if _ancora in texto:
+        texto = texto.replace(_ancora, _blk + "\n" + _ancora, 1)
+    else:
+        print("  [AVISO] âncora do bloco da escada educacional não encontrada")
+
+
+def _marcador_p(m):
+    chave, casas, modo = m.group(1), m.group(2), m.group(3) or ""
+    v = float(_PN[chave])
+    if modo == "mil":
+        return f"{int(round(v)):,}".replace(",", ".")
+    v = {"milhoes": v / 1e6, "milhoes_en": v / 1e6, "um_menos": 100 * (1 - v),
+         "x100": 100 * v, "abs": abs(v)}.get(modo, v)
+    s = f"{v:.{int(casas) if casas else 1}f}"
+    s = s if modo.endswith("en") else s.replace(".", "{,}")
+    return s.replace("-", "−")
+
+
+texto = re.sub(r"@@P:([A-Za-z0-9_]+)(?::(\d))?(?::([a-z_]+))?@@", _marcador_p, texto)
+# frase da Conclusão sobre convergência: conclusão escolhida conforme a série anual do M3
+if "@@CONV_CONCLUSAO@@" in texto:
+    texto = texto.replace("@@CONV_CONCLUSAO@@", enxuto_patches.frase_conclusao_convergencia())
+_sobra = sorted(set(re.findall(r"@@[A-Z0-9_:a-z]+@@", texto)))
+if _sobra:
+    print(f"  [AVISO] marcadores não preenchidos: {_sobra}")
 
 OUT.write_text(texto, encoding="utf-8")
 print(f"\nOK -> {OUT}  ({len(lines)} linhas)")

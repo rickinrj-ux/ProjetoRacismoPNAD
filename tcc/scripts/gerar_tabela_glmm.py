@@ -29,6 +29,7 @@ import math
 import pandas as pd
 from pathlib import Path
 from params import fmt, fmtN
+from params_nucleo import P as _PN   # tamanhos de amostra citados nas notas
 
 TABLES = Path("outputs") / "tables"
 g = pd.read_csv(TABLES / "glmm_glassceil_glmer.csv")
@@ -36,8 +37,12 @@ fe_path = TABLES / "glmm_glassceil_full.csv"
 fe = pd.read_csv(fe_path) if fe_path.exists() else None
 
 DESF = {"ocp_qualif": r"Cargo qualificado (CBO 1--4)", "y_top20": r"Top 20\% de renda", "y_top10": r"Top 10\% de renda"}
-MOD = {"M1": r"M1 individual + UF", "M2": r"M2 + contexto do bairro", "M3": r"M3 + vínculo (limite inf.)",
-       "M4": r"M4 + negro$\times$credencial"}
+# A chave é o código do csv e não muda; o rótulo impresso passa a A1..A4 porque
+# a escada do acesso NÃO é paralela à da renda --- o "+ vínculo" que aqui é o
+# terceiro degrau corresponde ao M4 do HLM, e rótulos iguais faziam o leitor
+# alinhar os dois errado.
+MOD = {"M1": r"A1 individual + UF", "M2": r"A2 + contexto do bairro", "M3": r"A3 + vínculo (limite inf.)",
+       "M4": r"A4 + negro$\times$credencial"}
 # correspondência com os modelos do logit-FE (robustez): M1 ~ M1; M2 ~ M2; M3/M4 ~ M3 (com vínculo e interação)
 FE_MAP = {"M1": "M1", "M2": "M2", "M3": "M2", "M4": "M3"}
 
@@ -73,9 +78,9 @@ L = [r"\begin{table}[!ht]", r"\centering",
      r"\caption{GLMM logístico (lme4::\texttt{glmer}, intercepto aleatório de UPA e efeitos fixos de UF) "
      r"--- teto de vidro ocupacional e salarial. \emph{Odds ratio} do coeficiente \texttt{negro} com IC~95\%, "
      r"efeito marginal médio (AME: diferença média de probabilidade predita, em pontos percentuais), "
-     r"ICC da UPA $=\tau^2/(\tau^2+\pi^2/3)$ e E-value (VanderWeele \& Ding, 2017). Coluna final: "
+     r"ICC da UPA $=\tau^2/(\tau^2+\pi^2/3)$ e E-value \cite{vanderweele2017}. Coluna final: "
      r"OR do logit com efeitos fixos de UF e erro-padrão agrupado por UPA (robustez). População completa "
-     rf"da PEA com renda positiva ($N = {fmtN(N)}$; {fmtN(G)}~UPAs). M3 acrescenta o vínculo "
+     rf"da PEA com renda positiva ($N = {fmtN(N)}$; {fmtN(G)}~UPAs). A3 acrescenta o vínculo "
      r"(formalidade, setor público, conta própria, doméstico), que é desfecho da própria discriminação: "
      r"limite inferior. Todos os OR com $p<0{,}001$; com $N$ desta ordem, a inferência relevante está "
      r"nos IC e nos E-values.}",
@@ -110,10 +115,10 @@ L += [r"\end{tabular}}", r"\par\smallskip",
 # ── Tabela de ajuste e classificação (Fávero: LR, AUC, cutoff, Hosmer-Lemeshow) ──
 A = [r"\begin{table}[!ht]", r"\centering",
      r"\caption{GLMM logístico --- ajuste e desempenho de classificação por degrau. LR vs.\ pooled: "
-     r"teste de razão de verossimilhança do M2 contra o logit sem efeito aleatório (fronteira, $p/2$); "
+     r"teste de razão de verossimilhança do A2 contra o logit sem efeito aleatório (fronteira, $p/2$); "
      r"AUC com efeitos aleatórios (ajuste na amostra) e só com efeitos fixos; \emph{cutoff} de Youden "
      r"(maximiza sensibilidade $+$ especificidade) com as taxas correspondentes; Hosmer--Lemeshow em "
-     r"10 decis. Com $N = 7{,}7$~milhões qualquer desvio de calibração é ``significativo'' --- o "
+     r"10 decis. Com $N = " + fmt(_PN["N_GLMM"] / 1e6, 1).replace(",", "{,}") + r"$~milhões qualquer desvio de calibração é ``significativo'' --- o "
      r"$\chi^2$ deve ser lido como magnitude relativa entre degraus, não como teste (MHE, cap.~8).}",
      r"\label{tab:glmm_ajuste}", r"\resizebox{\textwidth}{!}{%", r"\begin{tabular}{llcccccccc}", r"\toprule",
      r"Desfecho & Modelo & $-2\,$LL & AIC & LR vs.\ pooled & AUC (RE) & AUC (FE) & Cutoff & Sens./Espec. & HL $\chi^2$ \\",

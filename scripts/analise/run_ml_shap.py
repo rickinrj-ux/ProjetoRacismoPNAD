@@ -95,7 +95,7 @@ FEATURES = [
     # Individuais
     "negro", "sexo_fem", "idade_c", "idade_sq",
     "educ_fund_completo", "educ_medio_completo",
-    "educ_superior_completo", "educ_pos_graduacao", "educ_missing",
+    "educ_superior_completo", "educ_pos_graduacao",
     # Trabalho (novos)
     "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
     # Grupo CBO — referência: elementar (novos)
@@ -111,7 +111,7 @@ FEATURES = [
 FEATURE_LABELS = {
     "negro":                   "Raça (negro)",
     "sexo_fem":                "Gênero (feminino)",
-    "idade_c":                 "Idade (centralizada)",
+    "idade_c":                 "Idade (centrada)",
     "idade_sq":                "Idade² (experiência)",
     "educ_fund_completo":      "Educ.: fundamental completo",
     "educ_medio_completo":     "Educ.: médio completo",
@@ -183,11 +183,15 @@ def load_data():
 def split(df):
     X = df[FEATURES].values
     y = df[TARGET].values
-    X_tr, X_te, y_tr, y_te = train_test_split(
-        X, y, test_size=0.20, random_state=RANDOM_STATE
+    # o índice viaja junto no split: sem ele não há como voltar de uma linha da
+    # matriz de treino para a linha correspondente do dataframe (o embaralhamento
+    # do train_test_split desfaz qualquer correspondência posicional)
+    pos = np.arange(len(df))
+    X_tr, X_te, y_tr, y_te, pos_tr, pos_te = train_test_split(
+        X, y, pos, test_size=0.20, random_state=RANDOM_STATE
     )
     logger.info(f"  Treino: {len(X_tr):,} | Teste: {len(X_te):,}")
-    return X_tr, X_te, y_tr, y_te, df
+    return X_tr, X_te, y_tr, y_te, df, pos_tr
 
 
 # ── Avaliação ──────────────────────────────────────────────────────────────────
@@ -244,14 +248,16 @@ def fit_xgb(X_tr, y_tr):
 
 # ── SHAP ───────────────────────────────────────────────────────────────────────
 
-def compute_shap(model, X_tr, df, model_name):
+def compute_shap(model, X_tr, df, model_name, pos_tr):
     logger.info(f"[{model_name}] Calculando SHAP (subsample={SHAP_SAMPLE:,}) ...")
     t0 = time.time()
 
     rng = np.random.default_rng(RANDOM_STATE)
     idx = rng.choice(len(X_tr), size=min(SHAP_SAMPLE, len(X_tr)), replace=False)
     X_shap = X_tr[idx]
-    df_shap = df.iloc[idx].reset_index(drop=True)
+    # pos_tr[idx] é a linha do dataframe que gerou X_shap[i]; usar df.iloc[idx]
+    # direto emparelharia cada valor SHAP com a pessoa errada
+    df_shap = df.iloc[pos_tr[idx]].reset_index(drop=True)
 
     explainer   = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(X_shap)
@@ -262,6 +268,9 @@ def compute_shap(model, X_tr, df, model_name):
 
 # ── Plots SHAP ────────────────────────────────────────────────────────────────
 
+from src.figuras_ptbr import virgula_decimal as _virgula_decimal  # noqa: E402
+
+
 def plot_shap_beeswarm(shap_values, X_shap, model_name):
     """Beeswarm (summary): distribuição de SHAP por feature."""
     feat_names = [FEATURE_LABELS.get(f, f) for f in FEATURES]
@@ -270,14 +279,15 @@ def plot_shap_beeswarm(shap_values, X_shap, model_name):
         shap_values, X_shap,
         feature_names=feat_names,
         show=False, plot_size=None,
-        color_bar_label="Valor da feature (alto → vermelho)",
+        color_bar_label="Valor da variável (alto → vermelho)",
     )
     plt.title(
-        f"SHAP Beeswarm — {model_name}\n"
-        "Impacto de cada feature no log-rendimento predito\n"
-        "PNAD 2016-2025 | N=50k subsample",
+        f"Contribuição de cada variável ao log-rendimento previsto — {model_name}\n"
+        f"PNAD Contínua 2016–2025 | valores SHAP em {SHAP_SAMPLE // 1000} mil casos do treino",
         fontsize=11, pad=10,
     )
+    plt.gcf().axes[0].set_xlabel("Valor SHAP (efeito sobre o log-rendimento previsto)")
+    _virgula_decimal()
     plt.tight_layout()
     path = OUTPUTS_FIG / f"shap_beeswarm_{model_name.lower()}.png"
     plt.savefig(path, dpi=150, bbox_inches="tight")
@@ -292,19 +302,20 @@ def plot_shap_bar(shap_values, X_shap, model_name):
     importance  = pd.Series(mean_abs, index=feat_names).sort_values(ascending=True)
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    colors = ["#DD8452" if "Raça" in lbl or "Negro" in lbl or "negro" in lbl.lower()
+    colors = ["#DD8452" if lbl == FEATURE_LABELS["negro"]
               else "#4C72B0" for lbl in importance.index]
     bars = ax.barh(importance.index, importance.values, color=colors)
     ax.set_xlabel("Importância SHAP média (|SHAP|)")
     ax.set_title(
-        f"Importância Global das Features — {model_name}\n"
-        "Cor laranja = variáveis raciais/contextuais | azul = demográficas/educacionais",
+        f"Importância global das variáveis — {model_name}\n"
+        "Laranja = raça | azul = demais variáveis",
         fontsize=11,
     )
     # Anotar valores
     for bar, val in zip(bars, importance.values):
         ax.text(val + 0.001, bar.get_y() + bar.get_height()/2,
-                f"{val:.4f}", va="center", fontsize=8)
+                f"{val:.4f}".replace(".", ","), va="center", fontsize=8)
+    _virgula_decimal(fig)
     plt.tight_layout()
     path = OUTPUTS_FIG / f"shap_importance_{model_name.lower()}.png"
     plt.savefig(path, dpi=150, bbox_inches="tight")
@@ -331,22 +342,48 @@ def plot_shap_dependence_negro(shap_values, X_shap, model_name):
         alpha=0.3, s=6,
     )
     cbar = plt.colorbar(sc, ax=ax)
-    cbar.set_label("% Negro na UPA (z-score) — verde=menor, vermelho=maior", fontsize=8)
-    ax.set_xlabel("Raça: 0=Branco, 1=Negro")
-    ax.set_ylabel("SHAP value para 'Raça (negro)'")
+    cbar.set_label("% de negros na UPA (escore z) — verde = menor, vermelho = maior", fontsize=8)
+    ax.set_xlabel("Raça")
+    ax.set_ylabel("Valor SHAP da raça")
     ax.set_title(
-        f"Efeito da Raça no Rendimento — {model_name}\n"
-        "Interação: penalidade racial amplificada por segregação residencial?\n"
-        "SHAP < 0: ser negro reduz a predição de renda",
+        f"Efeito da raça na previsão de rendimento — {model_name}\n"
+        "A penalidade varia com a composição racial do bairro?\n"
+        "SHAP < 0: ser negro reduz a previsão de renda",
         fontsize=11,
     )
     ax.axhline(0, color="black", linestyle="--", linewidth=0.8, alpha=0.5)
-    ax.set_xticks([0, 1]); ax.set_xticklabels(["Branco (0)", "Negro (1)"])
+    ax.set_xticks([0, 1]); ax.set_xticklabels(["Branco", "Negro"])
+    _virgula_decimal(fig)
     plt.tight_layout()
     path = OUTPUTS_FIG / f"shap_dependence_negro_{model_name.lower()}.png"
     plt.savefig(path, dpi=150, bbox_inches="tight")
     plt.close()
     logger.info(f"  Dependence plot salvo: {path}")
+
+
+def _explanation_preservando_raca(sv_caso, feat_names, n_top=11):
+    """Reduz o caso às maiores contribuições, sem deixar a raça cair no agregado.
+
+    `shap.plots.waterfall` ordena por |contribuição| e junta o excedente numa
+    linha "N other features". Com 29 preditores, a raça --- pequena num caso
+    individual diante da jornada e da ocupação --- nunca chegava a aparecer, e
+    a legenda da figura afirmava o contrário. Aqui ela é mantida à força; o
+    resto continua agregado, como o próprio shap faria.
+    """
+    j = FEATURES.index("negro")
+    vals  = np.asarray(sv_caso.values, dtype=float)
+    dados = np.asarray(sv_caso.data, dtype=float)
+    ordem = np.argsort(-np.abs(vals))
+    top   = [i for i in ordem if i != j][:n_top]
+    mantidas = top + [j]
+    resto    = [i for i in range(len(vals)) if i not in mantidas]
+    return shap.Explanation(
+        values=np.append(vals[mantidas], vals[resto].sum()),
+        base_values=sv_caso.base_values,
+        data=np.append(dados[mantidas], np.nan),
+        feature_names=[feat_names[i] for i in mantidas]
+                      + [f"outras {len(resto)} variáveis"],
+    )
 
 
 def plot_shap_waterfall_cases(model, explainer, X_tr, df_shap, model_name):
@@ -387,16 +424,28 @@ def plot_shap_waterfall_cases(model, explainer, X_tr, df_shap, model_name):
             sv = explainer(x_case)
             sv.feature_names = feat_names
 
+            expl = _explanation_preservando_raca(sv[0], feat_names)
             fig, ax = plt.subplots(figsize=(9, 5))
-            shap.plots.waterfall(sv[0], max_display=12, show=False)
+            shap.plots.waterfall(expl, max_display=len(expl.feature_names),
+                                 show=False)
+            # a linha agregada não tem valor de feature; o shap imprimiria "nan ="
+            ax_atual = plt.gca()
+            ax_atual.set_yticklabels(
+                [t.get_text().replace("nan = ", "") for t in ax_atual.get_yticklabels()]
+            )
             renda_real = df_shap.loc[idx, "log_renda"]
             negro_val  = int(df_shap.loc[idx, "negro"])
+            rotulo = {"A_branco_alta_renda": "Trabalhador branco, percentil 75 da renda dos brancos",
+                      "B_negro_alta_renda": "Trabalhador negro, percentil 75 da renda dos negros",
+                      "C_negro_baixa_renda": "Trabalhador negro, percentil 25 da renda dos negros"}[case_name]
+            reais = f"{np.exp(renda_real):,.0f}".replace(",", ".")
             plt.title(
-                f"SHAP Waterfall — {case_name}\n"
-                f"{'Negro' if negro_val else 'Branco'} | log_renda real={renda_real:.3f} | "
-                f"R$={np.exp(renda_real):.0f}/mês",
+                f"{rotulo}\n"
+                + f"log-rendimento observado = {renda_real:.3f}".replace(".", ",")
+                + f" (R$ {reais}/mês, reais do 2º tri/2026)",
                 fontsize=10,
             )
+            _virgula_decimal()
             plt.tight_layout()
             path = OUTPUTS_FIG / f"shap_waterfall_{case_name}_{model_name.lower()}.png"
             plt.savefig(path, dpi=150, bbox_inches="tight")
@@ -408,6 +457,42 @@ def plot_shap_waterfall_cases(model, explainer, X_tr, df_shap, model_name):
 
 
 # ── Tabela de Importância Comparada ───────────────────────────────────────────
+
+def salvar_shap_negro_por_grupo(shap_rf, X_shap_rf, shap_xgb, X_shap_xgb):
+    """Média SHAP da variável racial, com sinal, separada por grupo.
+
+    A média em valor absoluto responde "quanto a raça pesou"; esta responde
+    "para que lado". É a segunda que sustenta a leitura de penalidade, e a
+    conversão para percentual segue a mesma regra semilog do resto do
+    trabalho: (e^x - 1) x 100, e não x vezes 100.
+
+    O grupo sai da própria matriz de features, não do dataframe: é o valor que
+    o modelo viu ao produzir aquele SHAP, e dispensa qualquer realinhamento.
+    """
+    j = FEATURES.index("negro")
+    linhas = []
+    for nome, sv, Xs in (("Random Forest", shap_rf, X_shap_rf),
+                         ("XGBoost", shap_xgb, X_shap_xgb)):
+        neg = Xs[:, j].astype(bool)
+        for grupo, mask in (("negros", neg), ("brancos", ~neg)):
+            if not mask.any():
+                continue
+            m = float(np.asarray(sv)[mask, j].mean())
+            linhas.append({
+                "modelo": nome,
+                "grupo": grupo,
+                "n": int(mask.sum()),
+                "shap_medio_negro": round(m, 6),
+                "equivalente_pct": round((np.exp(m) - 1) * 100, 4),
+            })
+    out = pd.DataFrame(linhas)
+    out.to_csv(OUTPUTS_TB / "shap_negro_por_grupo.csv", index=False)
+    for r in linhas:
+        logger.info(f"  [SHAP raça, {r['modelo']}] {r['grupo']}: "
+                    f"media com sinal = {r['shap_medio_negro']:+.4f} "
+                    f"({r['equivalente_pct']:+.2f}% no rendimento predito, n={r['n']:,})")
+    return out
+
 
 def build_importance_table(imp_rf, imp_xgb):
     df = imp_rf.set_index("Feature").join(
@@ -451,9 +536,14 @@ def print_summary(metrics, imp_xgb, shap_negro_xgb, X_shap_xgb):
   EFEITO DA RACA (SHAP — XGBoost):
     SHAP medio para negros:  {mean_shap_negro:.4f}
        -> ser negro reduz a predicao de log-renda em {abs(mean_shap_negro):.4f} pontos
-       -> equivale a {(np.exp(mean_shap_negro)-1)*100:.1f}% de penalidade racial
+       -> equivale a {(np.exp(mean_shap_negro)-1)*100:.1f}% abaixo da previsao media da base
           APOS controlar por educacao, experiencia, genero e contexto de moradia.
-    (Este e o efeito causal parcial estimado pelo modelo — evidencia de discriminacao.)
+    SHAP medio para brancos: {mean_shap_branco:+.4f}
+       -> contraste entre os grupos: {mean_shap_negro-mean_shap_branco:+.4f} log-pontos
+          ({(np.exp(mean_shap_negro-mean_shap_branco)-1)*100:+.1f}%), que e o analogo
+          do coeficiente racial dos modelos parametricos.
+    (Decomposicao da predicao do modelo, nao efeito causal: SHAP explica o que o
+     modelo faz com os dados, e o desenho e observacional.)
 
 {sep}
 """)
@@ -468,7 +558,7 @@ def main():
     logger.info("=" * 70)
 
     df = load_data()
-    X_tr, X_te, y_tr, y_te, df_full = split(df)
+    X_tr, X_te, y_tr, y_te, df_full, pos_tr = split(df)
 
     # ── Random Forest ──────────────────────────────────────────────────────────
     rf = fit_rf(X_tr, y_tr)
@@ -519,7 +609,7 @@ def main():
 
     # ── SHAP — Random Forest ───────────────────────────────────────────────────
     logger.info("--- SHAP: Random Forest ---")
-    shap_rf, X_shap_rf, df_shap_rf, exp_rf = compute_shap(rf, X_tr, df_full, "RF")
+    shap_rf, X_shap_rf, df_shap_rf, exp_rf = compute_shap(rf, X_tr, df_full, "RF", pos_tr)
     plot_shap_beeswarm(shap_rf, X_shap_rf, "RF")
     imp_rf = plot_shap_bar(shap_rf, X_shap_rf, "RF")
     plot_shap_dependence_negro(shap_rf, X_shap_rf, "RF")
@@ -527,12 +617,16 @@ def main():
     # ── SHAP — XGBoost ─────────────────────────────────────────────────────────
     logger.info("--- SHAP: XGBoost ---")
     shap_xgb, X_shap_xgb, df_shap_xgb, exp_xgb = compute_shap(
-        xgb_model, X_tr, df_full, "XGB"
+        xgb_model, X_tr, df_full, "XGB", pos_tr
     )
     plot_shap_beeswarm(shap_xgb, X_shap_xgb, "XGB")
     imp_xgb = plot_shap_bar(shap_xgb, X_shap_xgb, "XGB")
     plot_shap_dependence_negro(shap_xgb, X_shap_xgb, "XGB")
     plot_shap_waterfall_cases(xgb_model, exp_xgb, X_shap_xgb, df_shap_xgb, "XGB")
+
+    # ── Média SHAP da raça com sinal, por grupo ────────────────────────────────
+    # (a tabela comparada guarda só |SHAP|; a direção do efeito sai daqui)
+    salvar_shap_negro_por_grupo(shap_rf, X_shap_rf, shap_xgb, X_shap_xgb)
 
     # ── Tabela comparada ───────────────────────────────────────────────────────
     imp_table = build_importance_table(imp_rf, imp_xgb)

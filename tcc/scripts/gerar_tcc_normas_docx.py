@@ -28,6 +28,7 @@ TEX = ROOT / "tcc_normas.tex"
 BIB = ROOT / "relatorio_tcc.bib"
 CSL = Path(__file__).with_name("abnt.csl")
 SAIDA = ROOT / "entregaveis" / "TCC_Ricardo_Calheiros_MBA_USP_Esalq.docx"
+SAIDA_PDF = SAIDA.with_suffix(".pdf")   # o PDF da entrega sai do MESMO .tex
 
 # o template oficial serve de referência de estilos para o pandoc
 TEMPLATES = [
@@ -49,10 +50,15 @@ def sem_subfigure(texto: str) -> str:
     numa tabela de uma célula em volta da imagem.
     """
     def _sub(m):
-        img = re.search(r"\\includegraphics(?:\[[^\]]*\])?\{[^}]+\}", m.group(1))
-        return img.group(0) if img else ""
+        larg, corpo = m.group(1), m.group(2)
+        img = re.search(r"\\includegraphics(?:\[[^\]]*\])?\{[^}]+\}", corpo)
+        if not img:
+            return ""
+        # dentro da subfigure, \textwidth é a largura dela; fora, a da página —
+        # as duas imagens a 100% partiam a figura em duas páginas no Word
+        return img.group(0).replace("width=\\textwidth", f"width={larg}")
 
-    return re.sub(r"\\begin\{subfigure\}(?:\[[^\]]*\])?\{[^}]*\}(.*?)\\end\{subfigure\}",
+    return re.sub(r"\\begin\{subfigure\}(?:\[[^\]]*\])?\{([^}]*)\}(.*?)\\end\{subfigure\}",
                   _sub, texto, flags=re.S)
 
 
@@ -104,7 +110,25 @@ def nota_depois_da_fonte(texto: str) -> str:
     colocá-las depois da Fonte."""
     texto = re.sub(r"\\noindent\{?Como ler (a|o) (Figura|Tabela)~\\ref\{([^}]+)\}:\}?",
                    r"Nota: como ler a \2~\\ref{\3}:", texto)
+    # o rótulo costuma vir dentro de \emph{...}: trocar só "{Como ler:}" deixava
+    # "\emphNota:", comando desconhecido que o pandoc descartava junto com a palavra
+    texto = re.sub(r"\\(?:emph|textit|textbf)\{Como ler:\}", r"\\emph{Nota:}", texto)
     return texto.replace("{Como ler:}", "Nota: ").replace("Como ler:", "Nota: ")
+
+
+def um_tabular_por_legenda(texto: str) -> str:
+    """Tabela com dois painéis (dois tabular num só table): o pandoc repete a
+    legenda em cada um. Os painéis seguintes saem do ambiente — viram tabelas sem
+    legenda logo abaixo, e a nota de leitura vem com eles."""
+    def _sub(m):
+        corpo = m.group(1)
+        partes = corpo.split("\\end{tabular}")
+        if len(partes) <= 2:
+            return m.group(0)
+        primeiro = partes[0] + "\\end{tabular}"
+        resto = "\\end{tabular}".join(partes[1:])
+        return "\\begin{table}" + primeiro + "\n\\end{table}\n" + resto
+    return re.sub(r"\\begin\{table\}(.*?)\\end\{table\}", _sub, texto, flags=re.S)
 
 
 def resolver_referencias(texto: str) -> str:
@@ -189,6 +213,12 @@ def normalizar(texto: str) -> str:
                    r"\\textbf{\1}", texto)
 
     texto = re.sub(r"\\noindent\\rule\{[^}]*\}\{[^}]*\}", "", texto)
+    # \cmidrule e \cline: o pandoc não os conhece e deixava "2-3(lr)4-5" no cabeçalho
+    texto = re.sub(r"\\cmidrule(\([^)]*\))?\{[^}]*\}|\\cline\{[^}]*\}", "", texto)
+    # as Referências: no PDF o abnTeX imprime o título; no pandoc o --citeproc acrescenta
+    # a lista no fim, sem cabeçalho — o título vai no lugar do \bibliography
+    texto = re.sub(r"\\bibliography\{[^}]*\}", r"\\section*{Referências}", texto)
+    texto = re.sub(r"\\bibliographystyle\{[^}]*\}", "", texto)
     texto = re.sub(r"\\vspace\*?\{[^}]*\}|\\hspace\*?\{[^}]*\}", "", texto)
 
     # caminhos das figuras (o \graphicspath não viaja para o pandoc)
@@ -222,6 +252,7 @@ def main() -> int:
     texto = legendas_numeradas(texto)
     texto = nota_depois_da_fonte(texto)
     texto = resolver_referencias(texto)
+    texto = um_tabular_por_legenda(texto)
     texto = normalizar(texto)
     with tempfile.NamedTemporaryFile("w", suffix=".tex", delete=False,
                                      encoding="utf-8", dir=str(ROOT)) as fh:
@@ -258,6 +289,24 @@ def main() -> int:
     print(f"\nOK -> {SAIDA.relative_to(ROOT)}  ({SAIDA.stat().st_size // 1024} KB)")
     print(f"     {len([p for p in doc.paragraphs if p.text.strip()])} parágrafos, "
           f"{len(doc.tables)} tabelas, {imagens} imagens")
+
+    # O PDF ao lado tem de ser o mesmo documento que o .docx. Antes vinha do
+    # relatório enxuto, com outro número de páginas e outro conteúdo, porque os
+    # dois geradores gravavam no mesmo nome de entrega.
+    pdf_build = ROOT / "tcc_normas.pdf"
+    if not pdf_build.exists():
+        print("[AVISO] tcc_normas.pdf não existe — compile o LaTeX "
+              "(pdflatex → bibtex → pdflatex ×2) e rode de novo para o PDF da entrega")
+    elif pdf_build.stat().st_mtime < TEX.stat().st_mtime:
+        print("[AVISO] tcc_normas.pdf é mais antigo que tcc_normas.tex — "
+              "recompile antes de entregar; o PDF não foi copiado")
+    else:
+        try:
+            SAIDA_PDF.write_bytes(pdf_build.read_bytes())
+            print(f"     PDF da mesma fonte -> {SAIDA_PDF.relative_to(ROOT)} "
+                  f"({SAIDA_PDF.stat().st_size // 1024} KB)")
+        except PermissionError:
+            print(f"[AVISO] {SAIDA_PDF.name} está aberto; o PDF não foi atualizado")
     return 0
 
 

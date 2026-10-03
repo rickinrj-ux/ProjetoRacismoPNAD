@@ -60,22 +60,30 @@ for _, r in d.iterrows():
     cel_dot = fmt(r["dot_pct"], 1) if se_dot is None else f"{fmt(r['dot_pct'],1)} ({fmt(se_dot,1)})"
     cel_ret = fmt(r["ret_pct2"], 1) if se_ret is None else f"{fmt(r['ret_pct2'],1)} ({fmt(se_ret,1)})"
     cel_gap = _cel(r["gap_obs"], q, "gap_obs", 3)
+    # O gap RIF entra explícito: é dele que as porcentagens são fração, e ele
+    # difere do observado. Sem a coluna, quem multiplicasse o gap observado pela
+    # porcentagem erraria (0,559 x 64,9% = 0,363, contra 0,343 de dotações).
+    cel_gap_rif = fmt(r["gap_rif"], 3)
     n_q = fmtN(int(r["n_b"] + r["n_n"])) if "n_b" in d.columns else "---"
-    linhas.append(f"{q} & {cel_gap} & {cel_dot} & {cel_ret} & {n_q} \\\\")
+    linhas.append(f"{q} & {cel_gap} & {cel_gap_rif} & {cel_dot} & {cel_ret} & {n_q} \\\\")
 
 tex = (r"""\begin{table}[!ht]
 \centering
-\caption{Decomposição RIF-OB (Firpo, Fortin \& Lemieux, 2018) do gap salarial racial
+\caption{Decomposição RIF-OB \cite{firpo2018} do gap salarial racial
 por quantil incondicional, em formato \emph{two-fold} (referência: estrutura de preços
-dos brancos). Dotações: diferença de características observáveis (capital humano, ocupação,
-contexto). Retornos: parcela não explicada (componente discriminatório). Dotações + Retornos
-$=100\%$ do gap em cada quantil. Padrão \emph{sticky floor}: o componente de retornos
-(discriminação de mercado) é maior na base e decresce rumo ao topo. PNAD Contínua 2016--2025,
+dos brancos). Mesmos controles da decomposição de Oaxaca--Blinder sem ocupação (escolaridade,
+idade, sexo, ano e contexto do bairro), mais efeitos fixos de UF; a ocupação \emph{não} entra.
+Dotações: diferença de características observáveis. Retornos: parcela não explicada, que
+inclui a discriminação e o que não foi observado. Dotações + Retornos
+$=100\%$ \emph{do gap RIF} --- que é o gap decomposto pelo
+método e difere do gap observado da segunda coluna; as porcentagens
+são fração daquele, não deste. Padrão \emph{sticky floor}: a parcela de retornos
+é maior na base e decresce rumo ao topo. PNAD Contínua 2016--2025,
 população completa. Entre parênteses: erro-padrão por bootstrap em blocos por UPA.}
 \label{tab:rif_ob}
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrrrrr}
 \toprule
-Quantil & Gap obs. (SE) & Dotações (\%) & Retornos (\%) & $N$ \\
+Quantil & Gap obs. (SE) & Gap RIF & Dotações (\%) & Retornos (\%) & $N$ \\
 \midrule
 """ + "\n".join(linhas) + r"""
 \bottomrule

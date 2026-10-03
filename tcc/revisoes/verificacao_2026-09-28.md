@@ -1,6 +1,6 @@
-# Verificação mecânica — 2026-09-28 12:59
+# Verificação mecânica — 2026-09-28 18:41
 
-Gatilho: `execução manual`  
+Gatilho: `gerar_guia_estudo.py`  
 Achados: **0 ALTO**, 0 MÉDIO, 0 BAIXO, 2 INFO.
 
 | Nível | Critério | Onde | Achado | Correção |

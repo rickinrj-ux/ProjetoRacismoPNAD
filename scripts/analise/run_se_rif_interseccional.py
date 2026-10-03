@@ -47,8 +47,8 @@ from rif_decomp import rif_ob_quantil, CONTROLES, QUANTIS_DEFAULT
 # O módulo src/interseccionalidade.py exige educ_ord (registrada em ~31% da PEA); aqui
 # usam-se os dummies de conclusão + educ_missing, como no HLM/OB/QR/GLMM do núcleo.
 OB4_FORMULA = ("log_renda ~ idade_c + idade_sq + educ_fund_completo + educ_medio_completo"
-               " + educ_superior_completo + educ_pos_graduacao + educ_missing"
-               " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z")
+               " + educ_superior_completo + educ_pos_graduacao"
+               " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z + C(Ano)")
 
 
 def _ob_twofold(d_ref, d_trt):
@@ -88,7 +88,7 @@ def decomposicao_ob_4grupos(df):
 
 TABLES = Path("outputs/tables")
 SEED = 42
-COLS = ["log_renda", "negro", "sexo_fem", "idade_c", "idade_sq",
+COLS = ["Ano", "log_renda", "negro", "sexo_fem", "idade_c", "idade_sq",
         "educ_fund_completo", "educ_medio_completo", "educ_superior_completo",
         "educ_pos_graduacao", "educ_cat", "pct_negro_upa_z", "tx_desemprego_upa_z",
         "media_educ_upa_z", "pea", "renda_bruta", "UF", "UPA"]

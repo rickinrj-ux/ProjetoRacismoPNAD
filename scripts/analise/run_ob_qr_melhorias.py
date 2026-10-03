@@ -52,7 +52,7 @@ BOOT_FRAC   = 0.03   # fração de UPAs sorteadas por réplica ("m-out-of-n" clu
 
 COLS = [
     "negro", "sexo_fem", "idade_c", "idade_sq",
-    "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+    "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
     "educ_cat",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
     "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
@@ -70,7 +70,7 @@ df_full["UF_str"] = df_full["UF"].astype(str)
 df_full["educ_missing"] = df_full["educ_cat"].isna().astype(int)
 
 BASE_DROP = ["negro", "sexo_fem", "idade_c", "idade_sq",
-             "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+             "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
              "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z", "log_renda"]
 mask = (df_full["pea"] == 1) & (df_full["renda_bruta"] > 0) & df_full["negro"].notna()
 df_full = df_full[mask].dropna(subset=BASE_DROP)
@@ -88,9 +88,9 @@ print(f"  {_label}: {len(df):,} | "
 HAS_OCC = all(c in df.columns for c in ["horas_c","emprego_formal","ocp_dirigente"]) \
           and df["horas_c"].notna().any()
 
-_BASE_F = ("educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
-           " + educ_missing + idade_c + idade_sq + sexo_fem"
-           " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z")
+_BASE_F = ("educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
+           " + idade_c + idade_sq + sexo_fem"
+           " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z + C(Ano)")
 _OCC_F  = ("horas_c + emprego_formal + conta_propria + trab_domestico"
            " + ocp_dirigente + ocp_profissional + ocp_tecnico + ocp_administrativo"
            " + ocp_servicos + ocp_agro + ocp_operario + ocp_operador + ocp_ffaa")
@@ -99,10 +99,10 @@ _BASE_NOSEX = _BASE_F.replace(" + sexo_fem", "")
 FORMULA_FULL = f"log_renda ~ {_BASE_F}" + (f" + {_OCC_F}" if HAS_OCC else "")
 FORMULA_NOSEX = f"log_renda ~ {_BASE_NOSEX}" + (f" + {_OCC_F}" if HAS_OCC else "")
 
-_IND_QR = ("negro + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
-           " + educ_missing + idade_c + idade_sq + sexo_fem")
+_IND_QR = ("negro + educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
+           " + idade_c + idade_sq + sexo_fem")
 _UPA_QR = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
-QR_FORMULA = f"log_renda ~ {_IND_QR} + {_UPA_QR} + C(UF_str)"
+QR_FORMULA = f"log_renda ~ {_IND_QR} + {_UPA_QR} + C(UF_str) + C(Ano)"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -609,54 +609,12 @@ plt.close()
 print("qr_glassceil_completo.png salvo.")
 
 # ── LaTeX: tabela QR por sexo ─────────────────────────────────────────────────
-tex_qr = r"""\begin{table}[H]
-\centering
-\caption{Regressão quantílica: coeficiente $\hat{\beta}_{\text{negro}}$ por quantil e sexo.
-         Gap~(\%) $= (e^{\hat{\beta}}-1)\times 100$.
-         M3: controles individuais + contexto UPA + UF efeito fixo. População completa.
-         Entre parênteses (coluna Global): erro-padrão por bootstrap em blocos por UPA.
-         $^{***}p<0{,}001$ em todos os quantis e grupos.}
-\label{tab:qr_melhorias}
-\small
-\begin{tabular}{lrrrrrr}
-\toprule
-& \multicolumn{2}{c}{Global} & \multicolumn{2}{c}{Homens} & \multicolumn{2}{c}{Mulheres} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
-Quantil & $\hat{\beta}$ (SE) & Gap~(\%) & $\hat{\beta}$ & Gap~(\%) & $\hat{\beta}$ & Gap~(\%) \\
-\midrule
-"""
-for q in QUANTIS:
-    rg = qr_global[q]
-    rh = qr_sex.get("Homens", {}).get(q, {"b": np.nan})
-    rm = qr_sex.get("Mulheres", {}).get(q, {"b": np.nan})
-    def fmt(b):
-        return f"${b:.4f}$" if not np.isnan(b) else "---"
-    def fmtpct(b):
-        pct = (np.exp(b)-1)*100
-        return f"${pct:+.1f}\\%$" if not np.isnan(b) else "---"
-    se_g = rg.get("se_cl_upa", np.nan)
-    cel_g = f"${rg['b']:.4f}$ ({se_g:.4f})" if not np.isnan(se_g) else fmt(rg['b'])
-    tex_qr += (f"$\\tau={q:.2f}$ & {cel_g} & {fmtpct(rg['b'])} & "
-               f"{fmt(rh['b'])} & {fmtpct(rh['b'])} & "
-               f"{fmt(rm['b'])} & {fmtpct(rm['b'])} \\\\\n")
+# A montagem saiu daqui para tabela_qr_tex.py, que lê dos csv acima. Assim a
+# tabela pode ser reformatada sem repetir o bootstrap, e o formato numérico
+# (vírgula decimal, p < 0,001 em vez de 1.84e-64) fica num lugar só.
+from tabela_qr_tex import escrever_tabela as _escrever_tabela_qr
 
-tex_qr += (f"\\midrule\n"
-           f"\\textbf{{Δ (q90−q10)}} & "
-           f"$\\mathbf{{{obs_diff*100:.2f}\\text{{pp}}}}{stars_kb}$ ({se_diff:.4f}) & "
-           f"\\multicolumn{{2}}{{c}}{{$Z = {z_stat:.2f}$}} & "
-           f"\\multicolumn{{2}}{{c}}{{$p = {p_kb:.2e}$}} \\\\\n")
-tex_qr += r"""\bottomrule
-\end{tabular}
-\note{Teste de heterogeneidade quantílica (Koenker-Bassett style):
-      $H_0$: $\hat{\beta}(q)$ constante para todo $q$.
-      SE por bootstrap em blocos por UPA, ``$m$ de $n$'' ($B="""
-tex_qr += str(len(boot_diffs))
-tex_qr += r"""$; $m=""" + f"{m_upa:,}".replace(",", ".") + r"""$ das $""" + f"{G_upa:,}".replace(",", ".")
-tex_qr += r"""$ UPAs por réplica; SE escalado por $\sqrt{m/G}$, Bickel \& Sakov, 2008). Sem a escala (conservador): $Z="""
-tex_qr += f"{z_raw:.2f}" + r"""$, $p=""" + f"{p_raw:.1e}" + r"""$.}
-\end{table}
-"""
-(TABLES / "qr_melhorias.tex").write_text(tex_qr, encoding="utf-8")
+_escrever_tabela_qr()
 print("qr_melhorias.tex salvo.")
 
 # ═══════════════════════════════════════════════════════════════════════════════

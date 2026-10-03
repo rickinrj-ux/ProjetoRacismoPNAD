@@ -22,6 +22,7 @@ except Exception:
 import pandas as pd
 from pathlib import Path
 from params import fmt, fmtN
+from params_nucleo import P as _PN   # N de treino citado na nota
 
 T = Path("outputs/tables")
 hp = pd.read_csv(T / "ml_cv_hiperparametros.csv")
@@ -31,7 +32,8 @@ rs = pd.read_csv(T / "ml_cv_resumo.csv").iloc[0]
 hp = hp.sort_values("r2", ascending=False)
 linhas = []
 for _, r in hp.iterrows():
-    atual = " (atual)" if r["config"] == 1 else ""
+    # a configuração 1 é a de referência (profundidade 6), não a "atual": a escolhida é outra
+    atual = " (referência)" if r["config"] == 1 else ""
     escolh = r"\textbf{" if r["max_depth"] == rs["escolhido_max_depth"] and r["config"] != 1 else ""
     fim = "}" if escolh else ""
     linhas.append(f"{escolh}{int(r['max_depth'])}{fim} & {fmt(r['learning_rate'], 2)} & "
@@ -68,20 +70,17 @@ Profundidade & Taxa de aprendizado & Árvores & $R^2$ & MAE & Sobreajuste \\
 Configuração & $R^2$ (média $\pm$ dp) & MAE & RMSE \\
 \midrule
 Escolhida (profundidade """ + str(int(rs["escolhido_max_depth"])) + r""") & """ + _cv("escolhida", "r2") + " & " + _cv("escolhida", "mae") + " & " + _cv("escolhida", "rmse") + r""" \\
-Anterior (profundidade 6) & """ + _cv("atual_tcc", "r2") + " & " + _cv("atual_tcc", "mae") + " & " + _cv("atual_tcc", "rmse") + r""" \\
+Referência (profundidade 6) & """ + _cv("atual_tcc", "r2") + " & " + _cv("atual_tcc", "mae") + " & " + _cv("atual_tcc", "rmse") + r""" \\
 \bottomrule
 \end{tabular}
 \normalsize
 \par\smallskip
 \footnotesize\emph{Como ler:} ``Sobreajuste'' é a diferença entre o $R^2$ de treino e o de
 validação --- valores próximos de zero indicam que o modelo não decorou os dados. A
-configuração escolhida melhora o $R^2$ em """ + fmt((cv.loc["escolhida", ("r2", "mean")] - cv.loc["atual_tcc", ("r2", "mean")]) * 100, 1) + r""" ponto percentual sem aumentar o
-sobreajuste, e a variação entre \emph{folds} é da ordem de """ + fmt(cv.loc["escolhida", ("r2", "std")], 4) + r""" --- com 6,2~milhões de
-observações de treino, o desempenho praticamente não depende de qual pedaço dos dados é
-usado para validar. No conjunto de teste (intocado durante a escolha), $R^2 = """ + fmt(rs["teste_r2"], 4) + r"""$.
-Na unidade original, o erro mediano de previsão é de R\$~""" + fmtN(int(round(rs["erro_mediano_reais"]))) + r""" por mês
-(""" + fmt(rs["erro_mediano_pct"], 0) + r"""\% do rendimento observado), com correção de Duan para a
-retransformação do logaritmo.
+configuração escolhida ganha """ + fmt((cv.loc["escolhida", ("r2", "mean")] - cv.loc["atual_tcc", ("r2", "mean")]) * 100, 1) + r""" ponto percentual de $R^2$ ao custo de um
+sobreajuste maior, mas ainda pequeno (Painel~A). No conjunto de teste (intocado durante a
+escolha), $R^2 = """ + fmt(rs["teste_r2"], 4) + r"""$; a estabilidade entre \emph{folds} e o erro em reais são
+discutidos no texto.
 \end{table}
 """)
 (T / "ml_cv.tex").write_text(tex, encoding="utf-8")

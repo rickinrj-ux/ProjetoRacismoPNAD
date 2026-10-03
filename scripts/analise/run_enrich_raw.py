@@ -49,13 +49,18 @@ logger = logging.getLogger(__name__)
 
 # ── Variáveis a extrair ────────────────────────────────────────────────────────
 JOIN_VARS  = ["Ano", "Trimestre", "UPA", "V1008", "V2003"]
-NEW_VARS   = ["VD4008", "VD4009", "VD4031", "V4010", "V4013"]
+# VD3004 — nível de instrução mais elevado ALCANÇADO (1 sem instrução … 7 superior completo).
+# A escolaridade vinha da V3009A, que é o CURSO mais elevado FREQUENTADO (15 códigos): o mapa
+# de 8 níveis rotulava o "regular do fundamental" (7) como superior completo e mandava médio,
+# superior e pós (9–15) para "não registrada".
+NEW_VARS   = ["VD4008", "VD4009", "VD4031", "V4010", "V4013", "VD3004"]
 ALL_VARS   = JOIN_VARS + NEW_VARS
 
 DTYPE_NEW = {
-    "VD4008": "Int8",      # grupo ocupacional (1-10)
-    "VD4009": "Int8",      # posição na ocupação (1-7)
-    "VD4031": "Int16",     # horas trabalhadas efetivas (0-999)
+    "VD4008": "Int8",      # posição na ocupação no trabalho principal (1-6)
+    "VD4009": "Int8",      # posição na ocupação e categoria do emprego (1-10)
+    "VD4031": "Int16",     # horas HABITUALMENTE trabalhadas, todos os trabalhos (as efetivas são a VD4035)
+    "VD3004": "Int8",      # nível de instrução mais elevado alcançado (1-7)
     "V4010":  "category",  # CBO 4 dígitos (string)
     "V4013":  "category",  # CNAE 5 dígitos (string)
 }

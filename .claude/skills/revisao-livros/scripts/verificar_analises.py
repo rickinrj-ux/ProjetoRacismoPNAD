@@ -531,7 +531,8 @@ def check_entregaveis() -> None:
                          | _col_csv("glmm_glassceil.csv", "OR_negro")
                          | _col_csv("grupo_rg_4grupos_desfechos.csv", "OR_mulher_negra")
                          | _col_csv("grupo_rg_4grupos_desfechos.csv", "OR_homem_negro")
-                         | _col_csv("grupo_rg_4grupos_desfechos.csv", "OR_mulher_branca"),
+                         | _col_csv("grupo_rg_4grupos_desfechos.csv", "OR_mulher_branca")
+                         | _col_csv("grupo_rg_4grupos_desfechos.csv", "OR_interacao"),   # negro×mulher
                          (2, 3))),
         "ICC": (r"ICC[^=\n]{0,20}[=:]\s*(\d{1,2},\d{1,2})\s*%",
                 _formatos(_col_csv("hlm_stepup_fit.csv", "icc_upa", 100)

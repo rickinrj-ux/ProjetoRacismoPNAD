@@ -1,4 +1,4 @@
-<#
+﻿<#
     run_tcc.ps1 — Launcher curado da versão ENXUTA do TCC (núcleo de 4 + robustez).
     Roda APENAS os métodos do escopo do TCC, na ordem. Ver tcc/MANIFESTO_METODOS.md.
 
@@ -78,10 +78,24 @@ function Build-Relatorio {
     # 3. pós-processa -> relatorio_tcc_enxuto.tex
     Write-Host "  -> tcc/scripts/gerar_relatorio_enxuto.py" -ForegroundColor Green
     & $Python (Join-Path $PSScriptRoot "scripts\gerar_relatorio_enxuto.py")
-    # 4. mesma fonte, saída Word (entregaveis/relatorio_tcc_enxuto.docx)
+    # 4. mesma fonte, saída Word de trabalho (entregaveis/relatorio_tcc_enxuto.docx)
     Write-Host "  -> tcc/scripts/gerar_word_enxuto.py" -ForegroundColor Green
     & $Python (Join-Path $PSScriptRoot "scripts\gerar_word_enxuto.py")
     if ($LASTEXITCODE -ne 0) { Write-Host "  [AVISO] Word não gerado (pypandoc_binary ausente?)" -ForegroundColor Yellow }
+    # 4b. versão de ENTREGA: estrutura do Manual de Normas, a partir do mesmo .tex.
+    # Faltava aqui: quem rodasse só o orquestrador ficava com o entregável defasado.
+    Write-Host "  -> tcc/scripts/gerar_tcc_normas.py" -ForegroundColor Green
+    & $Python (Join-Path $PSScriptRoot "scripts\gerar_tcc_normas.py")
+    if ($LASTEXITCODE -ne 0) { throw "Falha em gerar_tcc_normas.py (codigo $LASTEXITCODE)" }
+    Write-Host "  -> tcc/scripts/gerar_tcc_normas_docx.py" -ForegroundColor Green
+    & $Python (Join-Path $PSScriptRoot "scripts\gerar_tcc_normas_docx.py")
+    if ($LASTEXITCODE -ne 0) { throw "Falha em gerar_tcc_normas_docx.py (codigo $LASTEXITCODE)" }
+    Write-Host "  -> tcc/scripts/formatar_docx_normas.py" -ForegroundColor Green
+    & $Python (Join-Path $PSScriptRoot "scripts\formatar_docx_normas.py")
+    if ($LASTEXITCODE -ne 0) { throw "Falha em formatar_docx_normas.py (codigo $LASTEXITCODE)" }
+    Write-Host "  -> tcc/scripts/conferir_anexos_normas.py" -ForegroundColor Green
+    & $Python (Join-Path $PSScriptRoot "scripts\conferir_anexos_normas.py")
+    if ($LASTEXITCODE -ne 0) { Write-Host "  [AVISO] conferencia dos anexos acusou falhas" -ForegroundColor Yellow }
     # 5. demais entregáveis — todos lêem os números via params_nucleo.py.
     # gerar_resultados_preliminares.py ficou de fora: o documento é de uma etapa
     # vencida (está em entregaveis/_arquivo/) e só precisa rodar se houver nova

@@ -132,8 +132,8 @@ CHAMADAS = {
     # fig:shap_bee não entra: é uma subfigure, absorvida pela figura-mãe na
     # conversão para .docx — a chamada da mãe (fig:shap) já a cobre
     "fig:shap_wf":
-        "A Figura~\\ref{fig:shap_wf} ilustra como a previsão de um caso "
-        "individual é composta.",
+        "A Figura~\\ref{fig:shap_wf} ilustra como a previsão de dois casos "
+        "individuais é composta.",
     "fig:hlm_gap":
         "A Figura~\\ref{fig:hlm_gap} resume a sequência de degraus em barras.",
     "fig:ob_cascata":
@@ -150,6 +150,26 @@ CHAMADAS = {
 }
 
 
+def remissoes_textuais(doc: str) -> str:
+    """Seções da norma não têm número: `Seção~\\ref{subsec:x}` saía "Seção )" no PDF.
+    Troca cada remissão a seção por "subseção “Título”", com o título do cabeçalho mais
+    próximo antes do rótulo (o rótulo nem sempre vem colado ao cabeçalho)."""
+    titulos = {}
+    cab = list(re.finditer(r"\\(?:sub)*section\*?\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}", doc))
+    for m in re.finditer(r"\\label\{((?:sub)*sec:[^}]+)\}", doc):
+        antes = [c for c in cab if c.start() < m.start()]
+        if antes:
+            titulos[m.group(1)] = re.sub(r"\\[a-zA-Z]+\{([^}]*)\}", r"\1", antes[-1].group(1)).strip()
+
+    def troca(m):
+        palavra, rot = m.group(1), m.group(2)
+        if rot not in titulos:
+            return m.group(0)
+        sub = "Subseção" if palavra[0].isupper() else "subseção"
+        return f"{sub} ``{titulos[rot]}''"
+    return re.sub(r"\b((?:[Ss]ub)?[Ss]e[çc][ãa]o)~\\ref\{((?:sub)*sec:[^}]+)\}", troca, doc)
+
+
 def chamar_antes(doc: str) -> str:
     """Insere a frase de chamada ao fim do parágrafo anterior ao float.
 
@@ -161,11 +181,21 @@ def chamar_antes(doc: str) -> str:
         if ini is None:
             print(f"  [AVISO] float nao localizado para a chamada: {rot}")
             continue
-        if re.search(r"\ref\{" + re.escape(rot) + r"\}", doc[:ini]):
+        # "\\ref" e não "\ref": em regex, \r é retorno de carro — o teste nunca achava a
+        # citação e a frase de chamada saía duplicada quando o texto já citava o float
+        if re.search(r"\\ref\{" + re.escape(rot) + r"\}", doc[:ini]):
             continue                      # ja e citado antes; nao mexe
         corte = doc.rfind("\n\n", 0, ini)
         if corte < 0:
             corte = ini
+        # float logo depois de um título: o "parágrafo anterior" é de outra seção e a
+        # frase ficava solta antes do cabeçalho — entra então como parágrafo após o título
+        tit = list(re.finditer(r"\\(?:sub)*section\*?\{[^\n]*\}[^\n]*\n(?:\\label\{[^}]*\}\n)?",
+                               doc[corte:ini]))
+        if tit:
+            pos = corte + tit[-1].end()
+            doc = doc[:pos] + frase + "\n" + doc[pos:]
+            continue
         doc = doc[:corte] + " " + frase + doc[corte:]
     return doc
 
@@ -255,7 +285,7 @@ def numeros_por_extenso(doc: str) -> str:
 
 
 NOTA_LOG = (
-    '\\footnote{Os modelos têm o logaritmo do rendimento como variável dependente, de modo que o coeficiente está em log-pontos. A variação percentual correspondente é $(e^{\\hat\\beta}-1)\\times 100$, e não $\\hat\\beta\\times 100$: para $\\hat\\beta=-0{,}2123$, por exemplo, tem-se $-19{,}1\\%$, e não $-21{,}2\\%$. As duas leituras se aproximam quando o coeficiente é pequeno e divergem à medida que ele cresce em módulo; todos os percentuais de gap deste trabalho usam a primeira forma.}'
+    '\\footnote{Os modelos têm o logaritmo do rendimento como variável dependente, de modo que o coeficiente está em log-pontos. A variação percentual correspondente é $(e^{\\hat\\beta}-1)\\times 100$, e não $\\hat\\beta\\times 100$: para $\\hat\\beta=' + pt(P['B_POOL'], 4).replace('−', '-').replace(',', '{,}') + '$, por exemplo, tem-se $-' + pt(P['GAP_POOL'], 1).replace(',', '{,}') + '\\%$, e não $-' + pt(-P['B_POOL'] * 100, 1).replace(',', '{,}') + '\\%$. As duas leituras se aproximam quando o coeficiente é pequeno e divergem à medida que ele cresce em módulo; todos os percentuais de gap deste trabalho usam a primeira forma.}'
 )
 
 
@@ -325,14 +355,16 @@ def main() -> int:
         "Inferência: erros-padrão agrupados",
         "Random Forest, XGBoost e SHAP Values",
     ]
+    # núcleo primeiro, na ordem das perguntas; a mediação fecha o HLM (é a síntese da
+    # escada) e o ML, que é robustez, vem depois dos quatro métodos do núcleo
     RESULTADOS = [
         "Modelos Hierárquicos Lineares",
-        "Modelos de Machine Learning e SHAP Values",
         "Decomposição do gap por mediação contextual",
         "Decomposição de Oaxaca--Blinder: composição",
         "Regressão Quantílica e RIF-OB",
         "GLMM logístico: o teto de vidro no acesso",
         "Interseccionalidade: raça e gênero",
+        "Modelos de Machine Learning e SHAP Values",
         "Multicolinearidade do Modelo M4",
     ]
 
@@ -341,11 +373,15 @@ def main() -> int:
     partes += [bloco(n) for n in METODO]
     partes.append("\n\\section*{Resultados e Discussão}\n")
     partes += [bloco(n) for n in RESULTADOS]
+    # a Discussão entrava SEM cabeçalho (o título era trocado por "") e o texto ficava
+    # pendurado dentro da subseção do VIF; vira subseção própria
     partes.append(bloco("Discussão e Prescrição").replace(
-        "\\section{Discussão e Prescrição}", ""))
-    partes.append(bloco("Limitações e escopo de validade").replace(
-        "\\subsection*{Limitações e escopo de validade}",
-        "\\subsection*{Limitações e escopo de validade}"))
+        "\\section{Discussão e Prescrição}", "\\subsection*{Discussão}"))
+    # o bloco das Limitações ia até a próxima seção e trazia junto o parágrafo da
+    # declaração de IA, que é acrescentada abaixo como subseção — saía em dobro
+    _lim = bloco("Limitações e escopo de validade")
+    _corte = _lim.find("\\noindent\\textbf{Declaração de uso de inteligência artificial")
+    partes.append(_lim[:_corte] if _corte >= 0 else _lim)
     # a declaração de uso de IA vinha no fim do arquivo de origem e era cortada
     # junto com o \end{document}; entra aqui, antes das Referências
     decl = tex[tex.find("Declaração de uso de inteligência artificial"):] \
@@ -360,8 +396,12 @@ def main() -> int:
     doc = "\n".join(partes)
     doc = sem_numeracao_titulo(sem_italico(sem_barreiras(doc)))
     doc = chamar_antes(doc)
+    doc = remissoes_textuais(doc)
     doc = nota_sobre_log(doc)
     doc = expandir_inputs(doc)
+    # as tabelas incluídas por \input ainda traziam \emph: o itálico sumia do corpo e
+    # ficava nas notas e legendas — decisão do autor vale para o documento inteiro
+    doc = sem_italico(doc)
     doc = fonte_nas_tabelas(doc)
     doc = numerar_equacoes(doc)
     # subseções da norma não são numeradas: tudo vira starred

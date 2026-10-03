@@ -28,9 +28,9 @@ from pathlib import Path
 from params import fmt, fmtN
 
 T = Path("outputs/tables")
-# Fonte: decomposição estimada na MESMA amostra do núcleo (educ dummies + educ_missing,
-# população completa) por run_se_rif_interseccional.py; o csv antigo vinha do módulo que
-# exige educ_ord (só ~31% da PEA) e ficava incompatível com o resto do trabalho.
+# Fonte: decomposição estimada na MESMA especificação do núcleo (dummies cumulativas da
+# VD3004, população completa) por run_se_rif_interseccional.py; o csv de reserva vem do
+# módulo antigo e só é usado se o do núcleo faltar.
 _nuc = T / "interseccional_ob4grupos_nucleo.csv"
 d = pd.read_csv(_nuc if _nuc.exists() else T / "interseccional_ob4grupos.csv")
 _se_path = T / "interseccional_ob4grupos_se.csv"

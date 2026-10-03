@@ -24,7 +24,7 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Cm, Pt, RGBColor
 
-from params_nucleo import P, milhar, pct, pt
+from params_nucleo import P, milhar, pct, pt, titulo_bairro, frase_sintese
 
 ROOT = Path(__file__).resolve().parents[2]
 FIGS = ROOT / "outputs" / "figures"
@@ -186,11 +186,7 @@ para("Decore esta sequência. Ela responde, nesta ordem, às quatro perguntas qu
      "verdade e o que muda se for.", italic=True, color=CINZA)
 
 caixa("A frase-síntese (se só houver tempo para uma)", [
-    f"“Com a mesma escolaridade, idade, sexo e bairro, um trabalhador negro ganha "
-    f"{pct(P['GAP_M3'])} a menos que um branco — e a barreira mais dura não é o "
-    f"salário, é a porta: {pt(PCT_CBO, 0)}% menos chance de chegar a um cargo "
-    f"qualificado. O mercado de trabalho brasileiro não é racialmente neutro, e "
-    f"educação sozinha não corrige isso.”",
+    f"“{frase_sintese(P)}”",
 ], cor=VERMELHO)
 
 titulo("1.1  O contexto", 2)
@@ -209,7 +205,7 @@ rico([("O gap não é uma coisa só. Comparando apenas pessoas ", False), ("do m
 
 titulo("1.3  A evidência", 2)
 para(f"Quatro métodos independentes sobre a população completa da PNAD Contínua "
-     f"(cerca de 7,7 milhões de observações em {milhar(P['N_UPAS'])} bairros; o N exato "
+     f"(cerca de {pt(P['N_GLMM'] / 1e6, 1)} milhões de observações em {milhar(P['N_UPAS'])} bairros; o N exato "
      f"varia com os filtros de cada método):")
 tabela(["Método", "Pergunta que responde", "Resultado principal"],
        [["HLM de dois níveis", "Quanto do gap é do bairro?",
@@ -328,8 +324,8 @@ bullet(f"REML vs ML: τ² = {pt(P['TAU2_M0_ML'], 5)} por ML e {pt(P['TAU2_M0_REM
        f"REML. Com N desse tamanho a escolha é indiferente; usa-se ML porque é o que "
        f"permite comparar efeitos fixos entre degraus.")
 figura("fig_hlm_gap.png",
-       "Metade do gap racial desaparece ao comparar pessoas do mesmo bairro — "
-       "e o que sobra não é explicado por escolaridade, estado nem ocupação.")
+       titulo_bairro(P) + " — e o que sobra não é explicado por escolaridade, "
+       "estado nem ocupação.")
 figura("hlm_efeitos_uf_blup_upa.png",
        "A variação entre bairros supera a variação entre estados: efeitos fixos de UF "
        "(à esquerda) e BLUPs de UPA (à direita).", largura=15.0)
@@ -382,23 +378,23 @@ caixa("A pergunta que a banca vai fazer: “os dois padrões não se contradizem
     "maior ali. Um resultado é sobre preço; o outro, sobre distribuição.",
 ])
 figura("fig_qr_rif.png",
-       "Teto de vidro e piso pegajoso são o mesmo fenômeno visto de dois ângulos.")
+       "Teto de vidro entre pares (QR, condicional) e piso pegajoso na renda do país (RIF, incondicional): duas perguntas, dois padrões.")
 
 # 3.4 GLMM --------------------------------------------------------------------
 titulo("3.4  GLMM logístico de acesso (lme4::glmer)", 2)
 caixa("Pergunta", ["Controlando escolaridade, sexo, idade, estado e contexto do "
                    "bairro, um trabalhador negro tem a mesma chance de ocupar um "
                    "cargo qualificado ou de chegar ao topo da renda?"])
-tabela(["Desfecho", "OR (IC 95%)", "AME (p.p.)", "ICC UPA", "AUC", "E-value"],
+tabela(["Desfecho", "OR (IC 95%)", "AME (p.p.)", "ICC UPA (A2)", "AUC", "E-value"],
        [["Cargo qualificado (CBO 1–4)",
          f"{pt(OR_CBO, 3)} ({pt(CI_CBO[0], 3)}–{pt(CI_CBO[1], 3)})",
-         pt(P["AME_ocp_qualif_M2"], 1), pt(P["ICC_ocp_qualif_M1"], 3),
+         pt(P["AME_ocp_qualif_M2"], 1), pt(P["ICC_ocp_qualif_M2"], 3),
          pt(P["AUC_ocp_qualif_M2"], 3), pt(P["EV_ocp_qualif_M2"], 1)],
         ["Topo 20% da renda", pt(OR_T20, 3), pt(P["AME_y_top20_M2"], 1),
-         pt(P["ICC_y_top20_M1"], 3), pt(P["AUC_y_top20_M2"], 3),
+         pt(P["ICC_y_top20_M2"], 3), pt(P["AUC_y_top20_M2"], 3),
          pt(P["EV_y_top20_M2"], 1)],
         ["Topo 10% da renda", pt(OR_T10, 3), pt(P["AME_y_top10_M2"], 1),
-         pt(P["ICC_y_top10_M1"], 3), pt(P["AUC_y_top10_M2"], 3),
+         pt(P["ICC_y_top10_M2"], 3), pt(P["AUC_y_top10_M2"], 3),
          pt(P["EV_y_top10_M2"], 1)]],
        larguras=[5.0, 3.6, 2.2, 1.8, 1.6, 1.8])
 bullet(f"Leitura em uma frase: a chance de um trabalhador negro ocupar cargo "
@@ -561,12 +557,14 @@ pergunta("Por que não usar os pesos amostrais?",
          "percentual. Em regressão com os estratos do desenho entre os controles, "
          "ponderar altera pouco os coeficientes e infla a variância.")
 
-pergunta("Com 7,7 milhões de observações, tudo não fica significativo?",
+pergunta(f"Com {pt(P['N_GLMM'] / 1e6, 1)} milhões de observações, tudo não fica significativo?",
          "Fica — e é por isso que a leitura privilegia magnitude, intervalos de "
          "confiança e E-values, não asteriscos. Um exemplo no próprio trabalho: a "
-         "tendência temporal do gap, com esse N, tem p = 0,077 e não se distingue de "
-         "zero; a conclusão conservadora é que a década não produziu convergência "
-         "mensurável.")
+         f"tendência temporal do gap tem p = {pt(P['TEND_P'], 3)}"
+         + (" e não se distingue de zero; a conclusão conservadora é que a década não "
+            "produziu convergência mensurável." if P["TEND_P"] >= 0.05 else
+            f", significante, mas de magnitude ínfima: {pt(abs(P['TEND_DELTA']), 4)} "
+            "log-ponto por ano."))
 
 pergunta("Por que UPA como efeito aleatório e UF como efeito fixo?",
          "Porque 27 unidades são poucas para estimar uma distribuição no terceiro "
@@ -581,11 +579,11 @@ pergunta("Só analisa quem tem renda positiva — isso não é seleção?",
          "se os trabalhadores negros que permanecem ocupados são positivamente "
          "selecionados em atributos não observados, o gap entre observados é menor que "
          "o gap potencial. O modelo logístico de acesso trata diretamente a outra "
-         "metade do problema, e a correção de Heckman, estimada na versão estendida, "
-         "indicou seleção não nula com o coeficiente racial estável em sinal e ordem "
-         "de grandeza.")
+         "metade do problema. Uma correção à Heckman exigiria uma variável de exclusão "
+         "crível — algo que mude a chance de estar ocupado sem mudar o salário — e "
+         "fica como extensão; por isso o gap reportado é o gap entre ocupados.")
 
-pergunta("OR de 0,699 quer dizer 30% menos probabilidade?",
+pergunta(f"OR de {pt(P['OR_ocp_qualif_M2'], 3)} quer dizer {pt(PCT_CBO, 0)}% menos probabilidade?",
          f"Não: quer dizer {pt(PCT_CBO, 0)}% menos chance, no sentido de odds. Em "
          f"probabilidade, o efeito marginal médio é de "
          f"{pt(abs(P['AME_ocp_qualif_M2']), 1)} pontos percentuais. Os dois números "
@@ -624,13 +622,23 @@ pergunta("A mulher negra tem penalidade dupla ou tripla?",
          "que a leitura mais dramática sugeriria. Dizer o número exato é mais forte que "
          "dizer “dupla discriminação”.")
 
+pergunta("O que é a UPA? Esse “bairro” foi um recorte criado por vocês?",
+         "Não. A UPA — Unidade Primária de Amostragem — é do desenho da própria PNAD "
+         "Contínua: em cada estrato, o IBGE sorteia setores censitários (ou pequenos "
+         "conjuntos de setores vizinhos, quando o setor tem poucos domicílios) e, dentro de "
+         "cada um, um grupo de domicílios entrevistado em cinco trimestres seguidos. O "
+         "código vem no microdado público (variável UPA). Chamo de bairro porque é a menor "
+         "unidade territorial que a PNAD identifica — algumas centenas de domicílios "
+         "vizinhos. A correspondência é aproximada: em cidade grande, um bairro "
+         "administrativo contém várias UPAs; na zona rural, uma UPA pode ser extensa. Por "
+         "isso, nas equações e nos erros-padrão, o texto diz UPA.")
+
 pergunta("Qual é a maior fragilidade do trabalho?",
          "O desenho transversal. Não se observa a mesma pessoa ao longo do tempo, "
          "então nada aqui identifica trajetória individual — só diferenças entre "
-         "pessoas comparáveis num dado momento. A segunda é a cobertura da escolaridade "
-         "detalhada, registrada para cerca de 31% da PEA no painel público; por isso "
-         "os níveis entram como dummies de conclusão com indicador explícito de "
-         "não-registro, e os retornos educacionais são lidos com cautela.")
+         "pessoas comparáveis num dado momento. A segunda é que ocupação, vínculo e "
+         "jornada são, eles próprios, desfechos do processo estudado: controlá-los "
+         "(M4, A3) dá um limite inferior descritivo, não o efeito líquido da raça.")
 
 doc.add_page_break()
 titulo("Checklist final da véspera", 1)

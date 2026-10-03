@@ -60,7 +60,6 @@ M4_PREDICTORS = [
     # Individuais
     "negro", "sexo_fem", "log_horas", "urbano",
     "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
-    "educ_missing",
     # Contexto UPA
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
     # Vínculo empregatício

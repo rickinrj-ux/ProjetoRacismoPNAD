@@ -32,9 +32,9 @@ q80<-quantile(df$renda_bruta,0.80,na.rm=TRUE); q90<-quantile(df$renda_bruta,0.90
 df$y_top20<-as.integer(df$renda_bruta>=q80); df$y_top10<-as.integer(df$renda_bruta>=q90)
 cat(sprintf("N=%s\n", format(nrow(df),big.mark=",")))
 
-CTRL <- paste("educ_medio_completo + educ_superior_completo + educ_pos_graduacao + educ_missing",
+CTRL <- paste("educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao",
               "+ idade_c + I(idade_c^2) + horas_c + emprego_formal + setor_publico",
-              "+ conta_propria + trab_domestico + renda_media_upa_c + edu_media_upa_c")
+              "+ conta_propria + trab_domestico + renda_media_upa_c + edu_media_upa_c + factor(Ano)")
 ctrl_fast <- glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=3e5), calc.derivs=FALSE)
 
 res <- list()

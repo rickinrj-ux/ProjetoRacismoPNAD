@@ -14,7 +14,7 @@ Etapas:
   3. chama o pandoc (pypandoc_binary) com as figuras resolvidas e as
      referências do .bib.
 
-Saída: entregaveis/<nome de entrega>.docx e o PDF compilado ao lado
+Saída: entregaveis/relatorio_tcc_enxuto.docx (versão de trabalho) e o PDF ao lado
 Uso:   python tcc/scripts/gerar_word_enxuto.py
 """
 from __future__ import annotations
@@ -28,10 +28,14 @@ ROOT = Path(__file__).resolve().parents[2]
 TEX = ROOT / "relatorio_tcc_enxuto.tex"
 BIB = ROOT / "relatorio_tcc.bib"
 FIGS = ROOT / "outputs" / "figures"
-# nome de entrega (o "enxuto" era jargao interno de quando havia duas versoes)
-NOME_ENTREGA = "TCC_Ricardo_Calheiros_MBA_USP_Esalq"
-OUT = ROOT / "entregaveis" / (NOME_ENTREGA + ".docx")
-OUT_PDF = ROOT / "entregaveis" / (NOME_ENTREGA + ".pdf")
+# Este gerador produz a versão de trabalho, não a de entrega. A entrega sai de
+# tcc_normas.tex (gerar_tcc_normas.py -> gerar_tcc_normas_docx.py), que aplica a
+# estrutura do Manual de Normas. Os dois gravavam no mesmo nome e quem rodasse
+# por último vencia: o .docx entregue era o normativo (26/26 nos anexos) e o PDF
+# ao lado era este, com outro conteúdo e mais 11 páginas.
+NOME_TRABALHO = "relatorio_tcc_enxuto"
+OUT = ROOT / "entregaveis" / (NOME_TRABALHO + ".docx")
+OUT_PDF = ROOT / "entregaveis" / (NOME_TRABALHO + ".pdf")
 
 
 def expandir_inputs(texto: str, base: Path, profundidade: int = 0) -> str:

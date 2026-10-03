@@ -50,8 +50,9 @@ TABLES = ROOT / "outputs" / "tables"
 N_BOOT = 500          # réplicas do bootstrap em blocos por UPA (barato: somas pré-computadas)
 SEED   = 42
 
-EDUC_F    = "educ_medio_completo + educ_superior_completo + educ_pos_graduacao + educ_missing"
-DEMO_F    = "idade_c + idade_sq + sexo_fem"
+# sem educ_missing desde a correção da escolaridade (VD3004): a cobertura é total
+EDUC_F    = "educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
+DEMO_F    = "idade_c + idade_sq + sexo_fem + C(Ano)"   # ano: renda deflacionada + efeito de ano
 CONTEXT_F = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
 OCC_F     = ("horas_c + emprego_formal + conta_propria + trab_domestico"
              " + ocp_dirigente + ocp_profissional + ocp_tecnico + ocp_administrativo"
@@ -64,8 +65,8 @@ ESPECS = {
                      "rhs": f"{EDUC_F} + {DEMO_F} + {CONTEXT_F} + {OCC_F}"},
 }
 
-COLS = ["negro", "sexo_fem", "idade_c", "idade_sq",
-        "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+COLS = ["Ano", "negro", "sexo_fem", "idade_c", "idade_sq",
+        "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
         "educ_cat", "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
         "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
         "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
@@ -188,7 +189,7 @@ contexto}}: escolaridade, idade, sexo e contexto de UPA --- os mesmos controles 
 a parcela não explicada é comparável à da literatura. (B)~\emph{{Acesso}}: (A) + horas,
 formalidade e grupo CBO tratados como dotações --- a parcela não explicada é a discriminação
 \emph{{dentro}} da ocupação, um limite inferior, pois a segregação ocupacional é ela própria
-discriminatória (Oaxaca \& Ransom, 1999; ver o GLMM de acesso, Tabela~\ref{{tab:glmm_glassceil}}).
+discriminatória \cite{{oaxaca_ransom1999}} (ver o GLMM de acesso, Tabela~\ref{{tab:glmm_glassceil}}).
 População completa da PEA com renda positiva ($N = {fmtN(n_b + n_n)}$; {fmtN(G)}~UPAs).
 Erros-padrão entre parênteses: bootstrap em blocos por UPA ({A['n_boot']} réplicas).}}
 \label{{tab:oaxaca_blinder}}

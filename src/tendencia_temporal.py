@@ -399,10 +399,13 @@ def _salvar_tabela_wls(wls_res: Dict, chow_res: Dict, mk_res: Dict, ar1_res: Dic
 
 
 def _salvar_serie_anual(df: pd.DataFrame) -> None:
+    # A série do M3 do núcleo (run_m3_serie_sensib.py) tem a UPA como nível aleatório
+    # (icc_upa); a série antiga tinha a UF (icc_uf). Aceita as duas.
+    icc = "icc_upa" if "icc_upa" in df.columns else "icc_uf"
     out = df[["ano", "beta", "se", "gap_pct", "ci95_lo", "ci95_hi",
-              "n_obs", "icc_uf"]].copy()
+              "n_obs", icc]].copy()
     out.columns = ["Ano", "β_negro", "SE", "Gap (%)", "IC95 lo", "IC95 hi",
-                   "N obs", "ICC_UF"]
+                   "N obs", "ICC_UPA" if icc == "icc_upa" else "ICC_UF"]
     out.to_csv(OUT_TAB / "tendencia_temporal_serie.csv", index=False, encoding="utf-8")
 
     tex = out.to_latex(

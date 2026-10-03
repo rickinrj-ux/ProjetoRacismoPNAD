@@ -38,6 +38,39 @@ def milhar(x: float) -> str:
     return f"{int(round(float(x))):,}".replace(",", ".")
 
 
+# ── frases-manchete compartilhadas (aprovadas pelo autor em 03/10/2026) ─────────
+# Um único lugar para as frases que aparecem em texto, decks, Guia e figuras: se os
+# números mudarem, todas mudam juntas — e a forma ("metade", "o diploma iguala") segue
+# o que os números mostram, nunca o contrário.
+def titulo_bairro(P: dict) -> str:
+    """Título da mediação pelo bairro: 'metade' só se for, de fato, ~metade."""
+    m = P["MED_BAIRRO"]
+    if 45 <= m <= 55:
+        return "Metade do gap desaparece ao comparar pessoas do mesmo bairro"
+    return f"Comparar vizinhos reduz o gap em cerca de {pct(5 * round(m / 5), 0)}"
+
+
+def frase_diploma(P: dict) -> str:
+    """Segunda frase da síntese: o diploma iguala o salário, mas não a porta? Depende de
+    a penalidade salarial na pós ser pequena e a desvantagem de acesso na pós persistir."""
+    sal_pos, ac_pos = P.get("NE_GAP_POS"), P.get("PCTPOS_ocp_qualif")
+    if sal_pos is None or ac_pos is None:
+        return ""
+    if sal_pos < 3 and ac_pos >= 10:
+        return "O diploma quase iguala o salário, mas não abre a porta."
+    if sal_pos < 3:
+        return "Com diploma, salário e acesso quase se igualam."
+    return "Nem o diploma iguala o salário."
+
+
+def frase_sintese(P: dict) -> str:
+    """A frase-síntese do trabalho (sem marcação; cada gerador formata)."""
+    return (f"Com a mesma escolaridade, idade, sexo e bairro, um trabalhador negro ganha "
+            f"{pct(P['GAP_M3'])} a menos e tem chances "
+            f"{pct((1 - P['OR_ocp_qualif_M2']) * 100, 0)} menores de chegar a um cargo "
+            f"qualificado. " + frase_diploma(P)).strip()
+
+
 def _rows(nome: str) -> list[dict]:
     p = TAB / nome
     if not p.exists():
@@ -135,6 +168,38 @@ def carregar() -> dict:
             q = str(round(_f(r["quantil"]) * 100))
             P[f"QR_B_Q{q}"] = _f(r["b_negro"])
             P[f"QR_GAP_Q{q}"] = abs(_f(r["gap_pct"]))
+    # HLM de TRÊS níveis (pessoa < UPA < UF, ambos aleatórios) — robustez.
+    # Não é a especificação do trabalho; serve para separar o que o modelo de
+    # dois níveis credita ao "território" em bairro e estado.
+    for r in _rows("hlm_tres_niveis.csv"):
+        m = r["modelo"]
+        P[f"N3_ICC_UF_{m}"]  = _f(r["icc_uf"]) * 100
+        P[f"N3_ICC_UPA_{m}"] = _f(r["icc_upa"]) * 100
+        P[f"N3_TAU2_UF_{m}"]  = _f(r["tau2_uf"])
+        P[f"N3_TAU2_UPA_{m}"] = _f(r["tau2_upa"])
+        if _f(r.get("b_negro")) is not None:
+            P[f"N3_B_NEGRO_{m}"] = _f(r["b_negro"])
+
+    # Gap por quantil dentro de cada tipo de área (Capital, RM, Interior).
+    # Chaves no formato QR_AREA_{AREA}_Q{quantil}, em valor absoluto — o texto
+    # fala em "penalidade de X%", não em coeficiente negativo.
+    _slug = {"Capital": "CAPITAL", "Interior": "INTERIOR",
+             "RM (exceto capital)": "RM"}
+    for r in _rows("qr_gap_por_area.csv"):
+        a = _slug.get(r["area"])
+        if a:
+            q = str(round(_f(r["quantil"]) * 100))
+            P[f"QR_AREA_{a}_Q{q}"] = abs(_f(r["gap_pct"]))
+
+    # Contraprova de forma funcional: contraste da contribuição racial entre os
+    # dois grupos no modelo preditivo. É o análogo do coeficiente racial num
+    # método que não impõe forma nenhuma — serve de checagem do resíduo.
+    _sg = {r["grupo"]: r for r in _rows("shap_negro_por_grupo.csv")
+           if r.get("modelo") == "XGBoost"}
+    if {"negros", "brancos"} <= set(_sg):
+        _d = _f(_sg["negros"]["shap_medio_negro"]) - _f(_sg["brancos"]["shap_medio_negro"])
+        P["ML_CONTRASTE_PCT"] = abs((math.exp(_d) - 1) * 100)
+
     for r in _rows("qr_kb_test.csv"):
         P["QR_DIFF"] = _f(r["diff_q90_q10"])
         P["QR_Z"] = _f(r["z_stat"])
@@ -164,6 +229,14 @@ def carregar() -> dict:
         P[f"AUCFE_{k}"] = _f(r["AUC_so_FE"])
         P[f"LR_{k}"] = _f(r["LR_vs_pooled"])
         P[f"EV_{k}"] = _evalue(P[f"OR_{k}"])
+        # A4: razão de chances da raça para quem tem superior e para quem tem pós. As
+        # dummies são cumulativas (pós ⊂ superior), então a pós soma as duas interações.
+        if r["modelo"] == "M4" and _f(r.get("OR_inter_superior")) is not None:
+            d_ = r["desfecho"]
+            P[f"ORSUP_{d_}"] = P[f"OR_{k}"] * _f(r["OR_inter_superior"])
+            P[f"ORPOS_{d_}"] = P[f"ORSUP_{d_}"] * _f(r["OR_inter_pos"])
+            P[f"PCTSUP_{d_}"] = (1 - P[f"ORSUP_{d_}"]) * 100
+            P[f"PCTPOS_{d_}"] = (1 - P[f"ORPOS_{d_}"]) * 100
         if r["modelo"] == "M2":
             P[f"CUT_{r['desfecho']}"] = _f(r["cutoff_youden"])
             P[f"SENS_{r['desfecho']}"] = _f(r["sens"])
@@ -257,10 +330,134 @@ def carregar() -> dict:
         P["VIF_MAX"] = _f(max(vif, key=lambda r: _f(r["VIF"]))["VIF"])
         P["VIF_MAX_VAR"] = max(vif, key=lambda r: _f(r["VIF"]))["label"]
         P["VIF_N_CRITICO"] = sum(1 for r in vif if _f(r["VIF"]) > 10)
+        P["VIF_N_ALTO"] = sum(1 for r in vif if 5 < _f(r["VIF"]) <= 10)
+        P["VIF_N_MODERADO"] = sum(1 for r in vif if 2 <= _f(r["VIF"]) <= 5)
+        P["VIF_N_BAIXO"] = sum(1 for r in vif if _f(r["VIF"]) < 2)
         P["VIF_N_TOTAL"] = len(vif)
         neg = [r for r in vif if r["predictor"] == "negro"]
         if neg:
             P["VIF_NEGRO"] = _f(neg[0]["VIF"])
+
+    # Descritivos brutos (ponderados), antes calculados só dentro do deck da defesa.
+    # O csv vem em formato en-US ("1,607,081"; "53.3").
+    def _en(s):
+        return float(str(s).replace(",", ""))
+
+    t1 = {r[""]: r for r in _rows("tab1_descritiva_racial.csv")}
+    if t1:
+        P["MED_BR"], P["MED_NG"] = _en(t1["Renda mediana (R$)"]["Brancos"]), _en(t1["Renda mediana (R$)"]["Negros"])
+        P["MEDIA_BR"], P["MEDIA_NG"] = _en(t1["Renda média (R$)"]["Brancos"]), _en(t1["Renda média (R$)"]["Negros"])
+        P["FORMAL_BR"], P["FORMAL_NG"] = _en(t1["Emprego formal (%)"]["Brancos"]), _en(t1["Emprego formal (%)"]["Negros"])
+        P["GAP_MEDIANA"] = (1 - P["MED_NG"] / P["MED_BR"]) * 100
+        P["GAP_MEDIA"] = (1 - P["MEDIA_NG"] / P["MEDIA_BR"]) * 100
+        P["GAP_LOG"] = (_en(t1["Log-renda média"]["Brancos"]) - _en(t1["Log-renda média"]["Negros"])) * 100
+        P["FORMAL_DIF"] = P["FORMAL_BR"] - P["FORMAL_NG"]
+    _NIV = {"Sem fundamental completo": "SEMFUND", "Fundamental completo": "FUND",
+            "Médio completo": "MEDIO", "Superior completo": "SUP", "Pós-graduação": "POS"}
+    for r in _rows("tab2_gap_bruto_subgrupos.csv"):
+        if r["Dimensão"] == "Escolaridade" and r["Subgrupo"] == "Pós-graduação":
+            P["GAP_MEDIANA_POS"] = _f(r["Gap Mediana (%)"])
+        if r["Dimensão"] == "Nível (núcleo)" and r["Subgrupo"] in _NIV:
+            P[f"GAPBRUTO_{_NIV[r['Subgrupo']]}"] = _f(r["Gap Mediana (%)"])
+
+    # Penalidade racial condicional por nível de escolaridade (M3 + negro:C(nivel)),
+    # run_hlm_negro_por_educ.py — robustez do HLM pedida em 02/10/2026
+    _ne = _rows("hlm_negro_por_educ.csv")
+    for r in _ne:
+        k = {"sem_fund": "SEMFUND", "fund": "FUND", "medio": "MEDIO", "sup": "SUP", "pos": "POS"}[r["nivel"]]
+        P[f"NE_GAP_{k}"] = abs(_f(r["gap_pct"]))
+        P[f"NE_PCTPOP_{k}"] = _f(r["pct_pop"])
+        P[f"NE_PCTNEG_{k}"] = _f(r["pct_negros"])
+        P[f"NE_CILO_{k}"] = abs((math.exp(_f(r["ci_hi"])) - 1) * 100)
+        P[f"NE_CIHI_{k}"] = abs((math.exp(_f(r["ci_lo"])) - 1) * 100)
+    if _ne and _ne[0].get("p_lr") not in (None, ""):
+        P["NE_LR"], P["NE_LR_P"] = _f(_ne[0]["lr_vs_m3"]), _f(_ne[0]["p_lr"])
+
+    # Konfound do HLM step-up, por degrau
+    for r in _rows("hlm_stepup_konfound.csv"):
+        P[f"KF_{r['modelo']}"] = _f(r["pct_vies_para_invalidar"])
+
+    # UPAs do HLM: uma linha por BLUP (difere da contagem do GLMM e da OB/QR pelos filtros)
+    blups = _rows("hlm_stepup_blups_upa.csv")
+    if blups:
+        P["N_UPAS_HLM"] = len(blups)
+
+    # M3 com inclinação aleatória de negro por UPA: correlação intercepto × inclinação
+    for r in _rows("hlm_stepup_fit.csv"):
+        if r["modelo"] == "M3_RS" and _f(r.get("cov_int_slope")) is not None:
+            t0, t1, c01 = _f(r["tau2_upa"]), _f(r["tau2_slope_negro"]), _f(r["cov_int_slope"])
+            P["HLM_RS_CORR"] = c01 / math.sqrt(t0 * t1)
+            P["HLM_RS_SD_SLOPE"] = math.sqrt(t1)
+    for r in _rows("hlm_stepup_coefs.csv"):
+        if r["modelo"] == "M3_RS" and r["variavel"] == "negro":
+            P["B_M3_RS"] = _f(r["coef"])          # inclinação média do M3 com RS (≠ B_M3)
+
+    # distância entre o efeito racial do XGBoost (SHAP) e o gap do M4, em pontos percentuais
+    if P.get("ML_CONTRASTE_PCT") is not None and P.get("GAP_M4") is not None:
+        P["ML_VS_M4_PP"] = abs(P["GAP_M4"] - P["ML_CONTRASTE_PCT"])
+
+    # N do ML = treino + teste (não é o N do HLM, que tem outros filtros)
+    if P.get("CV_N_TREINO") and P.get("CV_N_TESTE"):
+        P["ML_N"] = int(P["CV_N_TREINO"] + P["CV_N_TESTE"])
+
+    # γ01 (composição racial do bairro) em múltiplos da penalidade individual do mesmo M2
+    if P.get("GAMMA01") and P.get("B_M2"):
+        P["G01_RAZAO"] = abs(P["GAMMA01"]) / abs(P["B_M2"])
+
+    # OR combinado do negro com superior completo no acesso (M4 × interação)
+    if "OR_ocp_qualif_M4" in P and "ORI_SUP_ocp_qualif" in P:
+        P["OR_COMB_SUP"] = P["OR_ocp_qualif_M4"] * P["ORI_SUP_ocp_qualif"]
+
+    # Contas derivadas que os textos citam — viram parâmetro para ter fonte única
+    if "RIF_RET_Q10" in P and "RIF_RET_Q90" in P:
+        P["RIF_RET_RAZAO"] = P["RIF_RET_Q10"] / P["RIF_RET_Q90"]
+        P["RIF_RET_DELTA"] = P["RIF_RET_Q90"] - P["RIF_RET_Q10"]
+        P["RIF_DOT_DELTA"] = P["RIF_DOT_Q90"] - P["RIF_DOT_Q10"]
+
+    # Tendência temporal: β racial do M3 ano a ano (run_m3_serie_sensib.py --serie) e o WLS
+    # sobre ela (run_tendencia_temporal.py). Antes, a redução vinha do sna_temporal.csv
+    # (gap bruto, versão estendida) e δ/p estavam digitados no texto.
+    serie = {int(_f(r["label"])): _f(r["beta_negro"]) for r in _rows("validacao_temporal.csv")
+             if "especificacao" in r and r["especificacao"].startswith("M3 do núcleo")}
+    if 2016 in serie and 2025 in serie:
+        P["TEND_B2016"], P["TEND_B2025"] = serie[2016], serie[2025]
+        P["TEND_REDUCAO_PCT"] = (1 - serie[2025] / serie[2016]) * 100   # >0 = o gap encolheu
+    for r in _rows("tendencia_temporal_testes.csv"):
+        if r["Teste"].startswith("Chow"):
+            m = re.search(r"F\((\d+),\s*(\d+)\)\s*=\s*([\d.]+)", r["Estatística"])
+            if m:
+                P["TEND_CHOW_DF1"], P["TEND_CHOW_DF2"] = int(m.group(1)), int(m.group(2))
+                P["TEND_CHOW_F"] = float(m.group(3))
+            P["TEND_CHOW_P"] = _f(r["p-valor"])
+        if r["Teste"].startswith("WLS"):
+            m = re.search(r"([−-]?\d+\.\d+)", r["Estatística"])
+            if m:
+                # β < 0: δ > 0 significa β subindo rumo a zero, isto é, convergência
+                P["TEND_DELTA"] = float(m.group(1).replace("−", "-"))
+            P["TEND_P"] = _f(r["p-valor"])
+            ic = re.findall(r"[−-]?\d+\.\d+", r.get("IC 95%", "").replace("−", "-"))
+            if len(ic) == 2:
+                P["TEND_IC_LO"], P["TEND_IC_HI"] = float(ic[0]), float(ic[1])
+    if "TEND_DELTA" in P and "TEND_B2016" in P:
+        P["TEND_ANOS"] = abs(P["TEND_B2016"]) / P["TEND_DELTA"] if P["TEND_DELTA"] > 0 else float("inf")
+        # prazo no cenário mais otimista que os dados admitem (borda superior do IC de δ);
+        # é este, e não o ponto, que o texto cita quando a inclinação não é significante
+        if P.get("TEND_IC_HI", 0) > 0:
+            P["TEND_ANOS_OTIMISTA"] = abs(P["TEND_B2016"]) / P["TEND_IC_HI"]
+
+    # Sensibilidade do β racial ao indicador educ_missing (run_m3_serie_sensib.py --sensib)
+    sens = {r["modelo"]: _f(r["beta_negro"]) for r in _rows("sensib_educ_missing.csv")}
+    if {"M3", "M3_sem_educ_missing"} <= set(sens):
+        P["EDUC_SENS_VAR"] = abs(sens["M3_sem_educ_missing"] / sens["M3"] - 1) * 100
+
+    # Contagens da base (observações brutas, PEA, cobertura da escolaridade), gravadas
+    # por tcc/scripts/gerar_descritivos_base.py
+    for r in _rows("hlm_rs_figura.csv"):           # tamanho da amostra de retas na figura
+        P[r["chave"]] = _f(r["valor"])
+    for r in _rows("descritivos_base.csv"):
+        v = _f(r["valor"])
+        # contagens voltam a int: como float, saíam "15.941.675.0" no texto
+        P[r["chave"]] = int(v) if r["chave"].startswith("N_") else v
 
     return P
 

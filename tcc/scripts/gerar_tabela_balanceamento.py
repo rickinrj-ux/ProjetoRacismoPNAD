@@ -35,11 +35,11 @@ VARS = {
     "log_renda": "log do rendimento",
     "idade_c": "Idade (centrada)",
     "sexo_fem": "Sexo feminino",
-    "educ_fund_completo": "Fundamental completo",
-    "educ_medio_completo": "Médio completo",
-    "educ_superior_completo": "Superior completo",
+    # dummies cumulativas (VD3004): "ao menos" cada nível; cobertura total, sem indicador de faltante
+    "educ_fund_completo": "Fundamental completo ou mais",
+    "educ_medio_completo": "Médio completo ou mais",
+    "educ_superior_completo": "Superior completo ou mais",
     "educ_pos_graduacao": "Pós-graduação",
-    "educ_missing": "Escolaridade não registrada",
     "log_horas": "log(horas trabalhadas)",
     "urbano": "Reside em área urbana",
     "emprego_formal": "Emprego formal",
@@ -52,12 +52,11 @@ VARS = {
     "tx_desemprego_upa_z": "Desemprego na UPA ($z$)",
     "media_educ_upa_z": "Educ. média na UPA ($z$)",
 }
-COLS = list(VARS) + ["negro", "UF", "UPA", "educ_cat"]
+COLS = list(VARS) + ["negro", "UF", "UPA"]
 
 print("Carregando features ...", flush=True)
 df = pd.read_parquet("data/processed/features.parquet",
-                     columns=[c for c in COLS if c != "educ_missing"])
-df["educ_missing"] = df["educ_cat"].isna().astype(int)
+                     columns=COLS)
 df = df[df["log_renda"].notna() & (df["log_renda"] > 0) & df["negro"].notna()]
 df = df.dropna(subset=list(VARS)).reset_index(drop=True)
 b, n = df[df["negro"] == 0], df[df["negro"] == 1]
@@ -77,8 +76,8 @@ g = df.groupby("UPA")["negro"].agg(["mean", "size"])
 upa_mista = float(((g["mean"] > 0) & (g["mean"] < 1)).mean())
 df["_educ"] = np.select(
     [df["educ_pos_graduacao"] == 1, df["educ_superior_completo"] == 1,
-     df["educ_medio_completo"] == 1, df["educ_fund_completo"] == 1, df["educ_missing"] == 1],
-    ["pos", "sup", "med", "fund", "na"], default="baixa")
+     df["educ_medio_completo"] == 1, df["educ_fund_completo"] == 1],
+    ["pos", "sup", "med", "fund"], default="baixa")
 cel = df.groupby(["UF", "_educ"])["negro"].agg(["mean", "size"])
 cel_mista = float(((cel["mean"] > 0) & (cel["mean"] < 1)).mean())
 pes_mista = float(cel.loc[(cel["mean"] > 0) & (cel["mean"] < 1), "size"].sum() / cel["size"].sum())

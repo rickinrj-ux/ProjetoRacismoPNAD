@@ -213,7 +213,71 @@ A redação nova mantém o valor pontual e diz, na mesma frase, que a inclinaç�
 não se distingue de zero pelos critérios convencionais --- os dados não
 autorizam afirmar que exista convergência.
 
-### Aberto: um número sem fonte em csv
+### Resolvido: o número sem fonte em csv --- e o que ele escondia (28/09)
+
+O `SHAP médio de −0,0469` do relatório LaTeX (e o `−0,0249` do Word, que
+divergia dele) não saía de nenhum csv. Ao dar fonte ao número, apareceu um
+defeito mais sério no pipeline.
+
+**O que foi feito**
+
+1. `run_ml_shap.py` passou a emitir `outputs/tables/shap_negro_por_grupo.csv`
+   com a média SHAP da variável racial **com sinal**, por grupo e por modelo,
+   e a conversão semilog $(e^x-1)	imes100$ --- não $x	imes100$.
+2. Os dois geradores leem essa tabela. Nenhum dos dois tem mais número de SHAP
+   escrito à mão.
+3. No Word, a comparação "(anterior: −0,0469)" saiu: era um valor de uma
+   execução antiga, sem fonte. O argumento da mediação ocupacional continua,
+   agora apoiado no `Mediacao_occ%` do M4, que tem csv.
+
+**O defeito que apareceu**
+
+A primeira execução devolveu médias idênticas para negros e brancos
+(−0,0012 e −0,0012). Não é um achado: é sinal de que a máscara não separava
+nada. Em `compute_shap`, o subsample era indexado com `df.iloc[idx]`, onde
+`idx` numera as linhas de `X_tr` --- a matriz **depois** do
+`train_test_split`, que embaralha. Cada valor SHAP era emparelhado com a
+pessoa errada. Medido: a coluna `negro` do dataframe concorda com a que o
+modelo viu em **51,1%** dos casos, contra os 51,2% do puro acaso; com o
+índice correto, 100%.
+
+O estrago não se limitava à média nova: `plot_shap_waterfall_cases` escolhe
+os casos A, B e C ("branco de alta renda", "negro de alta renda", "negro de
+baixa renda") por essas mesmas colunas. As três figuras de waterfall do
+relatório foram selecionadas e rotuladas a partir de linhas trocadas.
+
+**Correção**: o índice viaja junto no `train_test_split` (`pos_tr`), e
+`df_shap = df.iloc[pos_tr[idx]]`. A média por grupo passou a tirar a máscara
+da própria matriz de features, que dispensa realinhamento. Pipeline
+reexecutado em 28/09 (~2,5 h).
+
+**O número, com fonte**: XGBoost, média SHAP da raça = **−0,0283** entre
+trabalhadores negros e **+0,0357** entre brancos. O texto cita o **contraste**
+entre os dois --- **6,2%** de diferença na parcela do rendimento predito
+atribuída à raça ---, que é o análogo do coeficiente racial das regressões;
+a média de um grupo sozinha mede desvio em relação à previsão média da base,
+que mistura os dois (decisão do autor em 29/09, revisao_2026-09-29.md). Sinais opostos, como a construção do SHAP
+exige --- era exatamente o que a execução defeituosa não mostrava. O valor
+antigo (−0,0469) era de um modelo sem as variáveis ocupacionais, e o do Word
+(−0,0249) de uma terceira execução; nenhum dos dois correspondia ao modelo
+descrito no texto.
+
+O Random Forest põe a raça em 24º lugar, com contribuição média perto de zero,
+enquanto as demais variáveis têm peso semelhante nos dois modelos. A diferença
+é de arquitetura --- a floresta escolhe em cada nó a variável de maior ganho e
+uma variável de efeito pequeno perde sempre; o *boosting* ajusta o resíduo e
+chega a ela. Virou parágrafo no texto (29/09), com a ressalva de que a
+divergência não é evidência contra o achado: seria, se as outras variáveis
+também divergissem.
+
+- [x] **Feito**: csv conferido, relatório, PDF e Word regerados, verificador e
+      anexos rodados (26/26), figuras de waterfall conferidas uma a uma --- os
+      rótulos agora batem com o caso (o "branco de alta renda" está em UPA com
+      \% de negros 1,96 desvios abaixo da média; o "negro de alta renda" tem
+      renda de R$ 2.001 contra R$ 3.201 do branco, que é o gap em um caso
+      individual).
+
+### Aberto (histórico): um número sem fonte em csv
 
 `SHAP médio de −0,0469 para trabalhadores negros --- equivalente a uma
 penalidade de 4,6%` está fixado em `scripts/geradores/gerar_relatorio_tcc.py`

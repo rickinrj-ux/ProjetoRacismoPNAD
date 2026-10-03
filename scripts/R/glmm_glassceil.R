@@ -42,6 +42,8 @@ cols <- c("negro","sexo_fem","idade_c","idade_sq","educ_medio_completo","educ_su
           "educ_pos_graduacao","educ_cat","pct_negro_upa_z","tx_desemprego_upa_z","media_educ_upa_z",
           "media_renda_upa_z","emprego_formal","setor_publico","conta_propria","trab_domestico",
           "ocp_dirigente","ocp_profissional","ocp_tecnico","ocp_administrativo","horas_c",
+          "educ_fund_completo","urbano","Ano",   # simetria com o HLM
+         
           "renda_bruta","pea","UF","UPA")
 df <- read_parquet(file.path(ROOT, "data/processed/features.parquet"), col_select = all_of(cols))
 df <- df |>
@@ -53,6 +55,9 @@ df <- df |>
     educ_medio_completo    = as.integer(!is.na(educ_medio_completo) & educ_medio_completo == 1),
     educ_superior_completo = as.integer(!is.na(educ_superior_completo) & educ_superior_completo == 1),
     educ_pos_graduacao     = as.integer(!is.na(educ_pos_graduacao) & educ_pos_graduacao == 1),
+    educ_fund_completo = as.integer(!is.na(educ_fund_completo) & educ_fund_completo == 1),
+    urbano             = as.integer(!is.na(urbano) & urbano == 1),
+    Ano                = factor(Ano),
     educ_missing   = as.integer(is.na(educ_cat)),
     emprego_formal = as.integer(!is.na(emprego_formal) & emprego_formal == 1),
     setor_publico  = as.integer(!is.na(setor_publico) & setor_publico == 1),
@@ -83,9 +88,21 @@ cat(sprintf("  N = %s | UPAs = %s | ocp_qualif = %.1f%% | top20 = %.1f%% | top10
             100 * mean(df$ocp_qualif), 100 * mean(df$y_top20), 100 * mean(df$y_top10)))
 
 # ── 2. Fórmulas ──────────────────────────────────────────────────────────────
-IND  <- "sexo_fem + educ_medio_completo + educ_superior_completo + educ_pos_graduacao + educ_missing + idade_c + idade_sq + horas_c + UF"
+# Simetria com o HLM (run_hlm_stepup.py, _IND): mesmos controles individuais.
+# Faltavam educ_fund_completo (degrau da base da escada educacional), urbano e
+# o ano — a serie cobre 2016-2025 e inclui a pandemia.
+# horas_c nao entra aqui: ver VINC abaixo. A simetria e de controles PREDETERMINADOS,
+# nao de lista literal — copiar um controle que so faz sentido no outro desfecho
+# criaria um bad control.
+IND  <- paste("sexo_fem + educ_fund_completo + educ_medio_completo +",
+              "educ_superior_completo + educ_pos_graduacao +",
+              "idade_c + idade_sq + urbano + factor(Ano) + UF")
 CTX  <- "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
-VINC <- "emprego_formal + setor_publico + conta_propria + trab_domestico"
+# horas_c SAI do bloco individual e entra aqui. No HLM ela é controle necessario
+# (o desfecho e a renda MENSAL: sem horas, compara-se quem faz 20h com quem faz 44h).
+# Aqui o desfecho e ocupar o cargo, e a jornada nao causa o acesso — e determinada
+# junto com ele. Por isso entra no degrau do limite inferior, com o vinculo.
+VINC <- "emprego_formal + setor_publico + conta_propria + trab_domestico + horas_c"
 INTR <- "negro:educ_superior_completo + negro:educ_pos_graduacao"
 RHS <- list(
   M1 = paste("negro +", IND),
@@ -146,7 +163,9 @@ hosmer <- function(y, p, g = 10) {                 # Hosmer-Lemeshow (10 decis d
 }
 
 rows <- list(); coefs <- list()
-out_csv <- file.path(TABLES, "glmm_glassceil_glmer.csv"); out_coef <- file.path(TABLES, "glmm_glassceil_glmer_coefs.csv")
+SUF <- if ("--sim" %in% args) "_sim" else ""   # --sim: grava ao lado, sem sobrescrever
+out_csv  <- file.path(TABLES, paste0("glmm_glassceil_glmer", SUF, ".csv"))
+out_coef <- file.path(TABLES, paste0("glmm_glassceil_glmer", SUF, "_coefs.csv"))
 if (is.na(SAMPLE) && file.exists(out_csv)) {                 # retomada após queda (memória)
   prev <- read.csv(out_csv); prevc <- read.csv(out_coef)
   if (nrow(prev) > 0 && prev$N[1] == N) {

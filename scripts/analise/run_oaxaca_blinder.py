@@ -27,8 +27,8 @@ FIGURES = ROOT / "outputs" / "figures"
 TABLES  = ROOT / "outputs" / "tables"
 FIGURES.mkdir(parents=True, exist_ok=True)
 
-COLS = ["negro", "sexo_fem", "idade_c", "idade_sq",
-        "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+COLS = ["Ano", "negro", "sexo_fem", "idade_c", "idade_sq",
+        "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
         "educ_cat",
         "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
         "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
@@ -49,7 +49,7 @@ OCC_VARS = ["horas_c", "emprego_formal", "conta_propria", "trab_domestico",
 HAS_OCC = all(c in df.columns for c in OCC_VARS) and df[OCC_VARS].notna().any().any()
 
 BASE_VARS = ["log_renda", "negro",
-             "educ_medio_completo", "educ_superior_completo",
+             "educ_fund_completo", "educ_medio_completo", "educ_superior_completo",
              "educ_pos_graduacao", "idade_c", "idade_sq", "sexo_fem",
              "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z"]
 
@@ -60,9 +60,9 @@ n_b = int((df["negro"] == 0).sum())
 n_n = int((df["negro"] == 1).sum())
 print(f"População completa: {len(df):,}  (brancos={n_b:,}, negros={n_n:,})")
 
-_BASE_F = ("educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
-           " + educ_missing + idade_c + idade_sq + sexo_fem"
-           " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z")
+_BASE_F = ("educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
+           " + idade_c + idade_sq + sexo_fem"
+           " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z + C(Ano)")
 _OCC_F  = ("horas_c + emprego_formal + conta_propria + trab_domestico"
            " + ocp_dirigente + ocp_profissional + ocp_tecnico + ocp_administrativo"
            " + ocp_servicos + ocp_agro + ocp_operario + ocp_operador + ocp_ffaa")
@@ -140,6 +140,7 @@ print("oaxaca_diagnosticos.csv salvo.", flush=True)
 # ── Decomposição por variável (efeito dotações) ────────────────────────────
 pnames = m_b.model.exog_names
 var_labels = {
+    "educ_fund_completo":     "Fundamental completo",
     "educ_medio_completo":    "Ensino Médio completo",
     "educ_superior_completo": "Superior completo",
     "educ_pos_graduacao":     "Pós-graduação",
@@ -204,11 +205,11 @@ print("oaxaca_decomposicao.png salvo.")
 
 # ── Figura 2: Retornos às características por grupo racial ─────────────────
 if HAS_OCC:
-    show_vars = ["educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+    show_vars = ["educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
                  "sexo_fem", "horas_c", "emprego_formal", "trab_domestico",
                  "ocp_dirigente", "ocp_profissional", "ocp_servicos"]
 else:
-    show_vars = ["educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+    show_vars = ["educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
                  "sexo_fem", "pct_negro_upa_z", "tx_desemprego_upa_z"]
 show_labels = [var_labels[v] for v in show_vars]
 coef_b_show = [m_b.params[v] for v in show_vars]

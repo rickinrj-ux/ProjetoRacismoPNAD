@@ -87,7 +87,8 @@ def fig_hlm():
     ax.set_xlim(min(b for _, b, *_ in linhas) * 1.18, 0.012)
     ax.set_xticks([])
     _limpa(ax)
-    _titulo(fig, "Metade do gap racial desaparece ao comparar pessoas do mesmo bairro",
+    from params_nucleo import P as _PN, titulo_bairro
+    _titulo(fig, titulo_bairro(_PN),
             "…mas o que sobra não é explicado por escolaridade, idade, sexo, estado nem ocupação.")
     fig.tight_layout(rect=(0, 0, 1, 0.90))
     fig.savefig(F / "fig_hlm_gap.png", dpi=150, bbox_inches="tight")
@@ -140,7 +141,8 @@ def fig_qr_rif():
     ax1.plot(x, g["b_negro"] * 100, color=AZUL, lw=2.2, marker="o", ms=5, zorder=3)
     for xi, yi in [(x.iloc[0], g["b_negro"].iloc[0] * 100), (x.iloc[-1], g["b_negro"].iloc[-1] * 100)]:
         ax1.annotate(f"{yi:.1f}".replace(".", ",") + " log-pontos", (xi, yi),
-                     textcoords="offset points", xytext=(0, -16 if xi < 50 else -16),
+                     # o rótulo do q10 ia para cima do eixo y: desloca para a direita
+                     textcoords="offset points", xytext=(34 if xi < 50 else -10, -16),
                      ha="center", fontsize=9.5, color=AZUL, fontweight="bold")
     ax1.set_xlabel("Quantil condicional da renda (τ)")
     ax1.set_ylabel("Penalidade racial (×100)")
@@ -159,7 +161,7 @@ def fig_qr_rif():
     ax2.set_ylim(0, 100); ax2.set_yticks([])
     ax2.set_title("RIF-OB: a parcela não explicada é maior na base", fontsize=10, color="#424242")
     _limpa(ax2)
-    _titulo(fig, "Teto de vidro e piso pegajoso são a mesma coisa vista de dois ângulos",
+    _titulo(fig, "Teto de vidro entre pares, piso pegajoso na renda do país: duas perguntas, dois padrões",
             "À esquerda, quantis condicionais (dispersão maior no topo); à direita, quantis "
             "incondicionais da renda do país.")
     fig.tight_layout(rect=(0, 0, 1, 0.88))
@@ -194,9 +196,12 @@ def fig_glmm():
     ax.set_yticks(ypos); ax.set_yticklabels(labels, fontsize=9.5)
     ax.set_xlabel("Razão de chances de acesso (negro vs. branco do mesmo bairro), IC 95%")
     ax.set_xlim(0.42, 1.05)
+    # vírgula decimal no eixo, como no texto (o padrão do matplotlib é ponto)
+    from matplotlib.ticker import FuncFormatter
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:.1f}".replace(".", ",")))
     _limpa(ax)
     _titulo(fig, "A porta é mais estreita para negros — e estreita ainda mais no topo da renda",
-            "GLMM com intercepto aleatório de UPA; em azul, o modelo com contexto de bairro (M2).")
+            "GLMM com intercepto aleatório de UPA; em azul, o modelo com contexto de bairro (A2).")
     fig.tight_layout(rect=(0, 0, 1, 0.88))
     fig.savefig(F / "fig_glmm_or.png", dpi=150, bbox_inches="tight")
     plt.close(fig)

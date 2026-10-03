@@ -47,7 +47,7 @@ SEED = 42
 # ── Colunas necessárias ──────────────────────────────────────────────────────
 COLS = [
     "negro", "sexo_fem", "idade_c", "idade_sq",
-    "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao", "educ_cat",
+    "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao", "educ_cat",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z", "media_renda_upa_z",
     "emprego_formal", "setor_publico", "conta_propria", "trab_domestico",
     "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
@@ -89,10 +89,9 @@ q90 = df["renda_bruta"].quantile(0.90)
 df["y_top20"] = (df["renda_bruta"] >= q80).astype(int)
 df["y_top10"] = (df["renda_bruta"] >= q90).astype(int)
 
-# Dummies de educação + indicador de escolaridade não registrada.
-# educ_cat está ausente em ~69% da PEA; preencher os dummies com 0 sem sinalizar a
-# ausência contamina a categoria-base (mistura "sem instrução" com "dado faltante")
-# e inverte os sinais. O termo educ_missing isola esse grupo e restaura os sinais.
+# Dummies cumulativas de escolaridade (VD3004, cobertura total desde 02/10/2026). O
+# educ_missing abaixo é resíduo da codificação antiga: não entra mais nas fórmulas.
+df["educ_fund_completo"]     = df["educ_fund_completo"].fillna(0).astype(int)
 df["educ_medio_completo"]    = df["educ_medio_completo"].fillna(0).astype(int)
 df["educ_superior_completo"] = df["educ_superior_completo"].fillna(0).astype(int)
 df["educ_pos_graduacao"]     = df["educ_pos_graduacao"].fillna(0).astype(int)
@@ -109,8 +108,8 @@ print(f"  y_top10     = 1: {df['y_top10'].mean()*100:.1f}%")
 print(f"  Brancos: {(df['negro']==0).sum():,}  |  Negros: {(df['negro']==1).sum():,}")
 
 # ── Fórmulas ──────────────────────────────────────────────────────────────────
-_IND   = ("negro + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
-          " + educ_missing + sexo_fem + idade_c + idade_sq"
+_IND   = ("negro + educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
+          " + sexo_fem + idade_c + idade_sq"
           " + emprego_formal + setor_publico + conta_propria + trab_domestico")
 _UPA   = "media_renda_upa_z + media_educ_upa_z + tx_desemprego_upa_z + pct_negro_upa_z"
 _INTER = "negro:educ_superior_completo + negro:educ_pos_graduacao"
@@ -318,11 +317,13 @@ pub_mean  = float(df["setor_publico"].mean())
 cp_mean   = float(df["conta_propria"].mean())
 td_mean   = float(df["trab_domestico"].mean())
 
-# 4 education categories: none / secondary / superior / pos-grad
+# perfis de escolaridade: as dummies são CUMULATIVAS (quem tem superior tem médio e
+# fundamental); os perfis antigos, escritos para dummies exclusivas, descreviam pessoas
+# impossíveis (superior sem médio)
 EDUC_CATS = [
-    ("Sem superior", dict(educ_medio_completo=1, educ_superior_completo=0, educ_pos_graduacao=0)),
-    ("Superior",     dict(educ_medio_completo=0, educ_superior_completo=1, educ_pos_graduacao=0)),
-    ("Pós-grad",     dict(educ_medio_completo=0, educ_superior_completo=0, educ_pos_graduacao=1)),
+    ("Sem superior", dict(educ_fund_completo=1, educ_medio_completo=1, educ_superior_completo=0, educ_pos_graduacao=0)),
+    ("Superior",     dict(educ_fund_completo=1, educ_medio_completo=1, educ_superior_completo=1, educ_pos_graduacao=0)),
+    ("Pós-grad",     dict(educ_fund_completo=1, educ_medio_completo=1, educ_superior_completo=1, educ_pos_graduacao=1)),
 ]
 x_pos = np.arange(len(EDUC_CATS))
 width = 0.35

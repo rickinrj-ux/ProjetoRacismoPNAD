@@ -25,7 +25,7 @@ from pptx import Presentation
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches as In
 
-from params_nucleo import P, milhar, pct, pt
+from params_nucleo import P, milhar, pct, pt, titulo_bairro, frase_sintese
 from pptx_helpers import (C_BLACK, C_BLUE, C_DARK, C_GRAY, C_LGRAY, C_RED,
                           C_WHITE, H, W, add_img, add_multiline, add_rect,
                           add_text, bullets, faixa_final, header_bar, kpi,
@@ -83,21 +83,21 @@ rodape(s, 2)
 
 # ══ 3 — O dado ════════════════════════════════════════════════════════════════
 s = novo()
-header_bar(s, "Dez anos de PNAD Contínua, sem amostragem",
-           "A base é a população de trabalhadores ocupados com rendimento, não uma amostra dela")
-kpi(s, "Trabalhadores analisados", "7,7 mi",
+header_bar(s, "Dez anos de PNAD Contínua, com todos os registros",
+           "Todos os trabalhadores ocupados com rendimento que a pesquisa entrevistou — nenhuma subamostra sorteada")
+kpi(s, "Trabalhadores analisados", f"{pt(P['N_GLMM'] / 1e6, 1)} mi",
     ["Todos os ocupados com rendimento positivo,", "2016 a 2025"],
     In(0.5), In(1.5), In(3.9), In(2.6))
-kpi(s, "Bairros (setores censitários)", milhar(P["N_UPAS"]),
+kpi(s, "Bairros (UPAs da PNAD)", milhar(P["N_UPAS"]),
     ["A unidade de vizinhança da PNAD —", "é o que permite comparar vizinhos"],
     In(4.7), In(1.5), In(3.9), In(2.6))
 kpi(s, "Trimestres cobertos", "40",
     ["Série completa da pesquisa,", "sem recorte de conveniência"],
     In(8.9), In(1.5), In(3.9), In(2.6))
 add_multiline(s, [
-    "Por que isso importa: com a população inteira, o resultado não depende de "
-    "qual amostra foi sorteada. A pergunta deixa de ser “será que é ruído?” e "
-    "passa a ser “qual é o tamanho do efeito?”.",
+    "Por que isso importa: com todos os registros, o resultado não depende de "
+    "uma subamostra escolhida pelo autor. Com milhões de observações, a pergunta deixa "
+    "de ser “será que é ruído?” e passa a ser “qual é o tamanho do efeito?”.",
     "Os erros-padrão são agrupados por bairro, porque a PNAD entrevista "
     "domicílios vizinhos — ignorar isso faria qualquer diferença parecer mais "
     "precisa do que é.",
@@ -106,7 +106,7 @@ rodape(s, 3)
 
 # ══ 4 — Barreira I: a porta ═══════════════════════════════════════════════════
 s = novo()
-header_bar(s, f"A primeira barreira é a porta: {pt(PCT_CBO, 0)}% menos chance de "
+header_bar(s, f"Barreira de acesso: chances {pt(PCT_CBO, 0)}% menores de "
               f"chegar a um cargo qualificado",
            "Comparando pessoas com a mesma escolaridade, idade, sexo e bairro")
 kpi(s, "Acesso a cargo qualificado", f"−{pt(PCT_CBO, 0)}%",
@@ -131,7 +131,7 @@ rodape(s, 4)
 
 # ══ 5 — Barreira II: o salário e o bairro ═════════════════════════════════════
 s = novo()
-header_bar(s, "Metade do gap salarial desaparece ao comparar pessoas do mesmo bairro",
+header_bar(s, titulo_bairro(P),
            "E o que sobra não é explicado por escolaridade, estado nem ocupação")
 add_img(s, FIGS / "fig_hlm_gap.png", In(0.55), In(1.35), In(7.5))
 bullets(s, [
@@ -142,14 +142,13 @@ bullets(s, [
     f"{pct(P['ICC_M0'] * 100, 0)} da variação de renda está entre bairros, "
     f"não entre pessoas.",
 ], In(8.3), In(1.6), In(4.6), In(4.2), font_size=15.5)
-faixa_final(s, "Onde a pessoa mora explica metade do gap — política de renda que "
-               "ignora território tem eficácia limitada.")
+faixa_final(s, f"Onde a pessoa mora responde por {pct(P['MED_BAIRRO'], 0)} do gap — "
+               "política de renda que ignora território tem eficácia limitada.")
 rodape(s, 5)
 
 # ══ 6 — Composição ou preço ═══════════════════════════════════════════════════
 s = novo()
-header_bar(s, f"{pct(P['OB_SEM_RET_PCT'])} do gap não é diferença de características: "
-              f"é preço diferente pelas mesmas características",
+header_bar(s, f"{pct(P['OB_SEM_RET_PCT'])} do gap é preço diferente pelas mesmas características",
            "Decomposição de Oaxaca–Blinder, o método padrão da economia do trabalho")
 add_img(s, FIGS / "fig_ob_cascata.png", In(0.6), In(1.35), In(7.6))
 add_multiline(s, [
@@ -161,7 +160,7 @@ add_multiline(s, [
     "",
     f"Quando a ocupação entra como se fosse característica, essa segunda parcela "
     f"cai para {pct(P['OB_COM_RET_PCT'])} — mas isso subestima o problema, porque "
-    f"o acesso à ocupação é ele próprio desigual (slide anterior).",
+    f"o acesso à ocupação é ele próprio desigual — é a porta de entrada que o GLMM mede.",
 ], In(8.4), In(1.6), In(4.5), In(4.4), font_size=15)
 faixa_final(s, "As mesmas credenciais rendem menos — por isso educação, sozinha, "
                "não fecha a conta.")
@@ -171,15 +170,15 @@ rodape(s, 6)
 s = novo()
 header_bar(s, "Quanto mais alto o salário, maior a penalidade racial",
            "E, na base da distribuição, a maior parte do gap é preço, não característica")
-add_img(s, FIGS / "fig_qr_rif.png", In(0.5), In(1.35), In(12.4))
+add_img(s, FIGS / "fig_qr_rif.png", In(0.5), In(1.3), In(12.4), In(4.05))
 add_multiline(s, [
     f"À esquerda: a penalidade cresce de {pct(P['QR_GAP_Q10'])} na base para "
     f"{pct(P['QR_GAP_Q90'])} no topo — é o teto de vidro.",
     f"À direita: na base da distribuição, {pct(P['RIF_RET_Q10'])} do gap é preço "
     f"diferente; no topo, {pct(P['RIF_RET_Q90'])} — é o piso pegajoso.",
 ], In(0.6), In(5.5), In(12.2), In(1.0), font_size=15, color=C_GRAY)
-faixa_final(s, "Dois retratos do mesmo fenômeno: quem está embaixo é mal pago; "
-               "quem sobe encontra teto.")
+faixa_final(s, "Duas perguntas, dois padrões: entre pares, quem sobe encontra teto; "
+               "na renda do país, quem está embaixo é mal pago.")
 rodape(s, 7)
 
 # ══ 8 — Interseccionalidade ═══════════════════════════════════════════════════
@@ -255,9 +254,7 @@ for i, (barreira, lei, acao) in enumerate(itens):
              font_size=13.5, color=C_GRAY)
     add_text(s, acao, In(4.4), y + In(0.22), In(8.1), In(1.1),
              font_size=15, color=C_BLACK)
-add_text(s, "Com a mesma escolaridade, idade, sexo e bairro, um trabalhador negro "
-            f"ganha {pct(P['GAP_M3'])} a menos — e a barreira mais dura não é o "
-            f"salário, é a porta.",
+add_text(s, frase_sintese(P),
          In(0.5), In(6.45), In(12.3), In(0.8), font_size=17, bold=True,
          color=C_DARK, align=PP_ALIGN.CENTER)
 rodape(s, 10)

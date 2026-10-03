@@ -150,6 +150,25 @@ def formatar_corpo(doc: Document) -> tuple[int, int]:
     return corpo, legendas
 
 
+def chamadas_de_nota(doc: Document) -> int:
+    """Chamada de nota de rodapé em sobrescrito. O pandoc usa o estilo de caractere
+    'Footnote Reference', que o template oficial não define como sobrescrito: a chamada
+    saía colada ao número no corpo do texto ("0,697" + nota 14 = "0,69714")."""
+    from docx.oxml.ns import qn
+    n = 0
+    corpo = doc.element.body
+    for r in corpo.iter(qn("w:r")):
+        if r.find(qn("w:footnoteReference")) is not None:
+            rpr = r.get_or_add_rPr()
+            va = rpr.find(qn("w:vertAlign"))
+            if va is None:
+                va = OxmlElement("w:vertAlign")
+                rpr.append(va)
+            va.set(qn("w:val"), "superscript")
+            n += 1
+    return n
+
+
 def formatar_tabelas(doc: Document) -> int:
     """Arial 11, espaçamento simples e sem negrito — o manual proíbe realce
     em negrito e código de cores nas tabelas (item 15.2)."""
@@ -159,6 +178,12 @@ def formatar_tabelas(doc: Document) -> int:
         bordas_da_norma(t)
         ajustar_larguras(t)
         numeros += alinhar_numeros(t)
+        # Fonte da tabela conforme o número de colunas. Em Arial 11 fixo, as tabelas de
+        # 7 a 10 colunas quebravam os números dentro da célula ("0,/83/0", "Qua/ntil");
+        # o PDF de entrega já usa fonte menor nessas tabelas. CONFIRMAR com o orientador
+        # se o manual admite tamanho menor que 11 em tabela.
+        n_col = len(t.columns)
+        tam = 11 if n_col <= 4 else 10 if n_col <= 6 else 9 if n_col <= 8 else 8
         for linha in t.rows:
             for cel in linha.cells:
                 for p in cel.paragraphs:
@@ -168,6 +193,7 @@ def formatar_tabelas(doc: Document) -> int:
                     pf.first_line_indent = Cm(0)
                     for r in p.runs:
                         _fonte_do_run(r)
+                        r.font.size = Pt(tam)
                         r.font.bold = False
                     celulas += 1
     print(f"     {numeros} células numéricas alinhadas à direita")
@@ -288,7 +314,8 @@ def ajustar_larguras(t) -> None:
         larguras.append(max(tipico, 4))
 
     total = sum(larguras)
-    minimo, maximo = 0.055, 0.42            # fração da janela
+    # piso maior: com 0,055 da janela (~0,9 cm) um número de três casas não cabia
+    minimo, maximo = 0.07, 0.42             # fração da janela
     fracoes = []
     for w in larguras:
         fracoes.append(min(max(w / total, minimo), maximo))
@@ -499,6 +526,8 @@ def main() -> int:
     numero_em_todas_as_paginas(doc)
     corpo, legendas = formatar_corpo(doc)
     celulas = formatar_tabelas(doc)
+    n_notas = chamadas_de_nota(doc)
+    print(f"     {n_notas} chamadas de nota de rodapé em sobrescrito")
 
     try:
         doc.save(str(ALVO))
