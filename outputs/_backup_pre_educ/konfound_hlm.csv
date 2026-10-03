@@ -1,0 +1,5 @@
+Modelo,Descrição,β_negro,SE,t,Gap (%),pkonfound (%),ITCV,n
+M1,Individual (dem. + educ. + horas),-0.2148,0.0006,-358.0,-19.3,99.5,0.01639,7689426
+M2,Localidade (+contexto UPA),-0.1021,0.0006,-170.2,-9.7,98.8,0.00375,7689426
+M3,Completo (+contexto UF),-0.1021,0.0006,-170.2,-9.7,98.8,0.00375,7689426
+M4,Ocupação (controles CBO),-0.0644,0.0005,-128.8,-6.2,98.5,0.00215,7689426

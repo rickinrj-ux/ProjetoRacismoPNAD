@@ -1,30 +1,29 @@
 Feature,SHAP_mean_abs_RF,SHAP_mean_abs_XGB,Rank_RF,Rank_XGB
-Renda média UPA (exceto o próprio),0.32538,0.25705,1,1
-Horas trabalhadas,0.16918,0.16727,2,2
-CBO: Profissionais,0.11711,0.12157,4,3
-Emprego formal (carteira),0.14821,0.11753,3,4
-Gênero (feminino),0.09288,0.09908,5,5
-Idade (centralizada),0.06494,0.09663,6,6
-Educ.: não registrada,0.03203,0.07138,9,7
-Conta própria,0.02089,0.06304,10,8
-CBO: Técnicos,0.03709,0.04778,8,9
-CBO: Dirigentes,0.04052,0.04102,7,10
-Raça (negro),6e-05,0.0314,24,11
-CBO: Serviços/Vendas,0.00052,0.03046,20,12
-Desemprego na UPA,0.00073,0.02735,17,13
-% Negro no Estado,0.00075,0.02493,16,14
-CBO: Operários,0.00072,0.02415,18,15
-CBO: Op. Máquinas,5e-05,0.02239,25,16
-CBO: Administrativo,0.00234,0.01974,14,17
-Trabalho doméstico,0.00651,0.01873,12,18
-Desemprego no Estado,0.00036,0.01746,21,19
-CBO: Agropecuária,0.00133,0.01583,15,20
-Idade² (experiência),0.00641,0.01534,13,21
-% Negro na UPA,0.0001,0.0132,22,22
-CBO: FFAA/Polícia,0.0111,0.01311,11,23
-Educ. média UPA,9e-05,0.01157,23,24
-Educ. média Estado,0.00067,0.00908,19,25
-Educ.: superior completo,1e-05,0.00517,26,26
-Educ.: médio completo,1e-05,0.00475,26,27
-Educ.: fundamental completo,0.0,0.00104,28,28
-Educ.: pós-graduação,0.0,0.00011,28,29
+Renda média UPA (exceto o próprio),0.21008,0.18775,2,1
+Educ.: superior completo,0.24464,0.17823,1,2
+Horas trabalhadas,0.19383,0.1722,3,3
+Gênero (feminino),0.11166,0.10557,4,4
+Emprego formal (carteira),0.111,0.10548,5,5
+Idade (centrada),0.05669,0.09059,6,6
+Conta própria,0.02228,0.05621,10,7
+CBO: Profissionais,0.02371,0.0544,9,8
+Educ.: médio completo,0.04494,0.04043,7,9
+CBO: Técnicos,0.02033,0.03875,11,10
+Educ. média Estado,0.0021,0.03339,21,11
+CBO: Dirigentes,0.02388,0.03276,8,12
+Educ.: fundamental completo,0.00738,0.02993,14,13
+Raça (negro),0.00222,0.02656,20,14
+CBO: Serviços/Vendas,0.00197,0.02448,22,15
+CBO: Operários,0.00109,0.02231,23,16
+CBO: Op. Máquinas,0.00258,0.02144,19,17
+Educ. média UPA,0.00033,0.01753,26,18
+Educ.: pós-graduação,0.01489,0.0169,12,19
+Trabalho doméstico,0.00549,0.01658,16,20
+Desemprego no Estado,0.00038,0.01634,25,21
+CBO: Agropecuária,0.0007,0.01471,24,22
+% Negro no Estado,0.00449,0.01316,17,23
+Idade² (experiência),0.00657,0.01274,15,24
+CBO: Administrativo,0.00348,0.01216,18,25
+CBO: FFAA/Polícia,0.00803,0.01121,13,26
+Desemprego na UPA,0.00013,0.00787,28,27
+% Negro na UPA,0.00023,0.00731,27,28

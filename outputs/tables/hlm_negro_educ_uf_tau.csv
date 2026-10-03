@@ -1,0 +1,6 @@
+nivel,rotulo,mu,tau,I2,Q,n_uf,gap_mu_pct,nota_mu
+sem_fund,Sem fundamental completo,-0.07258833981579177,0.02611553228033252,90.1664538494918,264.4010573810782,27,7.001641154748183,"média entre estados (DerSimonian-Laird), não média do país"
+fund,Fundamental completo,-0.059149755254293675,0.015187727108097212,72.47696476390108,94.46632530520719,27,5.743439556449648,"média entre estados (DerSimonian-Laird), não média do país"
+medio,Médio completo,-0.06466053915679879,0.01096096341810972,74.25947831650392,101.00805383703735,27,6.2614384914373655,"média entre estados (DerSimonian-Laird), não média do país"
+sup,Superior completo,-0.07542936273125915,0.02316899648515944,77.72177499200502,116.70588653570647,27,7.265476664503456,"média entre estados (DerSimonian-Laird), não média do país"
+pos,Pós-graduação,-0.06920847434040675,0.018449303081513675,45.84923677260399,48.01409703279317,27,6.686787430530838,"média entre estados (DerSimonian-Laird), não média do país"

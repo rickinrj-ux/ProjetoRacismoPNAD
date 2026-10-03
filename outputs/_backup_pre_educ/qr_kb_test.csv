@@ -1,0 +1,2 @@
+b_q10,b_q50,b_q90,diff_q90_q10,se_boot,se_boot_raw,ci_lo_boot,ci_hi_boot,z_stat,p_valor_z,z_stat_raw,p_valor_z_raw,wald_chi2_2,p_valor_wald,n_boot,boot_frac,boot_blocos,n_upas,m_upas,escala_sqrt_m_G
+-0.08539,-0.08354,-0.12759,-0.04219,0.00243,0.01401,-0.04695,-0.03744,-17.387,0.0,-3.012,0.002599,722.811,0.0,200,0.03,UPA,40968,1229,0.1732

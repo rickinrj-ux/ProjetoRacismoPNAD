@@ -1,29 +1,28 @@
 Feature,SHAP_mean_abs,rank
-Horas trabalhadas,0.17656183,1
-CBO: Profissionais,0.15736891,2
-Emprego formal (carteira),0.14043668,3
-% Negro na UPA,0.11565675,4
-Idade (centralizada),0.11306317,5
-Educ.: não registrada,0.10324833,6
-Gênero (feminino),0.09692643,7
-Desemprego na UPA,0.06641544,8
-CBO: Técnicos,0.059368674,9
-Conta própria,0.05736125,10
-CBO: Dirigentes,0.05160953,11
-CBO: Serviços/Vendas,0.044281133,12
-Educ. média Estado,0.040254608,13
-% Negro no Estado,0.038171038,14
-Desemprego no Estado,0.03320232,15
-CBO: Operários,0.031721696,16
-Raça (negro),0.03067033,17
-CBO: Op. Máquinas,0.027129378,18
-CBO: Administrativo,0.026351592,19
-Educ. média UPA,0.024421738,20
-Trabalho doméstico,0.017284857,21
-CBO: FFAA/Polícia,0.015153861,22
-CBO: Agropecuária,0.010219201,23
-Idade² (experiência),0.0095688235,24
-Educ.: superior completo,0.007910555,25
-Educ.: médio completo,0.0057214205,26
-Educ.: fundamental completo,0.0010454485,27
-Educ.: pós-graduação,0.00015334426,28
+Horas trabalhadas,0.1730994,1
+Educ.: superior completo,0.15860386,2
+Emprego formal (carteira),0.11725395,3
+Educ. média UPA,0.113023885,4
+Gênero (feminino),0.104071125,5
+Idade (centrada),0.09397087,6
+Educ. média Estado,0.08748427,7
+CBO: Profissionais,0.062201172,8
+Conta própria,0.056693427,9
+Educ.: médio completo,0.047319707,10
+CBO: Técnicos,0.040538512,11
+CBO: Dirigentes,0.035087544,12
+Desemprego no Estado,0.03318186,13
+Educ.: fundamental completo,0.030690439,14
+Raça (negro),0.029469568,15
+% Negro na UPA,0.028198736,16
+CBO: Serviços/Vendas,0.026842566,17
+CBO: Operários,0.023744175,18
+CBO: Op. Máquinas,0.021912595,19
+Educ.: pós-graduação,0.020025657,20
+% Negro no Estado,0.01761037,21
+Desemprego na UPA,0.016791135,22
+Trabalho doméstico,0.016224371,23
+CBO: Agropecuária,0.014050413,24
+CBO: Administrativo,0.013432417,25
+Idade² (experiência),0.011864615,26
+CBO: FFAA/Polícia,0.011621958,27

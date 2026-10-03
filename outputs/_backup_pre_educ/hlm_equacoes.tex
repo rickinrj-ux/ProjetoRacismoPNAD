@@ -1,0 +1,128 @@
+% ============================================================
+%  Equações para justificação do HLM vs OLS
+%  TCC — Ricardo Calheiros — ESALQ/USP — 2026
+% ============================================================
+
+% ----------------------------------------------------------
+%  Equação 1: Modelo OLS de referência (linha de base)
+% ----------------------------------------------------------
+\begin{equation}
+  \ln(W)_{ijk} = \alpha_0
+    + \beta_1 \cdot \text{Negro}_{ijk}
+    + \mathbf{X}_{ijk}'\boldsymbol{\beta}
+    + \varepsilon_{ijk}, \quad
+  \varepsilon_{ijk} \overset{\text{iid}}{\sim} \mathcal{N}\!\left(0,\,\sigma^2\right)
+  \label{eq:ols}
+\end{equation}
+
+\noindent
+\textbf{Limitação do OLS:} assume $\mathrm{Cov}(\varepsilon_{ijk},\varepsilon_{ij'k})=0$ para
+todo $j \neq j'$ dentro do mesmo estado $k$. Quando existe agrupamento (clustering), essa
+suposição é violada: observações do mesmo estado compartilham um contexto comum não modelado,
+tornando os erros-padrão do OLS inconsistentes (subestimados ou super estimados) mesmo com
+correção por \textit{cluster}.
+
+% ----------------------------------------------------------
+%  Equação 2: Modelo Nulo HLM (M0) — decomposição de variância
+% ----------------------------------------------------------
+\begin{equation}
+  \ln(W)_{ijk} = \delta_{000} + u_{00k} + \varepsilon_{ijk}, \quad
+  u_{00k} \sim \mathcal{N}\!\left(0,\,\tau^2_v\right), \quad
+  \varepsilon_{ijk} \sim \mathcal{N}\!\left(0,\,\sigma^2\right)
+  \label{eq:m0}
+\end{equation}
+
+% ----------------------------------------------------------
+%  Equação 3: Coeficiente de Correlação Intraclasse (ICC)
+% ----------------------------------------------------------
+\begin{equation}
+  \rho_{UF} = \frac{\hat{\tau}^2_v}{\hat{\tau}^2_v + \hat{\sigma}^2}
+  = \frac{0.08342}{0.08342 + 0.7653}
+  = 0.0983
+  \label{eq:icc_valor}
+\end{equation}
+
+\noindent
+O valor $\rho_{UF} = 9.83\%$ supera o limiar de $5\%$ recomendado por
+\citet{raudenbush2002}, confirmando que o nível~3 (UF) explica variância não negligenciável
+do log-rendimento e justifica a estrutura multinível.
+
+% ----------------------------------------------------------
+%  Equação 4: Efeito de design (Design Effect)
+% ----------------------------------------------------------
+\begin{equation}
+  \text{DEFF} = 1 + \left(\bar{n} - 1\right)\,\rho_{UF}
+  \approx 1 + \left(56,959 - 1\right) \times 0.0983
+  \approx 5,600
+  \label{eq:deff}
+\end{equation}
+
+\noindent
+O efeito de design $\approx 5,600$ indica que a variância amostral das estimativas OLS
+é inflada por esse fator quando a estrutura de clustering é ignorada. Erros-padrão OLS sem
+correção de cluster estariam subestimados por $\sqrt{\text{DEFF}} \approx 75\times$.
+
+% ----------------------------------------------------------
+%  Equação 5: Teste de Wald para H0: τ²_UF = 0 (M0)
+% ----------------------------------------------------------
+\begin{equation}
+  z_{M0} = \frac{\hat{\tau}^2_v}{\widehat{\text{SE}}(\hat{\tau}^2_v)}
+  = \frac{0.08342}{0.02314}
+  = 3.61, \quad p_\text{boundary} = 0.0002
+  \label{eq:wald_m0}
+\end{equation}
+
+\begin{equation}
+  z_{M1} = \frac{\hat{\tau}^2_v}{\widehat{\text{SE}}(\hat{\tau}^2_v)}
+  = \frac{0.06109}{0.01694}
+  = 3.61, \quad p_\text{boundary} = 0.0002
+  \label{eq:wald_m1}
+\end{equation}
+
+\noindent
+O teste de fronteira (\textit{boundary test}) utiliza a distribuição mista
+$\frac{1}{2}\chi^2_0 + \frac{1}{2}\chi^2_1$ (cf.\ \citealt{raudenbush2002}) adequada para
+hipóteses nulas na fronteira do espaço paramétrico ($\tau^2 \geq 0$).
+Em M0, $z = 3.61$ ($p < 0{,}001$***); em M1, $z = 3.61$
+($p < 0{,}001$***): $\hat{\tau}^2_{UF}$ é estatisticamente diferente de zero
+em todos os modelos.
+
+% ----------------------------------------------------------
+%  Equação 6: LRT entre modelos sequenciais (HLM REML)
+% ----------------------------------------------------------
+\begin{align}
+  \Lambda_{M0 \to M1} &= -2\left(\ell_{M0} - \ell_{M1}\right)
+    = -2\left(-1,976,646.50 - (-1,830,562.34)\right)
+    = 292,168.3 \label{eq:lrt01} \\
+  \Lambda_{M1 \to M2} &= -2\left(\ell_{M1} - \ell_{M2}\right)
+    = 72,470.8 \label{eq:lrt12}
+\end{align}
+
+\noindent
+Ambas as estatísticas superam em várias ordens de grandeza o valor crítico
+$\chi^2_{(8,\,0{,}001)} = 26{,}1$ e $\chi^2_{(3,\,0{,}001)} = 16{,}3$,
+confirmando que cada nível hierárquico adiciona poder explicativo significativo.
+
+% ----------------------------------------------------------
+%  Tabela resumo: HLM M0 — componentes de variância
+% ----------------------------------------------------------
+\begin{table}[H]
+\centering
+\caption{Componentes de variância e testes de significância — HLM de Três Níveis.
+  $\hat{\sigma}^2$: variância Nível~1 (intraindividual).
+  $\hat{\tau}^2_{UF}$: variância Nível~3 (inter-UF).
+  ICC$_{UF}$: fração da variância total explicada pelo estado.
+  Teste de Wald (boundary): H$_0$: $\tau^2 = 0$.}
+\label{tab:variancia_componentes}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Modelo} & $\hat{\sigma}^2$ & $\hat{\tau}^2_{UF}$ & SE($\hat{\tau}^2_{UF}$) & $z$ & ICC$_{UF}$ & Sig. \\
+\midrule
+M0 (Nulo)         & 0.7653 & 0.08342 & 0.02314 & 3.61 & 9.83\% & *** \\
+M1 (Individual)   & 0.6329 & 0.06109 & 0.01694 & 3.61 & 8.80\% & *** \\
+M2 (+ UPA)        & 0.6037 & 0.03365 & 0.00933 & 3.61 & 5.28\% & *** \\
+M3 (Completo)     & 0.6037 & 0.02504 & 0.00694 & 3.61 & 3.98\% & *** \\
+\bottomrule
+\multicolumn{7}{l}{\textit{*** $p < 0{,}001$; boundary test: $\frac{1}{2}\chi^2_0 + \frac{1}{2}\chi^2_1$.}}\\
+\end{tabular}
+\end{table}

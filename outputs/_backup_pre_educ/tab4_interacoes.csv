@@ -1,0 +1,6 @@
+Variável,β,SE,IC 95% inf.,IC 95% sup.,p-valor,Sig.,Efeito (%)
+Raça (negro),-0.0533,0.0217,-0.0957,-0.0108,1.405e-02,*,-5.19%
+Negro × Sexo feminino,0.0416,0.0057,0.0304,0.0527,2.640e-13,***,4.24%
+Negro × Superior completo/pós,0.0228,0.0198,-0.0159,0.0615,2.487e-01,ns,2.31%
+Negro × Médio completo/sup. incomp.,0.0181,0.0204,-0.022,0.0581,3.761e-01,ns,1.82%
+Negro × Experiência (anos),-0.0019,0.0003,-0.0024,-0.0014,1.092e-13,***,-0.19%

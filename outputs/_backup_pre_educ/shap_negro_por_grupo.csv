@@ -1,0 +1,5 @@
+modelo,grupo,n,shap_medio_negro,equivalente_pct
+Random Forest,negros,28698,-5.1e-05,-0.0051
+Random Forest,brancos,21302,6.3e-05,0.0063
+XGBoost,negros,28698,-0.026988,-2.6627
+XGBoost,brancos,21302,0.035547,3.6186
