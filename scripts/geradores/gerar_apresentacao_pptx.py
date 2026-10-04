@@ -774,8 +774,8 @@ footer(s, 12)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
 header_bar(s, "A mulher negra entra pelas ocupações feminizadas, mas não chega ao comando nem ao topo",
-           f"À esquerda, o acesso (GLMM por grupo); à direita, o salário (Oaxaca-Blinder vs. homem branco) "
-           + (f"| em log-pontos, gap dela {fmt(_INT_MN,3)} < soma {fmt(_INT_SOMA,3)}: as desvantagens se acumulam"
+           f"Esquerda: acesso (GLMM); direita: salário (Oaxaca vs. homem branco) "
+           + (f"| gap dela {fmt(_INT_MN,3)} < soma {fmt(_INT_SOMA,3)} log-pontos: desvantagens se acumulam"
               if _INT_SUB else
               f"| em log-pontos, gap dela {fmt(_INT_MN,3)} > soma {fmt(_INT_SOMA,3)}"))
 
@@ -839,15 +839,17 @@ if "HET_HLM_PRETO" in P:
          ["14–29 anos  →  65+", f"{_r('HET_IDADE_14_29',1)}% → {_r('HET_IDADE_65MAIS',1)}%", "—", "—"]],
         In(0.3), In(1.3), In(8.4), In(4.2), col_w=[In(3.2), In(1.8), In(1.7), In(1.7)], font_size=13)
     bullet_box(s, [
-        f"Pretos: penalidade maior em tudo — salário {_r('HET_HLM_PRETO',1)}% contra {_r('HET_HLM_PARDO',1)}% "
-        f"dos pardos; no topo, a distância cresce (q95: {_r('HET_QR_PRETO_Q95',1)}% × {_r('HET_QR_PARDO_Q95',1)}%)",
+        f"Pretos: penalidade maior em todas as medidas — salário {_r('HET_HLM_PRETO',1)}% contra {_r('HET_HLM_PARDO',1)}% "
+        f"dos pardos; no 9º decil da renda, a distância cresce ({_r('HET_QR_PRETO_Q90',1)}% × {_r('HET_QR_PARDO_Q90',1)}%)",
         "Setor público: a porta é tão desigual quanto no privado; o que muda é o teto",
-        f"Idade: de {_r('HET_IDADE_14_29',1)}% a {_r('HET_IDADE_65MAIS',1)}% — coorte ou carreira",
-        f"Teto de vidro dentro de cada UF: OR {_r('HET_OR_T10UF')} (não é efeito da geografia)",
+        f"Idade: de {_r('HET_IDADE_14_29',1)}% a {_r('HET_IDADE_65MAIS',1)}% — carreira ou geração (o dado não separa)",
+        f"Teto de vidro dentro de cada UF: OR {_r('HET_OR_T10UF')} (não decorre da geografia dos salários)",
     ], In(8.9), In(1.3), In(4.2), In(4.6), font_size=13)
-    add_text(s, "\"Negro\" segue como a categoria da política: pretos e pardos estão abaixo dos brancos em tudo.",
+    add_text(s, "\"Negro\" segue como a categoria da política: pretos e pardos estão abaixo dos brancos em todas as medidas.",
              In(0.3), In(6.5), In(12.7), In(0.45), font_size=13, bold=True, color=C_DARK,
              align=PP_ALIGN.CENTER)
+    add_text(s, "OR < 1 = menor chance que um branco de mesmo perfil e bairro. Fonte: PNAD Contínua 2016–2025, população completa.",
+             In(0.3), In(6.95), In(12.7), In(0.3), font_size=10, color=C_DARK, align=PP_ALIGN.CENTER)
     footer(s, 14)
 
 

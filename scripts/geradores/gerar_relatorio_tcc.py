@@ -2204,6 +2204,21 @@ BIB = r"""
   howpublished = {Diário Oficial da União, Brasília, DF},
   year         = {2025},
 }
+
+@misc{brasil2014lei12990,
+  author       = {{Brasil}},
+  title        = {Lei n. 12.990, de 9 de junho de 2014. Reserva aos negros 20\% das vagas oferecidas nos concursos públicos para provimento de cargos efetivos e empregos públicos no âmbito da administração pública federal, das autarquias, das fundações públicas, das empresas públicas e das sociedades de economia mista controladas pela União},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {2014},
+}
+
+@book{telles2004,
+  author    = {Telles, Edward E.},
+  title     = {Race in Another America: The Significance of Skin Color in Brazil},
+  publisher = {Princeton University Press},
+  address   = {Princeton},
+  year      = {2004},
+}
 """
 
 

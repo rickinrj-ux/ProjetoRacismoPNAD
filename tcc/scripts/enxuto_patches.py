@@ -963,9 +963,11 @@ inferência.
     # (patch "rev-final SWD: título de ação na figura SHAP" removido em 03/10/2026: o bloco da
     #  figura SHAP acima já traz o título de ação, e o alvo nunca chegava até aqui)
 
+    # 04/10/2026 (releitura E8): a imagem já traz "entra pelas ocupações feminizadas, mas não
+    # chega ao comando"; a legenda afirma o achado com outra frase, para não repetir o título
     ("rev-final SWD: título de ação na figura interseccional",
      r"\\caption\{Razões de chance dos quatro grupos raça\$\\times\$gênero",
-     "\\caption{A mulher negra entra pelas ocupações feminizadas, mas não chega ao comando nem ao topo: razões de "
+     "\\caption{A vantagem aparente da mulher negra no acesso é de composição: razões de "
      "chance dos quatro grupos raça$\\times$gênero", 0),
 
     # ── Limitações ────────────────────────────────────────────────────────────
@@ -985,7 +987,11 @@ inferência.
      "medir o conteúdo das funções e a triagem na contratação, que os códigos ocupacionais\n"
      "não captam. A descrição oficial dos códigos não supriria essa lacuna: seria a\n"
      "ocupação de novo, um \\emph{bad control} no modelo de rendimento e o próprio desfecho\n"
-     "no de acesso.", 0),
+     "no de acesso. Fica ainda como agenda relacionar a penalidade estimada em cada estado\n"
+     "à presença de pretos e pardos nos cargos eletivos, que a Justiça Eleitoral registra\n"
+     "por cor ou raça desde 2014: a sub-representação negra no comando político seria a\n"
+     "face institucional do teto de vidro aqui medido \\cite{almeida2019}, mas, com uma\n"
+     "observação por estado, a comparação seria apenas ecológica.", 0),
 
     # ── Bloco 1 — fonte única de números ──────────────────────────────────────
     ("1.4 nota terminológica: líquido = M3, residual = M4",

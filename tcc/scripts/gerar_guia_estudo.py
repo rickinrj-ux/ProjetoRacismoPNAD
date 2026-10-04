@@ -526,20 +526,20 @@ if "HET_HLM_PRETO" in P:
     bullet(f"Pretos × pardos (mesmo perfil e bairro): salário {pct(P['HET_HLM_PRETO'])} × "
            f"{pct(P['HET_HLM_PARDO'])}; acesso OR {pt(P['HET_OR_PRETO_OCP'], 3)} × "
            f"{pt(P['HET_OR_PARDO_OCP'], 3)}; top 10% OR {pt(P['HET_OR_PRETO_T10'], 3)} × "
-           f"{pt(P['HET_OR_PARDO_T10'], 3)}. A distância cresce no topo (QR q95: "
-           f"{pct(P['HET_QR_PRETO_Q95'])} × {pct(P['HET_QR_PARDO_Q95'])}). Leitura: compatível com "
-           "colorismo; 'negro' segue como categoria da política, porque os dois grupos estão "
-           "abaixo dos brancos em tudo.")
-    bullet(f"Setor: a porta é igual (acesso OR {pt(P['HET_OR_SETOR0_OCP'], 3)} no privado × "
+           f"{pt(P['HET_OR_PARDO_T10'], 3)}. A distância cresce no topo (QR, 9º decil: "
+           f"{pct(P['HET_QR_PRETO_Q90'])} × {pct(P['HET_QR_PARDO_Q90'])}). Leitura: compatível com "
+           "colorismo (discriminação graduada pela tonalidade da pele, Telles 2004); 'negro' segue como categoria da política, porque os dois grupos estão "
+           "abaixo dos brancos em todas as medidas.")
+    bullet(f"Setor: a porta é igualmente desigual (acesso OR {pt(P['HET_OR_SETOR0_OCP'], 3)} no privado × "
            f"{pt(P['HET_OR_SETOR1_OCP'], 3)} no público); o teto não (top 10% "
            f"{pt(P['HET_OR_SETOR0_T10'], 3)} × {pt(P['HET_OR_SETOR1_T10'], 3)}; salário "
            f"{pct(P['HET_HLM_SETOR0'])} × {pct(P['HET_HLM_SETOR1'])}).")
     bullet(f"Idade: {pct(P['HET_IDADE_14_29'])} (14–29) a {pct(P['HET_IDADE_65MAIS'])} (65+). "
            "Pergunta provável: 'é coorte ou ciclo de vida?' — resposta: dado transversal não "
-           "separa; as duas leituras são compatíveis com o teto de vidro.")
-    bullet(f"Teto de vidro dentro de cada UF: OR {pt(P['HET_OR_T10UF'], 3)} — não é efeito da "
-           "geografia. Peso amostral (V1028): OR do acesso "
-           f"{pt(P['PESO_OR_OCP_S'], 3)} → {pt(P['PESO_OR_OCP_P'], 3)}. WeMix: inviável com 41 mil UPAs.")
+           "separa; ciclo de vida é compatível com o teto de vidro, coorte com melhora entre gerações; 65+ é grupo selecionado (só quem ainda trabalha).")
+    bullet(f"Teto de vidro dentro de cada UF: OR {pt(P['HET_OR_T10UF'], 3)} — não decorre da "
+           "composição regional dos salários. Peso amostral (V1028), no logit com efeito fixo de estado: OR do acesso "
+           f"{pt(P['PESO_OR_OCP_S'], 3)} → {pt(P['PESO_OR_OCP_P'], 3)}. WeMix (pacote R de multinível ponderado): inviável com 41 mil UPAs.")
 doc.add_page_break()
 
 # ══ Parte 5 — equações ════════════════════════════════════════════════════════
