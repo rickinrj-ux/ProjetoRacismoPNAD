@@ -1,6 +1,17 @@
 """
 gerar_guia_estudo.py
-Gera guia_estudo_defesa.docx — roteiro de leituras + interpretação detalhada dos gráficos.
+SUPERADO — não usar na entrega final.
+
+Gera guia_estudo_defesa.docx com os números escritos à mão, parados na versão
+anterior à revisão: descreve uma escada M1–M5 que não existe mais (o step-up é
+M0–M4), gap de 6,2% dentro da ocupação (hoje 7,0%), gap da mulher negra de
+96,4% (hoje 80,6%) e penalidade extra de 9,5 p.p. (hoje 4,6 p.p.).
+
+O guia da entrega é `tcc/scripts/gerar_guia_estudo.py`, que lê todos os números
+de `tcc/scripts/params_nucleo.py` — ou seja, dos csv de outputs/tables/.
+Este arquivo fica no repositório para o histórico e o branch mestrado-extenso.
+
+Roteiro de leituras + interpretação detalhada dos gráficos.
 """
 
 # --- bootstrap raiz do projeto (reorg estrutura) ---
@@ -9,6 +20,14 @@ from pathlib import Path as _Path
 _os.chdir(_Path(__file__).resolve().parents[2])
 _sys.path.insert(0, _os.getcwd())
 # --- fim bootstrap ---
+
+# Trava: este gerador escreve no mesmo arquivo do guia atual e o sobrescreveria
+# com números superados. Escapatória para o branch mestrado-extenso.
+if _os.environ.get("PERMITIR_GERADOR_SUPERADO") != "1":
+    print("gerar_guia_estudo.py (scripts/geradores) está SUPERADO: use "
+          "tcc/scripts/gerar_guia_estudo.py, que lê os números dos csv.\n"
+          "Para rodar assim mesmo: PERMITIR_GERADOR_SUPERADO=1")
+    _sys.exit(1)
 
 import sys; sys.stdout.reconfigure(encoding='utf-8')
 from pathlib import Path

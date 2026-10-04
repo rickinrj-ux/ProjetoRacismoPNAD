@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/skills/revisao-livros/scripts/hook_revisao.py",
+            "timeout": 150
+          }
+        ]
+      }
+    ]
+  }
+}

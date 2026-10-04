@@ -78,9 +78,11 @@ chk("ICC_M2_pct", float(_m2["ICC_UPA"]) * 100,  label="glmm_resumo_full M2 ICC*1
 chk("N_GLMM",     int(_m1["N"]),                label="glmm_resumo_full N")
 
 # E-values (computed from OR)
+# a mesma implementação dos geradores (params_nucleo.evalue: √OR para desfecho comum, E2.7)
+sys.path.insert(0, str(Path(__file__).resolve().parent / "tcc" / "scripts"))
+from params_nucleo import evalue as _ev_nucleo
 def _evalue(or_val):
-    inv = 1 / or_val
-    return inv + math.sqrt(inv * (inv - 1))
+    return _ev_nucleo(or_val, "ocp_qualif")
 chk("EVAL_M1", _evalue(float(_m1["OR_negro"])), tolerance=1e-3, label="VanderWeele M1")
 chk("EVAL_M2", _evalue(float(_m2["OR_negro"])), tolerance=1e-3, label="VanderWeele M2")
 
@@ -212,6 +214,93 @@ if _ggev_path.exists():
     chk("GGE_OCP_OR",   round(_ggev_val("ocp_qualif", "OR_sexo"), 4), label="glmm_genero ocp OR")
     chk("GGE_TOP20_OR", round(_ggev_val("y_top20", "OR_sexo"), 4),    label="glmm_genero top20 OR")
     chk("GGE_TOP10_OR", round(_ggev_val("y_top10", "OR_sexo"), 4),    label="glmm_genero top10 OR")
+
+
+# SHAP da raça com sinal — a tabela só é informativa se separar os dois grupos.
+# Em 28/09 o subsample do SHAP vinha desalinhado do dataframe e os dois grupos
+# saíam idênticos (−0,0012 e −0,0012): a máscara não separava nada. A checagem
+# abaixo reprova esse estado em vez de deixá-lo virar texto.
+_sng_path = TAB / "shap_negro_por_grupo.csv"
+if _sng_path.exists():
+    _sng = pd.read_csv(_sng_path)
+    for _mod in _sng["modelo"].unique():
+        _sub = _sng[_sng["modelo"] == _mod].set_index("grupo")["shap_medio_negro"]
+        if {"negros", "brancos"} <= set(_sub.index):
+            _neg, _bra = float(_sub["negros"]), float(_sub["brancos"])
+            if _neg >= 0:
+                ERRORS.append(
+                    f"[SHAP]     {_mod}: média SHAP da raça entre negros = {_neg:+.5f} "
+                    f"(esperado negativo — o texto fala em penalidade)")
+            if abs(_neg - _bra) < 1e-4:
+                ERRORS.append(
+                    f"[SHAP]     {_mod}: negros ({_neg:+.5f}) e brancos ({_bra:+.5f}) "
+                    f"indistinguíveis — sinal de subsample desalinhado, não de achado")
+            # o texto cita o CONTRASTE entre os grupos; ele tem de ser negativo e,
+            # no XGBoost, da ordem do gap condicional do M4 (entre 4% e 10%)
+            if _mod == "XGBoost":
+                _pct = abs((math.exp(_neg - _bra) - 1) * 100)
+                if _neg - _bra >= 0:
+                    ERRORS.append(
+                        f"[SHAP]     contraste negros−brancos = {_neg - _bra:+.5f} "
+                        f"(esperado negativo)")
+                elif not (4.0 <= _pct <= 10.0):
+                    WARNINGS.append(
+                        f"[SHAP]     contraste entre grupos = {_pct:.1f}% — fora da faixa "
+                        f"do gap condicional dos demais métodos (4% a 10%); conferir antes "
+                        f"de citar a convergência com o M4")
+
+
+
+# '%' cru em LaTeX inicia comentário e apaga o resto da linha. Em 29/09 o Resumo,
+# o Abstract e a Conclusão do entregável saíram com frases truncadas por isso
+# ("o gap agregado foi de 19,1" e nada mais), porque pct() devolve o símbolo cru
+# para servir também ao .docx e ao .pptx. Um TCC não vai à banca com texto faltando.
+_TEX_ENTREGA = ROOT / "tcc_normas.tex"
+if _TEX_ENTREGA.exists():
+    _BAR = chr(92)
+    for _i, _l in enumerate(_TEX_ENTREGA.read_text(encoding="utf-8").split(chr(10)), 1):
+        if _l.lstrip().startswith("%"):
+            continue                        # comentário de linha inteira
+        # dígito colado no "%" é porcentagem, não comentário: é esse o caso
+        # que apaga texto. Um "% comentário" após um comando fica de fora.
+        _pos = [k for k, c in enumerate(_l)
+                if c == "%" and k > 0 and _l[k - 1].isdigit()]
+        if not _pos:
+            continue
+        _k = _pos[0]
+        _resto = _l[_k + 1:].strip()
+        if _resto in ("", "%") or _l.rstrip().endswith("{%"):
+            continue                        # '%' idiomático de fim de linha
+        ERRORS.append(
+            f"[LATEX]    {_TEX_ENTREGA.name}:{_i} '%' sem escape — o PDF perde tudo "
+            f"a partir daqui: ...{_l[max(0, _k - 30):_k + 40]}")
+
+
+
+# Duas escadas de modelos convivem no trabalho e nasceram em arquivos diferentes
+# (enxuto_patches.py define a da renda; gerar_relatorio_enxuto.py, a do acesso),
+# o que as fez usar M1..M4 nas duas com significados distintos: o "+ vínculo" que
+# na renda é M4 era, no acesso, M3. A escada do acesso passou a ser A1..A4. Esta
+# regra impede que a colisão volte pela porta de qualquer um dos dois geradores.
+_TEX_ESCADAS = ROOT / "tcc_normas.tex"
+if _TEX_ESCADAS.exists():
+    import re as _re2
+    _txt = _TEX_ESCADAS.read_text(encoding="utf-8")
+    # um rótulo M* não pode acompanhar os termos que definem a escada do acesso
+    _TERMOS_ACESSO = ("vínculo", "credencial")
+    for _m in _re2.finditer(r"[^.]{0,90}M[0-4][^.]{0,90}", _txt):
+        _s = " ".join(_m.group(0).split())
+        # "vínculo e grupo ocupacional" é o M4 legítimo da escada da renda
+        if "grupo ocupacional" in _s or "grupo CBO" in _s or "bad controls" in _s:
+            continue
+        if any(_t in _s for _t in _TERMOS_ACESSO) and "acrescenta o vínculo" in _s:
+            ERRORS.append(
+                f"[ESCADA]   rótulo M* usado no contexto da escada de acesso "
+                f"(deveria ser A*): ...{_s[:110]}")
+    if "degraus paralelos aos do HLM" in _txt:
+        ERRORS.append(
+            "[ESCADA]   o texto afirma que a escada do acesso é paralela à do HLM; "
+            "ela não é — o '+ vínculo' é o 3.o degrau no acesso e o 4.o na renda")
 
 
 # ── 3. Verifica geradores: nenhum P-value crítico hardcoded ──────────────────
@@ -357,11 +446,23 @@ def _is_comment_or_pdict(line: str) -> bool:
         or "chk(" in line        # próprio validator
         or "expected" in line    # próprio validator
         or "In(" in line         # coordenadas de layout PPTX em polegadas
+        or "sem-fossil" in line  # constante de desenho marcada (mesma convenção do caca_fosseis)
         or "textwidth" in line   # frações de coluna LaTeX (\begin{subfigure}[b]{0.49\textwidth})
     )
 
 
 hardcode_hits: list[tuple[str, int, str, str]] = []  # (file, line, key, snippet)
+
+# Geradores marcados como SUPERADOS no próprio cabeçalho não produzem entrega:
+# `gerar_relatorio_word.py` e `scripts/geradores/gerar_guia_estudo.py` ficam no
+# repositório para o histórico. Os valores escritos à mão neles não chegam a
+# documento nenhum, e acusá-los como erro fazia o veredito ser "FALHOU" em toda
+# execução — um validador que sempre falha deixa de ser lido. Passam a WARNING.
+def _e_superado(caminho) -> bool:
+    cabecalho = caminho.read_text(encoding="utf-8", errors="replace")[:600]
+    return "SUPERADO" in cabecalho
+
+hardcodes_superados = 0
 
 for gen_path in GENERATORS:
     if not gen_path.exists():
@@ -369,17 +470,23 @@ for gen_path in GENERATORS:
         continue
     lines = gen_path.read_text(encoding="utf-8", errors="replace").splitlines()
     for lineno, line in enumerate(lines, 1):
-        if _is_comment_or_pdict(line):
+        # linha sem dígito não pode conter número: poupa o laço inteiro
+        if _is_comment_or_pdict(line) or not any(ch.isdigit() for ch in line):
             continue
         for key, reprs in CRITICAL_PARAMS.items():
             for r in reprs:
-                if r in WHITELIST_PATTERNS:
+                # filtro barato antes do regex: com ~400 parâmetros, compilar um padrão por
+                # teste estourava o cache do `re` e o passo levava dezenas de minutos
+                if r not in line or r in WHITELIST_PATTERNS:
                     continue
                 # Busca a representação como palavra delimitada (não como parte de outra)
                 pattern = r"(?<![0-9,.])" + re.escape(r) + r"(?![0-9,.])"
                 if re.search(pattern, line):
                     snippet = line.strip()[:90]
-                    hardcode_hits.append((gen_path.name, lineno, key, r, snippet))
+                    if _e_superado(gen_path):
+                        hardcodes_superados += 1
+                    else:
+                        hardcode_hits.append((gen_path.name, lineno, key, r, snippet))
                     break  # uma hit por chave por linha é suficiente
 
 
@@ -406,6 +513,10 @@ if ERRORS:
     print(f"{'─'*70}")
     for e in ERRORS:
         print(f"  {e}")
+
+if hardcodes_superados:
+    print(f"{chr(10)}  ({hardcodes_superados} valores escritos à mão em geradores marcados "
+          f"SUPERADO no cabeçalho — não produzem entrega; fora da contagem)")
 
 if deduped_hits:
     print(f"\n{'─'*70}")

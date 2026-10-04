@@ -1,0 +1,6 @@
+variavel,beta,se,p_valor,stars
+negro,-0.06835,0.00097,0.0,***
+educ_ord_c,0.04968,0.00082,0.0,***
+pct_negro_upa_z,-0.12628,0.00275,0.0,***
+tx_desemprego_upa_z,-0.00567,0.00157,0.000315,***
+media_educ_upa_z,0.02571,0.0015,0.0,***

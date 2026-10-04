@@ -1,0 +1,9 @@
+Variável,SMD (antes),SMD (após PSM),Balanceado?
+sexo_fem,-0.077,0.011,Sim
+idade_c,-0.11100000143051147,0.05400000140070915,Sim
+idade_sq,-0.03099999949336052,-0.009999999776482582,Sim
+educ_fund_completo,0.074,-0.014,Sim
+educ_medio_completo,-0.028,0.009,Sim
+educ_superior_completo,0.189,-0.028,Sim
+educ_pos_graduacao,0.043,-0.021,Sim
+pct_negro_upa_z,1.176,0.011,Sim

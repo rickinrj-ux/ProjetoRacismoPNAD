@@ -1,0 +1,11 @@
+\begin{table}
+\caption{DiD 2$\times$2 — efeito diferencial do COVID-19 sobre o gap salarial racial. Compara trabalhadores negros vs.\ brancos em 2019 (pré) vs.\ 2020 (COVID). Regressão: $\log\_renda = \alpha + \beta_{negro} + \gamma_{post} + \tau (negro \times post) + X'\theta + C(UF) + \varepsilon$. $\tau > 0$: convergência aparente (negros sofreram menos). $\tau < 0$: divergência (negros sofreram mais). SEs clusterizados por UF. PNAD Contínua 2019--2020.}
+\label{tab:did_covid}
+\begin{tabular}{lrrrrl}
+\toprule
+Estimador & τ & SE (cluster-UF) & p-valor & τ\_naive (diferença de médias) & Interpretação \\
+\midrule
+DiD regressão (negro × post) & 0.014910 & 0.006630 & 0.024600 & 0.023010 & Negros sofreram MENOS com COVID → aparente convergência \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -40,5 +40,12 @@ logging.basicConfig(
 from konfound_evalues import run_konfound_evalues
 
 if __name__ == "__main__":
+    # LEGADO (02/10/2026): src/konfound_evalues.py tem os β do HLM de uma especificação
+    # antiga digitados no código e lê o logit-FE, não o GLMM. No TCC, o Konfound vem de
+    # hlm_stepup_konfound.csv (run_hlm_stepup.py) e o E-value de gerar_tabela_glmm.py —
+    # rodar isto só regravaria evalues_glmm.csv com números velhos. Mantido sob --legado.
+    if "--legado" not in sys.argv:
+        print("run_konfound_evalues: legado, nada a fazer (ver comentário; use --legado).")
+        sys.exit(0)
     run_konfound_evalues()
     print("\n=== CONCLUÍDO ===")

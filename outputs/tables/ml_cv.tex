@@ -1,0 +1,43 @@
+\begin{table}[!ht]
+\centering
+\caption{Escolha de hiperparâmetros e validação cruzada do XGBoost (Alencar, 2024)
+\cite{geron2021}. Painel~A: seis configurações comparadas numa partição de validação
+\emph{dentro} do treino --- o conjunto de teste permanece intocado. Painel~B: validação
+cruzada $k$-\emph{fold} ($k=5$) no treino completo, com média e
+desvio-padrão entre \emph{folds}. População completa: 6.159.418 observações de
+treino e 1.539.855 de teste; nenhuma amostragem.}
+\label{tab:ml_cv}
+\small
+\begin{tabular}{lccccc}
+\multicolumn{6}{l}{\textbf{A. Busca na partição de validação}} \\
+\toprule
+Profundidade & Taxa de aprendizado & Árvores & $R^2$ & MAE & Sobreajuste \\
+\midrule
+\textbf{10} & 0,05 & 300 & 0,6427 & 0,3977 & 0,0120 \\
+8 & 0,05 & 600 & 0,6395 & 0,3995 & 0,0075 \\
+8 & 0,05 & 300 & 0,6352 & 0,4022 & 0,0046 \\
+6 & 0,10 & 300 & 0,6322 & 0,4041 & 0,0027 \\
+6 & 0,05 & 300 (referência) & 0,6286 & 0,4062 & 0,0019 \\
+4 & 0,05 & 300 & 0,6182 & 0,4128 & 0,0011 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.6em}
+\begin{tabular}{lccc}
+\multicolumn{4}{l}{\textbf{B. Validação cruzada no treino (5 \emph{folds})}} \\
+\toprule
+Configuração & $R^2$ (média $\pm$ dp) & MAE & RMSE \\
+\midrule
+Escolhida (profundidade 10) & 0,6435 $\pm$ 0,0006 & 0,3978 $\pm$ 0,0002 & 0,5360 $\pm$ 0,0002 \\
+Referência (profundidade 6) & 0,6294 $\pm$ 0,0006 & 0,4064 $\pm$ 0,0002 & 0,5466 $\pm$ 0,0002 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\par\smallskip
+\footnotesize\emph{Como ler:} ``Sobreajuste'' é a diferença entre o $R^2$ de treino e o de
+validação --- valores próximos de zero indicam que o modelo não decorou os dados. A
+configuração escolhida ganha 1,4 ponto percentual de $R^2$ ao custo de um
+sobreajuste maior, mas ainda pequeno (Painel~A). No conjunto de teste (intocado durante a
+escolha), $R^2 = 0,6444$; a estabilidade entre \emph{folds} e o erro em reais são
+discutidos no texto.
+\end{table}

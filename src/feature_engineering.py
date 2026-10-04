@@ -63,7 +63,19 @@ RACE_BRANCO = {1}
 # Amarelos (3) e Indígenas (5) excluídos da variável binária por n insuficiente
 # para inferência estatística robusta em subgrupos regionais
 
-# V3009A: Nível de instrução mais elevado (agrupamento IBGE 2022)
+# VD3004: nível de instrução mais elevado alcançado (pessoas de 5 anos ou mais)
+EDUC_MAP_VD3004 = {
+    1: "sem_instrucao",          # sem instrução e menos de 1 ano de estudo
+    2: "fund_incompleto",
+    3: "fund_completo",
+    4: "medio_incompleto",
+    5: "medio_completo",
+    6: "superior_incompleto",
+    7: "superior_completo",
+}
+
+# ERRADO para a V3009A (mantido só como registro do erro corrigido em 02/10/2026): a V3009A
+# é o curso mais elevado frequentado, com 15 códigos — não o nível de instrução.
 EDUC_MAP = {
     1: "sem_instrucao",
     2: "fund_incompleto",
@@ -142,11 +154,14 @@ def _cnae_setor(code_str):
     if d <= 9:   return "extrativa"
     if d <= 33:  return "industria"
     if d <= 43:  return "construcao_energia"
-    if d <= 47:  return "comercio"
+    # CNAE-Domiciliar 2.0: o comércio varejista é a divisão 48 (na CNAE 2.0 seria 47);
+    # sem isso, o varejo caía em "transporte_alim" e as divisões 69–82 em "educ_saude"
+    if d <= 48:  return "comercio"
     if d <= 56:  return "transporte_alim"
     if d <= 68:  return "info_financeiro"
+    if d <= 82:  return "servicos_empresas"
     if d == 84:  return "adm_publica"
-    if d <= 88:  return "educ_saude"
+    if 85 <= d <= 88:  return "educ_saude"
     if d >= 97:  return "domestico"
     return "outros"
 
@@ -202,23 +217,40 @@ def create_age_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def create_education_dummies(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Variáveis de educação: dummies e escala ordinal a partir de V3009A.
+    Variáveis de educação: dummies e escala ordinal a partir da VD3004.
 
-    Categoria de referência nas dummies: sem_instrucao (nível mínimo).
-    A escala ordinal (educ_ord) é usada nas médias contextuais de Nível 2/3,
-    onde necessitamos de uma variável contínua para capturar o nível
-    educacional médio da localidade.
+    A escala ordinal (educ_ord, 0–7) é usada nas médias contextuais de nível 2,
+    onde é preciso uma variável contínua para o nível educacional do bairro.
 
-    Dummies incluídas no HLM: apenas níveis com salto educacional significativo
-    (conclusão de ciclo), omitindo categorias incompletas que não são pontos
-    de credencial no mercado de trabalho formal.
+    ATENÇÃO (correção de 02/10/2026): a fonte é a VD3004, nível de instrução mais
+    elevado ALCANÇADO. A versão anterior usava a V3009A, que é o CURSO mais elevado
+    FREQUENTADO (15 códigos, não 8): rotulava o "regular do ensino fundamental"
+    (código 7) como superior completo e mandava médio, superior e pós (9–15) para
+    "não registrada" — 5,2 milhões de pessoas da PEA.
+
+    Dummies CUMULATIVAS de conclusão de ciclo (≥ fundamental, ≥ médio, ≥ superior,
+    pós): cada coeficiente é o ganho de concluir o ciclo, e a referência é quem não
+    concluiu o fundamental. Nas dummies exclusivas anteriores, quem tinha médio ou
+    superior INCOMPLETO caía na referência junto com quem não tinha instrução.
+    Pós-graduação: VD3004 = 7 e V3009A em {13 especialização, 14 mestrado, 15 doutorado}
+    (curso frequentado; a PNAD não registra a conclusão da pós nesse quesito).
     """
-    educ_cat = df["V3009A"].map(EDUC_MAP)
+    if "VD3004" not in df.columns:
+        raise KeyError("VD3004 ausente: rode scripts/analise/run_enrich_raw.py "
+                       "(a escolaridade não pode mais vir da V3009A)")
+    nivel = pd.to_numeric(df["VD3004"], errors="coerce")
+    curso = pd.to_numeric(df["V3009A"], errors="coerce") if "V3009A" in df.columns else None
+    pos = (nivel == 7) & (curso.isin([13, 14, 15]) if curso is not None else False)
+
+    educ_cat = nivel.map(EDUC_MAP_VD3004).astype("object")
+    educ_cat = educ_cat.where(~pos.fillna(False), "pos_graduacao")
     df["educ_cat"] = educ_cat.astype("category")
     df["educ_ord"] = educ_cat.map(EDUC_ORDINAL).astype("float32")
 
-    for nivel in ["fund_completo", "medio_completo", "superior_completo", "pos_graduacao"]:
-        df[f"educ_{nivel}"] = (educ_cat == nivel).fillna(False).astype("int8")
+    df["educ_fund_completo"] = (nivel >= 3).fillna(False).astype("int8")
+    df["educ_medio_completo"] = (nivel >= 5).fillna(False).astype("int8")
+    df["educ_superior_completo"] = (nivel >= 7).fillna(False).astype("int8")
+    df["educ_pos_graduacao"] = pos.fillna(False).astype("int8")
 
     return df
 
@@ -242,18 +274,50 @@ def create_income_features(
         A transformação satisfaz a premissa de normalidade dos resíduos
         do HLM e permite interpretar coeficientes como variações percentuais.
         Ex: β_negro = -0.15 → negros ganham ~14% menos (exp(-0.15)-1 = -14%).
-    """
-    renda = df["VD4020"].astype("float32")
 
-    # Winsorização apenas no limite superior (inflação dos outliers ricos)
+    DEFLAÇÃO (02/10/2026): a renda era NOMINAL de 2016 a 2025 (+0,57 log-ponto no
+    período, ~5× a penalidade racial). Agora VD4020 × deflator "Efetivo" oficial da
+    PNAD Contínua (IBGE, por UF e trimestre), em reais do 2º trimestre de 2026. Os
+    cortes de 1% (winsorização no topo e descarte na base) passam a comparar reais de
+    mesmo valor — antes cortavam mais os anos recentes no topo e os antigos na base.
+    A renda nominal fica em `renda_nominal`.
+    """
+    df["renda_nominal"] = df["VD4020"].astype("float32")
+    defl = carregar_deflator()
+    chave = pd.DataFrame({"Ano": df["Ano"].astype(int).values,
+                          "Trimestre": df["Trimestre"].astype(int).values,
+                          "UF": df["UF"].astype(int).values})
+    fator = chave.merge(defl, on=["Ano", "Trimestre", "UF"], how="left")["Efetivo"].values
+    if np.isnan(fator).any():
+        faltam = chave[np.isnan(fator)].drop_duplicates().head().to_dict("records")
+        raise ValueError(f"deflator ausente para {np.isnan(fator).sum():,} linhas, ex.: {faltam}")
+    renda = (df["renda_nominal"].values * fator).astype("float32")
+    renda = pd.Series(renda, index=df.index)
+
+    # Winsorização apenas no limite superior; abaixo do 1% inferior vira NaN
     upper = renda[renda > 0].quantile(1 - winsor_pct)
     lower = renda[renda > 0].quantile(winsor_pct)
     renda = renda.clip(upper=upper)
     renda = renda.where(renda >= lower, other=np.nan)
 
-    df["renda_bruta"] = renda
+    df["renda_bruta"] = renda          # em reais constantes (2º tri/2026)
     df["log_renda"] = np.log1p(renda)
     return df
+
+
+TRIM_DEFLATOR = {1: "01-02-03", 2: "04-05-06", 3: "07-08-09", 4: "10-11-12"}
+
+
+def carregar_deflator() -> pd.DataFrame:
+    """Deflator oficial da PNAD Contínua (data/external/deflator, baixado do FTP do IBGE:
+    Documentacao/Deflatores.zip). Colunas Ano, trim (meses), UF, Habitual, Efetivo; o
+    fator para o rendimento efetivo (VD4020) é a coluna Efetivo do trimestre civil."""
+    p = Path(__file__).resolve().parents[1] / "data" / "external" / "deflator" / "deflator_aba1.csv"
+    d = pd.read_csv(p, sep=";", decimal=",")
+    inv = {v: k for k, v in TRIM_DEFLATOR.items()}
+    d = d[d["trim"].isin(inv)].copy()
+    d["Trimestre"] = d["trim"].map(inv).astype(int)
+    return d[["Ano", "Trimestre", "UF", "Efetivo"]].astype({"Ano": int, "UF": int})
 
 
 def create_employment_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -309,7 +373,8 @@ def create_occupation_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def create_hours_feature(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Horas trabalhadas efetivas (VD4031) — controle crítico para o HLM.
+    Horas habitualmente trabalhadas por semana, em todos os trabalhos (VD4031; as horas
+    EFETIVAS da semana de referência são a VD4035) — controle crítico para o HLM.
 
     Sem esse controle, trabalhadores part-time (com renda menor) puxam
     a média racial para baixo se negros estiverem sobre-representados
@@ -387,40 +452,46 @@ def compute_upa_aggregates(df: pd.DataFrame) -> pd.DataFrame:
     # fillna(False) converte Int8 nullable para bool puro antes de indexar
     pea_idx = df.index[df["pea"].fillna(0).astype(bool)]
 
-    # Calcula tx_desemprego apenas para membros da PEA dentro de cada UPA
-    pea_sub = df.loc[pea_idx, ["UPA", "empregado"]].copy()
-    pea_sub["empregado"] = pea_sub["empregado"].astype("float32")
-    tx_desemp_upa = (
-        pea_sub.groupby("UPA")["empregado"]
-        .apply(lambda x: 1 - x.mean())
-        .reset_index()
-        .rename(columns={"empregado": "tx_desemprego_upa"})
-    )
+    # Desocupação individual, só na PEA (fora dela é NaN e não entra na taxa)
+    df["_desocup"] = np.nan
+    df.loc[pea_idx, "_desocup"] = 1 - df.loc[pea_idx, "empregado"].astype("float32")
 
-    upa_agg = (
-        df.groupby("UPA", observed=True)
-        .agg(
-            pct_negro_upa=("negro",    "mean"),
-            media_educ_upa=("educ_ord", "mean"),
-            media_renda_upa=("log_renda", "mean"),
-            n_upa=("negro", "count"),
-        )
-        .reset_index()
-        .merge(tx_desemp_upa, on="UPA", how="left")
-    )
+    # Médias do bairro SEM a própria observação (leave-one-out). Com `mean()`
+    # simples, a raça, a escolaridade e a renda da própria pessoa entram no
+    # regressor contextual que deveria descrevê-la — é o problema do reflexo
+    # (Manski, 1993), e ele contamina justamente gamma_01, o coeficiente que o
+    # trabalho lê como evidência de duplo disadvantage. O viés é de ordem 1/n:
+    # desprezível na UPA mediana (153 pessoas), não nas menores.
+    def _loo(col: str, grupo: str = "UPA"):
+        g = df.groupby(grupo, observed=True)[col]
+        soma, cont = g.transform("sum"), g.transform("count")
+        tem = df[col].notna()
+        den = cont - tem.astype("int64")
+        return np.where(den > 0, (soma - df[col].where(tem, 0)) / den, np.nan)
+
+    df["pct_negro_upa"]   = _loo("negro")
+    df["media_educ_upa"]  = _loo("educ_ord")
+    df["media_renda_upa"] = _loo("log_renda")
+    # REGRESSÃO CORRIGIDA (03/10/2026): a taxa de desemprego vinha por merge da média
+    # COM a própria pessoa. O LOO dela existia só em recalcular_contexto_loo.py, aplicado
+    # ao parquet de 30/09; a reconstrução de 02/10 (VD3004) refez a base sem esse script.
+    # Impacto medido na base de 03/10: β_negro idêntico até a 5ª casa (−0,06302 nos dois
+    # casos); β_desemprego −0,00509 → −0,00497. Agora o LOO está aqui, na origem.
+    df["tx_desemprego_upa"] = _loo("_desocup")
 
     # Mascara UPAs com amostra insuficiente
-    mask_small = upa_agg["n_upa"] < MIN_UPA_SIZE
+    n_por_upa = df.groupby("UPA", observed=True)["negro"].transform("count")
+    mask_small = n_por_upa < MIN_UPA_SIZE
     ctx_cols = ["pct_negro_upa", "tx_desemprego_upa", "media_educ_upa", "media_renda_upa"]
-    upa_agg.loc[mask_small, ctx_cols] = np.nan
+    df.loc[mask_small, ctx_cols] = np.nan
 
-    if mask_small.sum() > 0:
+    if mask_small.any():
         logger.info(
-            f"{mask_small.sum()} UPAs com n < {MIN_UPA_SIZE} "
+            f"{df.loc[mask_small, 'UPA'].nunique()} UPAs com n < {MIN_UPA_SIZE} "
             "marcadas como NaN nas variáveis contextuais."
         )
 
-    return df.merge(upa_agg.drop(columns="n_upa"), on="UPA", how="left")
+    return df
 
 
 # ── Agregações Contextuais — Nível 3 (UF/Estado) ─────────────────────────────
@@ -442,26 +513,24 @@ def compute_uf_aggregates(df: pd.DataFrame) -> pd.DataFrame:
         contextos com dinâmicas de exclusão estruturalmente diferentes.
     """
     pea_idx = df.index[df["pea"].fillna(0).astype(bool)]
-    pea_sub = df.loc[pea_idx, ["UF", "empregado"]].copy()
-    pea_sub["empregado"] = pea_sub["empregado"].astype("float32")
-    tx_desemp_uf = (
-        pea_sub.groupby("UF")["empregado"]
-        .apply(lambda x: 1 - x.mean())
-        .reset_index()
-        .rename(columns={"empregado": "tx_desemprego_uf"})
-    )
+    df["_desocup"] = np.nan
+    df.loc[pea_idx, "_desocup"] = 1 - df.loc[pea_idx, "empregado"].astype("float32")
 
-    uf_agg = (
-        df.groupby("UF", observed=True)
-        .agg(
-            pct_negro_uf=("negro",     "mean"),
-            media_educ_uf=("educ_ord",  "mean"),
-            media_renda_uf=("log_renda", "mean"),
-        )
-        .reset_index()
-        .merge(tx_desemp_uf, on="UF", how="left")
-    )
-    return df.merge(uf_agg, on="UF", how="left")
+    # Mesmo leave-one-out do nível 2: o estado descrito não pode incluir a
+    # pessoa descrita. Aqui o viés é menor (UFs têm centenas de milhares de
+    # observações), mas o critério tem de ser o mesmo nos dois níveis.
+    def _loo_uf(col: str):
+        g = df.groupby("UF", observed=True)[col]
+        soma, cont = g.transform("sum"), g.transform("count")
+        tem = df[col].notna()
+        den = cont - tem.astype("int64")
+        return np.where(den > 0, (soma - df[col].where(tem, 0)) / den, np.nan)
+
+    df["pct_negro_uf"]   = _loo_uf("negro")
+    df["media_educ_uf"]  = _loo_uf("educ_ord")
+    df["media_renda_uf"] = _loo_uf("log_renda")
+    df["tx_desemprego_uf"] = _loo_uf("_desocup")      # LOO também (ver nota no nível 2)
+    return df.drop(columns="_desocup")
 
 
 # ── Padronização (Z-Score) das Variáveis Contextuais ─────────────────────────

@@ -1,0 +1,3 @@
+Modelo,Elast_Branco,SE_Branco,Elast_Negro,SE_Negro_approx,Diferenca,Mobilidade_relativa
+OLS-UF-FE,0.0285,0.0059,0.0287,0.0083,-0.0001,1.0052
+HLM-RE-UF,0.0286,0.0034,0.0287,0.0052,-0.0001,1.0051

@@ -186,7 +186,17 @@ g_educ    = gap_pct(df_all, "educ_cat", EDUC_ORDER, "Escolaridade")
 g_genero["Subgrupo"]  = g_genero["Subgrupo"].map({0: "Homem", 1: "Mulher"})
 g_educ["Subgrupo"]    = g_educ["Subgrupo"].map(EDUC_LABEL)
 
-tab2 = pd.concat([g_genero, g_faixa, g_educ], ignore_index=True)
+# os 5 níveis da escada do núcleo (dummies cumulativas da VD3004), com os mesmos rótulos
+# de run_hlm_negro_por_educ.py: o gap BRUTO aqui, o CONDICIONAL lá
+NIVEL_NUCLEO = ["Sem fundamental completo", "Fundamental completo", "Médio completo",
+                "Superior completo", "Pós-graduação"]
+df_all["nivel_nucleo"] = np.select(
+    [df_all["educ_pos_graduacao"] == 1, df_all["educ_superior_completo"] == 1,
+     df_all["educ_medio_completo"] == 1, df_all["educ_fund_completo"] == 1],
+    NIVEL_NUCLEO[:0:-1], default=NIVEL_NUCLEO[0])
+g_nivel = gap_pct(df_all, "nivel_nucleo", NIVEL_NUCLEO, "Nível (núcleo)")
+
+tab2 = pd.concat([g_genero, g_faixa, g_educ, g_nivel], ignore_index=True)
 tab2 = tab2[["Dimensão", "Subgrupo", "Mediana Brancos (R$)", "Mediana Negros (R$)",
              "Gap Mediana (%)", "Média Brancos (R$)", "Média Negros (R$)", "Gap Média (%)"]]
 tab2.to_csv(TABLES / "tab2_gap_bruto_subgrupos.csv", index=False)
@@ -352,17 +362,24 @@ for label, color, mask in [
     med_log   = float(np.average(sub, weights=w_s))
     kde_y_med = float(kde(np.array([med_log]))[0])
     ax.axvline(med_log, color=color, lw=1.4, ls="--", alpha=0.8)
-    ax.text(med_log + 0.05, kde_y_med * 0.6,
-            f"Média\n{label[:3]}: {med_log:.2f}", fontsize=8.5, color=color)
+    # rótulo no alto, do lado de fora da linha tracejada (negros à esquerda, brancos à
+    # direita) e com fundo branco: no meio das curvas, a linha cortava os algarismos
+    _ytop = float(kde(xs).max())
+    _negro = label.startswith("Negro")
+    ax.text(med_log + (-0.75 if _negro else 0.06), _ytop * (0.70 if _negro else 0.80),
+            f"Média\n{label.lower()}: {med_log:.2f}".replace(".", ","), fontsize=8.5,
+            color=color, ha="right" if _negro else "left", va="top",
+            bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.9))
 
-ax.set_xlabel("Log(Rendimento mensal, R$)", fontsize=12)
+ax.set_xlabel("Rendimento mensal (escala log; R$ do 2º tri/2026)", fontsize=12)
 ax.set_ylabel("Densidade (estimativa ponderada)", fontsize=12)
 ax.set_title("Distribuição do Log-Salário por Grupo Racial\n"
              "PNAD Contínua 2016–2025 — empregados com renda positiva",
              fontsize=13, color=C_DARK, fontweight="bold")
 ax.legend(fontsize=11)
 ax.xaxis.set_major_formatter(mticker.FuncFormatter(
-    lambda x, _: f"R${np.exp(x):,.0f}"))
+    lambda x, _: f"R$ {np.exp(x):,.0f}".replace(",", ".")))
+ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda y, _: f"{y:g}".replace(".", ",")))
 ax.set_xticks(np.log([500, 1000, 2000, 5000, 10000, 20000]))
 ax.tick_params(axis="x", rotation=30)
 fig.tight_layout()

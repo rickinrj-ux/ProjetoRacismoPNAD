@@ -1,0 +1,14 @@
+\begin{table}
+\caption{Testes formais de tendência no coeficiente $\hat{\beta}_{negro}$ (HLM anual, PNAD Contínua 2016--2025). WLS: ponderação por $1/SE^2$ corrige heteroscedasticidade entre anos. Chow: quebra estrutural em 2020 (choque COVID-19). Mann-Kendall: teste não-paramétrico robusto a autocorrelação. AR(1): teste de autocorrelação dos resíduos WLS.}
+\label{tab:tendencia_temporal}
+\begin{tabular}{lllll}
+\toprule
+Teste & Estatística & IC 95\% & p-valor & Conclusão \\
+\midrule
+WLS (Ponderado por 1/SE²) & δ = 0.000757 log-pt/ano & [-0.000396, 0.001910] & 0.1686 & Gap estável (p>0.05) \\
+Chow (quebra 2020) & F(2, 6) = 30.392 & — & 0.0007 & Quebra estrutural detectada \\
+Mann-Kendall & τ = 0.2000  (Z = 0.716) & — & 0.4743 & Tendência crescente (não significativa) \\
+AR(1) nos resíduos WLS & ρ = 0.4801  (DW = 0.810) & — & 0.1909 & Sem autocorrelação significativa \\
+\bottomrule
+\end{tabular}
+\end{table}

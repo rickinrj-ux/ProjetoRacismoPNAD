@@ -42,8 +42,16 @@ def _load() -> dict:
     # ── E-values lme4 (calculados via VanderWeele & Ding 2017) ───────────────
     # Fórmula: E = OR + sqrt(OR*(OR-1)) para OR<1 usa o inverso
     import math
+    # E2.7: desfecho comum (prevalência >= 15%) usa RR ≈ √OR (VanderWeele & Ding, 2017);
+    # a prevalência vem de outputs/tables/glmm_prevalencias.csv (gerar_prevalencias_glmm.py)
+    _pv = Path(__file__).resolve().parent / "outputs/tables/glmm_prevalencias.csv"
+    _comum = (pd.read_csv(_pv).set_index("desfecho").loc["ocp_qualif", "prevalencia"] >= 0.15
+              if _pv.exists() else False)
+
     def _evalue(or_val):
         inv = 1 / or_val
+        if _comum:
+            inv = math.sqrt(inv)
         return round(inv + math.sqrt(inv * (inv - 1)), 3)
 
     p["EVAL_M1"]     = _evalue(p["OR_M1"])   # 2.331
@@ -359,157 +367,6 @@ def _load() -> dict:
             p[f"GGE_{key}_SD"]   = round(_gge_v(des, "sd_sexo"), 4)
             p[f"GGE_{key}_RHO"]  = round(_gge_v(des, "rho"), 3)
             p[f"GGE_{key}_LR"]   = round(_gge_v(des, "LR"), 1)
-
-    # ── ML performance (RF/XGBoost) — protocolo de validação (hold-out 80/20) ──
-    _ml_path = _TAB / "ml_performance.csv"
-    if _ml_path.exists():
-        _ml = pd.read_csv(_ml_path)
-        for _, row in _ml.iterrows():
-            key = "RF" if "Random Forest" in row["Modelo"] else "XGB"
-            p[f"ML_{key}_R2_TESTE"]  = round(float(row["R²"]), 4)
-            p[f"ML_{key}_MAE"]       = round(float(row["MAE"]), 4)
-            p[f"ML_{key}_RMSE"]      = round(float(row["RMSE"]), 4)
-            if "R2_treino" in row and pd.notna(row["R2_treino"]):
-                p[f"ML_{key}_R2_TREINO"] = round(float(row["R2_treino"]), 4)
-                p[f"ML_{key}_GAP_OVERFIT"] = round(float(row["gap_overfit"]), 4)
-
-    # ── ML performance — validação cruzada k-fold (se já rodada) ──────────────
-    _ml_cv_path = _TAB / "ml_performance_cv.csv"
-    if _ml_cv_path.exists():
-        _mlcv = pd.read_csv(_ml_cv_path)
-        for _, row in _mlcv.iterrows():
-            key = "RF" if "Random Forest" in row["Modelo"] else "XGB"
-            p[f"ML_{key}_CV_R2_MEAN"] = round(float(row["R2_mean"]), 4)
-            p[f"ML_{key}_CV_R2_SD"]   = round(float(row["R2_sd"]), 4)
-            p[f"ML_{key}_CV_K"]       = int(row["k"])
-
-    # ── ML — baseline OLS/HLM vs. ML (ganho real da camada de ML) ────────────
-    _ml_base_path = _TAB / "ml_baseline_comparacao.csv"
-    if _ml_base_path.exists():
-        _mlb = pd.read_csv(_ml_base_path)
-        _ols_row = _mlb.loc[_mlb["Modelo"].str.contains("OLS")]
-        if len(_ols_row):
-            p["ML_OLS_R2"] = round(float(_ols_row["R2_teste"].values[0]), 4)
-        _rf_row = _mlb.loc[_mlb["Modelo"] == "Random Forest"]
-        if len(_rf_row):
-            p["ML_RF_GANHO_VS_OLS"] = round(float(_rf_row["ganho_R2_vs_OLS"].values[0]), 4)
-        _xgb_row = _mlb.loc[_mlb["Modelo"] == "XGBoost"]
-        if len(_xgb_row):
-            p["ML_XGB_GANHO_VS_OLS"] = round(float(_xgb_row["ganho_R2_vs_OLS"].values[0]), 4)
-
-    # ── SHAP — estabilidade RF × XGBoost (Spearman) ──────────────────────────
-    _shap_path = _TAB / "shap_importance_comparada.csv"
-    if _shap_path.exists():
-        from scipy.stats import spearmanr
-        _sh = pd.read_csv(_shap_path)
-        _rho, _pval = spearmanr(_sh["Rank_RF"], _sh["Rank_XGB"])
-        p["SHAP_SPEARMAN_RHO"] = round(float(_rho), 3)
-        p["SHAP_SPEARMAN_P"]   = float(_pval)
-        _top10_rf  = set(_sh.nsmallest(10, "Rank_RF")["Feature"])
-        _top10_xgb = set(_sh.nsmallest(10, "Rank_XGB")["Feature"])
-        p["SHAP_TOP10_OVERLAP"] = len(_top10_rf & _top10_xgb)
-        _row_negro = _sh.loc[_sh["Feature"].str.contains("negro", case=False)]
-        if len(_row_negro):
-            p["SHAP_NEGRO_RANK_RF"]  = int(_row_negro["Rank_RF"].values[0])
-            p["SHAP_NEGRO_RANK_XGB"] = int(_row_negro["Rank_XGB"].values[0])
-
-    # ── SHAP — bootstrap de estabilidade (se já rodado) ──────────────────────
-    _shap_boot_path = _TAB / "shap_bootstrap_ci.csv"
-    if _shap_boot_path.exists():
-        _shb = pd.read_csv(_shap_boot_path)
-        _row_negro_b = _shb.loc[_shb["Feature"].str.contains("negro", case=False)]
-        if len(_row_negro_b):
-            p["SHAP_BOOT_NEGRO_MEAN"] = round(float(_row_negro_b["mean_abs_shap_mean"].values[0]), 5)
-            p["SHAP_BOOT_NEGRO_CI_LO"] = round(float(_row_negro_b["ci_lo"].values[0]), 5)
-            p["SHAP_BOOT_NEGRO_CI_HI"] = round(float(_row_negro_b["ci_hi"].values[0]), 5)
-
-    # ── Oaxaca-Blinder — sensibilidade de especificação (com/sem ocupação) ───
-    # ob_decomposicao.csv: Mincer puro (sem ocupação nem contexto de UPA) — tcc/PERICIA.md F1
-    _obd_path = _TAB / "ob_decomposicao.csv"
-    if _obd_path.exists():
-        _obd = pd.read_csv(_obd_path)
-        p["OB_SEM_OCUP_DOT_PCT"] = round(float(_obd["pct_dotacao"].iloc[0]), 1)
-        p["OB_SEM_OCUP_RET_PCT"] = round(float(_obd["pct_coeficiente"].iloc[0]), 1)
-    # ob_acesso.csv: especificação de acesso (com ocupação + contexto) — a usada no núcleo do TCC
-    _oba_path = _TAB / "ob_acesso.csv"
-    if _oba_path.exists():
-        _oba2 = pd.read_csv(_oba_path)
-        p["OB_COM_OCUP_DOT_PCT"] = round(float(_oba2["pct_dotacao"].iloc[0]), 1)
-        p["OB_COM_OCUP_RET_PCT"] = round(float(_oba2["pct_coeficiente"].iloc[0]), 1)
-        if "se_dotacao" in _oba2.columns:
-            p["OB_COM_OCUP_N_BOOT"] = int(_oba2["n_bootstrap"].iloc[0])
-
-    # ── Oaxaca-Blinder — refit ponderado por V1028 (robustez desenho amostral) ─
-    _ob_pond_path = _TAB / "oaxaca_ponderado.csv"
-    if _ob_pond_path.exists():
-        _obp = pd.read_csv(_ob_pond_path)
-        for _, row in _obp.iterrows():
-            key = "POND" if row.get("ponderado", False) else "NPOND"
-            p[f"OB_{key}_DOT_PCT"] = round(float(row["pct_dotacao"]), 1)
-            p[f"OB_{key}_RET_PCT"] = round(float(row["pct_coeficiente"]), 1)
-            p[f"OB_{key}_SE_RET"]  = round(float(row["se_coeficiente"]), 4)
-
-    # ── GLMM ponderado por V1028 (robustez desenho amostral, R lme4-vs-glm) ──
-    _glmm_pond_path = _TAB / "glmm_ponderado.csv"
-    if _glmm_pond_path.exists():
-        _glp = pd.read_csv(_glmm_pond_path)
-        for _, row in _glp.iterrows():
-            key = "POND" if row.get("ponderado", False) else "NPOND"
-            p[f"GLMM_{key}_OR"]     = round(float(row["OR_negro"]), 4)
-            p[f"GLMM_{key}_SE"]     = round(float(row["SE_negro"]), 4)
-            p[f"GLMM_{key}_CI_LO"]  = round(float(row["CI95_lo"]), 4)
-            p[f"GLMM_{key}_CI_HI"]  = round(float(row["CI95_hi"]), 4)
-
-    # ── Glassceil (Tabela 1) ponderado por V1028 — mesmo modelo da Tabela 1 ──
-    _gc_pond_path = _TAB / "glmm_glassceil_ponderado.csv"
-    if _gc_pond_path.exists():
-        _gcp = pd.read_csv(_gc_pond_path)
-        for des in ["ocp_qualif", "y_top20", "y_top10"]:
-            sub = _gcp.loc[_gcp["desfecho"] == des]
-            for _, row in sub.iterrows():
-                # A string "HC1 (atual, sem peso/cluster)" contém as
-                # substrings "peso" E "cluster" só para dizer que NÃO tem
-                # nenhum dos dois — por isso o teste de "HC1" vem primeiro.
-                espec = row["especificacao"]
-                if espec.startswith("HC1"):
-                    tag = "HC1"
-                elif "peso V1028" in espec:
-                    tag = "POND"
-                elif "cluster" in espec:
-                    tag = "CLUSTER"
-                else:
-                    tag = "HC1"
-                key_des = {"ocp_qualif": "OCP", "y_top20": "TOP20", "y_top10": "TOP10"}[des]
-                p[f"GC_{key_des}_{tag}_OR"] = round(float(row["OR_negro"]), 4)
-                p[f"GC_{key_des}_{tag}_SE"] = round(float(row["SE_negro"]), 4)
-
-    # ── Interseccionalidade — bootstrap CI da penalidade extra ───────────────
-    _itx_boot_path = _TAB / "interseccional_bootstrap_ci.csv"
-    if _itx_boot_path.exists():
-        _itxb = pd.read_csv(_itx_boot_path)
-        _row_mn = _itxb.loc[_itxb["grupo"] == "Mulher Negra"]
-        if len(_row_mn):
-            p["ITX_PENAL_MEAN"]  = round(float(_row_mn["penalidade_mean"].values[0]), 2)
-            p["ITX_PENAL_CI_LO"] = round(float(_row_mn["penalidade_ci_lo"].values[0]), 2)
-            p["ITX_PENAL_CI_HI"] = round(float(_row_mn["penalidade_ci_hi"].values[0]), 2)
-            p["ITX_PENAL_B"]     = int(_row_mn["B_efetivo"].values[0])
-
-    # ── Interseccionalidade — IC do termo de interação tripla (HLM, já disponível) ─
-    _itxc_path = _TAB / "interseccional_coeficientes.csv"
-    if _itxc_path.exists():
-        _itxc = pd.read_csv(_itxc_path)
-        _row_triple = _itxc.loc[_itxc["Variável"] == "negro_x_mulher_x_superior"]
-        if len(_row_triple):
-            import re as _re
-            _cell = str(_row_triple["Interseccional"].values[0])
-            _m = _re.match(r"(-?[\d.,]+)\*+\s*\(([\d.,]+)\)", _cell)
-            if _m:
-                _b_triple  = float(_m.group(1).replace(",", "."))
-                _se_triple = float(_m.group(2).replace(",", "."))
-                p["ITX_TRIPLE_B"]     = round(_b_triple, 4)
-                p["ITX_TRIPLE_SE"]    = round(_se_triple, 4)
-                p["ITX_TRIPLE_CI_LO"] = round(_b_triple - 1.96 * _se_triple, 4)
-                p["ITX_TRIPLE_CI_HI"] = round(_b_triple + 1.96 * _se_triple, 4)
 
     return p
 

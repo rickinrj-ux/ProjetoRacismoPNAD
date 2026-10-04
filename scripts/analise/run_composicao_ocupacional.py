@@ -18,6 +18,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from src.figuras_ptbr import ativar as _ptbr; _ptbr()   # vírgula decimal em todo savefig
 from pathlib import Path
 
 ROOT    = Path(r"C:\Users\user\Documents\ProjetoRacismoPNAD")

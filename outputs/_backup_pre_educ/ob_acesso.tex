@@ -1,0 +1,31 @@
+\begin{table}[!ht]
+\centering
+\caption{Decomposição de Oaxaca--Blinder (\emph{twofold}, referência: estrutura de preços
+dos brancos) do gap salarial racial em duas especificações. (A)~\emph{Capital humano +
+contexto}: escolaridade, idade, sexo e contexto de UPA --- os mesmos controles do HLM~M3;
+a parcela não explicada é comparável à da literatura. (B)~\emph{Acesso}: (A) + horas,
+formalidade e grupo CBO tratados como dotações --- a parcela não explicada é a discriminação
+\emph{dentro} da ocupação, um limite inferior, pois a segregação ocupacional é ela própria
+discriminatória (Oaxaca \& Ransom, 1999; ver o GLMM de acesso, Tabela~\ref{tab:glmm_glassceil}).
+População completa da PEA com renda positiva ($N = 7.694.095$; 40.968~UPAs).
+Erros-padrão entre parênteses: bootstrap em blocos por UPA (500 réplicas).}
+\label{tab:oaxaca_blinder}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+& \multicolumn{2}{c}{(A) Sem ocupação} & \multicolumn{2}{c}{(B) Acesso (com ocupação)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Componente & log-pontos (SE) & \% do gap & log-pontos (SE) & \% do gap \\
+\midrule
+Gap total (branco $-$ negro) & 0,4255 (0,0034) & 100,0 & 0,4255 (0,0034) & 100,0 \\
+Dotações (características observáveis) & 0,3025 (0,0036) & 71,1 & 0,3551 (0,0036) & 83,5 \\
+Não explicado (retornos / discriminação) & 0,1230 (0,0017) & 28,9 & 0,0704 (0,0014) & 16,5 \\
+\bottomrule
+\end{tabular}
+}
+\par\smallskip
+\footnotesize\emph{Como ler:} em cada especificação, Dotações $+$ Não explicado $=$ Gap total.
+De (A) para (B), parte do ``não explicado'' migra para ``dotações'' porque a ocupação passa a
+ser tratada como característica --- é exatamente a parcela da discriminação que opera pela
+\emph{porta de entrada}, e não pelo salário.
+\end{table}

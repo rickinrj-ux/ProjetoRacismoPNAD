@@ -1,7 +1,16 @@
 """
 gerar_relatorio_word.py
 =======================
-Gera relatorio_tcc.docx — documento Word editável com todos os resultados.
+SUPERADO — não usar na entrega final.
+
+Gera relatorio_tcc.docx, da versão estendida: é um texto paralelo escrito à mão,
+com SNA e pesquisa operacional (fora do escopo) e números anteriores à revisão
+dos blocos 0–8. A saída de junho/2026 está em entregaveis/_arquivo/.
+
+O Word da entrega é `tcc/scripts/gerar_word_enxuto.py`, que converte o próprio
+relatorio_tcc_enxuto.tex — mesma fonte única de números do PDF. Este arquivo
+fica no repositório apenas para o histórico e para o branch mestrado-extenso.
+
 Usa python-docx + formatação ABNT (margens, fonte Times/Arial, espaçamento 1,5).
 """
 
@@ -11,6 +20,14 @@ from pathlib import Path as _Path
 _os.chdir(_Path(__file__).resolve().parents[2])
 _sys.path.insert(0, _os.getcwd())
 # --- fim bootstrap ---
+
+# Trava: gera a versão estendida (SNA/PO) com números superados.
+# Escapatória para o branch mestrado-extenso.
+if _os.environ.get("PERMITIR_GERADOR_SUPERADO") != "1":
+    print("gerar_relatorio_word.py está SUPERADO: use tcc/scripts/gerar_word_enxuto.py, "
+          "que converte o próprio relatorio_tcc_enxuto.tex.\n"
+          "Para rodar assim mesmo: PERMITIR_GERADOR_SUPERADO=1")
+    _sys.exit(1)
 
 import sys, io
 from pathlib import Path
@@ -206,6 +223,9 @@ def load_results():
     r["km_metricas"]= pd.read_csv(TABLES / "kmeans_metricas.csv")
     r["ml_perf"]    = pd.read_csv(TABLES / "ml_performance.csv")
     r["shap_imp"]   = pd.read_csv(TABLES / "shap_importance_comparada.csv", index_col=0)
+    # média SHAP da raça COM SINAL, por grupo — a tabela acima guarda só |SHAP|,
+    # que diz o tamanho do efeito mas não a direção
+    r["shap_negro_grupo"] = pd.read_csv(TABLES / "shap_negro_por_grupo.csv")
     r["sna_nos"]    = pd.read_csv(TABLES / "sna_metricas_nos.csv")
     r["sna_temporal"]= pd.read_csv(TABLES / "sna_temporal.csv")
     # Novos resultados GLMM e melhorias OB/QR/M4 (com guards para tolerância a ausência)
@@ -269,6 +289,24 @@ def extract_kpis(r):
     mask  = feats["Feature"].str.contains("Ra", na=False)
     k["shap_negro_rank"] = int(feats[mask].index[0]) + 1 if mask.any() else 6
     k["shap_negro_val"]  = float(r["shap_imp"].iloc[k["shap_negro_rank"]-1]["SHAP_mean_abs_XGB"])
+
+    # direção do efeito racial: média SHAP com sinal entre os próprios negros
+    # (o |SHAP| acima é outra grandeza e não sustenta a leitura de "penalidade")
+    # o que corresponde ao coeficiente racial das regressões é o CONTRASTE entre
+    # as duas médias, não a média de um grupo (que é desvio da previsão média
+    # da base, a qual mistura os dois grupos)
+    _sg = r["shap_negro_grupo"]
+    _sx = _sg[_sg["modelo"] == "XGBoost"].set_index("grupo")["shap_medio_negro"]
+    k["shap_negro_medio"]  = float(_sx["negros"])
+    k["shap_branco_medio"] = float(_sx["brancos"])
+    k["shap_contraste"]     = k["shap_negro_medio"] - k["shap_branco_medio"]
+    k["shap_contraste_pct"] = abs((np.exp(k["shap_contraste"]) - 1) * 100)
+    # o Word não passa por siunitx: o decimal vai para o texto já em pt-BR
+    def _br(v, dec):
+        return f"{v:+.{dec}f}".replace("-", "−").replace(".", ",")
+    k["shap_negro_medio_br"]  = _br(k["shap_negro_medio"], 4)
+    k["shap_branco_medio_br"] = _br(k["shap_branco_medio"], 4)
+    k["shap_contraste_pct_br"] = f"{k['shap_contraste_pct']:.1f}".replace(".", ",")
 
     k["sna_h"]    = P["SNA_H"]
     k["gap_2016"] = float(r["sna_temporal"].loc[r["sna_temporal"]["Ano"]==2016,"gap_log"].values[0])
@@ -1762,12 +1800,14 @@ def build_doc(r, k):
         f"Com as novas variáveis, horas trabalhadas (|SHAP|=0,166), CBO: Profissionais (0,119) "
         f"e emprego formal (0,109) emergem como segundo, terceiro e quarto preditores, "
         f"evidenciando que a estrutura ocupacional é o principal mediador individual do rendimento. "
-        f"A variável racial ocupa o {k['shap_negro_rank']}º lugar, com SHAP médio de −0,0249 para "
-        f"trabalhadores negros — equivalente a uma penalidade de 2,5% sobre o rendimento predito "
-        f"não atribuível a diferenças em educação, experiência, gênero, contexto de moradia ou "
-        f"composição ocupacional. Essa redução em relação ao modelo sem variáveis ocupacionais "
-        f"(anterior: −0,0469) confirma que parte do efeito racial é mediada pela composição "
-        f"ocupacional, mas um resíduo significativo persiste — evidência de discriminação pura."
+        f"A variável racial ocupa o {k['shap_negro_rank']}º lugar. A parcela do rendimento "
+        f"predito que o modelo atribui à raça difere em {k['shap_contraste_pct_br']}% entre "
+        f"trabalhadores negros e brancos — a contribuição média da variável racial é de "
+        f"{k['shap_negro_medio_br']} log-pontos entre os negros e {k['shap_branco_medio_br']} "
+        f"entre os brancos, e é o contraste entre as duas, não a média de um grupo, que "
+        f"corresponde ao coeficiente racial das regressões. O valor fica a menos de um ponto "
+        f"percentual do gap do M4 hierárquico, que trabalha com os mesmos controles: um "
+        f"algoritmo que não impõe forma funcional alguma chega perto do modelo linear."
     )
 
     add_figure(doc, FIGURES / "shap_beeswarm_xgb.png",

@@ -1,0 +1,26 @@
+\begin{table}[!ht]
+\centering
+\caption{GLMM logístico --- ajuste e desempenho de classificação por degrau. LR vs.\ pooled: teste de razão de verossimilhança do A2 contra o logit sem efeito aleatório (fronteira, $p/2$); AUC com efeitos aleatórios (ajuste na amostra) e só com efeitos fixos; \emph{cutoff} de Youden (maximiza sensibilidade $+$ especificidade) com as taxas correspondentes; Hosmer--Lemeshow em 10 decis. Modelos A1--A4 como na Tabela~\ref{tab:glmm_glassceil}. Com $N = 7{,}7$~milhões qualquer desvio de calibração é ``significativo'' --- o $\chi^2$ deve ser lido como magnitude relativa entre degraus, não como teste (MHE, cap.~8).}
+\label{tab:glmm_ajuste}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccccccc}
+\toprule
+Desfecho & Modelo & $-2\,$LL & AIC & LR vs.\ pooled & AUC (RE) & AUC (FE) & Cutoff & Sens./Espec. & HL $\chi^2$ \\
+\midrule
+Cargo qualificado (CBO 1--4) & A1 & 6.102.483 & 6.102.575 & --- & 0,879 & 0,864 & 0,30 & 0,79/0,79 & 2.760 \\
+ & A2 & 6.088.976 & 6.089.074 & 77.940 & 0,878 & 0,870 & 0,30 & 0,79/0,79 & 2.796 \\
+ & A3 & 5.457.265 & 5.457.373 & --- & 0,906 & 0,900 & 0,31 & 0,83/0,82 & 7.982 \\
+ & A4 & 5.457.207 & 5.457.319 & --- & 0,906 & 0,900 & 0,31 & 0,83/0,82 & 7.881 \\
+\midrule
+Top 20\% de renda & A1 & 5.271.208 & 5.271.300 & --- & 0,872 & 0,845 & 0,19 & 0,79/0,79 & 9.078 \\
+ & A2 & 5.251.296 & 5.251.394 & 108.283 & 0,872 & 0,859 & 0,19 & 0,79/0,79 & 9.584 \\
+ & A3 & 4.967.208 & 4.967.316 & --- & 0,886 & 0,875 & 0,19 & 0,81/0,80 & 2.956 \\
+ & A4 & 4.966.299 & 4.966.411 & --- & 0,886 & 0,875 & 0,19 & 0,81/0,80 & 2.630 \\
+\midrule
+Top 10\% de renda & A1 & 3.276.689 & 3.276.781 & --- & 0,901 & 0,868 & 0,09 & 0,83/0,81 & 6.085 \\
+ & A2 & 3.258.340 & 3.258.438 & 80.791 & 0,900 & 0,886 & 0,09 & 0,83/0,81 & 6.176 \\
+ & A3 & 3.075.653 & 3.075.761 & --- & 0,913 & 0,900 & 0,10 & 0,83/0,83 & 2.836 \\
+ & A4 & 3.074.632 & 3.074.744 & --- & 0,913 & 0,900 & 0,09 & 0,85/0,82 & 2.472 \\
+\bottomrule
+\end{tabular}}
+\end{table}

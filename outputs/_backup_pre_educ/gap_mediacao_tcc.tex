@@ -1,0 +1,31 @@
+\begin{table}[!ht]
+\centering
+\caption{Decomposição do gap salarial racial por mediação contextual e ocupacional
+(HLM de dois níveis, indivíduos em UPA, com efeitos fixos de UF; PNAD Contínua
+2016--2025, população completa). Cada linha
+acrescenta um bloco de controles ao anterior; à medida que se adiciona contexto e ocupação,
+o gap encolhe e a mediação acumulada cresce.}
+\label{tab:mediacao}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrr}
+\toprule
+Modelo (controles acumulados) & $\beta_{\text{negro}}$ & Gap (\%) & Mediação acum. (\%) \\
+\midrule
+Agregado: individual + UF, sem efeito de bairro (OLS) & −0,2123 & −19,1 & --- \\
+M1: + intercepto aleatório de bairro (UPA) & −0,1124 & −10,6 & 47,0 \\
+M2: + contexto do bairro (UPA) & −0,1099 & −10,4 & 48,2 \\
+M3: + efeitos fixos de UF (gap líquido) & −0,1102 & −10,4 & 48,1 \\
+M4: + ocupação e formalidade (limite inferior) & −0,0743 & −7,2 & 65,0 \\
+\bottomrule
+\end{tabular}
+}
+\par\smallskip
+\footnotesize\emph{Como ler:} cada linha adiciona algo à anterior. $\beta_{\text{negro}}$
+é a penalidade racial em log-rendimento (mais próximo de zero = menor gap); ``Gap (\%)'' é a
+penalidade em \% de renda; ``Mediação acum.''\ é a fração do gap agregado (primeira linha) já
+explicada. O salto da primeira para a segunda linha é a mediação pela segregação residencial:
+comparar negros e brancos \emph{do mesmo bairro} reduz o gap quase à metade. Do modelo agregado
+ao M4 o gap cai de 19,1\% para 7,2\%: 65,0\% do gap é mediado por
+onde a pessoa mora, o estado e a ocupação que acessa --- e a penalidade de 7,2\% persiste
+dentro da mesma ocupação (limite inferior, pois a ocupação é ela própria resultado da barreira de acesso).
+\end{table}

@@ -42,18 +42,23 @@ TABLES  = ROOT / "outputs" / "tables"
 SAMPLE_FRAC = None   # None = população completa
 SEED        = 42
 QUANTIS     = [0.10, 0.25, 0.50, 0.75, 0.90, 0.95]
-N_BOOT      = 200   # bootstrap reps para KB test (rodado em 5% da amostra)
-BOOT_FRAC   = 0.05  # fração usada no bootstrap (velocidade)
+N_BOOT      = 200    # réplicas do bootstrap em blocos por UPA (KB test + SE de β(τ))
+BOOT_FRAC   = 0.03   # fração de UPAs sorteadas por réplica ("m-out-of-n" cluster bootstrap)
+# Bootstrap em BLOCOS por UPA (Angrist & Pischke, cap. 8): reamostram-se UPAs, não pessoas,
+# porque as observações da mesma UPA são correlacionadas. Por custo (QR em 7,7 M obs),
+# cada réplica usa m = BOOT_FRAC·G UPAs; o SE da população é recuperado pela escala
+# sqrt(m/G) do bootstrap "m out of n" (Bickel & Sakov, 2008). Reporta-se também o SE
+# bruto (sem escala), que é conservador.
 
 COLS = [
     "negro", "sexo_fem", "idade_c", "idade_sq",
-    "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+    "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
     "educ_cat",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
-    "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
+    "horas_c", "log_horas", "urbano", "emprego_formal", "conta_propria", "trab_domestico",
     "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
     "ocp_servicos", "ocp_agro", "ocp_operario", "ocp_operador", "ocp_ffaa",
-    "log_renda", "renda_bruta", "pea", "Ano", "UF",
+    "log_renda", "renda_bruta", "pea", "Ano", "UF", "UPA",
 ]
 
 # ── Carregar dados ────────────────────────────────────────────────────────────
@@ -65,8 +70,9 @@ df_full["UF_str"] = df_full["UF"].astype(str)
 df_full["educ_missing"] = df_full["educ_cat"].isna().astype(int)
 
 BASE_DROP = ["negro", "sexo_fem", "idade_c", "idade_sq",
-             "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
-             "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z", "log_renda"]
+             "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+             "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z", "log_renda",
+             "log_horas", "urbano"]
 mask = (df_full["pea"] == 1) & (df_full["renda_bruta"] > 0) & df_full["negro"].notna()
 df_full = df_full[mask].dropna(subset=BASE_DROP)
 
@@ -83,9 +89,9 @@ print(f"  {_label}: {len(df):,} | "
 HAS_OCC = all(c in df.columns for c in ["horas_c","emprego_formal","ocp_dirigente"]) \
           and df["horas_c"].notna().any()
 
-_BASE_F = ("educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
-           " + educ_missing + idade_c + idade_sq + sexo_fem"
-           " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z")
+_BASE_F = ("educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
+           " + idade_c + idade_sq + sexo_fem"
+           " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z + C(Ano)")
 _OCC_F  = ("horas_c + emprego_formal + conta_propria + trab_domestico"
            " + ocp_dirigente + ocp_profissional + ocp_tecnico + ocp_administrativo"
            " + ocp_servicos + ocp_agro + ocp_operario + ocp_operador + ocp_ffaa")
@@ -94,10 +100,12 @@ _BASE_NOSEX = _BASE_F.replace(" + sexo_fem", "")
 FORMULA_FULL = f"log_renda ~ {_BASE_F}" + (f" + {_OCC_F}" if HAS_OCC else "")
 FORMULA_NOSEX = f"log_renda ~ {_BASE_NOSEX}" + (f" + {_OCC_F}" if HAS_OCC else "")
 
-_IND_QR = ("negro + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
-           " + educ_missing + idade_c + idade_sq + sexo_fem")
+# E2.5 (03/10/2026): log_horas e urbano entram no M3 da QR, como no HLM M3 — a renda é
+# MENSAL, a jornada é controle necessário (antes ficava só no M4)
+_IND_QR = ("negro + educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
+           " + idade_c + idade_sq + sexo_fem + log_horas + urbano")
 _UPA_QR = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
-QR_FORMULA = f"log_renda ~ {_IND_QR} + {_UPA_QR} + C(UF_str)"
+QR_FORMULA = f"log_renda ~ {_IND_QR} + {_UPA_QR} + C(UF_str) + C(Ano)"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -334,56 +342,109 @@ for q in QUANTIS:
     pct = (np.exp(r["b"]) - 1) * 100 if not np.isnan(r["b"]) else np.nan
     print(f"  q={q:.2f}: β={r['b']:.4f} ({pct:+.1f}%)")
 
-# 2b. Teste inter-quantílico (contraste β(q90) - β(q10)):
+# 2b. Teste inter-quantílico (contraste β(q90) - β(q10)) e SE de β(τ):
 #     H0: β(q90) = β(q10)
-#     SE via bootstrap (N_BOOT replicações de BOOT_FRAC × n)
-print(f"\n[2b] KB-style Bootstrap Test (n_boot={N_BOOT}, frac={BOOT_FRAC})")
+#     Bootstrap em BLOCOS por UPA, "m out of n": sorteia m = BOOT_FRAC·G UPAs com
+#     reposição, reajusta a QR em TODOS os quantis, e escala o SE por sqrt(m/G).
+print(f"\n[2b] Bootstrap em blocos por UPA (n_boot={N_BOOT}, frac UPAs={BOOT_FRAC})")
 rng2 = np.random.default_rng(SEED + 1)
-n_sub = int(len(df) * BOOT_FRAC)
+upa_codes, upa_idx = pd.factorize(df["UPA"])
+G_upa = len(upa_idx)
+m_upa = max(int(G_upa * BOOT_FRAC), 50)
+# índices das linhas por UPA (para montar a réplica por concatenação de blocos)
+_order = np.argsort(upa_codes, kind="stable")
+_bounds = np.flatnonzero(np.diff(upa_codes[_order])) + 1
+_blocks = np.split(_order, _bounds)          # _blocks[g] = linhas da UPA g
+escala = np.sqrt(m_upa / G_upa)
 
-boot_b10 = []
-boot_b90 = []
-boot_b50 = []
+boot_b = {q: [] for q in QUANTIS}
+print(f"  {G_upa:,} UPAs; m={m_upa:,} UPAs/réplica (~{int(len(df)*BOOT_FRAC):,} obs) × {N_BOOT} reps ...",
+      flush=True)
 
-print(f"  Bootstrap em {n_sub:,} obs × {N_BOOT} reps ...", end="", flush=True)
-for rep in range(N_BOOT):
-    idx_b = rng2.choice(len(df), size=n_sub, replace=True)
-    df_b  = df.iloc[idx_b]
-    bvals = {}
-    ok = True
-    for q in [0.10, 0.50, 0.90]:
+# Desempenho: (i) a matriz de desenho é construída UMA vez (patsy em 7,7 M linhas por
+# réplica era o gargalo) e gravada em memmap; (ii) as réplicas rodam em paralelo
+# (joblib/loky), cada processo lendo o memmap e ajustando sm.QuantReg em arrays.
+import patsy, tempfile, os
+import statsmodels.api as sm
+from joblib import Parallel, delayed
+
+_y_full, _X_full = patsy.dmatrices(QR_FORMULA, df, NA_action="raise")
+_col_negro = list(_X_full.design_info.column_names).index("negro")
+_tmpdir = tempfile.mkdtemp(prefix="qr_boot_")
+_Xp, _yp = os.path.join(_tmpdir, "X.npy"), os.path.join(_tmpdir, "y.npy")
+np.save(_Xp, np.ascontiguousarray(_X_full, dtype=np.float64))
+np.save(_yp, np.ascontiguousarray(_y_full, dtype=np.float64).ravel())
+del _X_full, _y_full
+# blocos por UPA como (ordem, limites) em memmap — evita serializar 41 mil arrays por tarefa
+_op = os.path.join(_tmpdir, "order.npy")
+np.save(_op, _order.astype(np.int64))
+_starts = np.concatenate([[0], _bounds]).astype(np.int64)
+_ends   = np.concatenate([_bounds, [len(_order)]]).astype(np.int64)
+_seeds = rng2.integers(0, 2**31 - 1, size=N_BOOT)
+
+
+def _rep_boot(seed, Xp, yp, op, starts, ends, G, m, col, quantis):
+    """Uma réplica: sorteia m UPAs com reposição e ajusta a QR em todos os quantis."""
+    X = np.load(Xp, mmap_mode="r")
+    y = np.load(yp, mmap_mode="r")
+    order = np.load(op, mmap_mode="r")
+    r = np.random.default_rng(seed)
+    sel = r.integers(0, G, size=m)
+    idx = np.sort(np.concatenate([order[starts[g]:ends[g]] for g in sel]))
+    Xb, yb = np.asarray(X[idx]), np.asarray(y[idx])
+    out = []
+    for q in quantis:
         try:
-            m = smf.quantreg(QR_FORMULA, data=df_b).fit(q=q, max_iter=1000, p_tol=1e-5)
-            bvals[q] = m.params.get("negro", np.nan)
+            res = sm.QuantReg(yb, Xb).fit(q=q, max_iter=1000, p_tol=1e-5)
+            out.append(float(res.params[col]))
         except Exception:
-            ok = False
-            break
-    if ok and not any(np.isnan(v) for v in bvals.values()):
-        boot_b10.append(bvals[0.10])
-        boot_b90.append(bvals[0.90])
-        boot_b50.append(bvals[0.50])
-    if rep % 50 == 49:
-        print(f" {rep+1}", end="", flush=True)
-print()
+            return None
+    return out
 
-boot_b10 = np.array(boot_b10)
-boot_b90 = np.array(boot_b90)
+
+_n_jobs = max(1, (os.cpu_count() or 2) - 2)
+print(f"  paralelo em {_n_jobs} processos; progresso a cada 20 réplicas", flush=True)
+_res = Parallel(n_jobs=_n_jobs, verbose=5, batch_size=1)(
+    delayed(_rep_boot)(int(s), _Xp, _yp, _op, _starts, _ends, G_upa, m_upa, _col_negro, QUANTIS)
+    for s in _seeds)
+for out in _res:
+    if out is not None and not any(np.isnan(v) for v in out):
+        for q, v in zip(QUANTIS, out):
+            boot_b[q].append(v)
+print(f"  réplicas válidas: {len(boot_b[QUANTIS[0]])}/{N_BOOT}", flush=True)
+try:
+    os.remove(_Xp); os.remove(_yp); os.remove(_op); os.rmdir(_tmpdir)
+except OSError:
+    pass
+
+boot_b = {q: np.array(v) for q, v in boot_b.items()}
+boot_b10, boot_b50, boot_b90 = boot_b[0.10], boot_b[0.50], boot_b[0.90]
 boot_diffs = boot_b90 - boot_b10   # H0: this = 0
+
+# SE de β(τ) por quantil: bruto (subamostra de UPAs; conservador) e escalado (população)
+se_boot_raw  = {q: float(np.std(v, ddof=1)) for q, v in boot_b.items()}
+se_boot_upa  = {q: se_boot_raw[q] * escala for q in QUANTIS}
+for q in QUANTIS:
+    qr_global[q]["se_cl_upa"] = se_boot_upa[q]
+    qr_global[q]["se_boot_raw"] = se_boot_raw[q]
 
 obs_b10 = qr_global[0.10]["b"]
 obs_b90 = qr_global[0.90]["b"]
 obs_diff = obs_b90 - obs_b10
 
-se_diff = float(np.std(boot_diffs, ddof=1))
-ci_lo   = float(np.percentile(boot_diffs, 2.5))
-ci_hi   = float(np.percentile(boot_diffs, 97.5))
+se_diff_raw = float(np.std(boot_diffs, ddof=1))          # conservador (m UPAs)
+se_diff     = se_diff_raw * escala                        # escalado para a população
+ci_lo   = float(obs_diff - 1.96 * se_diff)
+ci_hi   = float(obs_diff + 1.96 * se_diff)
 z_stat  = obs_diff / se_diff if se_diff > 0 else np.nan
+z_raw   = obs_diff / se_diff_raw if se_diff_raw > 0 else np.nan
 p_kb    = float(2 * stats.norm.sf(abs(z_stat))) if not np.isnan(z_stat) else np.nan
+p_raw   = float(2 * stats.norm.sf(abs(z_raw))) if not np.isnan(z_raw) else np.nan
 
 # Wald-style chi2 test for joint constancy (across all 3 quantiles)
-# H0: β(q10) = β(q50) = β(q90)
+# H0: β(q10) = β(q50) = β(q90)   (covariância escalada por m/G)
 boot_mat = np.column_stack([boot_b10, boot_b50, boot_b90])
-boot_cov = np.cov(boot_mat.T)
+boot_cov = np.cov(boot_mat.T) * (m_upa / G_upa)
 obs_vec  = np.array([obs_b10, qr_global[0.50]["b"], obs_b90])
 # Contrast matrix: CONTRAST = [[1,-1,0],[0,1,-1]]  (renamed de C para não conflitar com patsy C())
 CONTRAST = np.array([[1,-1,0],[0,1,-1]], dtype=float)
@@ -396,23 +457,26 @@ except np.linalg.LinAlgError:
     wald_stat, p_wald = np.nan, np.nan
 
 print(f"\n  Contraste β(q90)−β(q10) = {obs_diff:.4f}")
-print(f"  SE bootstrap = {se_diff:.4f}")
-print(f"  IC 95% bootstrap = [{ci_lo:.4f}, {ci_hi:.4f}]")
-print(f"  Z = {z_stat:.2f}  →  p = {p_kb:.4e}")
+print(f"  SE bootstrap (blocos UPA, escalado) = {se_diff:.4f}  | bruto (conservador) = {se_diff_raw:.4f}")
+print(f"  IC 95% = [{ci_lo:.4f}, {ci_hi:.4f}]")
+print(f"  Z = {z_stat:.2f}  →  p = {p_kb:.4e}   (Z bruto = {z_raw:.2f}, p = {p_raw:.2e})")
 stars_kb = "***" if p_kb < 0.001 else ("**" if p_kb < 0.01 else "*" if p_kb < 0.05 else "ns")
 print(f"  Conclusão: heterogeneidade quantílica {stars_kb}")
 print(f"  Wald χ²(2) = {wald_stat:.2f}  →  p = {p_wald:.4e}")
+print("  SE cluster-UPA de β(τ): " + ", ".join(f"q{int(q*100)}={se_boot_upa[q]:.4f}" for q in QUANTIS))
 
 # Salvar resultados KB test
 kb_res = {
     "b_q10": round(obs_b10, 5), "b_q50": round(qr_global[0.50]["b"], 5),
     "b_q90": round(obs_b90, 5),
     "diff_q90_q10": round(obs_diff, 5),
-    "se_boot": round(se_diff, 5),
+    "se_boot": round(se_diff, 5), "se_boot_raw": round(se_diff_raw, 5),
     "ci_lo_boot": round(ci_lo, 5), "ci_hi_boot": round(ci_hi, 5),
     "z_stat": round(z_stat, 3), "p_valor_z": round(p_kb, 6),
+    "z_stat_raw": round(z_raw, 3), "p_valor_z_raw": round(p_raw, 6),
     "wald_chi2_2": round(wald_stat, 3), "p_valor_wald": round(p_wald, 6),
-    "n_boot": N_BOOT, "boot_frac": BOOT_FRAC,
+    "n_boot": len(boot_diffs), "boot_frac": BOOT_FRAC, "boot_blocos": "UPA",
+    "n_upas": G_upa, "m_upas": m_upa, "escala_sqrt_m_G": round(escala, 5),
 }
 pd.DataFrame([kb_res]).to_csv(TABLES / "qr_kb_test.csv", index=False, encoding="utf-8")
 print("qr_kb_test.csv salvo.")
@@ -420,7 +484,7 @@ print("qr_kb_test.csv salvo.")
 # Bootstrap distribution figure
 fig, ax = plt.subplots(figsize=(9, 5))
 ax.hist(boot_diffs * 100, bins=30, color="#1565C0", alpha=0.75, edgecolor="white",
-        label=f"Bootstrap dist. de β(q90)−β(q10)\n({N_BOOT} replicações, {int(BOOT_FRAC*100)}% amostra)")
+        label=f"Bootstrap em blocos por UPA de β(q90)−β(q10)\n({N_BOOT} replicações, {int(BOOT_FRAC*100)}% amostra)")
 ax.axvline(obs_diff * 100, color="#B71C1C", lw=2.5,
            label=f"Observado: {obs_diff*100:.2f}pp")
 ax.axvline(0, color="black", lw=1.2, ls="--", label="H₀: diferença = 0")
@@ -464,6 +528,7 @@ for grupo, qres in [("Global", qr_global)] + list(qr_sex.items()):
             "ci_lo": round(r["lo"], 5), "ci_hi": round(r["hi"], 5),
             "gap_pct": round((np.exp(r["b"])-1)*100, 2) if not np.isnan(r["b"]) else np.nan,
             "p_valor": round(r["p"], 5),
+            "se_cl_upa": round(r["se_cl_upa"], 5) if "se_cl_upa" in r else np.nan,
         })
 pd.DataFrame(rows_qr).to_csv(TABLES / "qr_melhorias.csv", index=False, encoding="utf-8")
 print("\nqr_melhorias.csv salvo.")
@@ -547,49 +612,12 @@ plt.close()
 print("qr_glassceil_completo.png salvo.")
 
 # ── LaTeX: tabela QR por sexo ─────────────────────────────────────────────────
-tex_qr = r"""\begin{table}[H]
-\centering
-\caption{Regressão quantílica: coeficiente $\hat{\beta}_{\text{negro}}$ por quantil e sexo.
-         Gap~(\%) $= (e^{\hat{\beta}}-1)\times 100$.
-         M3: controles individuais + contexto UPA + UF efeito fixo.
-         $^{***}p<0{,}001$ em todos os quantis e grupos.}
-\label{tab:qr_melhorias}
-\small
-\begin{tabular}{lrrrrrrr}
-\toprule
-& \multicolumn{2}{c}{Global} & \multicolumn{2}{c}{Homens} & \multicolumn{2}{c}{Mulheres} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
-Quantil & $\hat{\beta}$ & Gap~(\%) & $\hat{\beta}$ & Gap~(\%) & $\hat{\beta}$ & Gap~(\%) \\
-\midrule
-"""
-for q in QUANTIS:
-    rg = qr_global[q]
-    rh = qr_sex.get("Homens", {}).get(q, {"b": np.nan})
-    rm = qr_sex.get("Mulheres", {}).get(q, {"b": np.nan})
-    def fmt(b):
-        return f"${b:.4f}$" if not np.isnan(b) else "---"
-    def fmtpct(b):
-        pct = (np.exp(b)-1)*100
-        return f"${pct:+.1f}\\%$" if not np.isnan(b) else "---"
-    tex_qr += (f"$\\tau={q:.2f}$ & {fmt(rg['b'])} & {fmtpct(rg['b'])} & "
-               f"{fmt(rh['b'])} & {fmtpct(rh['b'])} & "
-               f"{fmt(rm['b'])} & {fmtpct(rm['b'])} \\\\\n")
+# A montagem saiu daqui para tabela_qr_tex.py, que lê dos csv acima. Assim a
+# tabela pode ser reformatada sem repetir o bootstrap, e o formato numérico
+# (vírgula decimal, p < 0,001 em vez de 1.84e-64) fica num lugar só.
+from tabela_qr_tex import escrever_tabela as _escrever_tabela_qr
 
-tex_qr += (f"\\midrule\n"
-           f"\\textbf{{Δ (q90−q10)}} & "
-           f"$\\mathbf{{{obs_diff*100:.2f}\\text{{pp}}}}{stars_kb}$ & "
-           f"\\multicolumn{{2}}{{c}}{{$Z = {z_stat:.2f}$}} & "
-           f"\\multicolumn{{2}}{{c}}{{$p = {p_kb:.2e}$}} & \\\\\n")
-tex_qr += r"""\bottomrule
-\end{tabular}
-\note{Teste de heterogeneidade quantílica (Koenker-Bassett style):
-      $H_0$: $\hat{\beta}(q)$ constante para todo $q$.
-      SE do contraste via bootstrap ($B="""
-tex_qr += str(N_BOOT)
-tex_qr += r"""$, $""" + str(int(BOOT_FRAC*100)) + r"""\%$ da amostra, $\text{SEED}=42$).}
-\end{table}
-"""
-(TABLES / "qr_melhorias.tex").write_text(tex_qr, encoding="utf-8")
+_escrever_tabela_qr()
 print("qr_melhorias.tex salvo.")
 
 # ═══════════════════════════════════════════════════════════════════════════════

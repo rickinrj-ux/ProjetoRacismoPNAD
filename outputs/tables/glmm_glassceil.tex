@@ -1,24 +1,28 @@
 \begin{table}[!ht]
 \centering
-\caption{GLMM Logístico --- Teto de Vidro Ocupacional e Salarial. Odds ratio do coeficiente \emph{negro} (IC 95\% entre colchetes), efeito marginal médio (AME, em pontos percentuais) e E-value (VanderWeele \& Ding, 2017). População completa da PEA ($N=7{,}69$ milhões). Desfechos binários estimados por logit multinível com efeito aleatório de UPA. Todos os coeficientes com $p<0{,}001$.}
+\caption{GLMM logístico (lme4::\texttt{glmer}, intercepto aleatório de UPA e efeitos fixos de UF) --- teto de vidro ocupacional e salarial. \emph{Odds ratio} do coeficiente \texttt{negro} com IC~95\%, efeito marginal médio (AME: diferença média de probabilidade predita, em pontos percentuais), ICC da UPA $=\tau^2/(\tau^2+\pi^2/3)$ e E-value \cite{vanderweele2017}. Coluna final: OR do logit com efeitos fixos de UF e erro-padrão agrupado por UPA (robustez). População completa da PEA com renda positiva ($N = 7.699.273$; 41.454~UPAs). A3 acrescenta o vínculo (formalidade, setor público, conta própria, doméstico), que é desfecho da própria discriminação: limite inferior. Todos os OR com $p<0{,}001$; com $N$ desta ordem, a inferência relevante está nos IC e nos E-values.}
 \label{tab:glmm_glassceil}
-\begin{tabular}{llccc}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccccc}
 \toprule
-Desfecho & Modelo & OR (IC 95\%) & AME (p.p.) & E-value \\
+Desfecho & Modelo & OR (IC 95\%) & AME (p.p.) & ICC$_{\text{UPA}}$ & E-value & E-value (IC) & OR logit-FE \\
 \midrule
-Cargo qualificado (CBO 1--4) & M1 (indiv.\ + UF) & 0,555 [0,553; 0,557] & −8,60 & 3,03 \\
- & M2 (+ contexto UPA) & 0,705 [0,702; 0,708] & −4,72 & 2,20 \\
- & M3 (+ interação credencial) & 0,699 [0,695; 0,702] & −4,83 & --- \\
+Cargo qualificado (CBO 1--4) & A1 individual + UF & 0,805 [0,801; 0,809] & −2,75 & 0,087 & 1,47 & 1,47 & 0,728 \\
+ & A2 + contexto do bairro & 0,814 [0,810; 0,818] & −2,60 & 0,054 & 1,46 & 1,45 & 0,796 \\
+ & A3 + vínculo (limite inf.) & 0,791 [0,787; 0,794] & −2,66 & 0,054 & 1,50 & 1,49 & 0,796 \\
+ & A4 + negro$\times$credencial & 0,785 [0,781; 0,789] & −2,66 & 0,054 & 1,51 & 1,50 & 0,792 \\
 \midrule
-Top 20\% de renda & M1 (indiv.\ + UF) & 0,540 [0,538; 0,542] & −8,79 & 3,14 \\
- & M2 (+ contexto UPA) & 0,691 [0,688; 0,694] & −4,56 & 2,26 \\
- & M3 (+ interação credencial) & 0,694 [0,691; 0,698] & −4,50 & --- \\
+Top 20\% de renda & A1 individual + UF & 0,759 [0,755; 0,763] & −2,91 & 0,159 & 1,56 & 1,55 & 0,638 \\
+ & A2 + contexto do bairro & 0,769 [0,765; 0,773] & −2,77 & 0,083 & 1,54 & 1,53 & 0,756 \\
+ & A3 + vínculo (limite inf.) & 0,755 [0,751; 0,759] & −2,80 & 0,084 & 1,57 & 1,56 & 0,756 \\
+ & A4 + negro$\times$credencial & 0,719 [0,714; 0,723] & −2,79 & 0,084 & 1,64 & 1,63 & 0,713 \\
 \midrule
-Top 10\% de renda & M1 (indiv.\ + UF) & 0,457 [0,454; 0,459] & −6,33 & 3,84 \\
- & M2 (+ contexto UPA) & 0,656 [0,651; 0,660] & −2,88 & 2,43 \\
- & M3 (+ interação credencial) & 0,664 [0,660; 0,669] & −2,79 & --- \\
+Top 10\% de renda & A1 individual + UF & 0,748 [0,743; 0,753] & −1,77 & 0,221 & 2,01 & 1,99 & 0,577 \\
+ & A2 + contexto do bairro & 0,761 [0,756; 0,766] & −1,66 & 0,116 & 1,96 & 1,94 & 0,739 \\
+ & A3 + vínculo (limite inf.) & 0,740 [0,735; 0,745] & −1,73 & 0,117 & 2,04 & 2,02 & 0,739 \\
+ & A4 + negro$\times$credencial & 0,668 [0,662; 0,674] & −1,71 & 0,117 & 2,36 & 2,33 & 0,659 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \par\smallskip
-\footnotesize\emph{Leitura:} OR $<1$ indica menor chance de acesso para trabalhadores negros vs.\ brancos de mesmo perfil. O teto se aperta no extremo superior (top 10\%) e o E-value $\geq 2{,}2$ no M2 indica que um confundidor não-observado precisaria de associação $\geq 2{,}2\times$ com raça \emph{e} com o desfecho para anular o efeito.
+\footnotesize\emph{Como ler:} OR $<1$ = menor chance de acesso para trabalhadores negros do que para brancos de mesmo perfil \emph{e do mesmo bairro}; quanto mais perto de zero, maior a barreira. O E-value é a força mínima de associação (razão de risco) que um confundidor não observado precisaria ter com a raça \emph{e} com o desfecho para anular o OR; o E-value (IC) faz o mesmo para o limite do intervalo. A coluna logit-FE mostra que a conclusão não depende da hipótese de efeitos aleatórios.
 \end{table}

@@ -17,7 +17,7 @@ MODELAGEM:
         Vantagem: robusto a outliers, captura não-linearidades.
 
     Modelo 2 — XGBoost (gradient boosting):
-        300 árvores, max_depth=6, learning_rate=0.05.
+        300 árvores, max_depth=10 (validação cruzada), learning_rate=0.05.
         Vantagem: regularização L1/L2, melhor performance preditiva.
 
 INTERPRETABILIDADE (SHAP — SHapley Additive exPlanations):
@@ -49,7 +49,6 @@ import logging
 import time
 import warnings
 from pathlib import Path
-from typing import Dict, List
 
 sys.path.insert(0, "src")
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -75,9 +74,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import shap
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split, KFold
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
-import statsmodels.api as sm
 import xgboost as xgb
 
 FEATURES_PATH = Path("data/processed/features.parquet")
@@ -90,25 +88,6 @@ SAMPLE_FRAC   = None   # None = população completa (modelo treina em 7,69M; SH
 SHAP_SAMPLE   = 50_000
 RANDOM_STATE  = 42
 
-# ── Validação cruzada (protocolo de robustez adicional ao hold-out 80/20) ──────
-# CV_SAMPLE_FRAC=0.20 é o default RÁPIDO usado quando este script roda por
-# inteiro (main(), que também refaz SHAP/bootstrap). A versão AUTORITATIVA em
-# população completa (7,69M obs., 5 folds x RF+XGB na base inteira) é gerada
-# por scripts/analise/run_ml_cv_fullpop.py (reaproveita estas mesmas funções,
-# sem refazer SHAP/bootstrap) e sobrescreve ml_performance_cv.csv.
-RUN_CV         = True
-N_CV_FOLDS     = 5
-CV_SAMPLE_FRAC = 0.20
-N_SHAP_BOOTSTRAP = 200   # reamostragens para IC da importância |SHAP| média
-
-# n_jobs=-1 no RandomForestRegressor usa multiprocessing (joblib/loky): cada worker
-# pode precisar de sua própria cópia da matriz de features, multiplicando o uso de
-# memória pelo nº de núcleos. Em máquinas com RAM limitada isso já causou swap
-# pesado (10-50x mais lento) em outros scripts deste pipeline — capado em 4 para
-# manter o uso de memória previsível. XGBoost usa threads (memória compartilhada),
-# sem esse risco, por isso mantém n_jobs=-1.
-N_JOBS_RF = 4
-
 # ── Features e target ─────────────────────────────────────────────────────────
 TARGET = "log_renda"
 
@@ -116,7 +95,7 @@ FEATURES = [
     # Individuais
     "negro", "sexo_fem", "idade_c", "idade_sq",
     "educ_fund_completo", "educ_medio_completo",
-    "educ_superior_completo", "educ_pos_graduacao", "educ_missing",
+    "educ_superior_completo", "educ_pos_graduacao",
     # Trabalho (novos)
     "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
     # Grupo CBO — referência: elementar (novos)
@@ -124,7 +103,7 @@ FEATURES = [
     "ocp_servicos", "ocp_agro", "ocp_operario", "ocp_operador", "ocp_ffaa",
     # Contexto UPA (Nível 2)
     "pct_negro_upa_z", "tx_desemprego_upa_z",
-    "media_educ_upa_z", "media_renda_upa_z",
+    "media_educ_upa_z", "media_renda_upa_loo_z",
     # Contexto UF (Nível 3)
     "pct_negro_uf_z", "tx_desemprego_uf_z", "media_educ_uf_z",
 ]
@@ -132,12 +111,12 @@ FEATURES = [
 FEATURE_LABELS = {
     "negro":                   "Raça (negro)",
     "sexo_fem":                "Gênero (feminino)",
-    "idade_c":                 "Idade (centralizada)",
+    "idade_c":                 "Idade (centrada)",
     "idade_sq":                "Idade² (experiência)",
-    "educ_fund_completo":      "Educ.: Fundamental",
-    "educ_medio_completo":     "Educ.: Médio",
-    "educ_superior_completo":  "Educ.: Superior",
-    "educ_pos_graduacao":      "Educ.: Pós-graduação",
+    "educ_fund_completo":      "Educ.: fundamental completo",
+    "educ_medio_completo":     "Educ.: médio completo",
+    "educ_superior_completo":  "Educ.: superior completo",
+    "educ_pos_graduacao":      "Educ.: pós-graduação",
     "educ_missing":            "Educ.: não registrada",
     "horas_c":                 "Horas trabalhadas",
     "emprego_formal":          "Emprego formal (carteira)",
@@ -155,7 +134,7 @@ FEATURE_LABELS = {
     "pct_negro_upa_z":         "% Negro na UPA",
     "tx_desemprego_upa_z":     "Desemprego na UPA",
     "media_educ_upa_z":        "Educ. média UPA",
-    "media_renda_upa_z":       "Renda média UPA",
+    "media_renda_upa_loo_z":   "Renda média UPA (exceto o próprio)",
     "pct_negro_uf_z":          "% Negro no Estado",
     "tx_desemprego_uf_z":      "Desemprego no Estado",
     "media_educ_uf_z":         "Educ. média Estado",
@@ -171,6 +150,18 @@ def load_data():
     df["educ_missing"] = df["educ_cat"].isna().astype(int) if "educ_cat" in df.columns else 0
 
     df = df[df["log_renda"].notna() & (df["log_renda"] > 0)].copy()
+
+    # Renda média da UPA LEAVE-ONE-OUT (problema do reflexo, Manski 1993): a variável
+    # original media_renda_upa_z é a média de log_renda da UPA INCLUINDO o próprio
+    # indivíduo — regredir y_i em ȳ_j é mecanicamente informativo e não mede efeito de
+    # vizinhança. Aqui: (soma_j − y_i)/(n_j − 1), padronizada. UPAs com n = 1 saem.
+    _sum = df.groupby("UPA")["log_renda"].transform("sum")
+    _n   = df.groupby("UPA")["log_renda"].transform("size")
+    _loo = (_sum - df["log_renda"]) / (_n - 1)
+    df["media_renda_upa_loo_z"] = (_loo - _loo.mean()) / _loo.std()
+    df = df[_n > 1].copy()
+    logger.info(f"  renda média da UPA leave-one-out criada (UPAs com n=1 removidas: {int((_n <= 1).sum()):,})")
+
     df = df.dropna(subset=FEATURES + [TARGET]).reset_index(drop=True)
 
     for col in FEATURES + [TARGET]:
@@ -192,11 +183,15 @@ def load_data():
 def split(df):
     X = df[FEATURES].values
     y = df[TARGET].values
-    X_tr, X_te, y_tr, y_te = train_test_split(
-        X, y, test_size=0.20, random_state=RANDOM_STATE
+    # o índice viaja junto no split: sem ele não há como voltar de uma linha da
+    # matriz de treino para a linha correspondente do dataframe (o embaralhamento
+    # do train_test_split desfaz qualquer correspondência posicional)
+    pos = np.arange(len(df))
+    X_tr, X_te, y_tr, y_te, pos_tr, pos_te = train_test_split(
+        X, y, pos, test_size=0.20, random_state=RANDOM_STATE
     )
     logger.info(f"  Treino: {len(X_tr):,} | Teste: {len(X_te):,}")
-    return X_tr, X_te, y_tr, y_te, df
+    return X_tr, X_te, y_tr, y_te, df, pos_tr
 
 
 # ── Avaliação ──────────────────────────────────────────────────────────────────
@@ -209,117 +204,6 @@ def evaluate(name, y_true, y_pred):
     return {"Modelo": name, "R²": round(r2, 4), "MAE": round(mae, 4), "RMSE": round(rmse, 4)}
 
 
-# ── Validação cruzada k-fold (robustez do protocolo além do hold-out) ─────────
-
-def cross_validate_models(df: pd.DataFrame, k: int = N_CV_FOLDS,
-                           sample_frac: float = CV_SAMPLE_FRAC) -> pd.DataFrame:
-    """
-    K-fold CV para RF e XGBoost, complementando o hold-out 80/20 principal.
-
-    Reporta média ± DP de R²/MAE/RMSE entre os k folds — responde diretamente
-    à cobrança de robustez do protocolo de validação (não apenas um único
-    split treino/teste). Roda em subamostra (CV_SAMPLE_FRAC) por tratabilidade
-    computacional; ver nota em CV_SAMPLE_FRAC acima.
-    """
-    df_cv = df.sample(frac=sample_frac, random_state=RANDOM_STATE).reset_index(drop=True)
-    X = df_cv[FEATURES].values
-    y = df_cv[TARGET].values
-    logger.info(f"CV k={k} em subamostra de {len(df_cv):,} obs. ({sample_frac*100:.0f}% do total)...")
-
-    kf = KFold(n_splits=k, shuffle=True, random_state=RANDOM_STATE)
-    metrics = {"Random Forest": {"r2": [], "mae": [], "rmse": []},
-               "XGBoost":       {"r2": [], "mae": [], "rmse": []}}
-
-    for fold, (tr_idx, te_idx) in enumerate(kf.split(X), start=1):
-        X_tr, X_te = X[tr_idx], X[te_idx]
-        y_tr, y_te = y[tr_idx], y[te_idx]
-
-        rf_cv = fit_rf(X_tr, y_tr)
-        y_pred = rf_cv.predict(X_te)
-        metrics["Random Forest"]["r2"].append(r2_score(y_te, y_pred))
-        metrics["Random Forest"]["mae"].append(mean_absolute_error(y_te, y_pred))
-        metrics["Random Forest"]["rmse"].append(np.sqrt(mean_squared_error(y_te, y_pred)))
-
-        xgb_cv = fit_xgb(X_tr, y_tr)
-        y_pred = xgb_cv.predict(X_te)
-        metrics["XGBoost"]["r2"].append(r2_score(y_te, y_pred))
-        metrics["XGBoost"]["mae"].append(mean_absolute_error(y_te, y_pred))
-        metrics["XGBoost"]["rmse"].append(np.sqrt(mean_squared_error(y_te, y_pred)))
-
-        logger.info(
-            f"  [fold {fold}/{k}] RF R²={metrics['Random Forest']['r2'][-1]:.4f} | "
-            f"XGB R²={metrics['XGBoost']['r2'][-1]:.4f}"
-        )
-
-    rows = []
-    for name, m in metrics.items():
-        rows.append({
-            "Modelo": name, "k": k, "sample_frac": sample_frac,
-            "R2_mean": round(float(np.mean(m["r2"])), 4),
-            "R2_sd":   round(float(np.std(m["r2"])), 4),
-            "MAE_mean": round(float(np.mean(m["mae"])), 4),
-            "MAE_sd":   round(float(np.std(m["mae"])), 4),
-            "RMSE_mean": round(float(np.mean(m["rmse"])), 4),
-            "RMSE_sd":   round(float(np.std(m["rmse"])), 4),
-        })
-        logger.info(
-            f"  [{name}] CV R²={rows[-1]['R2_mean']:.4f}±{rows[-1]['R2_sd']:.4f}"
-        )
-    df_out = pd.DataFrame(rows)
-    df_out.to_csv(OUTPUTS_TB / "ml_performance_cv.csv", index=False)
-    return df_out
-
-
-# ── Baseline econométrico (OLS) na mesma partição — ganho real do ML ─────────
-
-def fit_ols_baseline(X_tr, y_tr, X_te, y_te) -> Dict:
-    """
-    OLS (equação de Mincer estendida, mesmas features do RF/XGBoost) ajustado
-    na MESMA partição treino/teste, para dimensionar o ganho real de R² do ML
-    frente à econometria linear tradicional — responde diretamente ao pedido
-    do orientador de comparar contra um baseline simples.
-    """
-    Xtr_c = sm.add_constant(X_tr)
-    Xte_c = sm.add_constant(X_te, has_constant="add")
-    model = sm.OLS(y_tr, Xtr_c).fit()
-    y_pred = model.predict(Xte_c)
-    r2   = r2_score(y_te, y_pred)
-    mae  = mean_absolute_error(y_te, y_pred)
-    rmse = np.sqrt(mean_squared_error(y_te, y_pred))
-    logger.info(f"  [OLS baseline] R²={r2:.4f} | MAE={mae:.4f} | RMSE={rmse:.4f}")
-    return {"Modelo": "OLS (baseline linear)", "R2_teste": round(r2, 4),
-            "MAE_teste": round(mae, 4), "RMSE_teste": round(rmse, 4)}
-
-
-# ── Bootstrap de estabilidade dos valores SHAP ────────────────────────────────
-
-def bootstrap_shap_ci(shap_values: np.ndarray, feature_names: List[str],
-                       B: int = N_SHAP_BOOTSTRAP, seed: int = RANDOM_STATE) -> pd.DataFrame:
-    """
-    IC 95% (percentil) da importância média |SHAP| por feature via reamostragem
-    (bootstrap) das observações já explicadas — não recalcula SHAP a cada
-    reamostragem (custo proibitivo), reamostra os valores SHAP já computados
-    para estimar a variabilidade amostral da média.
-    """
-    rng = np.random.default_rng(seed)
-    n = shap_values.shape[0]
-    abs_sv = np.abs(shap_values)
-    boot_means = np.empty((B, abs_sv.shape[1]))
-    for b in range(B):
-        idx = rng.integers(0, n, size=n)
-        boot_means[b] = abs_sv[idx].mean(axis=0)
-
-    df_boot = pd.DataFrame({
-        "Feature": feature_names,
-        "mean_abs_shap_mean": boot_means.mean(axis=0).round(5),
-        "ci_lo": np.percentile(boot_means, 2.5, axis=0).round(5),
-        "ci_hi": np.percentile(boot_means, 97.5, axis=0).round(5),
-    }).sort_values("mean_abs_shap_mean", ascending=False).reset_index(drop=True)
-    df_boot.to_csv(OUTPUTS_TB / "shap_bootstrap_ci.csv", index=False)
-    logger.info(f"  Bootstrap SHAP (B={B}) salvo: shap_bootstrap_ci.csv")
-    return df_boot
-
-
 # ── Random Forest ──────────────────────────────────────────────────────────────
 
 def fit_rf(X_tr, y_tr):
@@ -329,7 +213,7 @@ def fit_rf(X_tr, y_tr):
         n_estimators=200,
         max_depth=10,
         min_samples_leaf=50,
-        n_jobs=N_JOBS_RF,
+        n_jobs=-1,
         random_state=RANDOM_STATE,
     )
     rf.fit(X_tr, y_tr)
@@ -340,11 +224,14 @@ def fit_rf(X_tr, y_tr):
 # ── XGBoost ────────────────────────────────────────────────────────────────────
 
 def fit_xgb(X_tr, y_tr):
-    logger.info("Ajustando XGBoost (n=300, depth=6, lr=0.05) ...")
+    logger.info("Ajustando XGBoost (n=300, depth=10 [CV], lr=0.05) ...")
     t0 = time.time()
+    # max_depth=10 escolhido por validação cruzada 5-fold na população (run_ml_cv.py):
+    # R² 0,628 ± 0,001 contra 0,614 ± 0,001 de max_depth=6, sem sinal de sobreajuste
+    # (gap treino–validação de 0,011). Demais hiperparâmetros inalterados.
     model = xgb.XGBRegressor(
         n_estimators=300,
-        max_depth=6,
+        max_depth=10,
         learning_rate=0.05,
         subsample=0.8,
         colsample_bytree=0.8,
@@ -361,14 +248,16 @@ def fit_xgb(X_tr, y_tr):
 
 # ── SHAP ───────────────────────────────────────────────────────────────────────
 
-def compute_shap(model, X_tr, df, model_name):
+def compute_shap(model, X_tr, df, model_name, pos_tr):
     logger.info(f"[{model_name}] Calculando SHAP (subsample={SHAP_SAMPLE:,}) ...")
     t0 = time.time()
 
     rng = np.random.default_rng(RANDOM_STATE)
     idx = rng.choice(len(X_tr), size=min(SHAP_SAMPLE, len(X_tr)), replace=False)
     X_shap = X_tr[idx]
-    df_shap = df.iloc[idx].reset_index(drop=True)
+    # pos_tr[idx] é a linha do dataframe que gerou X_shap[i]; usar df.iloc[idx]
+    # direto emparelharia cada valor SHAP com a pessoa errada
+    df_shap = df.iloc[pos_tr[idx]].reset_index(drop=True)
 
     explainer   = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(X_shap)
@@ -379,6 +268,9 @@ def compute_shap(model, X_tr, df, model_name):
 
 # ── Plots SHAP ────────────────────────────────────────────────────────────────
 
+from src.figuras_ptbr import virgula_decimal as _virgula_decimal  # noqa: E402
+
+
 def plot_shap_beeswarm(shap_values, X_shap, model_name):
     """Beeswarm (summary): distribuição de SHAP por feature."""
     feat_names = [FEATURE_LABELS.get(f, f) for f in FEATURES]
@@ -387,14 +279,15 @@ def plot_shap_beeswarm(shap_values, X_shap, model_name):
         shap_values, X_shap,
         feature_names=feat_names,
         show=False, plot_size=None,
-        color_bar_label="Valor da feature (alto → vermelho)",
+        color_bar_label="Valor da variável (alto → vermelho)",
     )
     plt.title(
-        f"SHAP Beeswarm — {model_name}\n"
-        "Impacto de cada feature no log-rendimento predito\n"
-        "PNAD 2016-2025 | N=50k subsample",
+        f"Contribuição de cada variável ao log-rendimento previsto — {model_name}\n"
+        f"PNAD Contínua 2016–2025 | valores SHAP em {SHAP_SAMPLE // 1000} mil casos do treino",
         fontsize=11, pad=10,
     )
+    plt.gcf().axes[0].set_xlabel("Valor SHAP (efeito sobre o log-rendimento previsto)")
+    _virgula_decimal()
     plt.tight_layout()
     path = OUTPUTS_FIG / f"shap_beeswarm_{model_name.lower()}.png"
     plt.savefig(path, dpi=150, bbox_inches="tight")
@@ -409,19 +302,20 @@ def plot_shap_bar(shap_values, X_shap, model_name):
     importance  = pd.Series(mean_abs, index=feat_names).sort_values(ascending=True)
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    colors = ["#DD8452" if "Raça" in lbl or "Negro" in lbl or "negro" in lbl.lower()
+    colors = ["#DD8452" if lbl == FEATURE_LABELS["negro"]
               else "#4C72B0" for lbl in importance.index]
     bars = ax.barh(importance.index, importance.values, color=colors)
     ax.set_xlabel("Importância SHAP média (|SHAP|)")
     ax.set_title(
-        f"Importância Global das Features — {model_name}\n"
-        "Cor laranja = variáveis raciais/contextuais | azul = demográficas/educacionais",
+        f"Importância global das variáveis — {model_name}\n"
+        "Laranja = raça | azul = demais variáveis",
         fontsize=11,
     )
     # Anotar valores
     for bar, val in zip(bars, importance.values):
         ax.text(val + 0.001, bar.get_y() + bar.get_height()/2,
-                f"{val:.4f}", va="center", fontsize=8)
+                f"{val:.4f}".replace(".", ","), va="center", fontsize=8)
+    _virgula_decimal(fig)
     plt.tight_layout()
     path = OUTPUTS_FIG / f"shap_importance_{model_name.lower()}.png"
     plt.savefig(path, dpi=150, bbox_inches="tight")
@@ -448,22 +342,48 @@ def plot_shap_dependence_negro(shap_values, X_shap, model_name):
         alpha=0.3, s=6,
     )
     cbar = plt.colorbar(sc, ax=ax)
-    cbar.set_label("% Negro na UPA (z-score) — verde=menor, vermelho=maior", fontsize=8)
-    ax.set_xlabel("Raça: 0=Branco, 1=Negro")
-    ax.set_ylabel("SHAP value para 'Raça (negro)'")
+    cbar.set_label("% de negros na UPA (escore z) — verde = menor, vermelho = maior", fontsize=8)
+    ax.set_xlabel("Raça")
+    ax.set_ylabel("Valor SHAP da raça")
     ax.set_title(
-        f"Efeito da Raça no Rendimento — {model_name}\n"
-        "Interação: penalidade racial amplificada por segregação residencial?\n"
-        "SHAP < 0: ser negro reduz a predição de renda",
+        f"Efeito da raça na previsão de rendimento — {model_name}\n"
+        "A penalidade varia com a composição racial do bairro?\n"
+        "SHAP < 0: ser negro reduz a previsão de renda",
         fontsize=11,
     )
     ax.axhline(0, color="black", linestyle="--", linewidth=0.8, alpha=0.5)
-    ax.set_xticks([0, 1]); ax.set_xticklabels(["Branco (0)", "Negro (1)"])
+    ax.set_xticks([0, 1]); ax.set_xticklabels(["Branco", "Negro"])
+    _virgula_decimal(fig)
     plt.tight_layout()
     path = OUTPUTS_FIG / f"shap_dependence_negro_{model_name.lower()}.png"
     plt.savefig(path, dpi=150, bbox_inches="tight")
     plt.close()
     logger.info(f"  Dependence plot salvo: {path}")
+
+
+def _explanation_preservando_raca(sv_caso, feat_names, n_top=11):
+    """Reduz o caso às maiores contribuições, sem deixar a raça cair no agregado.
+
+    `shap.plots.waterfall` ordena por |contribuição| e junta o excedente numa
+    linha "N other features". Com 29 preditores, a raça --- pequena num caso
+    individual diante da jornada e da ocupação --- nunca chegava a aparecer, e
+    a legenda da figura afirmava o contrário. Aqui ela é mantida à força; o
+    resto continua agregado, como o próprio shap faria.
+    """
+    j = FEATURES.index("negro")
+    vals  = np.asarray(sv_caso.values, dtype=float)
+    dados = np.asarray(sv_caso.data, dtype=float)
+    ordem = np.argsort(-np.abs(vals))
+    top   = [i for i in ordem if i != j][:n_top]
+    mantidas = top + [j]
+    resto    = [i for i in range(len(vals)) if i not in mantidas]
+    return shap.Explanation(
+        values=np.append(vals[mantidas], vals[resto].sum()),
+        base_values=sv_caso.base_values,
+        data=np.append(dados[mantidas], np.nan),
+        feature_names=[feat_names[i] for i in mantidas]
+                      + [f"outras {len(resto)} variáveis"],
+    )
 
 
 def plot_shap_waterfall_cases(model, explainer, X_tr, df_shap, model_name):
@@ -504,14 +424,27 @@ def plot_shap_waterfall_cases(model, explainer, X_tr, df_shap, model_name):
             sv = explainer(x_case)
             sv.feature_names = feat_names
 
+            expl = _explanation_preservando_raca(sv[0], feat_names)
             fig, ax = plt.subplots(figsize=(9, 5))
-            shap.plots.waterfall(sv[0], max_display=12, show=False)
+            shap.plots.waterfall(expl, max_display=len(expl.feature_names),
+                                 show=False)
+            # a linha agregada não tem valor de feature; o shap imprimiria "nan ="
+            ax_atual = plt.gca()
+            ax_atual.set_yticklabels(
+                [t.get_text().replace("nan = ", "") for t in ax_atual.get_yticklabels()]
+            )
             renda_real = df_shap.loc[idx, "log_renda"]
             negro_val  = int(df_shap.loc[idx, "negro"])
+            rotulo = {"A_branco_alta_renda": "Trabalhador branco, percentil 75 da renda dos brancos",
+                      "B_negro_alta_renda": "Trabalhador negro, percentil 75 da renda dos negros",
+                      "C_negro_baixa_renda": "Trabalhador negro, percentil 25 da renda dos negros"}[case_name]
+            # vírgula decimal ANTES do título: o milhar de "R$ 4.444" seria lido como decimal
+            _virgula_decimal()
+            reais = f"{np.exp(renda_real):,.0f}".replace(",", ".")
             plt.title(
-                f"SHAP Waterfall — {case_name}\n"
-                f"{'Negro' if negro_val else 'Branco'} | log_renda real={renda_real:.3f} | "
-                f"R$={np.exp(renda_real):.0f}/mês",
+                f"{rotulo}\n"
+                + f"log-rendimento observado = {renda_real:.3f}".replace(".", ",")
+                + f" (R$ {reais}/mês, reais do 2º tri/2026)",
                 fontsize=10,
             )
             plt.tight_layout()
@@ -525,6 +458,42 @@ def plot_shap_waterfall_cases(model, explainer, X_tr, df_shap, model_name):
 
 
 # ── Tabela de Importância Comparada ───────────────────────────────────────────
+
+def salvar_shap_negro_por_grupo(shap_rf, X_shap_rf, shap_xgb, X_shap_xgb):
+    """Média SHAP da variável racial, com sinal, separada por grupo.
+
+    A média em valor absoluto responde "quanto a raça pesou"; esta responde
+    "para que lado". É a segunda que sustenta a leitura de penalidade, e a
+    conversão para percentual segue a mesma regra semilog do resto do
+    trabalho: (e^x - 1) x 100, e não x vezes 100.
+
+    O grupo sai da própria matriz de features, não do dataframe: é o valor que
+    o modelo viu ao produzir aquele SHAP, e dispensa qualquer realinhamento.
+    """
+    j = FEATURES.index("negro")
+    linhas = []
+    for nome, sv, Xs in (("Random Forest", shap_rf, X_shap_rf),
+                         ("XGBoost", shap_xgb, X_shap_xgb)):
+        neg = Xs[:, j].astype(bool)
+        for grupo, mask in (("negros", neg), ("brancos", ~neg)):
+            if not mask.any():
+                continue
+            m = float(np.asarray(sv)[mask, j].mean())
+            linhas.append({
+                "modelo": nome,
+                "grupo": grupo,
+                "n": int(mask.sum()),
+                "shap_medio_negro": round(m, 6),
+                "equivalente_pct": round((np.exp(m) - 1) * 100, 4),
+            })
+    out = pd.DataFrame(linhas)
+    out.to_csv(OUTPUTS_TB / "shap_negro_por_grupo.csv", index=False)
+    for r in linhas:
+        logger.info(f"  [SHAP raça, {r['modelo']}] {r['grupo']}: "
+                    f"media com sinal = {r['shap_medio_negro']:+.4f} "
+                    f"({r['equivalente_pct']:+.2f}% no rendimento predito, n={r['n']:,})")
+    return out
+
 
 def build_importance_table(imp_rf, imp_xgb):
     df = imp_rf.set_index("Feature").join(
@@ -568,9 +537,14 @@ def print_summary(metrics, imp_xgb, shap_negro_xgb, X_shap_xgb):
   EFEITO DA RACA (SHAP — XGBoost):
     SHAP medio para negros:  {mean_shap_negro:.4f}
        -> ser negro reduz a predicao de log-renda em {abs(mean_shap_negro):.4f} pontos
-       -> equivale a {(np.exp(mean_shap_negro)-1)*100:.1f}% de penalidade racial
+       -> equivale a {(np.exp(mean_shap_negro)-1)*100:.1f}% abaixo da previsao media da base
           APOS controlar por educacao, experiencia, genero e contexto de moradia.
-    (Este e o efeito causal parcial estimado pelo modelo — evidencia de discriminacao.)
+    SHAP medio para brancos: {mean_shap_branco:+.4f}
+       -> contraste entre os grupos: {mean_shap_negro-mean_shap_branco:+.4f} log-pontos
+          ({(np.exp(mean_shap_negro-mean_shap_branco)-1)*100:+.1f}%), que e o analogo
+          do coeficiente racial dos modelos parametricos.
+    (Decomposicao da predicao do modelo, nao efeito causal: SHAP explica o que o
+     modelo faz com os dados, e o desenho e observacional.)
 
 {sep}
 """)
@@ -585,7 +559,7 @@ def main():
     logger.info("=" * 70)
 
     df = load_data()
-    X_tr, X_te, y_tr, y_te, df_full = split(df)
+    X_tr, X_te, y_tr, y_te, df_full, pos_tr = split(df)
 
     # ── Random Forest ──────────────────────────────────────────────────────────
     rf = fit_rf(X_tr, y_tr)
@@ -602,31 +576,41 @@ def main():
     metrics.append(m_xgb)
     logger.info(f"  Overfitting (R²treino-R²teste): RF={m_rf['gap_overfit']:.4f} | XGB={m_xgb['gap_overfit']:.4f}")
 
+    # ── Robustez ao reflexo: XGBoost SEM nenhuma renda de vizinhança ───────────
+    # (a LOO já remove a inclusão mecânica do próprio indivíduo; aqui testa-se o caso
+    #  extremo — nem a renda dos vizinhos entra — para ver quanto do ajuste e do
+    #  ranking de importância dependia dessa variável.)
+    i_loo = FEATURES.index("media_renda_upa_loo_z")
+    keep = [i for i in range(len(FEATURES)) if i != i_loo]
+    xgb_sr = fit_xgb(X_tr[:, keep], y_tr)
+    m_sr = evaluate("XGBoost (sem renda da UPA)", y_te, xgb_sr.predict(X_te[:, keep]))
+    m_sr["R2_treino"] = round(r2_score(y_tr, xgb_sr.predict(X_tr[:, keep])), 4)
+    m_sr["gap_overfit"] = round(m_sr["R2_treino"] - m_sr["R²"], 4)
+    metrics.append(m_sr)
+    # rank da raça nesse modelo (mesmo subsample do SHAP principal)
+    try:
+        rng_sr = np.random.default_rng(RANDOM_STATE)
+        idx_sr = rng_sr.choice(len(X_tr), size=min(SHAP_SAMPLE, len(X_tr)), replace=False)
+        sv_sr = shap.TreeExplainer(xgb_sr).shap_values(X_tr[idx_sr][:, keep])
+        imp_sr = pd.DataFrame({"Feature": [FEATURE_LABELS.get(FEATURES[i], FEATURES[i]) for i in keep],
+                               "SHAP_mean_abs": np.abs(sv_sr).mean(0)}).sort_values("SHAP_mean_abs", ascending=False)
+        imp_sr = imp_sr.reset_index(drop=True)
+        imp_sr["rank"] = imp_sr.index + 1
+        imp_sr.to_csv(OUTPUTS_TB / "shap_importance_sem_renda_upa.csv", index=False)
+        _r = imp_sr[imp_sr["Feature"] == FEATURE_LABELS["negro"]]
+        logger.info(f"  [sem renda da UPA] R²={m_sr['R²']:.4f} | raça no rank "
+                    f"{int(_r['rank'].iloc[0]) if len(_r) else '?'} de {len(imp_sr)}")
+        del sv_sr
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"  SHAP do modelo sem renda da UPA falhou: {e}")
+    del xgb_sr
+
     # Salva métricas
     pd.DataFrame(metrics).to_csv(OUTPUTS_TB / "ml_performance.csv", index=False)
 
-    # ── Baseline OLS (mesma partição) — ganho real do ML sobre a econometria ──
-    base_ols = fit_ols_baseline(X_tr, y_tr, X_te, y_te)
-    base_rows = [
-        base_ols,
-        {"Modelo": "Random Forest", "R2_teste": m_rf["R²"], "MAE_teste": m_rf["MAE"], "RMSE_teste": m_rf["RMSE"]},
-        {"Modelo": "XGBoost",       "R2_teste": m_xgb["R²"], "MAE_teste": m_xgb["MAE"], "RMSE_teste": m_xgb["RMSE"]},
-    ]
-    df_baseline = pd.DataFrame(base_rows)
-    df_baseline["ganho_R2_vs_OLS"] = (df_baseline["R2_teste"] - base_ols["R2_teste"]).round(4)
-    df_baseline.to_csv(OUTPUTS_TB / "ml_baseline_comparacao.csv", index=False)
-    logger.info(
-        f"  Ganho de R² sobre OLS: RF={df_baseline.loc[1,'ganho_R2_vs_OLS']:.4f} | "
-        f"XGB={df_baseline.loc[2,'ganho_R2_vs_OLS']:.4f}"
-    )
-
-    # ── Validação cruzada k-fold (robustez de protocolo além do hold-out) ─────
-    if RUN_CV:
-        cross_validate_models(df_full)
-
     # ── SHAP — Random Forest ───────────────────────────────────────────────────
     logger.info("--- SHAP: Random Forest ---")
-    shap_rf, X_shap_rf, df_shap_rf, exp_rf = compute_shap(rf, X_tr, df_full, "RF")
+    shap_rf, X_shap_rf, df_shap_rf, exp_rf = compute_shap(rf, X_tr, df_full, "RF", pos_tr)
     plot_shap_beeswarm(shap_rf, X_shap_rf, "RF")
     imp_rf = plot_shap_bar(shap_rf, X_shap_rf, "RF")
     plot_shap_dependence_negro(shap_rf, X_shap_rf, "RF")
@@ -634,21 +618,16 @@ def main():
     # ── SHAP — XGBoost ─────────────────────────────────────────────────────────
     logger.info("--- SHAP: XGBoost ---")
     shap_xgb, X_shap_xgb, df_shap_xgb, exp_xgb = compute_shap(
-        xgb_model, X_tr, df_full, "XGB"
+        xgb_model, X_tr, df_full, "XGB", pos_tr
     )
     plot_shap_beeswarm(shap_xgb, X_shap_xgb, "XGB")
     imp_xgb = plot_shap_bar(shap_xgb, X_shap_xgb, "XGB")
     plot_shap_dependence_negro(shap_xgb, X_shap_xgb, "XGB")
     plot_shap_waterfall_cases(xgb_model, exp_xgb, X_shap_xgb, df_shap_xgb, "XGB")
 
-    # ── Bootstrap de estabilidade dos valores SHAP (XGBoost) ──────────────────
-    feat_names = [FEATURE_LABELS.get(f, f) for f in FEATURES]
-    df_shap_boot = bootstrap_shap_ci(shap_xgb, feat_names, B=N_SHAP_BOOTSTRAP)
-    logger.info(
-        f"  SHAP bootstrap — top 3: "
-        + ", ".join(f"{r.Feature}=[{r.ci_lo:.4f}; {r.ci_hi:.4f}]"
-                     for _, r in df_shap_boot.head(3).iterrows())
-    )
+    # ── Média SHAP da raça com sinal, por grupo ────────────────────────────────
+    # (a tabela comparada guarda só |SHAP|; a direção do efeito sai daqui)
+    salvar_shap_negro_por_grupo(shap_rf, X_shap_rf, shap_xgb, X_shap_xgb)
 
     # ── Tabela comparada ───────────────────────────────────────────────────────
     imp_table = build_importance_table(imp_rf, imp_xgb)

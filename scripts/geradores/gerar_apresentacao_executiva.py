@@ -11,6 +11,15 @@ _os.chdir(_Path(__file__).resolve().parents[2])
 _sys.path.insert(0, _os.getcwd())
 # --- fim bootstrap ---
 
+# SUPERADO: deck executivo de 14 slides com a narrativa de três barreiras e cinco métodos, anterior ao recorte de escopo.
+# O entregável atual sai de tcc/scripts/gerar_apresentacao_executiva.py, que lê os números dos csv.
+# A trava evita sobrescrever o arquivo bom; escapatória para o branch
+# mestrado-extenso.
+if _os.environ.get("PERMITIR_GERADOR_SUPERADO") != "1":
+    print("gerar_apresentacao_executiva.py está SUPERADO: use tcc/scripts/gerar_apresentacao_executiva.py.\n"
+          "Para rodar assim mesmo: PERMITIR_GERADOR_SUPERADO=1")
+    _sys.exit(1)
+
 import sys; sys.stdout.reconfigure(encoding='utf-8')
 from pathlib import Path
 from pptx import Presentation

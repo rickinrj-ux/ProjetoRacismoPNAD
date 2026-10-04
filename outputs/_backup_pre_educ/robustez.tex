@@ -1,0 +1,40 @@
+\begin{table}[!ht]
+\centering
+\caption{Testes de robustez e diagnóstico. Cada linha traz o que foi
+verificado, o resultado e a providência tomada. Valores extraídos dos
+mesmos csv que alimentam as demais tabelas.}
+\label{tab:robustez}
+\small
+\begin{tabular}{p{4.1cm}p{5.3cm}p{4.9cm}}
+\toprule
+Verificação & Resultado & Providência \\
+\midrule
+Heterocedasticidade (Breusch--Pagan) & $R^2$ da regressão auxiliar: 0{,}061 e 0{,}065 & erro-padrão agrupado por UPA e bootstrap em blocos \\
+\addlinespace[2pt]
+Forma funcional (RESET) & ganho de $R^2$ com potências do predito: 0{,}0009 a 0{,}0038 & rejeição sem relevância prática; forma mantida \\
+\addlinespace[2pt]
+Multicolinearidade (VIF) & VIF de \texttt{negro} $=$ 1{,}36; 2 preditores acima de 10, todos do bloco educacional & colinearidade por construção; não atinge o coeficiente de interesse \\
+\addlinespace[2pt]
+Estrutura multinível (teste de razão de verossimilhança) & ICC da UPA no modelo nulo $=$ 0{,}369 & nível de bairro justificado (limiar de 5\%) \\
+\addlinespace[2pt]
+Método de estimação (ML vs.\ REML) & $\hat\tau^2$ da UPA: 0{,}33705 (ML) e 0{,}33706 (REML) & coincidem com $N$ de milhões; ML usado para os testes aninhados \\
+\addlinespace[2pt]
+Confundidor não observado (Konfound/ITCV) & 99{,}0\% das estimativas teriam de ser viés para anular o achado & achado robusto a confundimento plausível \\
+\addlinespace[2pt]
+Confundidor não observado (E-value) & E-value entre 2{,}23 e 2{,}53 & um confundidor precisaria dessa força com raça e desfecho \\
+\addlinespace[2pt]
+Sobreajuste (treino vs.\ teste) & maior diferença de $R^2$: 0{,}0091 & partição 80/20 e validação cruzada $k$-\textit{fold} \\
+\addlinespace[2pt]
+Validação cruzada ($k=5$) & $R^2$ médio entre \textit{folds}: 0{,}6279 & hiperparâmetros escolhidos por CV, não por conveniência \\
+\addlinespace[2pt]
+Balanceamento e suporte comum & maior diferença padronizada entre grupos: 1{,}47 & desequilíbrio concentrado no contexto de bairro, absorvido pelo nível 2 \\
+\addlinespace[2pt]
+Especificação do nível de estado & coeficiente racial com UF aleatória: −0{,}1102 & igual ao da UF como efeito fixo; resultado não depende da escolha \\
+\addlinespace[2pt]
+Vazamento das médias de contexto & médias do bairro e do estado calculadas sem a própria observação & evita que a raça do indivíduo entre no regressor que o descreve \\
+\addlinespace[2pt]
+Dependência intragrupo (Moulton) & regressores que variam no nível da UPA & erro-padrão agrupado por UPA em todos os modelos \\
+\bottomrule
+\end{tabular}
+\par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
+\end{table}

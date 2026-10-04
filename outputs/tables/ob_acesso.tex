@@ -1,21 +1,31 @@
 \begin{table}[!ht]
 \centering
-\caption{Decomposição de Oaxaca--Blinder (twofold) do gap salarial racial --- especificação
-de \emph{acesso} (com ocupação e contexto de UPA). Efeito dotação: parcela explicada por
-diferenças em características observáveis, \emph{incluindo a posição ocupacional}. Efeito
-coeficiente: parcela não explicada (limite inferior da discriminação salarial \emph{dentro}
-da ocupação). População completa da PEA; erros-padrão por bootstrap de 200 replicações
-agrupadas por UF. Ressalva (Oaxaca \& Ransom, 1999): tratar a ocupação como dotação tende a
-\emph{subestimar} a discriminação total, pois a segregação ocupacional é, ela própria,
-discriminatória --- daí a complementaridade com o GLMM de acesso (Tabela~\ref{tab:glmm_glassceil}).}
+\caption{Decomposição de Oaxaca--Blinder (\emph{twofold}, referência: estrutura de preços
+dos brancos) do gap salarial racial em duas especificações. (A)~\emph{Capital humano +
+contexto}: escolaridade, idade, sexo, jornada, área urbana, contexto de UPA e efeitos fixos
+de UF --- os mesmos controles do HLM~M3; a parcela não explicada é comparável à da literatura.
+(B)~\emph{Acesso}: (A) + formalidade e grupo CBO tratados como dotações (os controles do M4) --- a parcela não explicada é a discriminação
+\emph{dentro} da ocupação, um limite inferior, pois a segregação ocupacional é ela própria
+discriminatória \cite{oaxaca_ransom1999} (ver o GLMM de acesso, Tabela~\ref{tab:glmm_glassceil}).
+População completa da PEA com renda positiva ($N = 7.699.278$; 41.459~UPAs).
+Erros-padrão entre parênteses: bootstrap em blocos por UPA (500 réplicas).}
 \label{tab:oaxaca_blinder}
-\begin{tabular}{llcc}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccc}
 \toprule
-Componente & Magnitude & \% do Gap & SE (bootstrap) \\
+& \multicolumn{2}{c}{(A) Sem ocupação} & \multicolumn{2}{c}{(B) Acesso (com ocupação)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Componente & log-pontos (SE) & \% do gap & log-pontos (SE) & \% do gap \\
 \midrule
-Gap Total (branco $-$ negro) & 0,4255 & 100,0 & --- \\
-Efeito Dotação (características, incl.\ ocupação) & 0,3566 & 83,8 & (0,0288) \\
-Efeito Coeficiente (não explicado / discriminação) & 0,0689 & 16,2 & (0,0121) \\
+Gap total (branco $-$ negro) & 0,4252 (0,0033) & 100,0 & 0,4252 (0,0032) & 100,0 \\
+Dotações (características observáveis) & 0,3491 (0,0033) & 82,1 & 0,3598 (0,0032) & 84,6 \\
+Não explicado (retornos / discriminação) & 0,0761 (0,0012) & 17,9 & 0,0654 (0,0011) & 15,4 \\
 \bottomrule
 \end{tabular}
+}
+\par\smallskip
+\footnotesize\emph{Como ler:} em cada especificação, Dotações $+$ Não explicado $=$ Gap total.
+De (A) para (B), parte do ``não explicado'' migra para ``dotações'' porque a ocupação passa a
+ser tratada como característica --- é exatamente a parcela da discriminação que opera pela
+\emph{porta de entrada}, e não pelo salário.
 \end{table}

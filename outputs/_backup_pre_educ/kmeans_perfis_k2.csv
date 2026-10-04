@@ -1,0 +1,3 @@
+cluster,N,% total,% Negro,% Mulher,% Empregado,log_Renda,Renda Bruta (R$),% Medio Compl.,% Superior Compl.,% Pos-Grad.,PctNegroUPA_z,DesempregoUPA_z,Descricao
+0,4560705,59.27,82.7,39.6,100.0,6.9896,1482.5248,0.0385,0.3116,0.0103,0.5242,0.2746,Cluster 0: renda media (83% negros)
+1,3133493,40.73,21.1,44.2,100.0,7.829,3603.198,0.0494,0.1467,0.004,-1.023,-0.6093,Cluster 1: alta renda (21% negros)

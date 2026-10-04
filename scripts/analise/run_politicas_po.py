@@ -468,7 +468,7 @@ def analise_sensibilidade():
     fig, ax = plt.subplots(figsize=(12, 5))
     x_pos = np.arange(len(POLITICAS))
     df_plot = df_sens.sort_values("BangForBuck", ascending=True)
-    width = 0.35
+    width = 0.35  # sem-fossil: largura de barra
     b1 = ax.barh(x_pos - width/2, df_plot["ΔGap_sal"],  width, label="Gap salarial",  color="#2166AC", alpha=0.85)
     b2 = ax.barh(x_pos + width/2, df_plot["ΔGap_acesso"], width, label="Gap acesso",  color="#D73027", alpha=0.85)
     ax.set_yticks(x_pos)

@@ -1,2 +1,2 @@
-b_q10,b_q50,b_q90,diff_q90_q10,se_boot,ci_lo_boot,ci_hi_boot,z_stat,p_valor_z,wald_chi2_2,p_valor_wald,n_boot,boot_frac
--0.08321,-0.08128,-0.12347,-0.04026,0.00723,-0.05218,-0.02406,-5.572,0.0,69.279,0.0,200,0.05
+b_q10,b_q50,b_q90,diff_q90_q10,se_boot,se_boot_raw,ci_lo_boot,ci_hi_boot,z_stat,p_valor_z,z_stat_raw,p_valor_z_raw,wald_chi2_2,p_valor_wald,n_boot,boot_frac,boot_blocos,n_upas,m_upas,escala_sqrt_m_G
+-0.04367,-0.05036,-0.08754,-0.04387,0.0017,0.00979,-0.04719,-0.04054,-25.869,0.0,-4.479,7e-06,930.418,0.0,200,0.03,UPA,41459,1243,0.17315

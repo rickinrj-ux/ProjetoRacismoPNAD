@@ -1,0 +1,13 @@
+\begin{table}
+\caption{Correção de Seleção Amostral — Heckman Two-Step. OLS (sem correção): estimativa convencional que ignora que desempregados são excluídos da amostra. Heckman (com IMR): $\hat{\beta}_{negro}$ corrigido pela Razão de Mills Inversa $\lambda = \hat{\phi}(X\hat{\gamma}) / \hat{\Phi}(X\hat{\gamma})$. Variável de exclusão: \texttt{media\_renda\_upa\_z} (renda média da UPA, não incluída na equação de salários). SEs clusterizados por UF. $\lambda$ significativo implica viés de seleção confirmado. PNAD Contínua 2016--2025.}
+\label{tab:heckman_comparacao}
+\begin{tabular}{lrllrlll}
+\toprule
+Modelo & β\_negro & SE (cluster-UF) & p-valor & Gap (\%) & IMR (λ) & IMR p-valor & Nota \\
+\midrule
+OLS (sem correção) & -0.102150 & 0.003430 & 0.000000 & -9.710000 & — & — & Estimativa convencional — não corrige seleção \\
+Heckman (com IMR) & -0.077000 & 0.005130 & 0.000000 & -7.410000 & -1.985240 & 0.000000 & Corrigido por seleção — λ significativo (viés confirmado) \\
+Δ (Heckman − OLS) & 0.025150 & — & — & 2.300000 & — & — & Δ > 0 → OLS superestima o gap: negros empregados aceitam salários mais baixos (seleção por tolerância à discriminação salarial) → OLS confunde discriminação com mecanismo de seleção no acesso ao emprego \\
+\bottomrule
+\end{tabular}
+\end{table}

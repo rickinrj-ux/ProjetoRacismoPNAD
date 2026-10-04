@@ -1,0 +1,30 @@
+\begin{table}[H]
+\centering
+\caption{Regressão quantílica: coeficiente $\hat{\beta}_{\text{negro}}$ por quantil e sexo.
+         Gap~(\%) $= (e^{\hat{\beta}}-1)\times 100$.
+         M3: controles individuais + contexto UPA + UF efeito fixo. População completa.
+         Entre parênteses (coluna Global): erro-padrão por bootstrap em blocos por UPA.
+         $^{***}p<0{,}001$ em todos os quantis e grupos.}
+\label{tab:qr_melhorias}
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+& \multicolumn{2}{c}{Global} & \multicolumn{2}{c}{Homens} & \multicolumn{2}{c}{Mulheres} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Quantil & $\hat{\beta}$ (SE) & Gap~(\%) & $\hat{\beta}$ & Gap~(\%) & $\hat{\beta}$ & Gap~(\%) \\
+\midrule
+$\tau=0{,}10$ & $-0{,}0854$ (0{,}0020) & $-8{,}2\%$ & $-0{,}0631$ & $-6{,}1\%$ & $-0{,}1182$ & $-11{,}2\%$ \\
+$\tau=0{,}25$ & $-0{,}0754$ (0{,}0011) & $-7{,}3\%$ & $-0{,}0625$ & $-6{,}1\%$ & $-0{,}0933$ & $-8{,}9\%$ \\
+$\tau=0{,}50$ & $-0{,}0835$ (0{,}0011) & $-8{,}0\%$ & $-0{,}0762$ & $-7{,}3\%$ & $-0{,}0919$ & $-8{,}8\%$ \\
+$\tau=0{,}75$ & $-0{,}1072$ (0{,}0014) & $-10{,}2\%$ & $-0{,}1045$ & $-9{,}9\%$ & $-0{,}1080$ & $-10{,}2\%$ \\
+$\tau=0{,}90$ & $-0{,}1276$ (0{,}0019) & $-12{,}0\%$ & $-0{,}1287$ & $-12{,}1\%$ & $-0{,}1196$ & $-11{,}3\%$ \\
+$\tau=0{,}95$ & $-0{,}1363$ (0{,}0023) & $-12{,}7\%$ & $-0{,}1368$ & $-12{,}8\%$ & $-0{,}1292$ & $-12{,}1\%$ \\
+\midrule
+\textbf{Δ (q90−q10)} & $\mathbf{-4{,}22\text{pp}}^{***}$ (0{,}0024) & \multicolumn{2}{c}{$Z = -17{,}39$} & \multicolumn{2}{c}{$p < 0{,}001$} \\
+\bottomrule
+\end{tabular}
+\note{Teste de heterogeneidade quantílica (Koenker-Bassett style):
+      $H_0$: $\hat{\beta}(q)$ constante para todo $q$.
+      SE por bootstrap em blocos por UPA, ``$m$ de $n$'' ($B=200$; $m=1.229$ das $40.968$ UPAs por réplica;
+      SE escalado por $\sqrt{m/G}$, Bickel \& Sakov, 2008). Sem a escala (conservador): $Z=-3{,}01$, $p = 0{,}003$.}
+\end{table}

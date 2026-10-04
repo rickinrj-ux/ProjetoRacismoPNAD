@@ -1,0 +1,5 @@
+Teste,Estatística,IC 95%,p-valor,Conclusão
+WLS (Ponderado por 1/SE²),δ = 0.000757 log-pt/ano,"[-0.000396, 0.001910]",0.1686,Gap estável (p>0.05)
+Chow (quebra 2020),"F(2, 6) = 30.392",—,0.0007,Quebra estrutural detectada
+Mann-Kendall,τ = 0.2000  (Z = 0.716),—,0.4743,Tendência crescente (não significativa)
+AR(1) nos resíduos WLS,ρ = 0.4801  (DW = 0.810),—,0.1909,Sem autocorrelação significativa

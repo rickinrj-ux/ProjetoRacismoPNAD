@@ -47,8 +47,11 @@ relatorio_tcc_overleaf.zip
 *.fdb_latexmk
 *.synctex.gz
 
-# ─── Configurações locais do Claude Code ───
-.claude/
+# ─── Configurações locais do Claude Code (skills e hooks do projeto são versionados) ───
+.claude/*
+!.claude/skills/
+!.claude/settings.json
+.claude/skills/**/__pycache__/
 
 # ─── Temporários do Office (Word/Excel abertos) ───
 ~$*
@@ -71,3 +74,6 @@ Thumbs.db
 
 # ─── MLflow tracking local (não versionar) ───
 mlruns/
+
+# cache de ajustes do HLM (um modelo por processo; regerável)
+outputs/_cache/

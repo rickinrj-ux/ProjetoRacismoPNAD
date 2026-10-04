@@ -56,7 +56,7 @@ cat(sprintf("  N=%s | UFs=%d | UPAs=%s\n", format(nrow(df), big.mark=","),
             n_distinct(df$UF), format(n_distinct(df$UPA), big.mark=",")))
 print(round(prop.table(table(df$grupo_rg))*100, 1))
 
-CTRL <- paste("educ_medio_completo + educ_superior_completo + educ_pos_graduacao + educ_missing",
+CTRL <- paste("educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao",
               "+ idade_c + I(idade_c^2) + horas_c",
               "+ emprego_formal + setor_publico + conta_propria + trab_domestico",
               "+ renda_media_upa_c + edu_media_upa_c")

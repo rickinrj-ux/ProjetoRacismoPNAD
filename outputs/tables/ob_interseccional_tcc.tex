@@ -2,22 +2,27 @@
 \centering
 \caption{Decomposição interseccional (raça $\times$ gênero) do gap de rendimento
 \emph{vs.}\ o Homem Branco (grupo de referência). Dotações: parcela explicada por
-características observáveis; Retornos: parcela não explicada (discriminação). Penalidade
-extra: o quanto o gap da Mulher Negra excede a soma das penalidades de raça e de gênero
-isoladas (efeito interseccional puro, Crenshaw, 1989). PNAD Contínua, população completa.}
+características observáveis; Retornos: parcela não explicada (discriminação). Gap (log):
+a mesma desvantagem em log-pontos, a escala em que os efeitos de raça e de gênero se somam
+\cite{crenshaw1989}. PNAD Contínua, população completa
+($N$ do grupo de referência --- homens brancos --- na última linha da nota). Entre
+parênteses: erro-padrão por bootstrap em blocos por UPA.}
 \label{tab:interseccional}
-\begin{tabular}{lrrrr}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrr}
 \toprule
-Grupo & Gap vs HB (\%) & Dotações (\%) & Retornos (\%) & Penal.\ extra (p.p.) \\
+Grupo & Gap vs HB (\%) & Gap (log) & Dotações (\%) & Retornos (\%) & $N$ do grupo \\
 \midrule
-Mulher Branca & 46,6 & −8,9 & 108,9 & --- \\
-Homem Negro & 40,3 & 70,9 & 29,1 & --- \\
-Mulher Negra & 96,4 & 29,6 & 70,4 & 9,5 \\
+Mulher Branca & 19,9 (0,2) & 0,182 & −97,0 (1,8) & 197,0 (1,8) & 1.429.355 \\
+Homem Negro & 56,4 (0,5) & 0,447 & 77,2 (0,3) & 22,8 (0,3) & 2.662.039 \\
+Mulher Negra & 80,7 (0,6) & 0,592 & 27,4 (0,4) & 72,6 (0,4) & 1.765.796 \\
 \bottomrule
 \end{tabular}
+}
 \par\smallskip
 \footnotesize\emph{Como ler:} ``Gap vs HB'' é a desvantagem de renda de cada grupo
 \emph{vs.}\ o Homem Branco; Dotações $+$ Retornos $=100\%$ do gap. A Mulher Negra tem o
-maior gap (96,4\%) e ainda uma penalidade \emph{extra} de 9,5 p.p.\ que não se reduz à
-soma de ``ser negro'' e ``ser mulher'' --- a marca da interseccionalidade.
+maior gap. Em log-pontos, o gap da Mulher Negra (0,592) fica abaixo da soma dos gaps da Mulher Branca e do Homem Negro (0,629): as desvantagens de raça e de gênero se acumulam sem se multiplicar --- a interação é sub-aditiva, como no modelo de acesso. Somar os percentuais daria a impressão contrária, porque a escala percentual é convexa. O sinal negativo das dotações da Mulher
+Branca indica que suas características observáveis \emph{superam} as do homem branco: todo
+o gap vem de retornos diferenciais. Grupo de referência: 1.842.088 homens brancos.
 \end{table}

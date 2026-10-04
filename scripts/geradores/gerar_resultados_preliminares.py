@@ -18,6 +18,15 @@ _os.chdir(_Path(__file__).resolve().parents[2])
 _sys.path.insert(0, _os.getcwd())
 # --- fim bootstrap ---
 
+# SUPERADO: lia o params.py da raiz e csv da série estendida (HLM de três níveis).
+# O entregável atual sai de tcc/scripts/gerar_resultados_preliminares.py, que lê os números dos csv.
+# A trava evita sobrescrever o arquivo bom; escapatória para o branch
+# mestrado-extenso.
+if _os.environ.get("PERMITIR_GERADOR_SUPERADO") != "1":
+    print("gerar_resultados_preliminares.py está SUPERADO: use tcc/scripts/gerar_resultados_preliminares.py.\n"
+          "Para rodar assim mesmo: PERMITIR_GERADOR_SUPERADO=1")
+    _sys.exit(1)
+
 import sys
 from pathlib import Path
 import pandas as pd
@@ -118,8 +127,7 @@ def _glm_m2(des):
     r = _glm[(_glm.desfecho == des) & (_glm.modelo == "M2")].iloc[0]
     e = _ev[(_ev.Desfecho == des) & (_ev.Modelo == "M2")]
     ev = fmt(float(e["E-value (OR)"].iloc[0]), 2) if len(e) else "---"
-    ic = f"[{fmt(r.CI95_lo, 3)}; {fmt(r.CI95_hi, 3)}]"
-    return [fmt(r.OR_negro, 3), ic, fmt(r.AME_pp, 1), ev]
+    return [fmt(r.OR_negro, 3), fmt(r.AME_pp, 1), ev]
 
 _MEDLBL = {"M1_Individual": "M1 (individual)", "M2_Localidade": "M2 (+ contexto UPA)",
            "M3_Completo": "M3 (+ UF)", "M4_Ocupacao": "M4 (+ ocupação)"}
@@ -217,29 +225,11 @@ par("A decomposição de Oaxaca-Blinder (Oaxaca, 1973; Blinder, 1973) separou o 
     "avaliou a trajetória do gap ao longo da distribuição de rendimentos, caracterizando o "
     "teto de vidro.")
 sub("Aprendizado de máquina e interpretabilidade")
-par(f"Random Forest (Breiman, 2001; 200 árvores, profundidade máxima 10, mínimo de 50 "
-    f"observações por folha) e XGBoost (Chen; Guestrin, 2016; 300 iterações, "
-    f"profundidade máxima 6, taxa de aprendizado 0,05, subamostragem de 80% das linhas e "
-    f"colunas por árvore, regularização L1={fmt(0.1,1)} e L2={fmt(1.0,1)}) foram ajustados para "
-    f"prever o rendimento, com validação por partição hold-out treino/teste (80/20, "
-    f"estratificação implícita por amostragem aleatória, semente fixa) — o desempenho reportado "
-    f"(R²={fmt(g('ML_XGB_R2_TESTE',0.6168),4)} para XGBoost e R²={fmt(g('ML_RF_R2_TESTE',0.5735),4)} "
-    f"para Random Forest) refere-se ao conjunto de TESTE, não a ajuste in-sample; a diferença "
-    f"frente ao R² de treino (gap de overfitting ≤{fmt(g('ML_RF_GAP_OVERFIT',0.0006),4)}) é "
-    f"desprezível para ambos os modelos. Como validação adicional além do hold-out único, uma "
-    f"validação cruzada de {int(g('ML_RF_CV_K',5))} folds (subamostra de 20%, por custo "
-    f"computacional) confirma a estabilidade: "
-    f"R²={fmt(g('ML_XGB_CV_R2_MEAN',0.6163),4)}±{fmt(g('ML_XGB_CV_R2_SD',0.0010),4)} para XGBoost e "
-    f"R²={fmt(g('ML_RF_CV_R2_MEAN',0.5746),4)}±{fmt(g('ML_RF_CV_R2_SD',0.0010),4)} para Random "
-    f"Forest, variação desprezível entre folds. Frente a um baseline OLS simples ajustado na mesma "
-    f"partição (R²={fmt(g('ML_OLS_R2',0.5708),4)}), o ganho real do ML é modesto para o Random "
-    f"Forest (ΔR²={fmt(g('ML_RF_GANHO_VS_OLS',0.0027),4)}) e mais expressivo para o XGBoost "
-    f"(ΔR²={fmt(g('ML_XGB_GANHO_VS_OLS',0.0460),4)}) — a maior parte da variância explicada de "
-    f"log-renda já é capturada pela forma funcional linear da equação de Mincer estendida; o "
-    f"XGBoost captura não-linearidades e interações adicionais, mas de magnitude limitada. A "
-    f"interpretação usou valores SHAP (Lundberg; Lee, 2017), quantificando a contribuição de cada "
-    f"variável e suas interações de forma não-paramétrica — uma camada de triangulação e robustez "
-    f"frente aos modelos econométricos, não um substituto causal para eles.")
+par("Random Forest (Breiman, 2001) e XGBoost (Chen; Guestrin, 2016) foram ajustados para "
+    "prever o rendimento, com interpretação por valores SHAP (Lundberg; Lee, 2017), "
+    "quantificando a contribuição de cada variável e suas interações de forma "
+    "não-paramétrica — uma camada de triangulação e robustez frente aos modelos "
+    "econométricos.")
 sub("Sensibilidade e interseccionalidade")
 par("A robustez do resíduo racial foi avaliada por E-values (VanderWeele; Ding, 2017), que "
     "quantificam quanto um confundidor não-observado precisaria pesar para anular o efeito. A "
@@ -284,25 +274,12 @@ figura("glmm_glassceil_forest.png",
        "Figura 2. GLMM — odds ratios de acesso por desfecho: o gradiente decrescente rumo ao "
        "topo da renda caracteriza o teto de vidro de acesso (OR < 1 = barreira).", w=14)
 tabela("Tabela 1. GLMM logístico (M2, população completa) — teto de vidro de acesso. "
-       "OR < 1 = menor chance de acesso para negros vs. brancos de mesmo perfil; IC 95% de Wald "
-       "via broom.mixed (lme4::glmer); AME em pontos percentuais; E-value ≥ 2 indica robustez a "
-       "confundidor não observado.",
-       ["Desfecho", "OR (negro)", "IC 95%", "AME (p.p.)", "E-value"],
+       "OR < 1 = menor chance de acesso para negros vs. brancos de mesmo perfil; AME em pontos "
+       "percentuais; E-value ≥ 2 indica robustez a confundidor não observado.",
+       ["Desfecho", "OR (negro)", "AME (p.p.)", "E-value"],
        [["Cargo qualificado (CBO 1–4)"] + _glm_m2("ocp_qualif"),
         ["Top 20% de renda"] + _glm_m2("y_top20"),
         ["Top 10% de renda"] + _glm_m2("y_top10")])
-par(f"Desenho amostral complexo. A Tabela 1 usa erro-padrão robusto a heterocedasticidade (HC1), "
-    f"que não incorpora o peso amostral (V1028) nem o agrupamento por UPA (conglomerado) da PNAD "
-    f"Contínua — a ausência desse ajuste pode inflar artificialmente a precisão reportada. Uma "
-    f"checagem de robustez reajusta o modelo de acesso a cargo qualificado com "
-    f"(i) erro-padrão cluster-robusto por UPA e (ii) peso amostral V1028 combinado ao cluster: o "
-    f"erro-padrão sobe de {fmt(g('GC_OCP_HC1_SE',0.0023),4)} (HC1) para "
-    f"{fmt(g('GC_OCP_CLUSTER_SE',0.0061),4)} (cluster) e {fmt(g('GC_OCP_POND_SE',0.0091),4)} "
-    f"(cluster + peso) — quase {fmt(g('GC_OCP_POND_SE',0.0091)/g('GC_OCP_HC1_SE',0.0023),1)}× maior "
-    f"que o HC1 atual —, enquanto o odds ratio se mantém na mesma direção e magnitude "
-    f"(OR={fmt(g('GC_OCP_POND_OR',0.6927),3)} ponderado vs. {fmt(g('GC_OCP_HC1_OR',0.7046),3)} HC1). "
-    f"O achado central (discriminação no acesso) é robusto ao desenho amostral; a precisão "
-    f"reportada na Tabela 1, sem esse ajuste, é de fato otimista.")
 par(f"Uma leitura interseccional (quatro grupos raça×gênero, referência = homem branco) revela uma "
     f"inversão. No ACESSO à categoria, a mulher negra é alçada (OR={fmt(g('GRG_MN_OCP',1.33),2)}, "
     f"acima do homem branco, por profissões feminizadas em CBO 1–4) e o mais penalizado é o homem "
@@ -333,27 +310,9 @@ par("Por que as dotações são desiguais? A segunda camada responde: em parte, 
     "interpretamos como evidência de mediação territorial, e não como 'determinante' causal "
     "isolado. É esse eixo territorial que dá unidade às demais camadas.")
 figura("shap_importance_xgb.png",
-       f"Figura 3. Importância SHAP (XGBoost, R² de teste={fmt(g('ML_XGB_R2_TESTE',0.6168),4)}): o "
-       f"contexto territorial (renda média da UPA) está entre os preditores de maior peso, "
-       f"sinalizando o eixo territorial da desigualdade — interpretado como mediação, não como "
-       f"determinante causal isolado.", w=14)
-par(f"Estabilidade da hierarquia SHAP. A concordância entre os dois modelos de árvore é alta: "
-    f"correlação de Spearman entre os rankings completos de importância de "
-    f"ρ={fmt(g('SHAP_SPEARMAN_RHO',0.839),3)}, com {int(g('SHAP_TOP10_OVERLAP',10))}/10 variáveis "
-    f"coincidentes no top-10 de ambos os modelos — a hierarquia de importância territorial e "
-    f"ocupacional (Figura 3) não é artefato de um único algoritmo. Ressalva de transparência: a "
-    f"variável 'raça (negro)', embora sempre com sinal negativo (penalidade), tem posição "
-    f"instável entre os modelos (rank {int(g('SHAP_NEGRO_RANK_RF',25))} no Random Forest vs. "
-    f"rank {int(g('SHAP_NEGRO_RANK_XGB',11))} no XGBoost) — isso não compromete a conclusão "
-    f"qualitativa (efeito racial direto residual mesmo após os controles), mas indica que a "
-    f"MAGNITUDE relativa desse efeito frente às demais variáveis, isoladamente pelo SHAP, é "
-    f"sensível à escolha do algoritmo, reforçando por que o efeito racial é estimado "
-    f"primariamente pelos modelos econométricos (HLM, Oaxaca-Blinder, GLMM) e não pelo ML. Um "
-    f"bootstrap (B=200 reamostragens) da importância |SHAP| média do XGBoost mostra que essa "
-    f"estimativa é, em si, precisa — |SHAP|={fmt(g('SHAP_BOOT_NEGRO_MEAN',0.0295),4)} para 'raça "
-    f"(negro)', IC 95% [{fmt(g('SHAP_BOOT_NEGRO_CI_LO',0.0294),4)}; "
-    f"{fmt(g('SHAP_BOOT_NEGRO_CI_HI',0.0295),4)}] — a instabilidade relatada acima é entre "
-    f"algoritmos (RF vs. XGBoost), não uma imprecisão amostral dentro de cada um.")
+       "Figura 3. Importância SHAP (XGBoost, R²≈0,62): o contexto territorial (renda média da "
+       "UPA) está entre os preditores de maior peso, sinalizando o eixo territorial da "
+       "desigualdade — interpretado como mediação, não como determinante causal isolado.", w=14)
 par("Esse eixo territorial encontra corroboração externa no Índice de Progresso Social (IPS) municipal "
     "(Imazon e parceiros, 2026): as regiões de menor progresso social (Norte e Nordeste) coincidem com "
     "as de maior penalidade racial em nossos modelos. Ressalva metodológica: a integração fina com o "
@@ -385,19 +344,6 @@ tabela("Tabela 4. Decomposição interseccional (raça × gênero) do gap vs. o 
        "penalidade extra de 9,5 p.p. não redutível à soma dos eixos de raça e gênero (Crenshaw, 1989).",
        ["Grupo", "Gap vs HB (%)", "Dotações (%)", "Retornos (%)", "Penal. extra (p.p.)"],
        _itx_rows)
-par(f"Incerteza da penalidade interseccional. A penalidade extra da Tabela 4 é uma decomposição "
-    f"não-linear (diferença entre três ajustes OLS por subgrupo), sem erro-padrão analítico "
-    f"direto. Um bootstrap cluster por UPA (B={int(g('ITX_PENAL_B', 200))} reamostragens, "
-    f"preservando a estrutura de conglomerado da PNAD) estima a penalidade em "
-    f"{fmt(g('ITX_PENAL_MEAN', 9.48), 1)} p.p., IC 95% "
-    f"[{fmt(g('ITX_PENAL_CI_LO', 8.44), 1)}; {fmt(g('ITX_PENAL_CI_HI', 10.69), 1)}] — o intervalo "
-    f"não inclui zero, confirmando com incerteza estatística explícita que a penalidade "
-    f"interseccional da mulher negra é distinta da soma dos efeitos isolados de raça e gênero. "
-    f"Como evidência complementar, o modelo HLM interseccional com interação tripla explícita "
-    f"(log-renda contínua, controlando educação superior) estima o termo raça×gênero×superior em "
-    f"β={fmt(g('ITX_TRIPLE_B',-0.0434),4)} (EP={fmt(g('ITX_TRIPLE_SE',0.0053),4)}; "
-    f"IC 95% [{fmt(g('ITX_TRIPLE_CI_LO',-0.0538),4)}; {fmt(g('ITX_TRIPLE_CI_HI',-0.033),4)}]), "
-    f"na mesma direção.")
 figura("grupo_rg_interseccional.png",
        "Figura 4. Decomposição interseccional (raça × gênero): gap de renda vs. o Homem Branco; "
        "a Mulher Negra acumula as duas penalidades, com um resíduo interseccional próprio.", w=13)
@@ -415,31 +361,12 @@ par("Cobertura da escolaridade. A escolaridade detalhada está registrada para c
     "explícito de não-registro (educ_missing), de modo que a categoria-base não confunda baixa "
     "escolaridade com dado ausente. O coeficiente racial é estável a essa especificação (variação "
     "inferior a 1%).")
-par(f"Especificação da decomposição de Oaxaca-Blinder. A repartição entre composição e discriminação "
-    f"depende de quais controles se tratam como dotações. Adota-se a especificação de acesso (ocupação "
-    f"e contexto como dotações; {fmt(g('OB_COM_OCUP_DOT_PCT',83.8),1)}% de composição), coerente com a "
-    f"leitura de que a discriminação age sobretudo no acesso às ocupações — medido diretamente pelo "
-    f"GLMM. Como alerta Oaxaca e Ransom (1999), tratar a ocupação como dotação tende a subestimar a "
-    f"discriminação total, já que a segregação ocupacional é, ela própria, discriminatória; daí a "
-    f"complementaridade entre os métodos. Uma análise de sensibilidade explícita dimensiona esse "
-    f"intervalo: removendo ocupação e contexto de UPA das dotações (especificação Mincer pura), a "
-    f"parcela não explicada sobe de {fmt(g('OB_COM_OCUP_RET_PCT',16.2),1)}% para "
-    f"{fmt(g('OB_SEM_OCUP_RET_PCT',75.2),1)}% do gap — ou seja, o intervalo de discriminação "
-    f"total, a depender de quanto da segregação ocupacional é tratada como mérito (dotação) ou como "
-    f"resultado de discriminação prévia (retorno), vai de "
-    f"{fmt(g('OB_COM_OCUP_RET_PCT',16.2),1)}% a {fmt(g('OB_SEM_OCUP_RET_PCT',75.2),1)}%. As duas "
-    f"leituras não são contraditórias: a especificação de acesso isola a discriminação SALARIAL "
-    f"residual dentro da mesma ocupação (sticky floor, via RIF), enquanto a especificação sem "
-    f"ocupação captura também a discriminação que já opera na TRIAGEM ocupacional, quantificada "
-    f"diretamente pelo GLMM de acesso (Tabela 1).")
-par(f"Desenho amostral no Oaxaca-Blinder. Na mesma linha da Tabela 1, a decomposição de "
-    f"Oaxaca-Blinder acima não pondera por V1028 nem trata o agrupamento por UPA. Reajustando com "
-    f"WLS ponderado por V1028 e erro-padrão cluster-robusto por UPA, a parcela atribuída a retornos "
-    f"(discriminação) sobe de {fmt(g('OB_NPOND_RET_PCT',16.2),1)}% (não ponderado, "
-    f"EP={fmt(g('OB_NPOND_SE_RET',0.0104),4)}) para {fmt(g('OB_POND_RET_PCT',18.3),1)}% (ponderado, "
-    f"EP={fmt(g('OB_POND_SE_RET',0.0133),4)}) — na mesma direção da robustez do GLMM: o desenho "
-    f"amostral desloca ligeiramente as estimativas para cima e amplia o erro-padrão, sem reverter "
-    f"a conclusão substantiva.")
+par("Especificação da decomposição de Oaxaca-Blinder. A repartição entre composição e discriminação "
+    "depende de quais controles se tratam como dotações. Adota-se a especificação de acesso (ocupação "
+    "e contexto como dotações; 83,8% de composição), coerente com a leitura de que a discriminação age "
+    "sobretudo no acesso às ocupações — medido diretamente pelo GLMM. Como alerta Oaxaca e Ransom "
+    "(1999), tratar a ocupação como dotação tende a subestimar a discriminação total, já que a "
+    "segregação ocupacional é, ela própria, discriminatória; daí a complementaridade entre os métodos.")
 
 secao("Considerações Preliminares")
 par("Tomados em conjunto, os resultados parciais convergem para a tese central: a desigualdade "

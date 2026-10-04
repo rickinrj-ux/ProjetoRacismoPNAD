@@ -1,0 +1,28 @@
+\begin{table}[!ht]
+\centering
+\caption{GLMM logístico (lme4::\texttt{glmer}, intercepto aleatório de UPA e efeitos fixos de UF) --- teto de vidro ocupacional e salarial. \emph{Odds ratio} do coeficiente \texttt{negro} com IC~95\%, efeito marginal médio (AME: diferença média de probabilidade predita, em pontos percentuais), ICC da UPA $=\tau^2/(\tau^2+\pi^2/3)$ e E-value (VanderWeele \& Ding, 2017). Coluna final: OR do logit com efeitos fixos de UF e erro-padrão agrupado por UPA (robustez). População completa da PEA com renda positiva ($N = 7.694.092$; 40.965~UPAs). A3 acrescenta o vínculo (formalidade, setor público, conta própria, doméstico), que é desfecho da própria discriminação: limite inferior. Todos os OR com $p<0{,}001$; com $N$ desta ordem, a inferência relevante está nos IC e nos E-values.}
+\label{tab:glmm_glassceil}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccccc}
+\toprule
+Desfecho & Modelo & OR (IC 95\%) & AME (p.p.) & ICC$_{\text{UPA}}$ & E-value & E-value (IC) & OR logit-FE \\
+\midrule
+Cargo qualificado (CBO 1--4) & A1 individual + UF & 0,691 [0,688; 0,694] & −5,68 & 0,160 & 2,25 & 2,24 & 0,555 \\
+ & A2 + contexto do bairro & 0,697 [0,694; 0,700] & −5,55 & 0,122 & 2,23 & 2,21 & 0,703 \\
+ & A3 + vínculo (limite inf.) & 0,687 [0,684; 0,690] & −4,86 & 0,126 & 2,27 & 2,26 & 0,703 \\
+ & A4 + negro$\times$credencial & 0,684 [0,681; 0,687] & −4,86 & 0,126 & 2,28 & 2,27 & 0,697 \\
+\midrule
+Top 20\% de renda & A1 individual + UF & 0,667 [0,664; 0,670] & −5,18 & 0,220 & 2,36 & 2,35 & 0,540 \\
+ & A2 + contexto do bairro & 0,672 [0,669; 0,675] & −5,09 & 0,159 & 2,34 & 2,33 & 0,692 \\
+ & A3 + vínculo (limite inf.) & 0,672 [0,669; 0,675] & −4,67 & 0,165 & 2,34 & 2,33 & 0,692 \\
+ & A4 + negro$\times$credencial & 0,671 [0,667; 0,674] & −4,67 & 0,165 & 2,35 & 2,33 & 0,695 \\
+\midrule
+Top 10\% de renda & A1 individual + UF & 0,634 [0,630; 0,638] & −3,23 & 0,305 & 2,53 & 2,51 & 0,457 \\
+ & A2 + contexto do bairro & 0,640 [0,636; 0,644] & −3,15 & 0,219 & 2,50 & 2,48 & 0,656 \\
+ & A3 + vínculo (limite inf.) & 0,639 [0,635; 0,643] & −2,94 & 0,222 & 2,51 & 2,48 & 0,656 \\
+ & A4 + negro$\times$credencial & 0,645 [0,640; 0,649] & −2,93 & 0,222 & 2,48 & 2,45 & 0,664 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip
+\footnotesize\emph{Como ler:} OR $<1$ = menor chance de acesso para trabalhadores negros do que para brancos de mesmo perfil \emph{e do mesmo bairro}; quanto mais perto de zero, maior a barreira. O E-value é a força mínima de associação (razão de risco) que um confundidor não observado precisaria ter com a raça \emph{e} com o desfecho para anular o OR; o E-value (IC) faz o mesmo para o limite do intervalo. A coluna logit-FE mostra que a conclusão não depende da hipótese de efeitos aleatórios.
+\end{table}

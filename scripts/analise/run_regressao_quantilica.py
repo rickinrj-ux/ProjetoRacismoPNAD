@@ -23,6 +23,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import statsmodels.formula.api as smf
+import statsmodels.api as sm
+import patsy
+import gc
 import warnings
 warnings.filterwarnings('ignore')
 from pathlib import Path
@@ -36,14 +39,18 @@ SAMPLE_FRAC = None   # None = população completa
 SEED        = 42
 QUANTIS     = [0.10, 0.25, 0.50, 0.75, 0.90, 0.95]
 
+# --so-area roda apenas a quebra por tipo de área, que ajusta o M3 dentro de
+# cada fatia. Sem o flag, o script faz o percurso completo, como antes.
+SO_AREA     = "--so-area" in sys.argv
+
 COLS = [
-    "negro", "sexo_fem", "idade_c", "idade_sq",
-    "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao", "educ_cat",
+    "Ano", "negro", "sexo_fem", "idade_c", "idade_sq",
+    "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao", "educ_cat",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
-    "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
+    "horas_c", "log_horas", "urbano", "emprego_formal", "conta_propria", "trab_domestico",
     "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
     "ocp_servicos", "ocp_agro", "ocp_operario", "ocp_operador", "ocp_ffaa",
-    "log_renda", "renda_bruta", "pea", "UF",
+    "log_renda", "renda_bruta", "pea", "UF", "V1023",
 ]
 
 print("Carregando dados ...")
@@ -55,8 +62,9 @@ mask = (df["pea"] == 1) & (df["renda_bruta"] > 0) & (df["negro"].notna())
 df   = df[mask].copy()
 
 BASE_DROP = ["negro","sexo_fem","idade_c","idade_sq",
-             "educ_medio_completo","educ_superior_completo","educ_pos_graduacao",
-             "pct_negro_upa_z","tx_desemprego_upa_z","media_educ_upa_z","log_renda"]
+             "educ_fund_completo", "educ_medio_completo","educ_superior_completo","educ_pos_graduacao",
+             "pct_negro_upa_z","tx_desemprego_upa_z","media_educ_upa_z","log_renda",
+             "log_horas","urbano"]
 df = df.dropna(subset=BASE_DROP)
 
 if SAMPLE_FRAC:
@@ -71,10 +79,12 @@ HAS_OCC = all(c in df.columns for c in ["horas_c","emprego_formal","ocp_dirigent
           and df["horas_c"].notna().any()
 
 # ── Fórmulas ──────────────────────────────────────────────────────────────────
-_IND = ("negro + educ_medio_completo + educ_superior_completo + educ_pos_graduacao + educ_missing"
-        " + idade_c + idade_sq + sexo_fem")
-_UPA = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
-_OCC = ("horas_c + emprego_formal + conta_propria + trab_domestico"
+# E2.5 (03/10/2026): log_horas e urbano entram no M3 da QR, como no HLM M3 — a renda é
+# MENSAL, a jornada é controle necessário (antes ficava só no M4)
+_IND = ("negro + educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
+        " + idade_c + idade_sq + sexo_fem + log_horas + urbano")
+_UPA = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z + C(Ano)"
+_OCC = ("emprego_formal + conta_propria + trab_domestico"
         " + ocp_dirigente + ocp_profissional + ocp_tecnico + ocp_administrativo"
         " + ocp_servicos + ocp_agro + ocp_operario + ocp_operador + ocp_ffaa")
 
@@ -86,46 +96,171 @@ if HAS_OCC:
 
 MODEL_LABELS = {
     "M3_sem_ocp": "M3 — sem variáveis ocupacionais",
-    "M4_com_ocp": "M4 — com CBO + formalidade + horas",
+    "M4_com_ocp": "M4 — com CBO + formalidade",
 }
 MODEL_COLORS = {
     "M3_sem_ocp": "#1565C0",
     "M4_com_ocp": "#B71C1C",
 }
 
+# ── Figura 3: gap por quantil e por tipo de área ──────────────────────────────
+def figura_gap_por_area(df, formula, quantis):
+    """Ajusta o M3 dentro de cada tipo de área e grava a figura e o csv.
+
+    Está em função, e não no fluxo linear, para poder ser chamada sozinha com
+    --so-area: os ajustes na população inteira (M3 e M4, 51 colunas sobre 7,7
+    milhões de linhas) são pesados, e esta parte roda sobre fatias.
+    """
+    # Roda M3 separado por área para mostrar heterogeneidade geográfica do glass ceiling
+    # V1023 vem do próprio parquet, na mesma leitura das demais colunas. A versão
+    # anterior procurava uma coluna `tipo_area` que não existe no parquet e caía num
+    # fallback que reindexava o arquivo completo com o índice da amostra — e como o
+    # `except` era nu, o NameError de rodar em população completa (sem `idx`) sumia
+    # sem deixar rastro. Resultado: a figura por área nunca era gerada.
+    # Mapeamento igual ao de run_segregacao_espacial.py e run_composicao_ocupacional.py.
+    AREA_MAP = {1: "Capital", 2: "RM (exceto capital)", 3: "Interior", 4: "Interior"}
+
+    if "V1023" in df.columns:
+        df["area_label"] = df["V1023"].map(AREA_MAP)
+        areas_unique = sorted(df["area_label"].dropna().unique())
+        n_sem_area = int(df["area_label"].isna().sum())
+        if n_sem_area:
+            print(f"  [área] {n_sem_area:,} obs. sem tipo de área — fora da figura")
+    else:
+        areas_unique = []
+        print("  [AVISO] V1023 ausente do parquet — figura por área não será gerada")
+
+    if areas_unique:
+
+        fig, ax = plt.subplots(figsize=(11, 6))
+        area_colors = {"Capital": "#B71C1C", "RM (exceto capital)": "#FF8F00", "Interior": "#1565C0"}
+        area_ls = {"Capital": "-", "RM (exceto capital)": "--", "Interior": "-."}
+
+        linhas_area = []   # a figura sai daqui e o csv também: mesma fonte
+        for area in areas_unique:
+            sub_a = df[df["area_label"] == area]
+            if len(sub_a) < 5000:
+                print(f"  [área] {area}: {len(sub_a):,} obs. — abaixo do mínimo, fora da figura")
+                continue
+            color = area_colors.get(area, "#555")
+            ls    = area_ls.get(area, "-")
+            bs_a  = []
+            # mesma economia do laço principal: a matriz da fatia é montada uma
+            # vez e reusada nos seis quantis, em vez de remontada a cada um
+            y_a, X_a = patsy.dmatrices(formula, sub_a, return_type="matrix")
+            j_a = X_a.design_info.column_names.index("negro")
+            mod_a = sm.QuantReg(np.asarray(y_a).ravel(), np.asarray(X_a))
+            del y_a, X_a
+            for q in quantis:
+                try:
+                    qm_a = mod_a.fit(q=q, max_iter=1500, p_tol=1e-5)
+                    b = qm_a.params[j_a]
+                    del qm_a
+                except Exception as e:  # noqa: BLE001 — falha de convergência não some calada
+                    print(f"  [área] {area} q{int(q*100)}: não convergiu ({type(e).__name__})")
+                    b = np.nan
+                gap = (np.exp(b) - 1) * 100 if np.isfinite(b) else np.nan
+                bs_a.append(gap)
+                linhas_area.append({"area": area, "quantil": q, "n": len(sub_a),
+                                    "b_negro": b, "gap_pct": gap})
+            ax.plot(quantis, bs_a, "o" + ls, color=color, lw=2, ms=6, label=area)
+            del mod_a, sub_a       # a fatia seguinte não paga pela anterior
+            gc.collect()
+
+        if linhas_area:
+            pd.DataFrame(linhas_area).to_csv(TABLES / "qr_gap_por_area.csv", index=False)
+            print("qr_gap_por_area.csv salvo.")
+
+        ax.axhline(0, color="black", lw=0.8)
+        ax.set_xticks(quantis)
+        ax.set_xticklabels([f"q{int(q*100)}" for q in quantis], fontsize=11)
+        ax.set_xlabel("Quantil", fontsize=12)
+        ax.set_ylabel("Gap racial (%)", fontsize=12)
+        # Título de ação (Knaflic): afirma o achado em vez de nomear o assunto.
+        # Sai dos próprios resultados --- se o padrão mudar, o título muda junto,
+        # em vez de continuar afirmando o que a figura já não mostra.
+        ARTIGO = {"Capital": "na capital", "Interior": "no interior",
+                  "RM (exceto capital)": "na região metropolitana"}
+        piv = pd.DataFrame(linhas_area).pivot(index="area", columns="quantil",
+                                              values="gap_pct")
+        if {0.50, 0.95} <= set(piv.columns) and not piv[[0.50, 0.95]].isna().any().any():
+            pior = (piv[0.95] / piv[0.50]).abs().idxmax()
+            meio, topo = abs(piv.loc[pior, 0.50]), abs(piv.loc[pior, 0.95])
+            br = lambda v: f"{v:.1f}".replace(".", ",")   # decimal em pt-BR
+            titulo = (f"O teto de vidro racial aperta mais {ARTIGO.get(pior, pior)}" +
+                      chr(10) +
+                      f"Penalidade de {br(meio)}% na mediana e {br(topo)}% no topo "
+                      f"(q95) — quantílica M3, PNAD 2016–2025")
+        else:
+            titulo = ("Gap racial por quantil e tipo de área" + chr(10) +
+                      "Regressão quantílica M3 — PNAD 2016–2025")
+        ax.set_title(titulo, fontsize=12, fontweight="bold")
+        ax.legend(fontsize=10)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        plt.tight_layout()
+        plt.savefig(FIGURES / "quantreg_por_area.png", dpi=150, bbox_inches="tight")
+        plt.close()
+        print("quantreg_por_area.png salvo.")
+
+# --so-area: só a quebra por tipo de área, sem repetir os ajustes na população
+# inteira. Serve quando o M3/M4 já rodaram, ou quando a memória não os comporta.
+if SO_AREA:
+    figura_gap_por_area(df, MODELS["M3_sem_ocp"], QUANTIS)
+    print("\n=== QUEBRA POR ÁREA CONCLUÍDA (--so-area) ===")
+    sys.exit(0)
+
 # ── Regressão quantílica ──────────────────────────────────────────────────────
 results_q = {m: {} for m in MODELS}
 
+# A matriz de design é construída UMA vez por modelo e reusada nos seis quantis
+# e no OLS de referência. Antes, `smf.quantreg(formula, data=df)` estava dentro
+# do laço: o patsy remontava 51 colunas sobre 7,7 milhões de linhas --- 3,1 GB
+# --- a cada quantil, e o pico derrubou duas execuções no q=0,95 do M4. O
+# estimador é o mesmo: `smf.quantreg` é `patsy.dmatrices` seguido de
+# `sm.QuantReg`, que é o que está escrito aqui. Os coeficientes saem por posição
+# porque a matriz crua não carrega os nomes; daí o índice de "negro".
+ols_refs = {}
 for m_name, formula in MODELS.items():
     print(f"\nModelo: {m_name}")
+    y_mat, X_mat = patsy.dmatrices(formula, df, return_type="matrix")
+    nomes = X_mat.design_info.column_names
+    j_neg = nomes.index("negro") if "negro" in nomes else None
+    y_arr = np.asarray(y_mat).ravel()
+    X_arr = np.asarray(X_mat)
+    del y_mat, X_mat
+
+    mod_q = sm.QuantReg(y_arr, X_arr)
     for q in QUANTIS:
         print(f"  q={q:.2f} ...", end="", flush=True)
         try:
-            qm = smf.quantreg(formula, data=df).fit(q=q, max_iter=2000, p_tol=1e-6)
-            b  = qm.params.get("negro", np.nan)
-            lo = qm.conf_int().loc["negro", 0] if "negro" in qm.conf_int().index else np.nan
-            hi = qm.conf_int().loc["negro", 1] if "negro" in qm.conf_int().index else np.nan
-            results_q[m_name][q] = {"b": b, "lo": lo, "hi": hi, "p": qm.pvalues.get("negro", np.nan)}
+            if j_neg is None:
+                raise KeyError("coluna 'negro' ausente da matriz de design")
+            qm = mod_q.fit(q=q, max_iter=2000, p_tol=1e-6)
+            ci = np.asarray(qm.conf_int())
+            b, lo, hi = qm.params[j_neg], ci[j_neg, 0], ci[j_neg, 1]
+            results_q[m_name][q] = {"b": b, "lo": lo, "hi": hi, "p": qm.pvalues[j_neg]}
             pct = (np.exp(b) - 1) * 100
             print(f" β={b:.4f} ({pct:+.1f}%)  CI=[{lo:.4f}, {hi:.4f}]")
+            del qm
         except Exception as e:
             print(f" ERRO: {e}")
             results_q[m_name][q] = {"b": np.nan, "lo": np.nan, "hi": np.nan, "p": np.nan}
 
-# ── OLS de referência (para cada modelo) ─────────────────────────────────────
-ols_refs = {}
-for m_name, formula in MODELS.items():
+    # OLS de referência sobre a MESMA matriz, com erro-padrão agrupado por UF
     try:
-        ols_f = formula.replace("log_renda ~", "log_renda ~")
-        ols_m = smf.ols(ols_f, data=df).fit(
-            cov_type="cluster", cov_kwds={"groups": df["UF_str"]})
-        ols_refs[m_name] = {
-            "b":  ols_m.params.get("negro", np.nan),
-            "lo": ols_m.conf_int().loc["negro", 0] if "negro" in ols_m.conf_int().index else np.nan,
-            "hi": ols_m.conf_int().loc["negro", 1] if "negro" in ols_m.conf_int().index else np.nan,
-        }
-    except:
+        ols_m = sm.OLS(y_arr, X_arr).fit(
+            cov_type="cluster", cov_kwds={"groups": df["UF_str"].to_numpy()})
+        ci_o = np.asarray(ols_m.conf_int())
+        ols_refs[m_name] = {"b": ols_m.params[j_neg],
+                            "lo": ci_o[j_neg, 0], "hi": ci_o[j_neg, 1]}
+        del ols_m
+    except Exception as e:  # noqa: BLE001 — o motivo da falha não some calado
+        print(f"  [OLS ref] falhou: {type(e).__name__}: {e}")
         ols_refs[m_name] = {"b": np.nan, "lo": np.nan, "hi": np.nan}
+
+    del mod_q, y_arr, X_arr
+    gc.collect()
 
 # ── Salvar tabela ─────────────────────────────────────────────────────────────
 rows = []
@@ -221,7 +356,7 @@ if "M4_com_ocp" in MODELS:
     ax.set_xlabel("Quantil", fontsize=12)
     ax.set_ylabel("Gap racial (%)", fontsize=12)
     ax.set_title("Mediação Ocupacional do Gap Racial por Quantil\n"
-                 "(diferença M3→M4 = porção explicada por CBO + formalidade + horas)",
+                 "(diferença M3→M4 = porção explicada por CBO + formalidade)",
                  fontsize=12, fontweight="bold")
     ax.legend(fontsize=9)
     ax.spines["top"].set_visible(False)
@@ -231,67 +366,8 @@ if "M4_com_ocp" in MODELS:
     plt.close()
     print("quantreg_mediacao_ocp.png salvo.")
 
-# ── Figura 3: Gap por quantil por área (capital vs interior) ─────────────────
-# Roda M3 separado por área para mostrar heterogeneidade geográfica do glass ceiling
-AREAS_COL = None
-for col_cand in ["tipo_area", "tipo_area_str", "V1022", "area_str"]:
-    if col_cand in df.columns:
-        AREAS_COL = col_cand
-        break
-
-if AREAS_COL is None:
-    # Tentar carregar do parquet completo
-    try:
-        area_series = pd.read_parquet(
-            ROOT / "data/processed/features.parquet", columns=["tipo_area"]
-        )["tipo_area"].iloc[idx]
-        df["tipo_area"] = area_series.values
-        AREAS_COL = "tipo_area"
-    except:
-        pass
-
-if AREAS_COL:
-    area_vals = df[AREAS_COL].unique()
-    area_map  = {v: str(v) for v in area_vals}
-    df["area_label"] = df[AREAS_COL].map(area_map)
-    areas_unique = sorted(df["area_label"].dropna().unique())
-
-    fig, ax = plt.subplots(figsize=(11, 6))
-    area_colors = {"Capital": "#B71C1C", "RM (exceto capital)": "#FF8F00", "Interior": "#1565C0"}
-    area_ls = {"Capital": "-", "RM (exceto capital)": "--", "Interior": "-."}
-
-    for area in areas_unique:
-        sub_a = df[df["area_label"] == area]
-        if len(sub_a) < 5000:
-            continue
-        color = area_colors.get(area, "#555")
-        ls    = area_ls.get(area, "-")
-        bs_a  = []
-        for q in QUANTIS:
-            try:
-                qm_a = smf.quantreg(MODELS["M3_sem_ocp"], data=sub_a).fit(
-                    q=q, max_iter=1500, p_tol=1e-5)
-                b = qm_a.params.get("negro", np.nan)
-                bs_a.append((np.exp(b) - 1) * 100)
-            except:
-                bs_a.append(np.nan)
-        ax.plot(QUANTIS, bs_a, "o" + ls, color=color, lw=2, ms=6, label=area)
-
-    ax.axhline(0, color="black", lw=0.8)
-    ax.set_xticks(QUANTIS)
-    ax.set_xticklabels([f"q{int(q*100)}" for q in QUANTIS], fontsize=11)
-    ax.set_xlabel("Quantil", fontsize=12)
-    ax.set_ylabel("Gap racial (%)", fontsize=12)
-    ax.set_title("Glass Ceiling Racial por Tipo de Área\n"
-                 "Regressão Quantílica M3 — PNAD 2016–2025",
-                 fontsize=12, fontweight="bold")
-    ax.legend(fontsize=10)
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    plt.tight_layout()
-    plt.savefig(FIGURES / "quantreg_por_area.png", dpi=150, bbox_inches="tight")
-    plt.close()
-    print("quantreg_por_area.png salvo.")
+# ── Figura 3: gap por quantil e por tipo de área ──────────────────────────────
+figura_gap_por_area(df, MODELS["M3_sem_ocp"], QUANTIS)
 
 # ── Sumário ───────────────────────────────────────────────────────────────────
 print("\n" + "="*68)

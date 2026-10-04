@@ -53,11 +53,13 @@ CHECKPOINT_DIR = OUT_TAB / "rif_checkpoints"
 
 QUANTIS_DEFAULT = [0.10, 0.25, 0.50, 0.75, 0.90]
 
+# os controles do HLM M3 / Oaxaca (A), variável por variável (E2.5, 03/10/2026): até aqui
+# faltavam jornada e área urbana — com renda MENSAL, a jornada é controle necessário
 CONTROLES = (
-    "educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
-    " + idade_c + idade_sq + sexo_fem"
+    "educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
+    " + idade_c + idade_sq + sexo_fem + log_horas + urbano"
     " + pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
-    " + C(UF_str)"
+    " + C(UF_str) + C(Ano)"
 )
 
 
@@ -67,8 +69,8 @@ def carregar_dados(sample_frac: Optional[float] = None) -> pd.DataFrame:
     df = pd.read_parquet(FEATURES_PATH)
     df = df[df["log_renda"].notna() & (df["log_renda"] > 0) & df["negro"].notna()].copy()
     df["UF_str"] = df["UF"].astype(str)
-    req = ["educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
-           "idade_c", "idade_sq", "sexo_fem",
+    req = ["educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
+           "idade_c", "idade_sq", "sexo_fem", "log_horas", "urbano",
            "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z"]
     df = df.dropna(subset=req).reset_index(drop=True)
     if sample_frac:
@@ -82,17 +84,19 @@ def carregar_dados(sample_frac: Optional[float] = None) -> pd.DataFrame:
 # ── RIF ────────────────────────────────────────────────────────────────────────
 
 def calcular_rif(y: np.ndarray, tau: float,
-                 kde_sample: int = 200_000) -> np.ndarray:
+                 kde_sample: int | None = None) -> np.ndarray:
     """
     Calcula o vetor RIF para o quantil tau.
 
-    A densidade f_Y(Qτ) é estimada por kernel Gaussiano numa subamostra
-    (kde_sample obs) para eficiência, depois avaliada no quantil amostral.
+    A densidade f_Y(Qτ) é estimada por kernel Gaussiano sobre TODOS os valores e
+    avaliada no quantil amostral. Antes (até 03/10/2026) usava uma subamostra de
+    200 mil por eficiência; o autor decidiu pela população completa (regra do projeto)
+    — a avaliação é num único ponto, o custo é uma passada pelos dados.
     """
     q_tau = np.quantile(y, tau)
 
-    # KDE numa subamostra para estimar f_Y(Qτ)
-    if len(y) > kde_sample:
+    # kde_sample só se passado explicitamente (nenhum chamador do TCC passa)
+    if kde_sample is not None and len(y) > kde_sample:
         rng  = np.random.default_rng(42)
         ysub = rng.choice(y, size=kde_sample, replace=False)
     else:

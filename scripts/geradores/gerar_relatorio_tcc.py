@@ -21,6 +21,24 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from params import P, fmt, fmtN, ame, or_str
+# Contagens da base vêm de params_nucleo (o params.py da raiz é da versão estendida
+# e trazia o N de uma especificação antiga: 7.694.198 em vez do atual).
+import sys as _s2; _s2.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parents[2] / 'tcc' / 'scripts'))
+from params_nucleo import P as PN
+# Tendência temporal (série anual do M3 + WLS): formatada aqui, fora do texto, porque a
+# âncora do patch da Discussão espera números sem sinal; o patch remonta o parágrafo
+# a partir de params_nucleo, com a conclusão que o resultado sustenta.
+_ML_VS_M4 = f"{PN.get('ML_VS_M4_PP', float('nan')):.1f}".replace(".", "{,}")
+
+
+def _pl(n, singular, plural):
+    """Contagem com concordância: '1~variável crítica', '2~variáveis críticas'."""
+    return f"{int(n)}~{singular if int(n) == 1 else plural}"
+
+_TEND_RED = f"{abs(PN.get('TEND_REDUCAO_PCT', float('nan'))):.1f}"
+_TEND_D3 = f"{abs(PN.get('TEND_DELTA', float('nan'))):.3f}".replace(".", ",")
+_TEND_D6 = f"{abs(PN.get('TEND_DELTA', float('nan'))):.6f}".replace(".", "{,}")
+_TEND_P3 = f"{PN.get('TEND_P', float('nan')):.3f}".replace(".", "{,}")
 
 ROOT    = Path(".")
 TABLES  = ROOT / "outputs" / "tables"
@@ -38,7 +56,35 @@ def load_results():
     r["hlm"] = hlm_raw
 
     gap = pd.read_csv(TABLES / "gap_decomposicao_serie_completo.csv")
+    # Bloco 3: se o HLM step-up (indivíduo em UPA, UF fixo) existir, ele é a fonte dos KPIs
+    stepup = TABLES / "gap_decomposicao_stepup.csv"
+    # Os dois csv descrevem especificações diferentes com rótulos iguais: o
+    # "M4_Ocupacao" da série completa vale −6,21% e o do step-up, −7,0%. O
+    # step-up é a fonte do documento; a série completa é só o fallback. Se ele
+    # sumir, os números trocam de especificação — e isso não pode ser silencioso.
+    if not stepup.exists():
+        print("[AVISO] gap_decomposicao_stepup.csv ausente: os KPIs do gap vão sair",
+              "da série completa, que é OUTRA especificação (M4 = -6,2% e não -7,0%).",  # sem-fossil: mensagem de erro do validador
+              "Rode run_hlm_stepup.py antes de gerar o entregável.")
+    if stepup.exists():
+        su = pd.read_csv(stepup).set_index("Modelo")
+        med = su["Mediacao_acum%"]
+        gap = pd.DataFrame({
+            "Modelo": ["M1_Individual", "M2_Localidade", "M3_Completo", "M4_Ocupacao"],
+            "b_negro": [su.loc[m, "b_negro"] for m in ("M1", "M2", "M3", "M4")],
+            "Gap%": [su.loc[m, "Gap%"] for m in ("M1", "M2", "M3", "M4")],
+            "Mediacao_UPA%": [float("nan"), med["M2"], med["M2"], med["M2"]],
+            "Mediacao_UF%": [float("nan"), float("nan"), med["M3"] - med["M2"], med["M3"] - med["M2"]],
+            "Mediacao_occ%": [float("nan"), float("nan"), float("nan"), med["M4"] - med["M3"]],
+            "Mediacao_total%": [float("nan"), med["M2"], med["M3"], med["M4"]],
+        })
     r["gap"] = gap
+    fit = TABLES / "hlm_stepup_fit.csv"
+    r["stepup_fit"] = pd.read_csv(fit).set_index("modelo") if fit.exists() else None
+
+    # SEs alternativos (conv / cluster-UPA / cluster-UF) dos OLS-FE — Moulton (MHE cap. 8)
+    se_path = TABLES / "hlm_serie_completo_se.csv"
+    r["hlm_se"] = pd.read_csv(se_path) if se_path.exists() else None
 
     lrt = pd.read_csv(TABLES / "lrt_serie_s20pct.csv")  # LRT NaN estrutural
     r["lrt"] = lrt
@@ -56,6 +102,9 @@ def load_results():
     r["ml_perf"] = ml_perf
     shap_imp = pd.read_csv(TABLES / "shap_importance_comparada.csv", index_col=0)
     r["shap_imp"] = shap_imp
+    # média SHAP da raça COM SINAL, por grupo — a tabela acima guarda só |SHAP|,
+    # que diz o tamanho do efeito mas não a direção
+    r["shap_negro_grupo"] = pd.read_csv(TABLES / "shap_negro_por_grupo.csv")
 
     # SNA
     sna_nos = pd.read_csv(TABLES / "sna_metricas_nos.csv")
@@ -94,8 +143,14 @@ def extract_kpis(r):
         except Exception:
             return "—"
 
-    k["icc_uf_m0"] = hlm_val("ICC_UF", "M0_Nulo")
-    k["icc_uf_m3"] = hlm_val("ICC_UF", "M3_Completo")
+    # O nível 2 é a UPA, não a UF: a UF entra como efeito fixo e por isso não tem
+    # ICC. As chaves chamavam-se icc_uf_* mas já eram preenchidas com o ICC da UPA
+    # — nome e conteúdo divergiam, e o texto herdava o rótulo errado.
+    _su = r.get("stepup_fit")
+    if _su is not None:
+        for _m in ("M0", "M1", "M2", "M3", "M4"):
+            if _m in _su.index:
+                k[f"icc_upa_{_m.lower()}"] = float(_su.loc[_m, "icc_upa"])
     k["n_obs"]     = hlm_val("N (obs.)", "M1_Individual")
 
     # K-Means
@@ -121,6 +176,28 @@ def extract_kpis(r):
     k["shap_negro_rank"] = int(r["shap_imp"].reset_index()[
         r["shap_imp"].reset_index()["Feature"].str.contains("Ra", na=False)
     ].index[0]) + 1 if any(r["shap_imp"].reset_index()["Feature"].str.contains("Ra", na=False)) else 6
+
+    # Efeito racial no SHAP. A média de um grupo mede o desvio em relação à
+    # previsão média da base, que mistura os dois; o que corresponde ao
+    # coeficiente racial das regressões é o CONTRASTE entre as duas médias.
+    # As duas parcelas vêm do csv; a diferença é derivada aqui, como o E-value
+    # é derivado do OR em validate_consistency.py.
+    # rank da raça no Random Forest: os dois modelos discordam e o texto explica
+    _imp = r["shap_imp"].reset_index()
+    _lin = _imp[_imp["Feature"].str.contains("Ra", na=False)]
+    k["shap_negro_rank_rf"] = int(_lin["Rank_RF"].values[0]) if len(_lin) else 0
+    k["shap_nfeat"] = len(_imp)
+
+    _sg = r["shap_negro_grupo"]
+    _sx = _sg[_sg["modelo"] == "XGBoost"].set_index("grupo")["shap_medio_negro"]
+    k["shap_negro_medio"]      = float(_sx["negros"])
+    k["shap_branco_medio"]     = float(_sx["brancos"])
+    k["shap_negro_medio_tex"]  = f"{k['shap_negro_medio']:+.4f}".replace(".", "{,}")
+    k["shap_branco_medio_tex"] = f"{k['shap_branco_medio']:+.4f}".replace(".", "{,}")
+    _contraste = k["shap_negro_medio"] - k["shap_branco_medio"]
+    k["shap_contraste"]     = _contraste
+    k["shap_contraste_pct"] = abs((np.exp(_contraste) - 1) * 100)
+    k["shap_contraste_pct_tex"] = f"{k['shap_contraste_pct']:.1f}".replace(".", "{,}")
 
     # SNA
     sna = r["sna_nos"]
@@ -157,7 +234,7 @@ def hlm_table_latex(r):
         "Intercept":             r"Intercepto",
         "negro":                 r"\textbf{Raça (negro)}",
         "sexo_fem":              r"Gênero (feminino)",
-        "idade_c":               r"Idade (centralizada)",
+        "idade_c":               r"Idade (centrada)",
         "idade_sq":              r"Idade$^2$ (experiência)",
         "educ_fund_completo":    r"Educ.: Fundamental",
         "educ_medio_completo":   r"Educ.: Médio",
@@ -187,7 +264,9 @@ def hlm_table_latex(r):
     lines.append(r"\begin{longtable}{l" + "c" * len(cols_hlm) + "}")
     lines.append(r"\caption{Modelos HLM de Três Níveis --- Determinantes do Log-Rendimento Mensal "
                  r"por Raça no Brasil (PNAD Contínua, 2016--2025). "
-                 r"Coeficientes com erro-padrão entre parênteses; SE clusterizado por UF nos modelos OLS. "
+                 r"Coeficientes com erro-padrão do modelo entre parênteses e, entre colchetes, "
+                 r"erro-padrão agrupado por UPA (41.517 clusters; Moulton) do OLS com efeitos fixos de UF, "
+                 r"que tem os mesmos coeficientes. "
                  r"$^{***}$\,$p<0{,}001$; $^{**}$\,$p<0{,}01$; $^{*}$\,$p<0{,}05$.}"
                  r"\label{tab:hlm_resultados}\\")
     lines.append(r"\toprule")
@@ -222,6 +301,13 @@ def hlm_table_latex(r):
                 n = len(m.group())
                 return r"$^{***}$" if n==3 else (r"$^{**}$" if n==2 else r"$^{*}$")
             val = _re.sub(r"\*{1,3}", _star, str(val))
+            # SE agrupado por UPA (do OLS-FE equivalente) entre colchetes — Moulton
+            se_df = r.get("hlm_se")
+            if se_df is not None and col != "M0_Nulo" and row_key in se_df["variavel"].values:
+                m_ols = col + "_OLS"
+                hit = se_df[(se_df["modelo"] == m_ols) & (se_df["variavel"] == row_key)]
+                if len(hit):
+                    val = f"{val} [{float(hit['se_cl_upa'].iloc[0]):.4f}]"
             cells.append(val)
         lines.append(" & ".join(cells) + r" \\")
 
@@ -353,7 +439,7 @@ def build_latex(r, k):
             f"intensifica nas economias mais ricas e desiguais --- e não nas mais "
             f"pobres: as maiores penalidades estimadas por UF concentram-se no Distrito "
             f"Federal, Rio de Janeiro e São Paulo, ao passo que estados do Nordeste "
-            f"(RN, PB, SE) registram as menores ($r_{{\\text{{UF}}}}=+0{{,}}45$ entre renda "
+            f"(RN, PB, SE) registram as menores ($r_{{\\text{{UF}}}}=+0{{,}}45$ entre renda "  # sem-fossil: versão estendida, removido no enxuto (conferir_numeros pega se voltar)
             f"média e magnitude do gap)."
             if P.get("RS_RHO", 0) < -0.1 else
             f"A correlação $\\rho(u_0,u_1)={_rs_rho_str}$ é próxima de zero."
@@ -438,7 +524,7 @@ def build_latex(r, k):
             f"qualificadas ($\\tau^2_1={_grs_tau}$, $DP={_grs_sd}$ log-odds) e preserva o gradiente "
             f"de teto de vidro no efeito fixo (OR cai de {_grs_ocpor} para {_grs_t10or} rumo ao "
             f"decil superior).\n\n"
-            f"Em contraste com o salário ($\\rho=-0{{,}}37$), o acesso a cargos qualificados "
+            f"Em contraste com o salário ($\\rho=-0{{,}}37$), o acesso a cargos qualificados "  # sem-fossil: versão estendida, removido no enxuto (conferir_numeros pega se voltar)
             f"correlaciona-se \\emph{{positivamente}} com o nível ocupacional do estado "
             f"($\\rho={_grs_rho}$): UFs com mais empregos qualificados exibem \\emph{{menor}} "
             f"penalidade de acesso --- nas economias desenvolvidas, negros enfrentam acesso "
@@ -505,7 +591,7 @@ def build_latex(r, k):
             f"(OR$_{{\\text{{top20}}}}={_gge_t20}$; OR$_{{\\text{{top10}}}}={_gge_t10}$). O teto de vidro "
             f"de gênero é de \\emph{{remuneração}}, não de categoria ocupacional --- e sua "
             f"heterogeneidade geográfica supera a racial no topo ($\\tau^2_{{\\text{{sexo}}}}={_gge_t20t}$ "
-            f"no top20, contra $\\tau^2_{{\\text{{negro}}}}\\approx0{{,}}003$; cerca de 10$\\times$).\n\n"
+            f"no top20, contra $\\tau^2_{{\\text{{negro}}}}\\approx0{{,}}003$; cerca de 10$\\times$).\n\n"  # sem-fossil: versão estendida, removido no enxuto (conferir_numeros pega se voltar)
             f"\\begin{{figure}}[H]\n  \\centering\n"
             f"  \\includegraphics[width=\\textwidth]{{outputs/figures/glmm_genero_real.png}}\n"
             f"  \\caption{{Random slope GLMM de gênero (\\texttt{{lme4}}): OR de \\texttt{{sexo\\_fem}} "
@@ -883,8 +969,44 @@ rotativo. O microdado contém informações sobre características demográficas
 escolaridade, inserção no mercado de trabalho e rendimentos para todos os
 moradores dos domicílios selecionados. Para este trabalho, foram processados
 todos os 40~trimestres disponíveis de 2016T1 a 2025T4, totalizando
-15.941.675~observações brutas, das quais {fmtN(P['N_GLMM'])} possuem renda positiva
-declarada e completude nas variáveis do modelo.
+{fmtN(PN['N_BRUTO'])}~observações brutas, das quais {fmtN(PN['OB_N'])} possuem renda positiva
+declarada e completude nas variáveis do modelo. Como cada método exige um conjunto um pouco
+diferente de variáveis, o $N$ efetivo varia pouco entre eles: {fmtN(PN['N_HLM'])} no HLM,
+{fmtN(PN['N_GLMM'])} no GLMM, {fmtN(PN['OB_N'])} na Oaxaca--Blinder e {fmtN(PN['ML_N'])} no aprendizado de máquina
+(treino e teste somados). Pelo mesmo motivo o número de bairros varia ---
+{fmtN(PN['OB_N_UPAS'])} na Oaxaca--Blinder e {fmtN(PN['N_UPAS'])} no modelo de acesso ---, e o HLM
+usa {fmtN(PN['N_UPAS_HLM'])}, porque exclui as UPAs com menos de dez observações para estimar a
+variância entre bairros com estabilidade.
+
+O desfecho de rendimento é o \textbf{{rendimento mensal efetivo de todos os
+trabalhos}} (VD4020), em logaritmo, convertido para reais constantes do 2º~trimestre
+de 2026 pelo deflator oficial da PNAD Contínua (IBGE), que varia por UF e trimestre;
+como a deflação não remove choques comuns a cada ano, todos os modelos incluem ainda
+efeitos fixos de ano. A unidade importa para ler os controles: como
+o rendimento é mensal e não por hora, a jornada \emph{{habitual}} (VD4031) entra como
+controle necessário --- sem ela, compara-se o rendimento de quem trabalha meio período com
+o de quem trabalha jornada integral e atribui-se a diferença à raça.
+
+A escolaridade vem da VD3004 (nível de instrução mais elevado alcançado, harmonizado
+pelo IBGE) e entra como \textit{{dummies}} \emph{{cumulativas}} de conclusão de ciclo
+--- fundamental completo ou mais, médio completo ou mais, superior completo ou mais e
+pós-graduação (superior completo cujo curso mais elevado frequentado, V3009A, é
+especialização, mestrado ou doutorado). Cada coeficiente é, assim, o ganho marginal de
+completar o ciclo seguinte, e a variável cobre toda a população analisada.
+
+\paragraph{{O que é a UPA e por que este trabalho a chama de bairro.}}
+A Unidade Primária de Amostragem (UPA) \emph{{não}} é um recorte criado para este trabalho: é
+a unidade do desenho amostral da própria PNAD Contínua \cite{{ibge_pnad_2023}}. Em cada estrato,
+o IBGE sorteia setores censitários --- ou pequenos conjuntos de setores vizinhos, quando um
+setor tem poucos domicílios --- e, dentro de cada um, um grupo de domicílios que é entrevistado
+em cinco trimestres consecutivos. O código da UPA vem no microdado público (variável
+\texttt{{UPA}}), e é isso que permite saber quais entrevistados moram perto uns dos outros. Como
+o setor censitário reúne algumas centenas de domicílios contíguos, a UPA é a menor unidade
+territorial que a PNAD identifica e a mais próxima da ideia de vizinhança; por isso, ao longo
+do texto, ela é chamada de \textit{{bairro}}. A correspondência é aproximada, e convém dizê-lo:
+a UPA costuma ser menor que um bairro administrativo de cidade grande e, na zona rural, pode
+cobrir uma área extensa. Onde a precisão técnica importa --- equações do modelo, componentes de
+variância, erros-padrão agrupados ---, o texto usa UPA; no restante, bairro.
 
 A classificação racial segue o critério binário adotado pelos estudos
 de desigualdade racial no Brasil: \textit{{negro}} = preto (código~2) +
@@ -956,7 +1078,7 @@ para evitar colapso de variância na fronteira $\tau^2=0$.
 \subsection{{Clustering Socioeconômico (K-Means)}}
 
 O algoritmo \textit{{MiniBatchKMeans}} foi aplicado sobre as
-$N={fmtN(P['N_GLMM'])}$ observações da PEA completa com variáveis contextuais
+$N={fmtN(PN['N_GLMM'])}$ observações da PEA completa com variáveis contextuais
 disponíveis, usando 12~dimensões padronizadas: idade, três dummies de
 escolaridade (ensino médio completo, superior completo, pós-graduação),
 log-rendimento, raça, gênero, status de emprego e quatro variáveis de
@@ -973,12 +1095,15 @@ segmentos ocupacionais internos.
 \subsection{{Random Forest, XGBoost e SHAP Values}}
 
 Para predição do log-rendimento, foram ajustados dois modelos de ensemble:
-(i)~\textit{{Random Forest}} \cite{{breiman2001}} com 200 árvores e profundidade
-máxima 10; e (ii)~\textit{{XGBoost}} \cite{{chen2016}} com 300 iterações,
+(i)~\textit{{Random Forest}} \cite{{breiman2001}} com 200 árvores, profundidade
+máxima 10, ao menos 50 observações por folha e todas as variáveis candidatas em cada
+divisão (\texttt{{max\_features}} padrão do \textit{{scikit-learn}} para regressão); e (ii)~\textit{{XGBoost}} \cite{{chen2016}} com 300 iterações,
 $\text{{lr}}=0{{,}}05$ e regularização $L_1/L_2$. Sobre o modelo XGBoost,
 foi aplicado o \textit{{TreeExplainer}} da biblioteca SHAP
-\cite{{lundberg2017}} sobre um subsample de 50.000 observações para
-calcular os valores de Shapley de cada feature.
+\cite{{lundberg2017}} para calcular os valores de Shapley de cada variável. Os modelos são
+ajustados e avaliados na população completa; só o cálculo dos valores SHAP usa uma amostra
+de 50 mil observações sorteadas do conjunto de treino, com semente fixa, porque o custo do
+\textit{{TreeExplainer}} cresce com o número de casos explicados.
 
 \subsection{{Análise de Redes Sociais (SNA)}}
 
@@ -1033,7 +1158,7 @@ brasileiro, documentada com rigor empírico em cada etapa.
 \textbf{{Camada}} & \textbf{{Pergunta central e evidência}} \\
 \hline
 \textbf{{BARREIRA I}} & Por que negros raramente chegam às ocupações de \\
-\textbf{{Acesso e Segregação}} & prestígio? GLMM ($N={fmtN(P['N_GLMM'])}$), HLM contextual e segregação \\
+\textbf{{Acesso e Segregação}} & prestígio? GLMM ($N={fmtN(PN['N_GLMM'])}$), HLM contextual e segregação \\
  & espacial mostram que a exclusão começa antes do salário. \\
 \hline
 \textbf{{BARREIRA II}} & Para os que superam a barreira de entrada --- qual é o \\
@@ -1063,20 +1188,24 @@ Nenhum método isolado teria identificado o sistema como um todo.
 \textit{{Esta seção documenta como o território amplifica o gap racial:
 o CEP de moradia não é apenas contexto --- é parte do mecanismo de exclusão.}}
 
-A Tabela~\ref{{tab:hlm_resultados}} apresenta os quatro modelos HLM
-ajustados sequencialmente, do modelo nulo (M0) ao modelo completo de
-três níveis (M3). Os modelos foram estimados por REML com complementação
-por OLS com efeitos fixos de UF e erros-padrão clusterizados por UF
+A Tabela~\ref{{tab:hlm_resultados}} apresenta os cinco modelos HLM ajustados
+sequencialmente, do modelo nulo (M0) ao modelo com ocupação (M4). São modelos de
+\textbf{{dois níveis}} --- indivíduo dentro da UPA ---, com a UF entrando como
+conjunto de efeitos fixos. A estimação é por máxima verossimilhança, para que os
+testes de razão de verossimilhança entre modelos aninhados sejam válidos, com
+complementação por OLS com efeitos fixos de UF e erros-padrão agrupados por UPA
 para verificação de robustez.
 
 \paragraph{{ICC e justificativa do modelo multinível.}}
-O modelo nulo (M0) estima $\hat{{\rho}}_{{UF}} = {k['icc_uf_m0']}$,
-indicando que aproximadamente 9,8\% da variância do log-rendimento é
-atribuível ao estado de residência, acima do limiar de 5\% sugerido
-por \citeonline{{raudenbush2002}} para justificar a inclusão do nível superior.
-A adição dos \textit{{slopes contextuais}} da UPA (M2) reduz o ICC para
-5,3\%, revelando que o contexto de bairro explica parte substancial
-da heterogeneidade interestadual.
+O modelo nulo (M0) estima $\hat{{\rho}}_{{\text{{UPA}}}} = {fmt(k['icc_upa_m0'], 4)}$:
+{fmt(k['icc_upa_m0']*100, 1)}\% da variância do log-rendimento está \textit{{entre bairros}},
+muito acima do limiar de 5\% sugerido por \citeonline{{raudenbush2002}} para
+justificar a estrutura multinível. A UF não tem ICC porque não é um nível
+aleatório: 27 unidades são poucas para um terceiro nível, e os 26 \textit{{dummies}}
+absorvem o contexto estadual sem hipóteses distribucionais. Acrescentar o contexto
+do bairro (M2) reduz o ICC para {fmt(k['icc_upa_m2'], 3)}, e a escada completa o leva a
+{fmt(k['icc_upa_m4'], 3)} no M4: o que os controles explicam deixa de ser creditado ao
+território.
 
 \paragraph{{Gap salarial racial: bruto, contextual e líquido.}}
 O modelo M1 estima $\hat{{\beta}}_1^{{M1}} = {k['b_negro_m1']:.4f}$
@@ -1087,7 +1216,7 @@ etária --- o \textbf{{gap racial bruto}}.
 Após a inclusão das variáveis de contexto da UPA (M2),
 $\hat{{\beta}}_1^{{M2}} = {k['b_negro_m2']:.4f}$, redução que implica uma
 \textbf{{mediação contextual de {k['mediacao_upa']:.1f}\%}} do gap bruto pelo
-local de moradia. Esse resultado confirma a Hipótese~H2 e quantifica
+local de moradia. Esse resultado é consistente com a Hipótese~H1 e quantifica
 o \textit{{duplo disadvantage}}: a segregação residencial opera como canal
 independente de reprodução da desigualdade racial.
 
@@ -1100,8 +1229,8 @@ adicional de proporção de negros na UPA reduz o log-rendimento em
 O modelo completo M3 produz $\hat{{\beta}}_1^{{M3}} = {k['b_negro_m3']:.4f}$
 ($p<0{{,}}001$): o \textbf{{gap líquido de {gl:.1f}\%}} representa a fração
 do diferencial salarial não explicável por capital humano individual
-nem pelo contexto de moradia --- o limite inferior da discriminação
-direta no mercado de trabalho.
+nem pelo contexto de moradia --- um limite superior da penalidade
+direta sob seleção em observáveis (o M4, com a ocupação, é o inferior).
 
 {hlm_tab}
 
@@ -1234,14 +1363,14 @@ onde a variância não observada (setor, cargo, tempo de serviço) responde
 pela maior parte do resíduo.
 
 \paragraph{{Ausência de sobreajuste (população completa).}}
-Estimado sobre a população (\mbox{{$N={fmtN(P['N_GLMM'])}$}}; treino~80\%/teste~20\%),
+Estimado sobre a população (\mbox{{$N={fmtN(PN['N_GLMM'])}$}}; treino~80\%/teste~20\%),
 o método não-paramétrico não apresenta \textit{{overfitting}}: o $R^2$ de treino e de
 teste praticamente coincidem (\textit{{gap}}~$={fmt(k['gap_xgb'],4)}$ para o XGBoost e
 para o Random Forest). Três evidências convergem: o \textit{{gap}} treino--teste
 $\approx 0$; a razão $N \gg$ complexidade (modelos regularizados sobre 7,7~milhões de
 observações); e a estabilidade do $R^2$ de teste entre a subamostra de 20\% e a
-população (praticamente idêntico, $\approx 0{{,}}62$). Em suma, \emph{{ampliar}} a base
-de amostral para populacional \emph{{reduz}} --- não aumenta --- o risco de sobreajuste.
+população (praticamente idêntico, $\approx 0{{,}}62$). Em suma, \emph{{ampliar}} a base,
+de amostral para populacional, \emph{{reduz}} --- não aumenta --- o risco de sobreajuste.
 
 {shap_tab}
 
@@ -1271,10 +1400,35 @@ Esse resultado confirma computacionalmente a hipótese de Wilson~(\citeyear{{wil
 o \textit{{onde se mora}} supera em importância o \textit{{quanto se estudou}}.
 
 A variável racial ocupa o {k['shap_negro_rank']}$^\circ$ lugar no ranking de
-importância mesmo após controlar por todos os demais fatores, com SHAP
-médio de $-0{{,}}0469$ para trabalhadores negros --- equivalente a uma
-penalidade de 4,6\% sobre o rendimento predito que não pode ser atribuída
-a diferenças em educação, experiência, gênero ou contexto de moradia.
+importância mesmo após controlar por todos os demais fatores. A parcela do
+rendimento predito que o modelo atribui à raça difere em
+{k['shap_contraste_pct_tex']}\% entre trabalhadores negros e
+brancos\footnote{{Contribuição média da variável racial à previsão, com sinal:
+${k['shap_negro_medio_tex']}$ log-pontos entre os negros e
+${k['shap_branco_medio_tex']}$ entre os brancos (XGBoost,
+$N_\text{{SHAP}}=50.000$; \texttt{{shap\_negro\_por\_grupo.csv}}). A média de um
+grupo mede o desvio em relação à previsão média da base, que mistura os dois; o
+que corresponde ao coeficiente racial das regressões é o contraste entre elas.}}
+--- o que resta depois de educação, experiência, gênero, contexto de moradia e
+ocupação. O valor fica a {_ML_VS_M4} ponto percentual do \textit{{gap}} estimado
+pelo M4 hierárquico, que usa controles semelhantes (o XGBoost acrescenta a renda média do
+bairro): um algoritmo que não
+impõe forma funcional alguma chega perto do modelo linear, sinal de que o
+achado não depende da especificação de Mincer.
+
+Os dois modelos discordam quanto à raça, e a Tabela~\ref{{tab:shap_importance}}
+mostra a discordância: no Random Forest ela cai para o
+{k['shap_negro_rank_rf']}$^\circ$ lugar, com contribuição média próxima de zero,
+enquanto as demais variáveis têm peso semelhante nos dois. A diferença é de
+arquitetura, não de dados. Cada árvore da floresta escolhe, em cada nó, a
+variável de maior ganho entre todas as disponíveis; com a profundidade limitada
+a dez níveis, uma variável de efeito pequeno perde essa disputa em todos os nós
+e acaba nunca sendo usada. O \emph{{boosting}} trabalha em sequência sobre o
+resíduo: consumidas as variáveis de maior peso nas primeiras iterações, o que
+sobra passa a ter estrutura racial, e as árvores seguintes chegam a ela. É por
+isso que a leitura se apoia no XGBoost, que é também o de melhor ajuste --- e é
+uma ilustração do que a literatura de \emph{{ensembles}} chama de sensibilidade
+do modelo à forma como o erro é decomposto.
 
 \begin{{figure}}[H]
   \centering
@@ -1311,8 +1465,9 @@ ocupação qualificada (CBO~1--4), renda no top~20\% e no top~10\%.
   \centering
   \includegraphics[width=0.82\textwidth]{{grupo_rg_interseccional}}
   \caption{{Razões de chance dos quatro grupos raça$\times$gênero \textit{{vs.}}~homem
-  branco, em três desfechos. A mulher negra é \emph{{alçada}} no acesso à categoria,
-  mas torna-se a \emph{{mais excluída}} no topo da renda.}}
+  branco, em três desfechos. Na categoria agregada ela aparece acima da referência,
+  mas por composição: entra pelas ocupações feminizadas e é a mais distante do homem
+  branco entre os dirigentes e no topo da renda.}}
   \label{{fig:interseccional}}
 \end{{figure}}
 
@@ -1430,12 +1585,12 @@ Para verificar se a inclusão simultânea dos 9~dummies
 CBO e das variáveis de vínculo empregatício (\texttt{{emprego\_formal}},
 \texttt{{conta\_propria}}, \texttt{{trab\_domestico}}) introduz colinearidade
 problemática no Modelo~M4, calculou-se o \textit{{Variance Inflation Factor}} (VIF)
-sobre subsample de 200.000 observações da PEA com renda positiva.
-Dos ${P.get('VIF_N_TOTAL', 23)}$ preditores analisados, VIF máximo~$= {fmt(P.get('VIF_MAX', 2.09), 2)}$
-({P.get('VIF_MAX_VAR', 'CBO: Serviços/Vendas')}); {P.get('VIF_N_CRITICO', 0)}~variável crítica
-(VIF~$> 10$); {P.get('VIF_N_ALTO', 0)}~variável alta ($5$--$10$);
-{P.get('VIF_N_MODERADO', 1)}~variável moderada ($2$--$5$);
-{P.get('VIF_N_BAIXO', 22)}~variáveis baixas ($< 2$).
+sobre a população completa da PEA com renda positiva.
+Dos ${PN['VIF_N_TOTAL']}$ preditores analisados, VIF máximo~$= {fmt(PN['VIF_MAX'], 2)}$
+({PN['VIF_MAX_VAR']}); {_pl(PN['VIF_N_CRITICO'], 'variável crítica', 'variáveis críticas')}
+(VIF~$> 10$); {_pl(PN['VIF_N_ALTO'], 'variável alta', 'variáveis altas')} ($5$--$10$);
+{_pl(PN['VIF_N_MODERADO'], 'variável moderada', 'variáveis moderadas')} ($2$--$5$);
+{_pl(PN['VIF_N_BAIXO'], 'variável baixa', 'variáveis baixas')} ($< 2$).
 Esses resultados descartam multicolinearidade problemática entre CBO e
 formalidade, validando a especificação completa do M4 sem necessidade de
 ortogonalização ou eliminação de preditores.
@@ -1466,9 +1621,10 @@ a diferença entre contextos não é atribuível ao acaso.
 
 \paragraph{{Nota terminológica.}}
 Três conceitos próximos, mas distintos, percorrem este trabalho e não devem ser
-confundidos. \textbf{{Mediação contextual}} (HLM) é a fração do gap bruto que
-\textit{{desaparece}} ao se controlar o local de moradia (UPA/UF) --- mede o
-quanto da penalidade racial transita \textit{{pelo}} território.
+confundidos. \textbf{{Mediação contextual}} (HLM) é a fração do gap agregado
+(condicional a capital humano e estado) que \textit{{desaparece}} ao se compararem
+pessoas do mesmo bairro (UPA) --- mede o quanto da penalidade racial transita
+\textit{{pelo}} território.
 \textbf{{Efeito dotação}} (Oaxaca--Blinder) é a parcela do gap atribuível a
 \textit{{diferenças nas características observáveis}} entre brancos e negros
 (escolaridade, ocupação, contexto), por oposição ao \textbf{{efeito retornos}}
@@ -1511,7 +1667,7 @@ produto de barreiras de acesso (GLMM) e isolamento de redes (SNA)
 que este trabalho pela primeira vez quantifica de forma integrada.
 A contribuição central não é mostrar que o gap existe --- isso a
 literatura já sabia desde \citeonline{{hasenbalg1979}} ---,
-mas demonstrar que ele é sustentado por um
+mas mostrar que ele é consistente com um
 \textbf{{sistema combinado}} em que discriminação de acesso, segregação
 residencial e exclusão de redes se reforçam mutuamente, tornando
 insuficientes políticas focadas em um único mecanismo.
@@ -1523,7 +1679,7 @@ multidimensional captada pela POF não eliminou o gap racial de qualidade de vid
 voltou a concentrar-se no topo em 2025 (Gini do rendimento domiciliar
 \emph{{per capita}} de 0{{,}}491)~\cite{{ibge_pof_2019, ibge_rendimentos_2025}}.
 Cabe uma ressalva metodológica: o Gini estimado neste trabalho refere-se ao
-\textbf{{rendimento do trabalho entre ocupados}} (em torno de 0{{,}}48), conceito
+\textbf{{rendimento do trabalho entre ocupados}} (em torno de {f"{PN['GINI_TOTAL']:.2f}".replace(".", "{,}")}), conceito
 distinto do Gini domiciliar \emph{{per capita}} de todas as fontes do IBGE ---
 níveis próximos, mas medidas diferentes que podem divergir em tendência, pois a
 alta de 2025 é puxada por renda \emph{{não}}-trabalho do topo, que não transita
@@ -1531,24 +1687,18 @@ pelo rendimento dos ocupados. Nesse mesmo conceito, a desigualdade \emph{{intern
 é maior entre brancos ($={fmt(P['GINI_BRANCO_TRAB'],3)}$) do que entre negros
 ($={fmt(P['GINI_NEGRO_TRAB'],3)}$) --- não por equidade, mas por confinamento dos
 negros ao piso da distribuição, o reverso distribucional do teto de vidro.
-O contraste territorial reforça a tese: o Distrito
-Federal, de maior renda \emph{{per capita}} do país, é também a UF de \emph{{maior}}
-penalidade racial salarial em nossos modelos regionais --- riqueza média elevada e
-desigualdade racial aguda coexistem no mesmo território.
 
 \paragraph{{Triangulação com o Índice de Progresso Social (IPS).}}
-O IPS municipal (Imazon e parceiros, 2026) --- que avalia a qualidade de vida dos
+O IPS municipal \cite{{wilm2026}} --- que avalia a qualidade de vida dos
 5.570 municípios brasileiros a partir de 57 indicadores sociais e ambientais ---
 oferece corroboração externa e multidimensional do eixo territorial desta tese.
 Uma integração \textit{{fina}} com o nosso proxy de bairro (UPA) é, contudo,
 inviável: o painel público da PNAD não divulga o município (apenas UF e a situação
 capital/RM/interior), e o IPS é municipal --- portanto mais agregado que a UPA, que
-é sub-municipal. O IPS, assim, não valida o achado de \emph{{bairro}} (situa-se
-acima dele na escala), mas ecoa o gradiente macro: as regiões de menor progresso
-social (Norte e Nordeste) coincidem com as de maior penalidade racial em nossos
-modelos. Empregamo-lo, portanto, como evidência \textit{{convergente}} do caráter
-territorial da desigualdade --- não como fonte de dados integrada, e ressalvando que
-o IPS mede progresso social geral, não desigualdade racial.
+é sub-municipal. O IPS, assim, não valida o achado de \emph{{bairro}}: situa-se
+acima dele na escala e mede progresso social geral, não desigualdade racial. Fica
+como agenda: com o município identificado (microdados de acesso restrito), seria
+possível testar se a penalidade de bairro varia com o progresso social do município.
 
 \paragraph{{A segregação residencial como multiplicador da desigualdade.}}
 O achado mais robusto desta análise é que {med:.1f}\% do gap salarial racial
@@ -1574,8 +1724,9 @@ apenas na própria comunidade.
 
 \paragraph{{Persistência da discriminação direta.}}
 O gap líquido de {gl:.1f}\%, estimado após controlar por todos os vetores
-de transmissão contextual, representa um piso para a discriminação direta
-não explicada por diferenças observáveis. Os valores SHAP reforçam essa
+de transmissão contextual, é o limite superior do intervalo --- cujo piso é o
+M4, com a ocupação --- dentro do qual está a penalidade direta não explicada por
+diferenças observáveis. Os valores SHAP reforçam essa
 interpretação: a variável racial mantém o {k['shap_negro_rank']}$^\circ$ lugar
 na importância preditiva do XGBoost mesmo quando o modelo tem acesso
 completo às variáveis educacionais, demográficas e contextuais.
@@ -1584,9 +1735,9 @@ Essa evidência é consistente com os experimentos de auditoria de
 racial em processos seletivos.
 
 \paragraph{{Lenta convergência racial.}}
-A redução de apenas {abs(k['gap_2025']-k['gap_2016'])/k['gap_2016']*100:.1f}\%
-do gap em dez anos --- equivalente a 0,001 ponto de log-rendimento por ano
-($\delta = 0{{,}}000847$, $p = 0{{,}}077$, WLS 2016--2025)
+A redução de apenas {_TEND_RED}\%
+do gap em dez anos --- equivalente a {_TEND_D3} ponto de log-rendimento por ano
+($\delta = {_TEND_D6}$, $p = {_TEND_P3}$, WLS 2016--2025)
 --- sugere que, ao ritmo atual, a convergência racial levaria mais de um
 século para eliminar o diferencial observado em 2016.
 Essa constatação não trivializa avanços recentes em políticas de cotas
@@ -1599,8 +1750,9 @@ As frentes priorizadas pela Pesquisa Operacional não são abstrações: cada um
 corresponde a um instrumento jurídico-institucional já existente no Brasil, cuja
 intensificação ou aperfeiçoamento a análise recomenda.
 A frente de \textbf{{cotas ocupacionais (CBO~1--4)}} dialoga diretamente com a
-\textit{{Lei~12.990/2014}}, que reserva 20\% das vagas em concursos públicos
-federais a candidatos negros, e cujo escopo o diagnóstico de barreira de acesso
+\textit{{Lei~15.142/2025}}, que substituiu a Lei~12.990/2014 e ampliou a
+reserva de vagas em concursos públicos federais a pessoas negras, indígenas e
+quilombolas, e cujo escopo o diagnóstico de barreira de acesso
 (GLMM, OR~$={or_str(P['OR_M1'])}$) sugere ampliar para níveis hierárquicos
 superiores --- onde o teto de vidro é mais severo
 (OR(top~10\%)~$={or_str(P['OR_TOP10_M1'])}$).
@@ -1682,7 +1834,7 @@ políticas focadas apenas em capital humano são necessárias, mas insuficientes
 \medskip
 
 Essas conclusões emergem da convergência de seis metodologias independentes
-sobre $N={fmtN(P['N_GLMM'])}$ observações da PNAD Contínua 2016--2025.
+sobre $N={fmtN(PN['N_GLMM'])}$ observações da PNAD Contínua 2016--2025.
 O gap bruto de {gb:.1f}\% (M1) decompõe-se em três camadas:
 (i)~mediação contextual de {med:.1f}\% pela UPA
 ($\hat{{\gamma}}_{{01}}=-0{{,}}269$);
@@ -1730,21 +1882,10 @@ si sós, prova de causalidade no sentido contrafactual, pois não derivam de
 desenho experimental ou quase-experimental. Já o XGBoost e os valores SHAP têm
 finalidade \textit{{preditiva e interpretativa}}: quantificam a contribuição de
 cada variável para a \textit{{previsão}} do rendimento --- não o efeito causal
-de manipulá-la. A convergência entre os dois regimes (a raça permanece preditora
-de primeira ordem \textit{{e}} mantém coeficiente negativo significante sob
+de manipulá-la. A convergência entre os dois regimes (a raça mantém importância
+preditiva não desprezível \textit{{e}} coeficiente negativo significante sob
 controle exaustivo) é o que confere robustez ao diagnóstico; ainda assim, a
 linguagem causal foi deliberadamente evitada.
-
-\paragraph{{Cobertura da variável de escolaridade.}}
-A escolaridade detalhada (\texttt{{educ\_cat}}) está registrada para cerca de
-31\% da PEA no painel público utilizado. Para preservar o $N$ completo, os
-níveis de instrução entram como \textit{{dummies}} de conclusão acompanhadas de
-um indicador explícito de não-registro (\texttt{{educ\_missing}}), de modo que a
-categoria de referência não confunda ``baixa escolaridade'' com ``dado ausente''.
-Testes de sensibilidade mostram que o coeficiente racial é estável a essa
-especificação (variação inferior a~1\%); ainda assim, os retornos educacionais
-devem ser interpretados com a cautela própria de uma variável parcialmente
-observada.
 
 \paragraph{{Granularidade macroestrutural da SNA.}}
 A PNAD Contínua não coleta vínculos sociais interpessoais. A rede analisada na
@@ -1886,13 +2027,15 @@ BIB = r"""
   year    = {2001},
 }
 
-@inproceedings{chen2016,
+@incollection{chen2016,
   author    = {Chen, Tianqi and Guestrin, Carlos},
   title     = {{XGBoost}: A Scalable Tree Boosting System},
-  booktitle = {Proceedings of the 22nd ACM SIGKDD International Conference
-               on Knowledge Discovery and Data Mining},
+  booktitle = {Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining},
   pages     = {785--794},
   year      = {2016},
+  address   = {San Francisco},
+  publisher = {ACM},
+  doi       = {10.1145/2939672.2939785},
 }
 
 @article{rousseeuw1987,
@@ -1980,6 +2123,86 @@ BIB = r"""
   number  = {1},
   pages   = {5--50},
   year    = {2010},
+}
+
+@book{favero2024,
+  author    = {Fávero, Luiz Paulo and Belfiore, Patrícia},
+  title     = {Manual de Análise de Dados: estatística e machine learning com Excel, SPSS, Stata, R e Python},
+  edition   = {2},
+  address   = {Rio de Janeiro},
+  publisher = {GEN LTC},
+  year      = {2024},
+  isbn      = {9788595159921},
+}
+
+@book{geron2021,
+  author     = {Géron, Aurélien},
+  title      = {Mãos à obra: aprendizado de máquina com Scikit-Learn, Keras \& TensorFlow: conceitos, ferramentas e técnicas para a construção de sistemas inteligentes},
+  edition    = {2},
+  translator = {Ravaglia, Cibelle},
+  address    = {Rio de Janeiro},
+  publisher  = {Alta Books},
+  year       = {2021},
+  isbn       = {9788550815480},
+}
+
+@techreport{wilm2026,
+  author      = {Wilm, Melissa and Santos, Daniel and Coelho, Luana and Marangoni, Sérgio and Lima, Ricardo Chaves and Gonçalves, Gabriel and Veríssimo, Beto},
+  title       = {Índice de Progresso Social Brasil 2026: resumo executivo},
+  institution = {Imazon},
+  address     = {Belém},
+  year        = {2026},
+  isbn        = {9786589617402},
+  url         = {https://imazon.org.br/relatorios/indice-de-progresso-social-brasil-2026},
+}
+
+@misc{brasil1995lei9029,
+  author       = {{Brasil}},
+  title        = {Lei n. 9.029, de 13 de abril de 1995. Proíbe a exigência de atestados de gravidez e esterilização, e outras práticas discriminatórias, para efeitos admissionais ou de permanência da relação jurídica de trabalho},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {1995},
+}
+
+@misc{brasil2010lei12288,
+  author       = {{Brasil}},
+  title        = {Lei n. 12.288, de 20 de julho de 2010. Institui o Estatuto da Igualdade Racial},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {2010},
+}
+
+@misc{brasil2012lei12711,
+  author       = {{Brasil}},
+  title        = {Lei n. 12.711, de 29 de agosto de 2012. Dispõe sobre o ingresso nas universidades federais e nas instituições federais de ensino técnico de nível médio},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {2012},
+}
+
+@misc{brasil2023decreto11443,
+  author       = {{Brasil}},
+  title        = {Decreto n. 11.443, de 21 de março de 2023. Dispõe sobre o preenchimento por pessoas negras de percentual mínimo de cargos em comissão e funções de confiança no âmbito da administração pública federal},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {2023},
+}
+
+@misc{brasil2023lei14611,
+  author       = {{Brasil}},
+  title        = {Lei n. 14.611, de 3 de julho de 2023. Dispõe sobre a igualdade salarial e de critérios remuneratórios entre mulheres e homens},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {2023},
+}
+
+@misc{brasil2023lei14723,
+  author       = {{Brasil}},
+  title        = {Lei n. 14.723, de 13 de novembro de 2023. Altera a Lei n. 12.711, de 29 de agosto de 2012, para dispor sobre o programa especial para o acesso às instituições federais de educação superior e de ensino técnico de nível médio},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {2023},
+}
+
+@misc{brasil2025lei15142,
+  author       = {{Brasil}},
+  title        = {Lei n. 15.142, de 3 de junho de 2025. Dispõe sobre a reserva às pessoas pretas e pardas, indígenas e quilombolas de vagas oferecidas em concursos públicos e em processos seletivos simplificados no âmbito da administração pública federal},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {2025},
 }
 """
 

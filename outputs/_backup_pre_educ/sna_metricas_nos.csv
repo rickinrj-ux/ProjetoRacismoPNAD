@@ -1,0 +1,11 @@
+node,race,educ_label,educ_grp,n_workers,mean_renda,degree_centrality,betweenness,eigenvector,clustering,constraint,community
+Branco_Sem_Instr,Branco,Sem_Instr,0,4378114,7.7293,1.0,0.0,0.3756,0.5978,0.4238,1
+Branco_Fundamental,Branco,Fundamental,1,57697,6.559,1.0,0.3056,0.1851,0.4079,0.4177,0
+Branco_Medio,Branco,Medio,2,711014,7.0863,1.0,0.0,0.3436,0.5752,0.4228,1
+Branco_Superior,Branco,Superior,3,1194442,7.1736,1.0,0.0,0.3722,0.5996,0.4209,1
+Branco_Pos,Branco,Pos,4,41357,7.0435,1.0,0.1111,0.1791,0.3979,0.422,0
+Negro_Sem_Instr,Negro,Sem_Instr,0,6015628,7.3161,1.0,0.0,0.3765,0.5986,0.4236,1
+Negro_Fundamental,Negro,Fundamental,1,191988,6.2968,1.0,0.0,0.2371,0.4731,0.4156,0
+Negro_Medio,Negro,Medio,2,765906,6.7578,1.0,0.0,0.3631,0.5952,0.4191,1
+Negro_Superior,Negro,Superior,3,2484813,6.8653,1.0,0.0,0.3762,0.6022,0.421,1
+Negro_Pos,Negro,Pos,4,100716,6.7251,1.0,0.0,0.2543,0.494,0.4152,0

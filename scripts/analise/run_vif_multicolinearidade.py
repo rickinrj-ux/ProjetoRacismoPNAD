@@ -12,7 +12,7 @@ MOTIVAÇÃO:
 
 METODOLOGIA:
     statsmodels.stats.outliers_influence.variance_inflation_factor
-    sobre subsample estratificado de 200k observações (M4 sample).
+    sobre a população completa da PEA com renda positiva.
 """
 
 # --- bootstrap raiz do projeto (reorg estrutura) ---
@@ -60,7 +60,6 @@ M4_PREDICTORS = [
     # Individuais
     "negro", "sexo_fem", "log_horas", "urbano",
     "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
-    "educ_missing",
     # Contexto UPA
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
     # Vínculo empregatício
@@ -97,16 +96,16 @@ LABEL_MAP = {
     "ocp_ffaa": "CBO: FFAA/Polícia",
 }
 
-SUBSAMPLE_N = 200_000
+SUBSAMPLE_N = None   # população completa (regra do projeto; antes 200 mil, 03/10/2026)
 
 
 def load_sample():
-    logger.info(f"Carregando subsample N={SUBSAMPLE_N:,} para VIF ...")
+    logger.info("Carregando a população completa para o VIF ...")
     cols = [c for c in M4_PREDICTORS if c != "educ_missing"] + ["educ_cat", "pea", "renda_bruta"]
     df = pd.read_parquet(FEATURES_PATH, columns=cols)
     df["educ_missing"] = df["educ_cat"].isna().astype(int)
     df = df[(df["pea"] == 1) & (df["renda_bruta"] > 0)].dropna(subset=M4_PREDICTORS)
-    df_sample = df.sample(n=min(SUBSAMPLE_N, len(df)), random_state=42)
+    df_sample = df if SUBSAMPLE_N is None else df.sample(n=min(SUBSAMPLE_N, len(df)), random_state=42)
     logger.info(f"  Sample: {len(df_sample):,} obs. com {len(M4_PREDICTORS)} preditores")
     return df_sample
 

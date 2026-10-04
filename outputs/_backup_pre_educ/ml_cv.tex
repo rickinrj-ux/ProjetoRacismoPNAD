@@ -1,0 +1,46 @@
+\begin{table}[!ht]
+\centering
+\caption{Escolha de hiperparâmetros e validação cruzada do XGBoost (Alencar, 2024;
+Géron, 2021). Painel~A: seis configurações comparadas numa partição de validação
+\emph{dentro} do treino --- o conjunto de teste permanece intocado. Painel~B: validação
+cruzada $k$-\emph{fold} ($k=5$) no treino completo, com média e
+desvio-padrão entre \emph{folds}. População completa: 6.155.273 observações de
+treino e 1.538.819 de teste; nenhuma amostragem.}
+\label{tab:ml_cv}
+\small
+\begin{tabular}{lccccc}
+\multicolumn{6}{l}{\textbf{A. Busca na partição de validação}} \\
+\toprule
+Profundidade & Taxa de aprendizado & Árvores & $R^2$ & MAE & Sobreajuste \\
+\midrule
+\textbf{10} & 0,05 & 300 & 0,6281 & 0,4216 & 0,0109 \\
+8 & 0,05 & 600 & 0,6253 & 0,4233 & 0,0063 \\
+8 & 0,05 & 300 & 0,6210 & 0,4260 & 0,0034 \\
+6 & 0,10 & 300 & 0,6186 & 0,4276 & 0,0015 \\
+6 & 0,05 & 300 (atual) & 0,6145 & 0,4302 & 0,0007 \\
+4 & 0,05 & 300 & 0,6037 & 0,4370 & −0,0001 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.6em}
+\begin{tabular}{lccc}
+\multicolumn{4}{l}{\textbf{B. Validação cruzada no treino (5 \emph{folds})}} \\
+\toprule
+Configuração & $R^2$ (média $\pm$ dp) & MAE & RMSE \\
+\midrule
+Escolhida (profundidade 10) & 0,6279 $\pm$ 0,0006 & 0,4215 $\pm$ 0,0003 & 0,5632 $\pm$ 0,0004 \\
+Anterior (profundidade 6) & 0,6142 $\pm$ 0,0006 & 0,4301 $\pm$ 0,0003 & 0,5735 $\pm$ 0,0005 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\par\smallskip
+\footnotesize\emph{Como ler:} ``Sobreajuste'' é a diferença entre o $R^2$ de treino e o de
+validação --- valores próximos de zero indicam que o modelo não decorou os dados. A
+configuração escolhida melhora o $R^2$ em 1,4 ponto percentual sem aumentar o
+sobreajuste, e a variação entre \emph{folds} é da ordem de 0,0006 --- com 6,2~milhões de
+observações de treino, o desempenho praticamente não depende de qual pedaço dos dados é
+usado para validar. No conjunto de teste (intocado durante a escolha), $R^2 = 0,6280$.
+Na unidade original, o erro mediano de previsão é de R\$~540 por mês
+(37\% do rendimento observado), com correção de Duan para a
+retransformação do logaritmo.
+\end{table}

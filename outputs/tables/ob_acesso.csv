@@ -1,2 +1,3 @@
-gap_total,gap_pct,ef_dotacao,se_dotacao,pct_dotacao,ef_coeficiente,se_coeficiente,pct_coeficiente,n_brancos,n_negros,n_bootstrap,espec
-0.4254799,53.03246,0.35655419035174196,0.028774696395688432,83.800476,0.06892586129178502,0.012072406110506695,16.199558,3259516,4434682,200,com_ocupacao_e_contexto
+espec,rotulo,gap_total,se_gap,gap_pct,ef_dotacao,se_dotacao,pct_dotacao,ef_coeficiente,se_coeficiente,pct_coeficiente,n_brancos,n_negros,n_upas,n_bootstrap,bootstrap
+sem_ocupacao,Capital humano + contexto (sem ocupação),0.42522686165848356,0.003347526433379872,52.99374644468733,0.34907897427395373,0.0033074046596885736,82.09240895847093,0.0761478873845362,0.0011711040467137742,17.907591041530573,3271443,4427835,41459,500,blocos por UPA (multinomial sobre somas suficientes)
+acesso,Acesso (+ formalidade e CBO),0.42522686165848356,0.003205295659408329,52.99374644468733,0.3598152312782521,0.0031658313398870734,84.61723934252157,0.06541163038023097,0.0010638589321131317,15.38276065747832,3271443,4427835,41459,500,blocos por UPA (multinomial sobre somas suficientes)
