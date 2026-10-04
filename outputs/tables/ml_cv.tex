@@ -1,11 +1,11 @@
 \begin{table}[!ht]
 \centering
-\caption{Escolha de hiperparâmetros e validação cruzada do XGBoost (Alencar, 2024;
-Géron, 2021). Painel~A: seis configurações comparadas numa partição de validação
+\caption{Escolha de hiperparâmetros e validação cruzada do XGBoost (Alencar, 2024)
+\cite{geron2021}. Painel~A: seis configurações comparadas numa partição de validação
 \emph{dentro} do treino --- o conjunto de teste permanece intocado. Painel~B: validação
 cruzada $k$-\emph{fold} ($k=5$) no treino completo, com média e
-desvio-padrão entre \emph{folds}. População completa: 6.155.273 observações de
-treino e 1.538.819 de teste; nenhuma amostragem.}
+desvio-padrão entre \emph{folds}. População completa: 6.159.418 observações de
+treino e 1.539.855 de teste; nenhuma amostragem.}
 \label{tab:ml_cv}
 \small
 \begin{tabular}{lccccc}
@@ -13,12 +13,12 @@ treino e 1.538.819 de teste; nenhuma amostragem.}
 \toprule
 Profundidade & Taxa de aprendizado & Árvores & $R^2$ & MAE & Sobreajuste \\
 \midrule
-\textbf{10} & 0,05 & 300 & 0,6281 & 0,4216 & 0,0109 \\
-8 & 0,05 & 600 & 0,6253 & 0,4233 & 0,0063 \\
-8 & 0,05 & 300 & 0,6210 & 0,4260 & 0,0034 \\
-6 & 0,10 & 300 & 0,6186 & 0,4276 & 0,0015 \\
-6 & 0,05 & 300 (atual) & 0,6145 & 0,4302 & 0,0007 \\
-4 & 0,05 & 300 & 0,6037 & 0,4370 & −0,0001 \\
+\textbf{10} & 0,05 & 300 & 0,6427 & 0,3977 & 0,0120 \\
+8 & 0,05 & 600 & 0,6395 & 0,3995 & 0,0075 \\
+8 & 0,05 & 300 & 0,6352 & 0,4022 & 0,0046 \\
+6 & 0,10 & 300 & 0,6322 & 0,4041 & 0,0027 \\
+6 & 0,05 & 300 (referência) & 0,6286 & 0,4062 & 0,0019 \\
+4 & 0,05 & 300 & 0,6182 & 0,4128 & 0,0011 \\
 \bottomrule
 \end{tabular}
 
@@ -28,19 +28,16 @@ Profundidade & Taxa de aprendizado & Árvores & $R^2$ & MAE & Sobreajuste \\
 \toprule
 Configuração & $R^2$ (média $\pm$ dp) & MAE & RMSE \\
 \midrule
-Escolhida (profundidade 10) & 0,6279 $\pm$ 0,0006 & 0,4215 $\pm$ 0,0003 & 0,5632 $\pm$ 0,0004 \\
-Anterior (profundidade 6) & 0,6142 $\pm$ 0,0006 & 0,4301 $\pm$ 0,0003 & 0,5735 $\pm$ 0,0005 \\
+Escolhida (profundidade 10) & 0,6435 $\pm$ 0,0006 & 0,3978 $\pm$ 0,0002 & 0,5360 $\pm$ 0,0002 \\
+Referência (profundidade 6) & 0,6294 $\pm$ 0,0006 & 0,4064 $\pm$ 0,0002 & 0,5466 $\pm$ 0,0002 \\
 \bottomrule
 \end{tabular}
 \normalsize
 \par\smallskip
 \footnotesize\emph{Como ler:} ``Sobreajuste'' é a diferença entre o $R^2$ de treino e o de
 validação --- valores próximos de zero indicam que o modelo não decorou os dados. A
-configuração escolhida melhora o $R^2$ em 1,4 ponto percentual sem aumentar o
-sobreajuste, e a variação entre \emph{folds} é da ordem de 0,0006 --- com 6,2~milhões de
-observações de treino, o desempenho praticamente não depende de qual pedaço dos dados é
-usado para validar. No conjunto de teste (intocado durante a escolha), $R^2 = 0,6280$.
-Na unidade original, o erro mediano de previsão é de R\$~540 por mês
-(37\% do rendimento observado), com correção de Duan para a
-retransformação do logaritmo.
+configuração escolhida ganha 1,4 ponto percentual de $R^2$ ao custo de um
+sobreajuste maior, mas ainda pequeno (Painel~A). No conjunto de teste (intocado durante a
+escolha), $R^2 = 0,6444$; a estabilidade entre \emph{folds} e o erro em reais são
+discutidos no texto.
 \end{table}

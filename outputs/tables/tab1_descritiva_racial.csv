@@ -1,13 +1,13 @@
 ,Brancos,Negros
-N ponderado (mil),"1,607,081","1,906,722"
-Renda mediana (R$),"2,000","1,450"
-Renda média (R$),"3,256","2,040"
-DP renda (R$),"3,568","2,236"
-Log-renda média,7.6738,7.2537
+N ponderado (mil),"1,605,414","1,901,645"
+Renda mediana (R$),"2,641","1,819"
+Renda média (R$),"4,245","2,643"
+DP renda (R$),"4,568","2,822"
+Log-renda média,7.9554,7.5340
 Idade média (anos),40.1,38.6
-Escolaridade média (0-7),5.64,5.70
-Horas trab./sem (média),40.8,39.7
-Emprego formal (%),53.3,48.4
+Escolaridade média (0-7),4.10,3.33
+Horas trab./sem (média),40.8,39.8
+Emprego formal (%),53.3,48.6
 Setor público (%),13.5,12.3
-Sexo feminino (%),44.3,40.7
-"Gap racial bruto (mediana, %)","Ref. R$2,000",−27.5%
+Sexo feminino (%),44.2,40.7
+"Gap racial bruto (mediana, %)","Ref. R$2,641",−31.1%

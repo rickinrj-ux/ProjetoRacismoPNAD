@@ -14,15 +14,24 @@ Ficam aqui como registro histórico, não como entrega.
 
 | Entregável (em `entregaveis/`) | Gerador | Fonte dos números |
 |---|---|---|
-| `TCC_Ricardo_Calheiros_MBA_USP_Esalq.pdf` | `tcc/scripts/gerar_relatorio_enxuto.py` + pdflatex | csv de `outputs/tables/` |
-| `TCC_Ricardo_Calheiros_MBA_USP_Esalq.docx` | `tcc/scripts/gerar_word_enxuto.py` | conversão do mesmo `relatorio_tcc_enxuto.tex` que gera o PDF |
+| `TCC_Ricardo_Calheiros_MBA_USP_Esalq.pdf` | `tcc/scripts/gerar_tcc_normas.py` + pdflatex sobre `tcc_normas.tex` | csv de `outputs/tables/` |
+| `TCC_Ricardo_Calheiros_MBA_USP_Esalq.docx` | `tcc/scripts/gerar_tcc_normas_docx.py` + `formatar_docx_normas.py` | conversão do mesmo `tcc_normas.tex` que gera o PDF |
 | `TCC_Ricardo_Calheiros_Guia_de_Estudo.docx` | `tcc/scripts/gerar_guia_estudo.py` | `tcc/scripts/params_nucleo.py`, que lê os csv |
 | `TCC_Ricardo_Calheiros_Defesa.pptx` | `scripts/geradores/gerar_apresentacao_pptx.py` | `params_nucleo.py` |
 | `TCC_Ricardo_Calheiros_Executiva.pptx` | `tcc/scripts/gerar_apresentacao_executiva.py` | `params_nucleo.py` |
 
 Todos saem juntos com `./tcc/run_tcc.ps1`. O `.tex` e o PDF da raiz mantêm o
-nome do *build* (`relatorio_tcc_enxuto`); a pasta de entrega recebe a cópia com
-o nome de entrega.
+nome do *build*; a pasta de entrega recebe a cópia com o nome de entrega.
+
+**PDF e Word da entrega saem do mesmo `tcc_normas.tex`** — é o que aplica a
+estrutura do Manual de Normas (item 16) e passa 26/26 em
+`conferir_anexos_normas.py`. Até 28/09/2026 os dois vinham de fontes
+diferentes: `gerar_word_enxuto.py` gravava no mesmo nome de entrega, de modo
+que o .docx era o normativo (34 páginas) e o PDF ao lado era o enxuto (45
+páginas), com outro conteúdo. O gerador de trabalho passou a escrever em
+`entregaveis/relatorio_tcc_enxuto.{docx,pdf}`, e o PDF da entrega é copiado por
+`gerar_tcc_normas_docx.py` a partir de `tcc_normas.pdf` — que precisa estar
+compilado e mais novo que o `.tex`, senão o script avisa e não copia.
 
 A versão estendida completa (SNA, pesquisa operacional, clustering, Heckman)
 está preservada no branch `mestrado-extenso`.
