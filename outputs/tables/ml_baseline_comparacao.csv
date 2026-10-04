@@ -1,4 +1,4 @@
-Modelo,R2_teste,MAE_teste,RMSE_teste,ganho_R2_vs_OLS
-OLS (baseline linear),0.5708,0.4578,0.6049,0.0
-Random Forest,0.5735,0.4529,0.603,0.0027
-XGBoost,0.6167,0.4287,0.5716,0.0459
+Modelo,R2_teste,MAE_teste,RMSE_teste,ganho_R2_vs_MQO
+MQO (baseline linear),0.5866,0.4342,0.577,0.0
+Random Forest,0.5891,0.4288,0.5753,0.0024999999999999467
+XGBoost,0.6444,0.397,0.5352,0.05779999999999996

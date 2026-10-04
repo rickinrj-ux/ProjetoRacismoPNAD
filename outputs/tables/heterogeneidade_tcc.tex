@@ -1,0 +1,31 @@
+\begin{table}[!ht]
+\centering
+\caption{O que a categoria agregada esconde: penalidade racial por cor, setor, idade e
+corte de renda. Penalidade salarial: HLM~M3 (mesmo bairro, escolaridade, idade, sexo,
+jornada e estado), em \% de renda; por idade, M3 com a interação negro $\times$ faixa
+etária. Razões de chance: GLMM de acesso A2, contra brancos de mesmo perfil e bairro.
+Preço: parcela não explicada da Oaxaca--Blinder (A), contra brancos. Cada recorte foi
+estimado na população completa com a especificação do modelo de referência.}
+\label{tab:heterogeneidade}
+\begin{tabular}{lrrrr}
+\toprule
+Recorte & Penalidade salarial (\%) & OR cargo qualificado & OR top 10\% & Preço (\%) \\
+\midrule
+Negro (categoria do trabalho) & 6,1 & 0,814 & 0,761 & 17,9 \\
+\quad Pardo & 5,8 & 0,820 & 0,768 & 17,5 \\
+\quad Preto & 7,4 & 0,785 & 0,725 & 20,0 \\
+Setor privado & 7,2 & 0,783 & 0,685 & --- \\
+Setor público & 4,6 & 0,786 & 0,843 & --- \\
+Idade 14--29 anos & 1,7 & --- & --- & --- \\
+Idade 30--39 anos & 5,8 & --- & --- & --- \\
+Idade 40--49 anos & 6,9 & --- & --- & --- \\
+Idade 50--64 anos & 8,8 & --- & --- & --- \\
+Idade 65 anos ou mais & 14,7 & --- & --- & --- \\
+Top 10\% dentro da UF & --- & --- & 0,762 & --- \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize\emph{Como ler:} OR abaixo de~1 é menor chance que a de um branco
+comparável; ``Preço'' é a parte do gap que as características observáveis não explicam.
+Na última linha, o topo é definido dentro de cada estado, e não pelo corte nacional.
+\end{table}
