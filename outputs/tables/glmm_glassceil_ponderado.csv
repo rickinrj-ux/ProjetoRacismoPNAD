@@ -1,0 +1,10 @@
+desfecho,especificacao,OR_negro,SE_negro,CI95_lo,CI95_hi
+ocp_qualif,"HC1 (atual, sem peso/cluster)",0.7046,0.0023,0.7015,0.7078
+ocp_qualif,cluster UPA (sem peso),0.7012,0.0061,0.6929,0.7097
+ocp_qualif,cluster UPA + peso V1028,0.6927,0.0091,0.6804,0.7052
+y_top20,"HC1 (atual, sem peso/cluster)",0.6909,0.0024,0.6876,0.6941
+y_top20,cluster UPA (sem peso),0.6876,0.0064,0.6791,0.6962
+y_top20,cluster UPA + peso V1028,0.7098,0.0093,0.697,0.7229
+y_top10,"HC1 (atual, sem peso/cluster)",0.6556,0.0032,0.6515,0.6598
+y_top10,cluster UPA (sem peso),0.6532,0.0087,0.6422,0.6644
+y_top10,cluster UPA + peso V1028,0.6798,0.0127,0.6631,0.6969

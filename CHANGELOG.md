@@ -225,6 +225,101 @@ KM_DB_K2, KM_DB_K3, KM_DB_K5
 
 ---
 
+## v4.4 — Rigor técnico do núcleo: protocolo ML, sensibilidade Oaxaca, IC e desenho amostral (2026-07-28)
+
+### Prompt do usuário
+> "Recebi os seguintes feedbacks do orientador para ajuste no trabalho: [avaliação dos Resultados
+> Preliminares — 5 pontos técnicos: (1) detalhar protocolo de validação do Random Forest/XGBoost
+> (hold-out vs. CV vs. in-sample, hiperparâmetros, comparação com baseline OLS/HLM); (2) aprofundar
+> estabilidade dos valores SHAP (reamostragem ou comparação RF×XGBoost); (3) explicitar tratamento
+> do desenho amostral complexo da PNAD (pesos, estratos, conglomerados) no HLM/GLMM e no ML; (4)
+> complementar a especificação de acesso do Oaxaca-Blinder/GLMM com análise de sensibilidade
+> com/sem ocupação como dotação, quantificando o intervalo de discriminação; (5) reportar
+> intervalos de confiança — não só pontos — para os OR do GLMM e para a penalidade interseccional]"
+
+### Diagnóstico
+Auditoria (sem re-rodar modelos) achou que boa parte do pedido já estava computada em rodadas
+anteriores, só não exposta no `Resultados_Preliminares_TCC.docx` entregue ao orientador:
+- `glmm_glassceil_full.csv` e `evalues_glmm.csv` já tinham `CI95_lo`/`CI95_hi`, não exibidos na
+  Tabela 1.
+- `ob_decomposicao.csv` (Mincer puro, sem ocupação/contexto = 24,8%/75,2%) e `ob_acesso.csv`
+  (com ocupação+contexto = 83,8%/16,2%) já documentavam a sensibilidade de especificação
+  (achado F1 de `tcc/PERICIA.md`), sem tabela comparativa no documento entregue.
+- `shap_importance_comparada.csv` já tinha ranking RF e XGBoost lado a lado, permitindo calcular
+  Spearman ρ=0,839 (10/10 overlap no top-10) sem dados novos — achado adicional: a variável
+  "negro" tem rank instável entre os dois modelos (25 no RF vs. 11 no XGBoost).
+- `run_ml_shap.py` já fazia hold-out 80/20 com R² treino vs. teste (gap≈0,0006), mas o protocolo
+  e os hiperparâmetros de regularização do XGBoost não apareciam no texto.
+- **Pesos amostrais (V1028/V1033) e desenho amostral complexo não entram em nenhum modelo do
+  núcleo** (HLM, GLMM, Oaxaca, RF/XGBoost) — usados só em análises descritivas (Gini, Mincer
+  OLS). Este é o ponto mais sério: exige código novo + rerun com dados reais.
+
+### Mudanças implementadas (quick wins — sem novos dados)
+#### `params.py`
+- Novo bloco lendo `ml_performance.csv` (R² teste/treino, gap overfitting), calculando Spearman
+  RF×XGBoost a partir de `shap_importance_comparada.csv`, lendo `ob_decomposicao.csv`/`ob_acesso.csv`
+  para a sensibilidade Oaxaca, e parseando o IC do termo `negro_x_mulher_x_superior` de
+  `interseccional_coeficientes.csv`.
+- Chaves preparadas (guardadas por `.exists()`) para consumir, quando disponíveis, os outputs dos
+  scripts de robustez ainda pendentes: `ml_performance_cv.csv`, `ml_baseline_comparacao.csv`,
+  `shap_bootstrap_ci.csv`, `oaxaca_ponderado.csv`, `glmm_ponderado.csv`,
+  `interseccional_bootstrap_ci.csv`.
+
+#### `scripts/geradores/gerar_resultados_preliminares.py`
+1. Tabela 1 (GLMM): nova coluna "IC 95%" (Wald, via broom.mixed/lme4::glmer).
+2. Material e Métodos: protocolo RF/XGBoost explícito — split 80/20 hold-out, R² teste vs.
+   treino, hiperparâmetros de regularização do XGBoost (reg_alpha, reg_lambda, subsample,
+   colsample, max_depth, learning_rate).
+3. Novo parágrafo de estabilidade SHAP (Figura 3): Spearman ρ=0,839, overlap 10/10 no top-10, e
+   nota transparente sobre a instabilidade de rank da variável "negro" entre RF e XGBoost.
+4. Limitações: parágrafo de sensibilidade Oaxaca-Blinder quantificando o intervalo de
+   discriminação (16,2% com ocupação como dotação a 75,2% sem ela).
+5. Tabela 4 (interseccionalidade): nota complementar com o IC do termo de interação tripla do
+   HLM interseccional (β=−0,0434; IC 95% [−0,0538; −0,0330]) como evidência adicional de
+   incerteza estatística, enquanto o bootstrap direto da penalidade OB de 4 grupos está pendente.
+
+### Execução completa (2026-07-29) — todos os itens abaixo rodados com dados reais
+Base reconstruída do zero nesta máquina (download PNAD 2016-2025 do FTP do IBGE,
+`run_enrich_raw.py`, `run_features_completo.py` → 7.694.198 obs., mesma população já citada
+no documento) e todo o núcleo + robustez reprocessado:
+
+- **CV k-fold (k=5, subamostra 20%) + baseline OLS**: XGBoost R²=0,616±0,001 (CV),
+  RF R²=0,575±0,001 (CV). Ganho de R² sobre OLS simples (R²=0,571): RF +0,003 (marginal),
+  XGBoost +0,046 (mais expressivo) — a forma funcional linear já captura a maior parte da
+  variância; o XGBoost captura não-linearidades adicionais, mas de magnitude limitada.
+- **Bootstrap dos valores SHAP** (B=200): importância |SHAP| da variável "raça (negro)" é
+  precisa dentro de cada algoritmo (IC 95% [0,0294; 0,0295] no XGBoost) — a instabilidade de
+  rank reportada (25º no RF vs. 11º no XGBoost) é *entre* algoritmos, não imprecisão amostral.
+- **Refit ponderado (V1028) + cluster-robusto (UPA)**:
+  - GLMM (Tabela 1, acesso a cargo qualificado): SE sobe de 0,0023 (HC1) → 0,0061 (cluster) →
+    0,0091 (cluster+peso), quase 4× — OR estável (0,705→0,693).
+  - GLMM R (lme4, autoritativo): OR não-ponderado 0,752 → ponderado 0,736 (SE +0,0016).
+  - Oaxaca-Blinder: parcela de discriminação 16,2% (SE=0,0104, não ponderado) → 18,3%
+    (SE=0,0133, ponderado) — mesma direção, sem reverter a conclusão.
+  - Multinível ponderado pleno (pacote R `WeMix`) permanece como extensão opcional caso o
+    orientador exija o modelo completo; a checagem single-level+cluster já responde
+    diretamente à pergunta sobre inflação de precisão.
+- **Bootstrap cluster (UPA, B=200) da penalidade interseccional** (Tabela 4): 9,48 p.p.,
+  IC 95% [8,44; 10,69] — não inclui zero, confirma a penalidade com incerteza explícita.
+
+### Bugs de ambiente corrigidos durante a execução
+- `run_glmm_glassceil.py`: import faltante de `statsmodels.api as sm` (quebrava a seção de
+  robustez ponderada silenciosamente, capturada por `try/except`).
+- Retenção de múltiplos modelos `statsmodels`/`glmer` na íntegra em memória (cada um com cópia
+  de ~2,3GB do design matrix de 7,7M linhas) esgotava os 16GB de RAM desta máquina — refatorado
+  para processar cada desfecho/modelo de ponta a ponta e descartar (`del` + `gc.collect()`)
+  antes do próximo. A covariância cluster-robusta do statsmodels (41 mil clusters de UPA) foi
+  rodada em subamostra de 20% pelo mesmo motivo (limitação computacional documentada no código).
+- R: `vector memory exhausted` no `glmer` do M2 — corrigido com `R_MAX_VSIZE=64Gb` e `gc()`
+  explícito entre M1 e M2.
+- `xgboost>=2.0` serializa `base_score` como array JSON; `shap<=0.49.1` não faz o parse
+  (`TreeExplainer` quebrava com `could not convert string to float`). Fixado
+  `xgboost>=1.7.0,<2.0.0` no `requirements.txt` até o `shap` corrigir o suporte.
+- M3 do GLMM (interação negro×educação) pulado nos 3 desfechos: não é usado em nenhuma tabela
+  do núcleo, é o modelo mais caro, e sofre quase-separação no desfecho mais raro (y_top10).
+
+---
+
 ## Nota técnica sobre escolhas metodológicas
 
 ### Por que não usar Zero-Inflated Models?
