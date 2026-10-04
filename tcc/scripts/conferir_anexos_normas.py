@@ -149,9 +149,39 @@ a(("Sem Sumário (o formato não o prevê)", "Sumário" not in txt[:3000]))
 a(("Conclusão sem tabela ou figura",
    "Tabela" not in txt[txt.find("\nConclusão"):] if "\nConclusão" in txt else True))
 
+# ── limite de páginas (template de Implementação de ML: máximo de 50, com apêndices) ──
+# conta no próprio Word (automação do Office): o PDF do LaTeX sai ~5 páginas menor que o
+# .docx (43 × 48 em 04/10), e contar nele deixaria passar um Word acima do limite
+_np, _fonte = None, "?"
+try:
+    import win32com.client as _w32
+    _wd = _w32.DispatchEx("Word.Application")
+    _wd.Visible = False
+    try:
+        _doc = _wd.Documents.Open(str(ALVO) if "ALVO" in globals() else str(
+            Path(__file__).resolve().parents[2] / "entregaveis" / "TCC_Ricardo_Calheiros_MBA_USP_Esalq.docx"),
+            False, True)
+        _np, _fonte = int(_doc.ComputeStatistics(2)), "Word"
+        _doc.Close(0)
+    finally:
+        _wd.Quit()
+except Exception:
+    try:   # sem Office: o PDF do LaTeX, com folga de 5 páginas
+        import pypdfium2 as _pdfium
+        _pdf = Path(__file__).resolve().parents[2] / "entregaveis" / "TCC_Ricardo_Calheiros_MBA_USP_Esalq.pdf"
+        _np, _fonte = len(_pdfium.PdfDocument(str(_pdf))) + 5, "PDF + 5"
+    except Exception:
+        pass
+a((f"Até 50 páginas ({_fonte}: {_np if _np is not None else '?'})",
+   _np is not None and _np <= 50))
+
 print(f"{'ITEM':62s} SITUAÇÃO")
 falhas = 0
 for rot, ok in checks:
     print(f"  {rot:60s} {'OK' if ok else '<<< FALHA'}")
     falhas += not ok
 print(f"\n{len(checks) - falhas}/{len(checks)} conformes")
+# portão de verdade: uma não conformidade derruba o passo da fila (antes saía rc 0 e a
+# centralização indevida do título do Resumo passou despercebida de 03/10 a 04/10)
+import sys as _sys
+_sys.exit(1 if falhas else 0)

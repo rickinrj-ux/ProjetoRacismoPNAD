@@ -165,7 +165,10 @@ def formatar_capa(doc: Document) -> int:
         pf = p.paragraph_format
         if texto in ("Resumo", "Abstract"):
             na_capa = False
-            pf.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            # template: "Resumo e Palavras-chave em negrito, alinhados à esquerda" (estava
+            # centralizado desde 03/10 e o conferir_anexos acusava, sem derrubar a fila)
+            pf.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            pf.first_line_indent = Cm(0)
             pf.space_before = Pt(ESPACO)
             n += 1
             continue

@@ -562,9 +562,10 @@ LEGENDAS = [
      r"\noindent\emph{Como ler a Figura~\ref{fig:interseccional}:} cada linha é um grupo "
      r"raça$\times$gênero e cada ponto, a razão de chances contra o homem branco, cuja "
      r"referência é a linha tracejada em 1; abaixo dela, o grupo tem menos chance que ele. "
-     r"Siga a linha azul da esquerda para a direita: a mulher negra começa acima da "
-     r"referência no acesso à categoria e termina como o grupo mais distante dela no topo "
-     r"da renda."),
+     r"À esquerda, siga a linha azul: a mulher negra aparece acima da referência na "
+     r"categoria agregada e termina como o grupo mais distante dela no topo da renda. À "
+     r"direita, a mesma comparação por grande grupo da CBO mostra de onde vem a aparente "
+     r"vantagem: das ocupações feminizadas, não do comando."),
     (r"\label{tab:ml_perf}", r"\end{table}",
      r"\noindent\emph{Como ler a Tabela~\ref{tab:ml_perf}:} R\textsuperscript{2} mais alto "
      r"= melhor previsão; o \emph{gap} treino--teste próximo de zero indica ausência de "

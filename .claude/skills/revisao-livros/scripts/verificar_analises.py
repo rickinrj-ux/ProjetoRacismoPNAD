@@ -152,7 +152,7 @@ def check_glmm(tex: str) -> None:
     extras = set()
     for f in ("glmm_glassceil_glmer.csv", "grupo_rg_glmm_ocp.csv", "grupo_rg_glmm_rs_interacao.csv",
               "glmm_odds_ratios_full.csv", "evalues_glmm.csv", "grupo_rg_4grupos_desfechos.csv",
-              "grupo_rg_por_cbo.csv",
+              "grupo_rg_por_cbo.csv", "glmm_heterogeneidade.csv", "glmm_ponderado_a2.csv",
               "interseccional_coeficientes.csv"):
         for r in csv_rows(f):
             for k, v in r.items():
@@ -539,7 +539,10 @@ def check_entregaveis() -> None:
                          | _col_csv("grupo_rg_por_cbo.csv", "OR_mulher_negra")
                          | _col_csv("grupo_rg_por_cbo.csv", "OR_homem_negro")
                          | _col_csv("grupo_rg_por_cbo.csv", "OR_mulher_branca")
-                         | _col_csv("grupo_rg_por_cbo.csv", "OR_interacao"),
+                         | _col_csv("grupo_rg_por_cbo.csv", "OR_interacao")
+                         # E8: heterogeneidade (cor, setor, topo na UF) e logit ponderado
+                         | _col_csv("glmm_heterogeneidade.csv", "OR")
+                         | _col_csv("glmm_ponderado_a2.csv", "OR_negro"),
                          (2, 3))),
         "ICC": (r"ICC[^=\n]{0,20}[=:]\s*(\d{1,2},\d{1,2})\s*%",
                 _formatos(_col_csv("hlm_stepup_fit.csv", "icc_upa", 100)

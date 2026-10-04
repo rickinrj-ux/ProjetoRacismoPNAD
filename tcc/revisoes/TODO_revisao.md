@@ -337,9 +337,21 @@ Legenda: 🖥 reestimação · ✍ texto/gerador · 🎨 layout · ❓ decisão 
   - [x] Regenerado (fila_loo2 -Desde relatorio, 03/10 19:24, 11/11 OK; validate 0, caca_fosseis 0, conferir_numeros 0) e reconferido; s18 da Defesa refeito à parte (cabeçalhos em uma linha)
   - [ ] Pendente de dado do usuário: bib de Alencar 2024, Géron 2021, Imazon 2026, Fávero & Belfiore
 
+## Bloco E8 — Feedback do orientador de julho, refeito na base atual (04/10)
+
+- [x] E8.0 Merge do master do GitHub (4 commits de jul/2026) — versão local nos 26 conflitos;
+      PR #1 mesclado (c7ca2ca). Branch novo: robustez-desenho-amostral-2026-10
+- [x] E8.1 Oaxaca ponderada por V1028 (run_robustez_desenho.py --oaxaca): sem peso reproduz a
+      Tab. 6 (17,9 / 15,4); com peso, retornos 15,3% (A) e 12,7% (B)
+- [x] E8.2 Logit A2 com cluster UPA, sem/com peso V1028: acesso 0,820/0,808; top20 0,770/0,790; top10 0,758/0,777 (logit próprio em blocos; statsmodels estourava a memória)
+- [x] E8.3 Baseline MQO do ML no mesmo treino/teste: R² teste MQO 0,587; RF 0,589 (+0,002); XGBoost 0,644 (+0,058)
+- [x] E8.4 WeMix ENCERRADO (04/10, decisão do autor): piloto com 2% das UPAs (829) ficou ~4h na fase inicial de quadratura, sem chegar às iterações — população completa (41 mil UPAs) levaria dias. Vai para as Limitações como agenda; a robustez ao peso fica com o logit ponderado + cluster (E8.2). Pacote WeMix 4.0.3 instalado; script adaptado ao A2 atual
+- [x] E8.6 Módulo de heterogeneidade concluído (04/10 17:13): glmm_heterogeneidade.csv, hlm_heterogeneidade.csv, qr_por_cor.csv, rif_por_cor.csv, oaxaca_por_cor.csv
+- [~] E8.5 Incluído e regenerado (04/10 17:40), AGUARDA aprovação do autor para commit: subseção 'O que o agregado esconde' + Tab. 12 (cor, setor, idade, topo na UF); peso amostral e WeMix no parágrafo de Pesos; 2 linhas na tabela de robustez; C1 com o setor; P3 com medidas nos bairros; slide na Defesa; 4.6 no Guia; título do Resumo/Abstract à esquerda (norma); portão de 50 páginas pelo Word (48) e conferir_anexos agora derruba a fila
+
 ## Bloco E7 — Releitura final e fechamento
 
 - [x] E7.1 (04/10: releitura por agente — 38 achados; corrigidos ~33 nos geradores: 'pela metade'/'quase à metade'/'dois terços'/'1/3 da chance', três camadas calculadas, limite superior × inferior, interação da pós-graduação, jornada fora do A2, HL por desfecho, nAGQ=0 ≠ Laplace, alçada, títulos dos decks, Gap obs. no RIF, VIF/robustez, QR q25 do β; regeneração 11:08 com portões OK. NÃO feitos: reordenar abertura da interseccionalidade (#36), padronizar 39%/39,5% (#38), explicar 41.454 × 41.459 × 40.728 UPAs (#38)) Releitura corrida (texto) + conferência visual (decks/Word) só sobre o que mudou
 - [x] E7.2 (04/10: RETOMADA com a seção de 04/10; lições 24–27 em tcc/licoes_aprendidas.md; memórias de interseccionalidade e GLMM atualizadas; sobras da releitura feitas — interseccionalidade abre pela pergunta, frase das UPAs por método, 39,5% padronizado; regeneração 11:47 OK) Atualizar `RETOMADA_reestimacao_loo.md`, `releitura_2026-10-02.md` e memória
-- [ ] E7.3 Commits (código / resultados e entregáveis) e tag de entrega
+- [~] E7.3 (04/10: commits 2c07798 código e 3894ce7 resultados/entregáveis, no branch correcao-escolaridade-2026-10, enviado ao GitHub em 04/10; falta a tag de entrega, depois do E2.9/E2.13) Commits (código / resultados e entregáveis) e tag de entrega
 - [ ] E7.4 Versão para o orientador

@@ -519,6 +519,27 @@ if frase_cbo_mulher_negra(P):
     bullet(frase_cbo_mulher_negra(P))
 figura("grupo_rg_interseccional.png",
        "A mulher negra entra pelas ocupações feminizadas, mas não chega ao comando nem ao topo.", largura=15.5)
+
+# E8 (04/10/2026): heterogeneidade — o que o agregado esconde
+if "HET_HLM_PRETO" in P:
+    titulo("4.6  O que o agregado esconde: cor, setor e idade", 2)
+    bullet(f"Pretos × pardos (mesmo perfil e bairro): salário {pct(P['HET_HLM_PRETO'])} × "
+           f"{pct(P['HET_HLM_PARDO'])}; acesso OR {pt(P['HET_OR_PRETO_OCP'], 3)} × "
+           f"{pt(P['HET_OR_PARDO_OCP'], 3)}; top 10% OR {pt(P['HET_OR_PRETO_T10'], 3)} × "
+           f"{pt(P['HET_OR_PARDO_T10'], 3)}. A distância cresce no topo (QR q95: "
+           f"{pct(P['HET_QR_PRETO_Q95'])} × {pct(P['HET_QR_PARDO_Q95'])}). Leitura: compatível com "
+           "colorismo; 'negro' segue como categoria da política, porque os dois grupos estão "
+           "abaixo dos brancos em tudo.")
+    bullet(f"Setor: a porta é igual (acesso OR {pt(P['HET_OR_SETOR0_OCP'], 3)} no privado × "
+           f"{pt(P['HET_OR_SETOR1_OCP'], 3)} no público); o teto não (top 10% "
+           f"{pt(P['HET_OR_SETOR0_T10'], 3)} × {pt(P['HET_OR_SETOR1_T10'], 3)}; salário "
+           f"{pct(P['HET_HLM_SETOR0'])} × {pct(P['HET_HLM_SETOR1'])}).")
+    bullet(f"Idade: {pct(P['HET_IDADE_14_29'])} (14–29) a {pct(P['HET_IDADE_65MAIS'])} (65+). "
+           "Pergunta provável: 'é coorte ou ciclo de vida?' — resposta: dado transversal não "
+           "separa; as duas leituras são compatíveis com o teto de vidro.")
+    bullet(f"Teto de vidro dentro de cada UF: OR {pt(P['HET_OR_T10UF'], 3)} — não é efeito da "
+           "geografia. Peso amostral (V1028): OR do acesso "
+           f"{pt(P['PESO_OR_OCP_S'], 3)} → {pt(P['PESO_OR_OCP_P'], 3)}. WeMix: inviável com 41 mil UPAs.")
 doc.add_page_break()
 
 # ══ Parte 5 — equações ════════════════════════════════════════════════════════

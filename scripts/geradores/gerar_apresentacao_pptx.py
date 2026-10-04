@@ -822,6 +822,36 @@ add_text(s, (f"Acesso por grande grupo: dirigentes OR={fmt(P['CBO_MN_dirigente']
 footer(s, 13)
 
 # ══════════════════════════════════════════════════════════════════════════════
+# HETEROGENEIDADE (E8, 04/10/2026): o que o agregado esconde — cor, setor e idade
+# ══════════════════════════════════════════════════════════════════════════════
+if "HET_HLM_PRETO" in P:
+    s = prs.slides.add_slide(BLANK)
+    header_bar(s, "O agregado esconde: os pretos, o setor privado e os mais velhos",
+               "Mesmos modelos por recorte — mesmo perfil e mesmo bairro, contra brancos")
+    _r = lambda k, d=3: fmt(P[k], d) if k in P else "—"
+    add_table_resumo(
+        s, ["Recorte", "Penalidade salarial", "OR cargo qualificado", "OR top 10%"],
+        [["Negro (categoria do trabalho)", f"{fmt(P['GAP_M3'],1)}%", _r("OR_OCP_M2"), _r("OR_TOP10_M2")],
+         ["   Pardo", f"{_r('HET_HLM_PARDO',1)}%", _r("HET_OR_PARDO_OCP"), _r("HET_OR_PARDO_T10")],
+         ["   Preto", f"{_r('HET_HLM_PRETO',1)}%", _r("HET_OR_PRETO_OCP"), _r("HET_OR_PRETO_T10")],
+         ["Setor privado", f"{_r('HET_HLM_SETOR0',1)}%", _r("HET_OR_SETOR0_OCP"), _r("HET_OR_SETOR0_T10")],
+         ["Setor público", f"{_r('HET_HLM_SETOR1',1)}%", _r("HET_OR_SETOR1_OCP"), _r("HET_OR_SETOR1_T10")],
+         ["14–29 anos  →  65+", f"{_r('HET_IDADE_14_29',1)}% → {_r('HET_IDADE_65MAIS',1)}%", "—", "—"]],
+        In(0.3), In(1.3), In(8.4), In(4.2), col_w=[In(3.2), In(1.8), In(1.7), In(1.7)], font_size=13)
+    bullet_box(s, [
+        f"Pretos: penalidade maior em tudo — salário {_r('HET_HLM_PRETO',1)}% contra {_r('HET_HLM_PARDO',1)}% "
+        f"dos pardos; no topo, a distância cresce (q95: {_r('HET_QR_PRETO_Q95',1)}% × {_r('HET_QR_PARDO_Q95',1)}%)",
+        "Setor público: a porta é tão desigual quanto no privado; o que muda é o teto",
+        f"Idade: de {_r('HET_IDADE_14_29',1)}% a {_r('HET_IDADE_65MAIS',1)}% — coorte ou carreira",
+        f"Teto de vidro dentro de cada UF: OR {_r('HET_OR_T10UF')} (não é efeito da geografia)",
+    ], In(8.9), In(1.3), In(4.2), In(4.6), font_size=13)
+    add_text(s, "\"Negro\" segue como a categoria da política: pretos e pardos estão abaixo dos brancos em tudo.",
+             In(0.3), In(6.5), In(12.7), In(0.45), font_size=13, bold=True, color=C_DARK,
+             align=PP_ALIGN.CENTER)
+    footer(s, 14)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 14 — SENSIBILIDADE A VARIÁVEIS OMITIDAS
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
