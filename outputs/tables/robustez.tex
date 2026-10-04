@@ -25,9 +25,9 @@ Confundidor não observado (E-value) & E-value entre 1{,}46 e 2{,}36 & um confun
 \addlinespace[2pt]
 Sobreajuste (treino vs.\ teste) & maior diferença de $R^2$: 0{,}0084 & partição 80/20 e validação cruzada $k$-\textit{fold} \\
 \addlinespace[2pt]
-Ganho do ML sobre o linear & $R^2$ de teste: MQO 0{,}587; RF 0{,}589; XGBoost 0{,}644 & mesmo treino e teste; o ganho real está no XGBoost \\
+Ganho do ML sobre o linear & $R^2$ de teste: MQO 0{,}587; RF 0{,}589; XGBoost 0{,}644 & mesmo treino e teste: o RF empata com o linear (+0{,}002); o XGBoost ganha 0{,}058 \\
 \addlinespace[2pt]
-Peso amostral (V1028) no acesso e na decomposição & OR do acesso 0{,}820 $\to$ 0{,}808; preço da Oaxaca (A) 17{,}9\% $\to$ 15{,}3\% & logit com UF fixo e erro agrupado por UPA; conclusão inalterada \\
+Peso amostral (V1028) no acesso, no topo e na decomposição & OR do acesso 0{,}820 $\to$ 0{,}808; topo 10\% 0{,}758 $\to$ 0{,}777; preço da Oaxaca (A, com peso) 17{,}9\% $\to$ 15{,}3\% & logit com efeito fixo de estado e erro agrupado por UPA; conclusão inalterada \\
 \addlinespace[2pt]
 Validação cruzada ($k=5$) & $R^2$ médio entre \textit{folds}: 0{,}6435 & hiperparâmetros escolhidos em partição de validação e confirmados por CV \\
 \addlinespace[2pt]

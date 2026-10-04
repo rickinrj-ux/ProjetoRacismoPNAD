@@ -220,7 +220,7 @@ trabalhador: onde mora (modelo linear hierárquico, que separa a variação entr
 bairros), de que é feito o diferencial de renda (decomposição de Oaxaca--Blinder), que
 porta encontra (modelo logístico multinível de acesso a ocupações qualificadas), até
 onde sobe (regressão quantílica e decomposição por função de influência recentrada) e
-quem está na interseção de raça e gênero. Um modelo de aprendizado supervisionado
+quem está na interseção de raça e gênero, com os mesmos modelos repetidos por cor, setor e idade. Um modelo de aprendizado supervisionado
 ({gradient boosting}, interpretado por valores SHAP) serviu de verificação sem
 forma funcional imposta.
 
@@ -448,7 +448,7 @@ inferência.
 
 A PNAD Contínua é uma amostra por conglomerados: pessoas da mesma unidade primária de amostragem (UPA, proxy de bairro) compartilham choques não observados, e os regressores de contexto variam apenas no nível da UPA. Tratar as $7{,}7$~milhões de observações como independentes subestima os erros-padrão pelo fator de Moulton $\sqrt{1+(\bar n-1)\rho}$ \cite{angrist2009}. Por isso, todos os modelos de regressão (OLS com efeitos fixos de UF, decomposição de Oaxaca--Blinder, regressão quantílica e logit) reportam erros-padrão {agrupados por UPA} (41.459 clusters) --- para a OB e a regressão quantílica, por bootstrap em blocos de UPA. O agrupamento por UF é mais conservador, mas com 27 clusters ($<42$) a inferência assintótica é pouco confiável \cite{angrist2009}; quando reportado, usa a distribuição $t$ com $G-1$ graus de liberdade. No HLM, o intercepto aleatório de UPA modela explicitamente a correlação intra-bairro, de modo que o erro-padrão do modelo já a incorpora (sob a hipótese de efeitos aleatórios); como contraprova, os coeficientes do HLM são comparados aos do OLS com efeitos fixos de UF e erro-padrão agrupado por UPA, que coincidem em sinal, magnitude e significância. No OLS com efeitos fixos de UF (especificação do M3), o erro-padrão de $\hat\beta_{\text{negro}}$ passa de 0,0005 (convencional) para 0,0009 (agrupado por UPA) e 0,0033 (agrupado por UF); para o regressor de contexto $\overline{\%\text{Negro}}_{\text{UPA}}$, que varia apenas no nível da UPA, a razão é de 4,1$\times$ (UPA) e 20,1$\times$ (UF) --- a assinatura do efeito Moulton. Como $|\hat\beta_{\text{negro}}|/\text{SE}$ permanece acima de 19 mesmo no agrupamento mais conservador, nenhuma conclusão sobre o gap racial depende da escolha do erro-padrão; a correção importa para os coeficientes contextuais e para as variáveis de UF. 
 
-\paragraph{Pesos amostrais.} Os modelos são estimados sem o peso amostral da PNAD (V1028), isto é, descrevem a regressão na amostra, não a regressão populacional \cite{angrist2009}. Como robustez, o M3 foi reestimado por mínimos quadrados ponderados com V1028 e erro-padrão agrupado por UPA: $\hat\beta_{\text{negro}}$ passa de -0,0630 (MQO equivalente, sem pesos) para -0,0575 (gap de 6,1\% para 5,6\%), diferença sem relevância econômica. O mesmo vale para o acesso e para a decomposição: com o peso V1028 e erro agrupado por UPA, o OR do acesso vai de $0,820$ a $0,808$, o do décimo mais rico de $0,758$ a $0,777$, e a parcela de preço da Oaxaca--Blinder (A) de 17,9\% a 15,3\%. O modelo multinível ponderado (WeMix) mostrou-se computacionalmente inviável com 41 mil UPAs e fica como agenda; os demais resultados são não ponderados. 
+\paragraph{Pesos amostrais.} Os modelos são estimados sem o peso amostral da PNAD (V1028), isto é, descrevem a regressão na amostra, não a regressão populacional \cite{angrist2009}. Como robustez, o M3 foi reestimado por mínimos quadrados ponderados com V1028 e erro-padrão agrupado por UPA: $\hat\beta_{\text{negro}}$ passa de -0,0630 (MQO equivalente, sem pesos) para -0,0575 (gap de 6,1\% para 5,6\%), diferença sem relevância econômica. A conclusão também se mantém no acesso e na decomposição: com o peso V1028 e erro agrupado por UPA, no logit com efeito fixo de estado, o OR do acesso vai de $0,820$ (sem peso) a $0,808$, o do décimo mais rico de $0,758$ a $0,777$, e a parcela de preço da Oaxaca--Blinder (A) de 17,9\% a 15,3\%. O modelo multinível ponderado (pacote WeMix, do R) mostrou-se computacionalmente inviável com 41 mil UPAs e fica como agenda; os demais resultados são não ponderados. 
 
 \paragraph{O conjunto das verificações.} A Tabela~\ref{tab:robustez} reúne os diagnósticos aplicados ao longo do trabalho, o resultado de cada um e a providência que ele motivou.
 
@@ -479,9 +479,9 @@ Confundidor não observado (E-value) & E-value entre 1{,}46 e 2{,}36 & um confun
 \addlinespace[2pt]
 Sobreajuste (treino vs.\ teste) & maior diferença de $R^2$: 0{,}0084 & partição 80/20 e validação cruzada $k$-{fold} \\
 \addlinespace[2pt]
-Ganho do ML sobre o linear & $R^2$ de teste: MQO 0{,}587; RF 0{,}589; XGBoost 0{,}644 & mesmo treino e teste; o ganho real está no XGBoost \\
+Ganho do ML sobre o linear & $R^2$ de teste: MQO 0{,}587; RF 0{,}589; XGBoost 0{,}644 & mesmo treino e teste: o RF empata com o linear (+0{,}002); o XGBoost ganha 0{,}058 \\
 \addlinespace[2pt]
-Peso amostral (V1028) no acesso e na decomposição & OR do acesso 0{,}820 $\to$ 0{,}808; preço da Oaxaca (A) 17{,}9\% $\to$ 15{,}3\% & logit com UF fixo e erro agrupado por UPA; conclusão inalterada \\
+Peso amostral (V1028) no acesso, no topo e na decomposição & OR do acesso 0{,}820 $\to$ 0{,}808; topo 10\% 0{,}758 $\to$ 0{,}777; preço da Oaxaca (A, com peso) 17{,}9\% $\to$ 15{,}3\% & logit com efeito fixo de estado e erro agrupado por UPA; conclusão inalterada \\
 \addlinespace[2pt]
 Validação cruzada ($k=5$) & $R^2$ médio entre {folds}: 0{,}6435 & hiperparâmetros escolhidos em partição de validação e confirmados por CV \\
 \addlinespace[2pt]
@@ -516,7 +516,7 @@ de 50 mil observações sorteadas do conjunto de treino, com semente fixa, porqu
 
 \section*{Resultados e Discussão}
 
-Os resultados seguem a trajetória anunciada nas Considerações Iniciais: o bairro, a composição do diferencial, a porta das ocupações, a escada da distribuição de renda e a interseção de raça e gênero. Cada etapa responde a uma pergunta e deixa a seguinte; a Discussão, ao final, reúne as respostas e as confronta com as políticas vigentes.
+Os resultados seguem a trajetória anunciada nas Considerações Iniciais: o bairro, a composição do diferencial, a porta das ocupações, a escada da distribuição de renda, a interseção de raça e gênero e o que o agregado esconde por cor, setor e idade. Cada etapa responde a uma pergunta e deixa a seguinte; a Discussão, ao final, reúne as respostas e as confronta com as políticas vigentes.
 
 \subsection*{Modelos Hierárquicos Lineares --- Mediação Contextual do Gap}
 A trajetória começa onde a pessoa mora. \label{subsec:hlm_resultados}
@@ -1250,13 +1250,13 @@ o gap vem de retornos diferenciais. Grupo de referência: 1.842.088 homens branc
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.82\textwidth]{grupo_rg_interseccional}
-  \caption{A mulher negra entra pelas ocupações feminizadas, mas não chega ao comando nem ao topo: razões de chance dos quatro grupos raça$\times$gênero {vs.}~homem
+  \caption{A vantagem aparente da mulher negra no acesso é de composição: razões de chance dos quatro grupos raça$\times$gênero {vs.}~homem
   branco, em três desfechos. Na categoria agregada ela aparece acima da referência,
   mas por composição: entra pelas ocupações feminizadas e é a mais distante do homem
   branco entre os dirigentes e no topo da renda.}
   \label{fig:interseccional}
 \end{figure}
-\noindent{Como ler a Figura~\ref{fig:interseccional}:} cada linha é um grupo raça$\times$gênero e cada ponto, a razão de chances contra o homem branco, cuja referência é a linha tracejada em 1; abaixo dela, o grupo tem menos chance que ele. À esquerda, siga a linha azul: a mulher negra aparece acima da referência na categoria agregada e termina como o grupo mais distante dela no topo da renda. À direita, a mesma comparação por grande grupo da CBO mostra de onde vem a aparente vantagem: das ocupações feminizadas, não do comando.
+\noindent{Como ler a Figura~\ref{fig:interseccional}:} cada série é um grupo raça$\times$gênero e cada ponto, a razão de chances contra o homem branco, cuja referência é a linha tracejada em 1; abaixo dela, o grupo tem menos chance que ele. À esquerda, siga a série azul (mulher negra): ela aparece acima da referência na categoria agregada e termina como o grupo mais distante da referência no topo da renda. À direita, a mesma comparação por grande grupo da CBO mostra de onde vem a aparente vantagem: das ocupações feminizadas, não do comando.
 
 \paragraph{Na entrada, a vantagem da mulher negra é de ocupações feminizadas.}
 No acesso à ocupação qualificada (CBO~1--4) a mulher negra tem OR~$=1,31$,
@@ -1294,9 +1294,11 @@ Os resultados até aqui tratam negros como um grupo e o mercado como um todo. Es
 \caption{O que a categoria agregada esconde: penalidade racial por cor, setor, idade e
 corte de renda. Penalidade salarial: HLM~M3 (mesmo bairro, escolaridade, idade, sexo,
 jornada e estado), em \% de renda; por idade, M3 com a interação negro $\times$ faixa
-etária. Razões de chance: GLMM de acesso A2, contra brancos de mesmo perfil e bairro.
-Preço: parcela não explicada da Oaxaca--Blinder (A), contra brancos. Cada recorte foi
-estimado na população completa com a especificação do modelo de referência.}
+etária. Razões de chance: GLMM de acesso e de teto de vidro (top 10\%), contra brancos
+de mesmo perfil e bairro. Preço: parcela não explicada da Oaxaca--Blinder (A), contra
+brancos. Setor público: empregados do setor público, inclusive militares e estatutários
+(VD4009); privado: os demais ocupados. Cada recorte foi estimado em todos os seus
+indivíduos, sem amostragem, com a especificação do modelo de referência.}
 \label{tab:heterogeneidade}
 \begin{tabular}{lrrrr}
 \toprule
@@ -1323,11 +1325,11 @@ Na última linha, o topo é definido dentro de cada estado, e não pelo corte na
 \end{table}
 
 
-Pretos e pardos estão abaixo dos brancos em todos os recortes, o que sustenta a categoria negro como referência de política; mas a penalidade dos pretos é maior em todos eles: 7,4\% contra 5,8\% no salário, OR~$=0,785$ contra $0,820$ no acesso e $0,725$ contra $0,768$ no décimo mais rico (Tabela~\ref{tab:heterogeneidade}). A distância entre os dois grupos cresce rumo ao topo: na regressão quantílica, vai de 4,7\% e 4,2\% na base a 11,6\% e 9,5\% no q95. O preço também se distribui de outro modo: nos pardos concentra-se na base (26,9\% do gap RIF no q10, 7,4\% no q90); nos pretos alcança 24,8\% na mediana e permanece em 11,9\% no topo. O padrão é compatível com colorismo --- um preço maior para a pele mais escura onde a seleção é mais visível ---, sem que estes dados o identifiquem como causa.
+Pretos e pardos estão abaixo dos brancos em todas as medidas (salário, acesso, topo e preço), o que sustenta a categoria negro como referência de política; mas a penalidade dos pretos é maior em todas elas: 7,4\% contra 5,8\% no salário, OR~$=0,785$ contra $0,820$ no acesso e $0,725$ contra $0,768$ no décimo mais rico (Tabela~\ref{tab:heterogeneidade}); as diferenças entre os dois grupos ficam fora dos intervalos de 95\%. A distância entre os dois grupos cresce rumo ao topo: na regressão quantílica, a penalidade de pretos e pardos, respectivamente, vai de 4,7\% e 4,2\% no primeiro decil a 10,0\% e 8,0\% no nono. A parcela de preço da decomposição RIF também se distribui de outro modo: nos pardos, cai de 26,9\% no primeiro decil para 19,8\% na mediana e 7,4\% no nono, como no agregado; nos pretos, passa de 21,2\% para 24,8\% e 11,9\%, sem ceder no topo. O padrão é compatível com o colorismo --- a discriminação graduada pela tonalidade da pele \cite{telles2004} ---, sem que estes dados o identifiquem como causa.
 
-Entre pessoas comparáveis, a entrada em cargo qualificado é igualmente desigual no setor privado (OR~$=0,783$) e no público ($0,786$); a diferença entre os setores está na subida. No privado, a penalidade salarial é de 7,2\% e a chance de chegar ao décimo mais rico tem OR~$=0,685$; no público, 4,6\% e $0,843$. O teto de vidro não é efeito da geografia: com o topo definido dentro de cada estado, o OR é $0,762$, como no corte nacional ($0,761$).
+Entre pessoas comparáveis, a entrada em cargo qualificado é igualmente desigual no setor privado (OR~$=0,783$) e no público ($0,786$, com intervalos de 95\% que se sobrepõem); a diferença entre os setores está na subida. No privado, a penalidade salarial é de 7,2\% e a chance de chegar ao décimo mais rico tem OR~$=0,685$; no público, 4,6\% e $0,843$. O teto de vidro não decorre da composição regional dos salários: com o topo definido dentro de cada estado, o OR é $0,762$, como no corte nacional ($0,761$).
 
-A penalidade cresce com a idade: 1,7\% entre 14 e 29 anos, 8,8\% entre 50 e 64 e 14,7\% a partir dos 65. Dados transversais não separam as duas leituras possíveis --- coorte (gerações que chegaram ao mercado depois das cotas) ou ciclo de vida (a desigualdade se acumula ao longo da carreira) ---, e ambas são compatíveis com o teto de vidro.
+A penalidade cresce com a idade: 1,7\% entre 14 e 29 anos, 8,8\% entre 50 e 64 e 14,7\% a partir dos 65. Dados transversais não separam as duas leituras possíveis: a de ciclo de vida (a desigualdade se acumula ao longo da carreira) é compatível com o teto de vidro; a de coorte, com melhora entre gerações. Acima dos 65 anos, o grupo é selecionado --- só quem ainda trabalha --- e menor, o que pede cautela com essa estimativa.
 
 \subsection*{Modelos de Machine Learning e SHAP Values}
 Resta verificar se o padrão depende da forma funcional imposta pelos modelos. \label{subsec:ml}
@@ -1705,7 +1707,7 @@ Em dez anos o gap encolheu 14{,}7\%, e a inclinação é estatisticamente distin
 
 
 \paragraph{O que os resultados dizem sobre a política de diversidade vigente.}
-\textbf{As políticas cuidam do ingresso, não da subida.} A reserva de vagas no ensino superior federal \cite{brasil2012lei12711, brasil2023lei14723} e nos concursos federais \cite{brasil2025lei15142} atua na entrada. A desvantagem medida aqui, porém, cresce onde se decide a ascensão: as chances de alcançar o décimo mais rico foram 24\% menores, e, entre os dirigentes, a mulher negra teve a menor chance de todos os grupos (OR~$=0,63$). O único instrumento federal voltado ao comando, a reserva de cargos em comissão e funções de confiança \cite{brasil2023decreto11443}, vale apenas para a administração pública federal, e o setor privado, que concentra a maior parte do emprego, não tem obrigação equivalente. O recorte por setor precisa o diagnóstico: entre pessoas comparáveis, o setor público não abre mais a porta do cargo qualificado (OR~$0,786$, contra $0,783$ no privado), mas tem teto bem mais baixo --- no décimo mais rico, $0,843$ contra $0,685$ --- e penalidade salarial menor (4,6\% contra 7,2\%). É no setor privado, sem obrigação, que a subida mais se fecha.
+\textbf{As políticas cuidam do ingresso, não da subida.} A reserva de vagas no ensino superior federal \cite{brasil2012lei12711, brasil2023lei14723} e nos concursos federais \cite{brasil2014lei12990, brasil2025lei15142} atua na entrada. A desvantagem medida aqui, porém, cresce onde se decide a ascensão: as chances de alcançar o décimo mais rico foram 24\% menores, e, entre os dirigentes, a mulher negra teve a menor chance de todos os grupos (OR~$=0,63$). O único instrumento federal voltado ao comando, a reserva de cargos em comissão e funções de confiança \cite{brasil2023decreto11443}, vale apenas para a administração pública federal, e o setor privado, que concentra a maior parte do emprego, não tem obrigação equivalente. O recorte por setor torna o diagnóstico mais preciso. Mesmo com reserva de vagas nos concursos desde 2014, o setor público não abre mais a porta do cargo qualificado (OR~$0,786$, contra $0,783$ no privado): a reserva opera na admissão ao serviço público, não no nível da ocupação, e os ocupados incluem coortes anteriores a ela. O que o setor público tem é um teto que pesa bem menos --- no décimo mais rico, $0,843$ contra $0,685$ --- e penalidade salarial menor (4,6\% contra 7,2\%). É no setor privado que a subida mais se fecha, o que é compatível com a ausência de obrigação, mas também com a estrutura salarial regulada do setor público; os dados não separam as duas leituras.
 
 \textbf{A aposta educacional é necessária, mas insuficiente.} A escolaridade se associou a quase toda a convergência salarial --- a penalidade caiu de 9,6\% sem fundamental completo para 1,1\% na pós-graduação ---, mas não à de acesso: com pós-graduação, as chances de chegar a um cargo qualificado seguiram 23\% menores. Programas de acesso ao ensino atacam a barreira que mais cede ao diploma.
 
@@ -1714,7 +1716,7 @@ Em dez anos o gap encolheu 14{,}7\%, e a inclinação é estatisticamente distin
 \textbf{Um eixo de cada vez deixa a mulher negra de fora.} Ela entrou mais do que o homem branco nas ocupações feminizadas --- apoio administrativo (OR~$=1,96$), ensino e saúde ---, mas menos do que a mulher branca (OR~$=2,20$ no apoio administrativo); metas separadas para mulheres e para negros podem ser cumpridas pela mulher branca e pelo homem negro sem alcançá-la. A lei de transparência salarial \cite{brasil2023lei14611} coleta raça no relatório das empresas com 100 ou mais empregados, mas a obrigação de igualdade que estabelece é entre mulheres e homens.
 
 \paragraph{Propostas para reduzir o racismo estrutural no mercado de trabalho.}
-As propostas a seguir são sugeridas pelos resultados, não avaliadas por eles. \textbf{(i) Metas de representação em cargos de direção e gerência no setor privado, com recorte interseccional}, apoiadas no relatório que a lei de transparência salarial já exige. \textbf{(ii) Igualdade salarial por raça como obrigação, e não só como dado}, com fiscalização dirigida à diferença que persiste dentro da mesma ocupação (5,6\%), base que a proibição de práticas discriminatórias e o Estatuto da Igualdade Racial já oferecem \cite{brasil1995lei9029, brasil2010lei12288}. \textbf{(iii) Um componente territorial}, já que o bairro carrega parte do diferencial: transporte e intermediação de emprego que liguem os bairros segregados aos polos de emprego qualificado; aprendizagem, estágio e mentoria que levem redes de contato a quem não as tem --- a entrada na carreira é o momento de maior retorno, pois a penalidade é mínima entre os mais jovens ---; currículo sem endereço nas primeiras etapas de seleção, para que o CEP não funcione como sinal de raça; escola de tempo integral e ensino técnico nos bairros de maior proporção de população negra; habitação de interesse social em áreas centrais, e não em novos conjuntos periféricos; e, como a penalidade é maior nos bairros de renda mais alta, fiscalização também ali, e não só na periferia. As estimativas por bairro do modelo hierárquico servem para escolher onde começar e para medir se a penalidade mudou. \textbf{(iv) Promoção, e não só ingresso}: estender a lógica da reserva de cargos de confiança às empresas estatais e à progressão nas carreiras. \textbf{(v) Monitoramento anual} destes indicadores --- o diferencial líquido, a chance de acesso e a chance de comando por raça e gênero ---, reproduzíveis com a PNAD Contínua, para verificar se uma intervenção moveu a barreira que importa.
+As propostas a seguir são sugeridas pelos resultados, não avaliadas por eles. \textbf{(i) Metas de representação em cargos de direção e gerência no setor privado, com recorte interseccional}, apoiadas no relatório que a lei de transparência salarial já exige. \textbf{(ii) Igualdade salarial por raça como obrigação, e não só como dado}, com fiscalização dirigida à diferença que persiste dentro da mesma ocupação (5,6\%), base que a proibição de práticas discriminatórias e o Estatuto da Igualdade Racial já oferecem \cite{brasil1995lei9029, brasil2010lei12288}. \textbf{(iii) Um componente territorial}. Dos resultados decorrem três pontos: o bairro carrega parte do diferencial; a penalidade é maior nos bairros de renda mais alta, o que pede fiscalização também ali, e não só na periferia; e as estimativas por bairro do modelo hierárquico servem para escolher onde começar e para medir se a penalidade mudou. A literatura de efeitos de vizinhança \cite{wilson1987, sampson1997, marques2010} sugere os instrumentos: transporte e intermediação de emprego que liguem os bairros segregados aos polos de emprego qualificado; aprendizagem, estágio e mentoria que levem redes de contato a quem não as tem --- como a penalidade cresce com a idade, agir na entrada evita que ela se acumule, se a leitura de ciclo de vida for a correta ---; currículo sem endereço nas primeiras etapas de seleção; escola de tempo integral e ensino técnico nos bairros de maior proporção de população negra; e habitação de interesse social em áreas centrais. \textbf{(iv) Promoção, e não só ingresso}: estender a lógica da reserva de cargos de confiança às empresas estatais e à progressão nas carreiras. \textbf{(v) Monitoramento anual} destes indicadores --- o diferencial líquido, a chance de acesso e a chance de comando por raça e gênero ---, reproduzíveis com a PNAD Contínua, para verificar se uma intervenção moveu a barreira que importa.
 
 \subsection*{Limitações e escopo de validade}
 
@@ -1799,7 +1801,11 @@ vaga e currículos, como nos experimentos de auditoria \cite{pager2007} --- perm
 medir o conteúdo das funções e a triagem na contratação, que os códigos ocupacionais
 não captam. A descrição oficial dos códigos não supriria essa lacuna: seria a
 ocupação de novo, um {bad control} no modelo de rendimento e o próprio desfecho
-no de acesso.
+no de acesso. Fica ainda como agenda relacionar a penalidade estimada em cada estado
+à presença de pretos e pardos nos cargos eletivos, que a Justiça Eleitoral registra
+por cor ou raça desde 2014: a sub-representação negra no comando político seria a
+face institucional do teto de vidro aqui medido \cite{almeida2019}, mas, com uma
+observação por estado, a comparação seria apenas ecológica.
 
 \bigskip
 
@@ -1818,9 +1824,9 @@ por todo o conteúdo.
 
 \section*{Conclusão}
 
-A desigualdade racial no mercado de trabalho brasileiro apresentou as marcas do racismo estrutural. Persistiu: com a mesma escolaridade, idade, sexo e bairro, trabalhadores negros ganharam 6,1\% a menos, e 5,6\% dentro da mesma ocupação. Passou por estruturas: o bairro mediou 39,5\% do diferencial agregado, e as chances de chegar a um cargo qualificado foram 19\% menores. Acumulou-se rumo ao topo: a penalidade condicional subiu de 4,3\% na base para 8,4\% no nono decil. A mulher negra entrou pelas ocupações feminizadas, mas foi o grupo com menor chance de chegar ao comando. O diploma quase igualou o salário (1,1\% na pós-graduação), mas não a porta: as chances de acesso seguiram 23\% menores. As três hipóteses encontraram respaldo.
+A desigualdade racial no mercado de trabalho brasileiro apresentou as marcas do racismo estrutural. Persistiu: com a mesma escolaridade, idade, sexo e bairro, trabalhadores negros ganharam 6,1\% a menos, e 5,6\% dentro da mesma ocupação. Passou por estruturas: o bairro mediou 39,5\% do diferencial agregado, e as chances de chegar a um cargo qualificado foram 19\% menores. Acumulou-se rumo ao topo: a penalidade condicional subiu de 4,3\% na base para 8,4\% no nono decil. A mulher negra entrou pelas ocupações feminizadas, mas foi o grupo com menor chance de chegar ao comando. A penalidade foi maior para pretos (7,4\%) que para pardos (5,8\%) e cresceu com a idade. O diploma quase igualou o salário (1,1\% na pós-graduação), mas não a porta: as chances de acesso seguiram 23\% menores. As três hipóteses encontraram respaldo.
 
-Esses resultados indicam limites da política de diversidade vigente. As cotas atuam no ingresso, mas a desvantagem cresce onde se decide a ascensão. A educação reduz a penalidade salarial, mas não abre a porta. O território não entra nos critérios, embora carregue parte do diferencial. Metas separadas por raça e por gênero não alcançam a mulher negra no comando. As prioridades sugeridas são metas de representação em cargos de direção com recorte interseccional, igualdade salarial por raça como obrigação fiscalizada, ação territorial nos bairros de maior proporção de população negra e monitoramento anual destes indicadores. Os resultados são associações condicionais, não efeitos causais, e as propostas são agenda, não efeito estimado.
+Esses resultados indicam limites da política de diversidade vigente. As cotas atuam no ingresso, mas a desvantagem cresce onde se decide a ascensão. No setor público, a porta do cargo qualificado foi tão desigual quanto no privado; o teto pesou menos. A educação reduz a penalidade salarial, mas não abre a porta. O território não entra nos critérios, embora carregue parte do diferencial. Metas separadas por raça e por gênero não alcançam a mulher negra no comando. As prioridades sugeridas são metas de representação em cargos de direção com recorte interseccional, igualdade salarial por raça como obrigação fiscalizada, ação territorial nos bairros de maior proporção de população negra e monitoramento anual destes indicadores. Os resultados são associações condicionais, não efeitos causais, e as propostas são agenda, não efeito estimado.
 
 
 \newpage
