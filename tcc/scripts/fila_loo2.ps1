@@ -28,6 +28,7 @@ $passos = @(
     @("figuras_nucleo",     "`"$py`" -u tcc/scripts/gerar_figuras_nucleo.py"),
     @("fig_interseccional", "`"$py`" -u tcc/scripts/gerar_figura_interseccional.py"),
     @("fig_rs_blups",       "`"$py`" -u tcc/scripts/gerar_figura_rs_blups.py"),
+    @("tab_heterog",        "`"$py`" -u tcc/scripts/gerar_tabela_heterogeneidade.py"),
     @("tab_robustez",       "`"$py`" -u tcc/scripts/gerar_tabela_robustez.py"),
     # documento: tabelas-síntese -> relatorio_tcc.tex -> enxuto -> normas -> PDF/docx -> conferência
     @("relatorio",          "powershell -NoProfile -ExecutionPolicy Bypass -File tcc/run_tcc.ps1 -Relatorio"),

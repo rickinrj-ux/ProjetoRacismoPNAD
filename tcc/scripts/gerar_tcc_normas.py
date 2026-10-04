@@ -42,6 +42,7 @@ from tcc_normas_texto import (PREAMBULO, FOLHA_ROSTO, RESUMO_ABSTRACT,
 # pontes nos Resultados, críticas e propostas na Discussão, Conclusão em dois parágrafos
 from tcc_normas_narrativa import (INTRODUCAO, CONCLUSAO, ABERTURA_RESULTADOS,  # noqa: F811
                                   PONTES, DISCUSSAO_POLITICAS)
+from tcc_normas_narrativa import HETEROGENEIDADE, PESO_COMPLEMENTO, _PESO_ANCORA  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 FONTE = ROOT / "relatorio_tcc_enxuto.tex"
@@ -398,7 +399,11 @@ def main() -> int:
                 if fim_par > 0:
                     resto = depois[:fim_par] + "\n\n" + tabela + depois[fim_par:]
         return f"{titulo}\n{ponte} {resto.lstrip()}"
-    partes += [_com_ponte(n) for n in RESULTADOS]
+    # a heterogeneidade (cor, setor, idade) fecha o núcleo, antes do ML de robustez
+    for n in RESULTADOS:
+        partes.append(_com_ponte(n))
+        if n.startswith("Interseccionalidade") and HETEROGENEIDADE:
+            partes.append(HETEROGENEIDADE)
     # a Discussão entrava SEM cabeçalho (o título era trocado por "") e o texto ficava
     # pendurado dentro da subseção do VIF; vira subseção própria
     _disc = bloco("Discussão e Prescrição").replace(
@@ -429,6 +434,11 @@ def main() -> int:
     partes.append(FECHO)
 
     doc = "\n".join(partes)
+    # Inferência > Pesos amostrais: o peso também no acesso e na Oaxaca, e o WeMix (E8)
+    if _PESO_ANCORA in doc:
+        doc = doc.replace(_PESO_ANCORA, PESO_COMPLEMENTO, 1)
+    else:
+        print("  [AVISO] âncora do parágrafo de pesos amostrais não encontrada")
     doc = sem_numeracao_titulo(sem_italico(sem_barreiras(doc)))
     doc = chamar_antes(doc)
     doc = remissoes_textuais(doc)

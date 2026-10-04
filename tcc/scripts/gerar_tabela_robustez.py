@@ -119,6 +119,27 @@ def linhas_tabela() -> list[tuple[str, str, str]]:
             f"maior diferença de $R^2$: {pt(g.max(), 4)}",
             "partição 80/20 e validação cruzada $k$-\\textit{fold}"))
 
+    # E8 (04/10/2026): baseline linear do ML e peso amostral no acesso e na Oaxaca
+    bl = ler("ml_baseline_comparacao.csv")
+    if bl is not None and len(bl) >= 3:
+        r2 = bl.set_index("Modelo")["R2_teste"].astype(float)
+        mqo = r2.get("MQO (baseline linear)")
+        if mqo is not None:
+            L.append((
+                "Ganho do ML sobre o linear",
+                (f"$R^2$ de teste: MQO {pt(mqo, 3)}; RF {pt(r2.get('Random Forest'), 3)}; "
+                 f"XGBoost {pt(r2.get('XGBoost'), 3)}"),
+                "mesmo treino e teste; o ganho real está no XGBoost"))
+    gp, op = ler("glmm_ponderado_a2.csv"), ler("oaxaca_ponderado_ab.csv")
+    if gp is not None and op is not None:
+        g_ = gp[gp["desfecho"] == "ocp_qualif"].set_index("ponderado")["OR_negro"]
+        o_ = op[op["espec"] == "A"].set_index("ponderado")["pct_retornos"]
+        L.append((
+            "Peso amostral (V1028) no acesso e na decomposição",
+            (f"OR do acesso {pt(g_[False], 3)} $\\to$ {pt(g_[True], 3)}; preço da Oaxaca (A) "
+             f"{pt(o_[False], 1)}\\% $\\to$ {pt(o_[True], 1)}\\%"),
+            "logit com UF fixo e erro agrupado por UPA; conclusão inalterada"))
+
     cv = ler("ml_cv_resumo.csv")
     if cv is not None and len(cv):
         col = next((c for c in cv.columns if "r2" in c.lower() and "dp" not in c.lower()), None)

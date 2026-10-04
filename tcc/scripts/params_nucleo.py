@@ -574,6 +574,46 @@ def carregar() -> dict:
         # contagens voltam a int: como float, saíam "15.941.675.0" no texto
         P[r["chave"]] = int(v) if r["chave"].startswith("N_") else v
 
+    # ── Robustez ao desenho amostral e baseline do ML (E8, 04/10/2026) ───────────────
+    _abv = {"ocp_qualif": "OCP", "y_top20": "T20", "y_top10": "T10"}
+    for r in _rows("glmm_ponderado_a2.csv"):
+        P[f"PESO_OR_{_abv[r['desfecho']]}_{'P' if r['ponderado'] == 'True' else 'S'}"] = _f(r["OR_negro"])
+    for r in _rows("oaxaca_ponderado_ab.csv"):
+        P[f"PESO_OB_{r['espec']}_{'P' if r['ponderado'] == 'True' else 'S'}"] = _f(r["pct_retornos"])
+    for r in _rows("ml_baseline_comparacao.csv"):
+        _m = {"MQO (baseline linear)": "MQO", "Random Forest": "RF", "XGBoost": "XGB"}.get(r["Modelo"])
+        if _m:
+            P[f"BASE_R2_{_m}"] = _f(r["R2_teste"])
+    # ── Heterogeneidade: cor, setor, idade e topo na UF (E8.6) ───────────────────────
+    for r in _rows("hlm_heterogeneidade.csv"):
+        t = r["termo"]
+        if r["bloco"] == "cor3":
+            P[f"HET_HLM_{t.upper()}"] = abs(_f(r["gap_pct"]))
+        elif r["bloco"] in ("setor0", "setor1"):
+            P[f"HET_HLM_SETOR{r['bloco'][-1]}"] = abs(_f(r["gap_pct"]))
+        elif r["bloco"] == "idade":
+            P.setdefault("_HET_IDADE", {})[t] = _f(r["beta"])
+    if "_HET_IDADE" in P:                       # penalidade implícita por faixa (ref. 30–39)
+        _i = P.pop("_HET_IDADE")
+        b0 = _i.get("negro")
+        for fx in ("14_29", "30_39", "40_49", "50_64", "65mais"):
+            b = b0 + _i.get(f"negro:C(faixa, Treatment('30_39'))[T.{fx}]", 0.0)
+            P[f"HET_IDADE_{fx.upper()}"] = abs((math.exp(b) - 1) * 100)
+    for r in _rows("glmm_heterogeneidade.csv"):
+        d = {"ocp_qualif": "OCP", "y_top20": "T20", "y_top10": "T10", "y_top10_uf": "T10UF"}[r["desfecho"]]
+        if r["bloco"] == "cor3":
+            P[f"HET_OR_{r['termo'].upper()}_{d}"] = _f(r["OR"])
+        elif r["bloco"] == "setor":
+            P[f"HET_OR_SETOR{int(float(r['setor']))}_{d}"] = _f(r["OR"])
+        elif r["bloco"] == "topuf":
+            P["HET_OR_T10UF"] = _f(r["OR"])
+    for r in _rows("oaxaca_por_cor.csv"):
+        P[f"HET_OB_{r['cor'].upper()}_{r['espec']}"] = _f(r["pct_retornos"])
+    for r in _rows("qr_por_cor.csv"):
+        P[f"HET_QR_{r['cor'].upper()}_Q{round(_f(r['quantil']) * 100)}"] = abs(_f(r["gap_pct"]))
+    for r in _rows("rif_por_cor.csv"):
+        P[f"HET_RIF_{r['cor'].upper()}_{r['quantil'].upper()}"] = _f(r["pct_retornos"])
+
     return P
 
 

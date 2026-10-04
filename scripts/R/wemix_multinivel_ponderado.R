@@ -64,7 +64,13 @@ cat(sprintf("=== WeMix — GLMM Multinivel Ponderado (amostra=%.1f%%, tag=%s) ==
 cat("Carregando dados...\n")
 t_load <- proc.time()
 
-df_raw <- read_parquet(file.path(ROOT, "data", "processed", "features.parquet"))
+# 04/10/2026: só as colunas do A2 (especificação atual de glmm_glassceil.R)
+COLS <- c("pea", "renda_bruta", "negro", "sexo_fem", "UPA", "UF", "Ano", "V1028",
+          "educ_fund_completo", "educ_medio_completo", "educ_superior_completo",
+          "educ_pos_graduacao", "idade_c", "idade_sq", "urbano",
+          "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z", "ocp_grupo_cbo")
+df_raw <- read_parquet(file.path(ROOT, "data", "processed", "features.parquet"),
+                       col_select = all_of(COLS))
 cat(sprintf("  Total bruto: %s obs. (%.1fs)\n",
             format(nrow(df_raw), big.mark = ","), (proc.time() - t_load)[3]))
 
@@ -78,8 +84,7 @@ df <- df_raw |>
     !is.na(sexo_fem),
     !is.na(UPA),
     !is.na(V1028), V1028 > 0,
-    !is.na(media_renda_upa_z),
-    !is.na(media_educ_upa_z)
+    !is.na(pct_negro_upa_z), !is.na(tx_desemprego_upa_z), !is.na(media_educ_upa_z)
   ) |>
   mutate(
     negro                  = as.integer(negro),
@@ -87,19 +92,16 @@ df <- df_raw |>
     educ_medio_completo    = as.integer(!is.na(educ_medio_completo) & educ_medio_completo == 1),
     educ_superior_completo = as.integer(!is.na(educ_superior_completo) & educ_superior_completo == 1),
     educ_pos_graduacao     = as.integer(!is.na(educ_pos_graduacao) & educ_pos_graduacao == 1),
-    educ_missing           = as.integer(is.na(educ_cat)),
-    emprego_formal = as.integer(!is.na(emprego_formal) & emprego_formal == 1),
-    setor_publico  = as.integer(!is.na(setor_publico) & setor_publico == 1),
-    conta_propria  = as.integer(!is.na(conta_propria) & conta_propria == 1),
-    trab_domestico = as.integer(!is.na(trab_domestico) & trab_domestico == 1),
-    horas_c        = ifelse(!is.na(horas_c), horas_c, 0),
+    educ_fund_completo     = as.integer(!is.na(educ_fund_completo) & educ_fund_completo == 1),
     idade_c        = ifelse(!is.na(idade_c), idade_c, 0),
+    idade_sq       = ifelse(!is.na(idade_sq), idade_sq, 0),
+    urbano         = as.integer(!is.na(urbano) & urbano == 1),
+    Ano            = factor(Ano),
+    UF             = factor(UF),
     ocp_qualif     = as.integer(!is.na(ocp_grupo_cbo) &
                                   as.character(ocp_grupo_cbo) %in%
                                   c("dirigente","profissional","tecnico","administrativo")),
-    UPA               = as.character(UPA),
-    renda_media_upa_c = media_renda_upa_z,
-    edu_media_upa_c   = media_educ_upa_z
+    UPA               = as.character(UPA)
   )
 rm(df_raw); gc()
 
@@ -107,8 +109,13 @@ cat(sprintf("  PEA completa (filtros alinhados): %s obs.\n", format(nrow(df), bi
 
 if (SAMPLE_FRAC < 1.0) {
   set.seed(SEED)
-  df <- df |> slice_sample(prop = SAMPLE_FRAC)
-  cat(sprintf("  Subamostra (%.1f%%): %s obs.\n", SAMPLE_FRAC * 100, format(nrow(df), big.mark = ",")))
+  # amostra de UPAs INTEIRAS (04/10/2026): amostrar linhas espalhava a subamostra por
+  # quase todas as UPAs com ~2 obs. cada — o custo do WeMix cresce com o nº de UPAs e o
+  # tempo não servia para extrapolar à população completa
+  upas <- unique(df$UPA)
+  keep <- sample(upas, size = max(round(length(upas) * SAMPLE_FRAC), 50))
+  df <- df |> filter(UPA %in% keep)
+  cat(sprintf("  Subamostra (%.1f%% das UPAs): %s obs.\n", SAMPLE_FRAC * 100, format(nrow(df), big.mark = ",")))
 }
 
 n_upa <- n_distinct(df$UPA)
@@ -130,14 +137,14 @@ cat(sprintf("  Peso w2 (UPA) — media=%.1f, min=%.1f, max=%.1f\n",
             mean(df$w2_upa), min(df$w2_upa), max(df$w2_upa)))
 
 # ── Fórmulas (mesmas do lme4::glmer não-ponderado, p/ comparação direta) ────
-CTRL <- paste("sexo_fem",
-              "+ educ_medio_completo + educ_superior_completo + educ_pos_graduacao + educ_missing",
-              "+ idade_c + I(idade_c^2) + horas_c",
-              "+ emprego_formal + setor_publico + conta_propria + trab_domestico")
-
-f_m1 <- as.formula(paste("ocp_qualif ~ negro +", CTRL, "+ (1 | UPA)"))
-f_m2 <- as.formula(paste("ocp_qualif ~ negro +", CTRL,
-                          "+ renda_media_upa_c + edu_media_upa_c + (1 | UPA)"))
+# 04/10/2026: o A2 de scripts/R/glmm_glassceil.R (IND + CTX), referência do texto
+# (OR 0,814 sem peso). Em julho o script usava a especificação antiga, com renda
+# média do bairro (reflexo, Manski) e vínculo/jornada (limite inferior).
+CTRL <- paste("sexo_fem + educ_fund_completo + educ_medio_completo +",
+              "educ_superior_completo + educ_pos_graduacao +",
+              "idade_c + idade_sq + urbano + Ano + UF +",
+              "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z")
+f_m2 <- as.formula(paste("ocp_qualif ~ negro +", CTRL, "+ (1 | UPA)"))
 
 fit_wemix <- function(formula_obj, data, label) {
   cat(sprintf("\n--- WeMix %s (ponderado) ---\n", label))
@@ -154,11 +161,7 @@ fit_wemix <- function(formula_obj, data, label) {
 resultados <- list()
 timings    <- list()
 
-res_m1 <- fit_wemix(f_m1, df, "M1")
-timings[["M1"]] <- res_m1$elapsed_s
-print(summary(res_m1$model))
-
-res_m2 <- fit_wemix(f_m2, df, "M2")
+res_m2 <- fit_wemix(f_m2, df, "A2")
 timings[["M2"]] <- res_m2$elapsed_s
 print(summary(res_m2$model))
 
@@ -177,14 +180,11 @@ extrai_or <- function(m, label) {
   )
 }
 
-tbl <- bind_rows(
-  extrai_or(res_m1$model, "M1_WeMix"),
-  extrai_or(res_m2$model, "M2_WeMix")
-)
+tbl <- extrai_or(res_m2$model, "A2_WeMix")
 tbl$N       <- nrow(df)
 tbl$n_UPA   <- n_upa
 tbl$sample_frac <- SAMPLE_FRAC
-tbl$tempo_min   <- c(timings[["M1"]] / 60, timings[["M2"]] / 60)
+tbl$tempo_min   <- timings[["M2"]] / 60
 
 out_path <- file.path(TABLES, sprintf("wemix_glmm_ponderado_%s.csv", TAG))
 write.csv(tbl, out_path, row.names = FALSE)
@@ -192,15 +192,16 @@ cat(sprintf("\n%s salvo.\n", out_path))
 
 # ── Comparação com resultados anteriores (não-ponderado lme4 + single-level ponderado) ──
 cmp_rows <- list(tbl)
-old_glmm_path <- file.path(TABLES, "glmm_resumo_full.csv")
+old_glmm_path <- file.path(TABLES, "glmm_glassceil_glmer.csv")
 if (file.exists(old_glmm_path)) {
   old <- read.csv(old_glmm_path)
+  old <- old[old$desfecho == "ocp_qualif" & old$modelo == "M2", ]
   cmp <- data.frame(
-    modelo   = old$modelo,
+    modelo   = "A2_lme4_sem_peso",
     OR_negro = old$OR_negro,
     SE_negro = NA,
-    CI95_lo  = old$CI_low,
-    CI95_hi  = old$CI_high,
+    CI95_lo  = old$CI95_lo,
+    CI95_hi  = old$CI95_hi,
     p_valor  = NA,
     N        = old$N,
     n_UPA    = NA,
@@ -209,11 +210,12 @@ if (file.exists(old_glmm_path)) {
   )
   cmp_rows[[length(cmp_rows) + 1]] <- cmp
 }
-old_pond_path <- file.path(TABLES, "glmm_ponderado.csv")
+old_pond_path <- file.path(TABLES, "glmm_ponderado_a2.csv")
 if (file.exists(old_pond_path)) {
   op <- read.csv(old_pond_path)
+  op <- op[op$desfecho == "ocp_qualif", ]   # gerado por run_robustez_desenho.py
   cmp2 <- data.frame(
-    modelo   = ifelse(op$ponderado, "M2_flat_GLM_ponderado_cluster", "M2_flat_GLM_naoponderado_cluster"),
+    modelo   = ifelse(op$ponderado, "A2_logit_UF_ponderado_cluster", "A2_logit_UF_sem_peso_cluster"),
     OR_negro = op$OR_negro,
     SE_negro = op$SE_negro,
     CI95_lo  = op$CI95_lo,
