@@ -25,6 +25,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Cm, Pt, RGBColor
 
 from params_nucleo import P, milhar, pct, pt, titulo_bairro, frase_sintese
+from params_nucleo import frase_interseccional, _int_logs, frase_cbo_mulher_negra
 
 ROOT = Path(__file__).resolve().parents[2]
 FIGS = ROOT / "outputs" / "figures"
@@ -114,6 +115,19 @@ def pergunta(q, resposta, size=10.5):
     _fonte(r.add_run(resposta), size)
 
 
+def formula(texto, indent=0.8, depois=4, size=11):
+    """Fórmula com subscritos de verdade: "_B" vira B subscrito (antes saía literal)."""
+    import re as _re
+    p = doc.add_paragraph()
+    p.paragraph_format.space_after = Pt(depois)
+    p.paragraph_format.left_indent = Cm(indent)
+    for i, trecho in enumerate(_re.split(r"_([A-Za-z]+)", texto)):
+        r = p.add_run(trecho)
+        _fonte(r, size)
+        r.font.subscript = bool(i % 2)
+    return p
+
+
 def tabela(cabecalho, linhas, larguras=None):
     t = doc.add_table(rows=1, cols=len(cabecalho))
     t.style = "Light Grid Accent 1"
@@ -130,6 +144,21 @@ def tabela(cabecalho, linhas, larguras=None):
         for row in t.rows:
             for i, w in enumerate(larguras):
                 row.cells[i].width = Cm(w)
+    # a tabela do GLMM se partia e a continuação saía sem cabeçalho: repete o
+    # cabeçalho, não parte linha ao meio e, se for curta, mantém-na inteira
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+    for k, row in enumerate(t.rows):
+        trPr = row._tr.get_or_add_trPr()
+        trPr.append(OxmlElement("w:cantSplit"))
+        if k == 0:
+            h = OxmlElement("w:tblHeader")
+            h.set(qn("w:val"), "true")
+            trPr.append(h)
+        if len(t.rows) <= 15 and k < len(t.rows) - 1:
+            for cel in row.cells:
+                for par in cel.paragraphs:
+                    par.paragraph_format.keep_with_next = True
     doc.add_paragraph().paragraph_format.space_after = Pt(2)
     return t
 
@@ -197,7 +226,7 @@ rico([("Entre 2016 e 2025, um trabalhador negro ganhou em média ", False),
 
 titulo("1.2  O desequilíbrio", 2)
 rico([("O gap não é uma coisa só. Comparando apenas pessoas ", False), ("do mesmo bairro", True),
-      (f", ele cai quase à metade: {pct(P['MED_BAIRRO'])} do gap agregado é mediado "
+      (f", ele encolhe: {pct(P['MED_BAIRRO'])} do gap agregado é mediado "
        f"pela segregação residencial, e sobra um ", False),
       (f"gap líquido de {pct(P['GAP_M3'])}", True),
       (f". Dentro da mesma ocupação ainda persistem {pct(P['GAP_M4'])} — e a ocupação "
@@ -224,10 +253,10 @@ para(f"Um XGBoost com SHAP confirma, sem impor forma funcional, que a raça mant
 
 titulo("1.4  O que isso muda", 2)
 para("Se o gargalo fosse escolaridade, bastaria ampliar o acesso ao ensino. Os "
-     "resultados dizem outra coisa: as mesmas credenciais rendem menos, e a barreira "
-     "maior está no acesso à ocupação. Política de educação isolada tem retorno "
+     "resultados dizem outra coisa: as mesmas credenciais rendem menos, e há uma "
+     "barreira própria no acesso à ocupação, que o diploma não desfaz. Política de educação isolada tem retorno "
      "marginal decrescente; é preciso agir simultaneamente sobre acesso "
-     "(Lei 12.990/2014), sobre a discriminação salarial (Lei 9.029/1995 e Estatuto da "
+     "(Lei 15.142/2025, que substituiu a 12.990/2014), sobre a discriminação salarial (Lei 9.029/1995 e Estatuto da "
      "Igualdade Racial) e sobre a segregação residencial.")
 doc.add_page_break()
 
@@ -270,7 +299,7 @@ for obra, porque in [
      f"Quanto de confundimento não observado seria preciso para anular o resultado. "
      f"Aqui, E-value = {pt(P['EV_ocp_qualif_M2'], 1)} para a barreira de acesso."),
     ("Crenshaw (1989) — interseccionalidade",
-     "O conceito por trás da decomposição de quatro grupos e da penalidade extra."),
+     "O conceito por trás da decomposição de quatro grupos (raça × gênero)."),
     ("Fávero & Belfiore — Manual de Análise de Dados (caps. 12, 14 e 15)",
      "VIF e multicolinearidade, modelos logísticos (OR, efeitos marginais, "
      "sensibilidade/especificidade, curva ROC) e modelos multinível."),
@@ -339,7 +368,7 @@ tabela(["Especificação", "Gap total", "Dotações", "Retornos", "Como nomear"]
        [["(A) Capital humano + contexto", pct(P["OB_SEM_GAP_PCT"]),
          pct(P["OB_SEM_DOT_PCT"]), pct(P["OB_SEM_RET_PCT"]),
          "comparável à literatura"],
-        ["(B) + ocupação, formalidade e horas", pct(P["OB_COM_GAP_PCT"]),
+        ["(B) + ocupação e formalidade", pct(P["OB_COM_GAP_PCT"]),
          pct(P["OB_COM_DOT_PCT"]), pct(P["OB_COM_RET_PCT"]),
          "limite inferior descritivo"]],
        larguras=[5.4, 2.4, 2.4, 2.4, 3.4])
@@ -350,8 +379,9 @@ bullet("A frase que evita a pergunta capciosa: “a parcela de retornos não é 
        "limite superior do efeito de tratamento diferencial e um limite inferior do "
        "racismo estrutural, que também opera pelas dotações.”")
 figura("fig_ob_cascata.png",
-       "Tratar a ocupação como “característica” derruba pela metade a discriminação "
-       "medida — por isso as duas especificações são reportadas lado a lado.")
+       f"Tratar a ocupação como “característica” reduz a discriminação medida de "
+       f"{pct(P['OB_SEM_RET_PCT'])} para {pct(P['OB_COM_RET_PCT'])} do gap — por isso as "
+       "duas especificações são reportadas lado a lado.")
 
 # 3.3 QR + RIF ----------------------------------------------------------------
 titulo("3.3  Regressão quantílica e RIF-OB", 2)
@@ -420,9 +450,11 @@ titulo("4.1  Konfound e E-values — e se faltar uma variável?", 2)
 bullet(f"Konfound (M3): seria preciso que {pct(P['KONFOUND_M3'])} da estimativa fosse "
        f"viés para invalidar a inferência; a correlação parcial exigida do confundidor "
        f"(ITCV = {pt(P['ITCV_M3'], 3)}) é maior que a de qualquer covariável observada.")
-bullet(f"E-value (acesso, M2) = {pt(P['EV_ocp_qualif_M2'], 1)}: um confundidor não medido "
+bullet(f"E-value (acesso, A2) = {pt(P['EV_ocp_qualif_M2'], 1)}: um confundidor não medido "
        f"precisaria estar associado a ser negro e ao acesso com OR de pelo menos "
-       f"{pt(P['EV_ocp_qualif_M2'], 1)} — acima do observado para escolaridade superior.")
+       f"{pt(P['EV_ocp_qualif_M2'], 1)} (com o desfecho comum, a OR vira razão de risco pela "
+       f"raiz quadrada). É modesto — a escolaridade tem efeito muito maior sobre o acesso —; "
+       f"diga que o E-value mostra a escala do viés necessário, não que o descarta.")
 
 titulo("4.2  Balanceamento e suporte comum", 2)
 bullet(f"Das {P['BAL_N_VARS']} covariáveis comparadas entre brancos e negros, "
@@ -433,8 +465,9 @@ bullet(f"O maior desequilíbrio é justamente o bairro ({P['BAL_MAIOR_VAR']}, "
 
 titulo("4.3  Multicolinearidade (VIF) no M4", 2)
 bullet(f"VIF máximo = {pt(P['VIF_MAX'], 2)} ({P['VIF_MAX_VAR']}); "
-       f"{P['VIF_N_CRITICO']} de {P['VIF_N_TOTAL']} preditores acima de 10, ambos do "
-       f"bloco educacional — colinearidade por construção.")
+       + (f"nenhum dos {P['VIF_N_TOTAL']} preditores acima de 10." if not P['VIF_N_CRITICO'] else
+          f"{P['VIF_N_CRITICO']} de {P['VIF_N_TOTAL']} preditores acima de 10, no "
+          f"bloco educacional — colinearidade por construção."))
 bullet(f"O que importa: o VIF de 'negro' é {pt(P['VIF_NEGRO'], 2)}. A colinearidade "
        f"infla o erro-padrão dos retornos educacionais, não o do coeficiente de interesse.")
 
@@ -463,7 +496,7 @@ bullet(f"SHAP: a variável racial ocupa a {P['SHAP_RACA_RANK_XGB']}ª posição 
        f"features, a contribuição da raça é {pt(P['SHAP_RACA_SEM_UPA'], 4)} — "
        f"praticamente a mesma: o resultado não depende do preditor de vizinhança.")
 figura("shap_beeswarm_xgb.png",
-       "Contexto do bairro e jornada dominam a previsão de renda; a raça aparece na "
+       "Contexto do bairro, diploma superior e jornada dominam a previsão de renda; a raça aparece na "
        f"{P['SHAP_RACA_RANK_XGB']}ª posição entre {P['SHAP_N_FEATURES']} preditores.",
        largura=14.0)
 
@@ -476,13 +509,16 @@ tabela(["Grupo", "Gap vs. homem branco", "Dotações", "Retornos", "N do grupo"]
         ["Mulher negra", pct(P["INT_MULHER_NEGRA_GAP"]), pct(P["INT_MULHER_NEGRA_DOT"]),
          pct(P["INT_MULHER_NEGRA_RET"]), milhar(P["INT_MULHER_NEGRA_N"])]],
        larguras=[3.6, 3.6, 2.6, 2.6, 3.2])
-bullet(f"Penalidade extra da mulher negra: {pt(P['INT_PENAL_EXTRA'], 1)} pontos "
-       f"percentuais além da soma das penalidades de raça e de gênero isoladas — "
-       f"o efeito interseccional puro (Crenshaw, 1989).")
+bullet(frase_interseccional(P) + f" Somar os percentuais ({pt(P['INT_MULHER_NEGRA_GAP'])} contra "
+       f"{pt(P['INT_MULHER_BRANCA_GAP'])} + {pt(P['INT_HOMEM_NEGRO_GAP'])}) daria "
+       "a impressão contrária: a escala percentual é convexa, e só a de log-pontos é aditiva."
+       if _int_logs(P)[0] < _int_logs(P)[1] else frase_interseccional(P))
 bullet("O sinal negativo das dotações da mulher branca significa que as características "
        "observáveis dela superam as do homem branco: todo o gap dela vem de retornos.")
+if frase_cbo_mulher_negra(P):
+    bullet(frase_cbo_mulher_negra(P))
 figura("grupo_rg_interseccional.png",
-       "A mulher negra entra na categoria, mas não chega ao topo.", largura=13.0)
+       "A mulher negra entra pelas ocupações feminizadas, mas não chega ao comando nem ao topo.", largura=15.5)
 doc.add_page_break()
 
 # ══ Parte 5 — equações ════════════════════════════════════════════════════════
@@ -498,9 +534,8 @@ para(f"ICC = τ² / (τ² + σ²) = {pt(P['TAU2_M0'], 4)} / ({pt(P['TAU2_M0'], 4
      f"{pt(P['SIGMA2_M0'], 4)}) = {pt(P['ICC_M0'], 3)}", indent=0.8, bold=True)
 
 titulo("5.2  Oaxaca–Blinder (twofold, referência = estrutura de preços dos brancos)", 2)
-para("ln(W̄_B) − ln(W̄_N) = (X̄_B − X̄_N)′β̂_B  +  X̄_N′(β̂_B − β̂_N)", indent=0.8, depois=2)
-para("                      └── dotações ──┘   └──── retornos ────┘", indent=0.8,
-     size=10, color=CINZA)
+formula("ln(W̄_B) − ln(W̄_N) = (X̄_B − X̄_N)′β̂_B  +  X̄_N′(β̂_B − β̂_N)", depois=2)
+formula("dotações: (X̄_B − X̄_N)′β̂_B   ·   retornos: X̄_N′(β̂_B − β̂_N)", size=10)
 
 titulo("5.3  GLMM logístico", 2)
 para("logit(P(Yᵢⱼ = 1)) = γ₀₀ + β₁·Negroᵢⱼ + β′Xᵢⱼ + u₀ⱼ,  u₀ⱼ ~ N(0, τ²)",
@@ -509,6 +544,8 @@ para(f"ICC = τ² / (τ² + π²/3);  OR = exp(β₁) = {pt(OR_CBO, 3)}", indent
 
 titulo("5.4  E-value (VanderWeele & Ding, 2017)", 2)
 para("E = RR + √(RR·(RR − 1)),  com RR = 1/OR quando OR < 1", indent=0.8, depois=2)
+para("Desfecho comum (prevalência ≥ 15%, como o acesso): RR ≈ √(1/OR) antes da fórmula.",
+     indent=0.8, depois=2)
 para(f"Para OR = {pt(OR_CBO, 3)}:  E = {pt(P['EV_ocp_qualif_M2'], 2)}", indent=0.8, bold=True)
 doc.add_page_break()
 
@@ -527,8 +564,8 @@ pergunta("Isso é causal?",
          f"{pt(P['EV_ocp_qualif_M2'], 1)}, para anular o resultado.")
 
 pergunta("Controlar por ocupação não é bad control?",
-         "É, e é por isso que as duas versões são reportadas lado a lado. Ocupação, "
-         "formalidade e horas são desfechos da própria discriminação: incluí-las (M4, "
+         "É, e é por isso que as duas versões são reportadas lado a lado. Ocupação e "
+         "formalidade são desfechos da própria discriminação: incluí-las (M4, "
          f"especificação B da Oaxaca-Blinder) dá {pct(P['GAP_M4'])} — um limite "
          f"inferior descritivo, a discriminação dentro da ocupação. Sem elas (M3, "
          f"especificação A) o gap é {pct(P['GAP_M3'])}. A comparação com a literatura "
@@ -553,7 +590,7 @@ pergunta("Os erros-padrão consideram o desenho da PNAD?",
 pergunta("Por que não usar os pesos amostrais?",
          "As estimativas principais são não ponderadas e isso está declarado: elas "
          "descrevem a regressão na amostra, não a média populacional. Como robustez, o "
-         "modelo-chave foi reestimado com o peso V1028 e o gap muda menos de meio ponto "
+         "modelo-chave foi reestimado com o peso V1028 e o gap muda cerca de meio ponto "
          "percentual. Em regressão com os estratos do desenho entre os controles, "
          "ponderar altera pouco os coeficientes e infla a variância.")
 
@@ -563,8 +600,8 @@ pergunta(f"Com {pt(P['N_GLMM'] / 1e6, 1)} milhões de observações, tudo não f
          f"tendência temporal do gap tem p = {pt(P['TEND_P'], 3)}"
          + (" e não se distingue de zero; a conclusão conservadora é que a década não "
             "produziu convergência mensurável." if P["TEND_P"] >= 0.05 else
-            f", significante, mas de magnitude ínfima: {pt(abs(P['TEND_DELTA']), 4)} "
-            "log-ponto por ano."))
+            f", significante e lenta: {pt(abs(P['TEND_DELTA']), 4)} log-ponto por ano — "
+            "a convergência existe, mas no ritmo da década levaria gerações."))
 
 pergunta("Por que UPA como efeito aleatório e UF como efeito fixo?",
          "Porque 27 unidades são poucas para estimar uma distribuição no terceiro "
@@ -614,13 +651,12 @@ pergunta("Por que não há análise de redes sociais nem pesquisa operacional?",
          "mecanismo de Granovetter fica como hipótese não testada.")
 
 pergunta("A mulher negra tem penalidade dupla ou tripla?",
-         f"Nem uma nem outra, e é esse o achado: a penalidade dela "
-         f"({pct(P['INT_MULHER_NEGRA_GAP'])} vs. o homem branco) é maior que a soma das "
-         f"penalidades isoladas de raça e de gênero, mas por "
-         f"{pt(P['INT_PENAL_EXTRA'], 1)} pontos percentuais, não pelo dobro. A "
-         "interação é sub-aditiva: existe efeito interseccional puro, e ele é menor do "
-         "que a leitura mais dramática sugeriria. Dizer o número exato é mais forte que "
-         "dizer “dupla discriminação”.")
+         ("Dupla, no sentido de que acumula as duas — não tripla. "
+          + frase_interseccional(P) + " A interação negro × mulher do GLMM também é "
+          "sub-aditiva. Dizer o número exato é mais forte que dizer “dupla discriminação”, "
+          "e evita a armadilha de somar percentuais.")
+         if _int_logs(P)[0] < _int_logs(P)[1] else
+         ("Mais que a soma: " + frase_interseccional(P)))
 
 pergunta("O que é a UPA? Esse “bairro” foi um recorte criado por vocês?",
          "Não. A UPA — Unidade Primária de Amostragem — é do desenho da própria PNAD "
@@ -636,9 +672,10 @@ pergunta("O que é a UPA? Esse “bairro” foi um recorte criado por vocês?",
 pergunta("Qual é a maior fragilidade do trabalho?",
          "O desenho transversal. Não se observa a mesma pessoa ao longo do tempo, "
          "então nada aqui identifica trajetória individual — só diferenças entre "
-         "pessoas comparáveis num dado momento. A segunda é que ocupação, vínculo e "
-         "jornada são, eles próprios, desfechos do processo estudado: controlá-los "
-         "(M4, A3) dá um limite inferior descritivo, não o efeito líquido da raça.")
+         "pessoas comparáveis num dado momento. A segunda é que ocupação e vínculo são, "
+         "eles próprios, desfechos do processo estudado (a jornada só o é no modelo de "
+         "acesso): controlá-los (M4, A3) dá um limite inferior descritivo, não o efeito "
+         "líquido da raça.")
 
 doc.add_page_break()
 titulo("Checklist final da véspera", 1)
@@ -659,6 +696,24 @@ para("", depois=12)
 para("Guia gerado automaticamente por tcc/scripts/gerar_guia_estudo.py a partir dos "
      "csv de outputs/tables/. Se alguma análise for reexecutada, rode o gerador de "
      "novo para que os números acompanhem.", size=9, italic=True, color=CINZA)
+
+# número de página no rodapé (campo PAGE): o guia tem dezenas de páginas e não tinha
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+for _sec in doc.sections:
+    _p = _sec.footer.paragraphs[0] if _sec.footer.paragraphs else _sec.footer.add_paragraph()
+    _p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    _r = _p.add_run()
+    for _tipo, _txt in (("begin", None), (None, "PAGE"), ("end", None)):
+        if _tipo:
+            _e = OxmlElement("w:fldChar")
+            _e.set(qn("w:fldCharType"), _tipo)
+        else:
+            _e = OxmlElement("w:instrText")
+            _e.set(qn("xml:space"), "preserve")
+            _e.text = _txt
+        _r._r.append(_e)
+    _fonte(_r, 9, color=CINZA)
 
 OUT.parent.mkdir(exist_ok=True)
 try:

@@ -79,6 +79,10 @@ FORMULAS = {
     "M2": f"log_renda ~ {_IND} + {_UPA}",
     "M3": f"log_renda ~ {_IND} + {_UPA} + C(UF_str)",
     "M4": f"log_renda ~ {_IND} + {_UPA} + C(UF_str) + {_OCC}",
+    # E2.2 (03/10/2026): M1 com efeitos fixos de UF, para a escada de mediação aninhada a
+    # partir do agregado (que tem UF): agregado -> M1_UF isola o bairro DENTRO do estado.
+    # Só via --fit M1_UF; não entra na Tabela 4 (step-up de Raudenbush & Bryk)
+    "M1_UF": f"log_renda ~ {_IND} + C(UF_str)",
 }
 ROTULOS = {"M0": "M0 nulo", "M1": "M1 individual", "M2": "M2 + contexto UPA",
            "M3": "M3 + UF (efeitos fixos)", "M4": "M4 + ocupação"}
@@ -397,7 +401,7 @@ def plot_figura(uf_df, blups, tau2, ref_uf="11"):
     ax1.errorbar(uf_df["coef"], range(len(uf_df)),
                  xerr=[uf_df["coef"] - uf_df["lo"], uf_df["hi"] - uf_df["coef"]],
                  fmt="o", color="#616161", ecolor="#BDBDBD", ms=4, capsize=2)
-    ax1.set_yticks(range(len(uf_df))); ax1.set_yticklabels(uf_df["UF"], fontsize=8)
+    ax1.set_yticks(range(len(uf_df))); ax1.set_yticklabels(uf_df["UF"], fontsize=9.5)
     ax1.axvline(0, color="#212121", lw=0.8)
     ax1.set_xlabel(f"Efeito fixo da UF no log-rendimento (M3), IC 95% — referência: {UF_NOMES.get(ref_uf, ref_uf)}")
     ax1.set_title("Estados: 26 efeitos fixos", fontsize=10, color="#424242")
@@ -405,11 +409,17 @@ def plot_figura(uf_df, blups, tau2, ref_uf="11"):
     ax2.axvline(0, color="#212121", lw=0.8)
     ax2.axvspan(-1.96 * sd, 1.96 * sd, color="#1565C0", alpha=0.08)
     ax2.set_xlabel(r"BLUP do intercepto da UPA ($u_{0j}$), M3 — faixa azul: $\pm1{,}96$ DP")
-    ax2.set_title(f"Bairros: {len(blups):,} interceptos aleatórios — DP = {sd:.3f} "
-                  f"(≈ ±{(np.exp(1.96 * sd) - 1) * 100:.0f}% de renda)".replace(",", "."),
-                  fontsize=10, color="#424242")
     for ax in (ax1, ax2):
         ax.spines["top"].set_visible(False); ax.spines["right"].set_visible(False)
+    # vírgula decimal nos eixos ANTES do título: o título tem milhar com ponto ("40.728"),
+    # que a conversão leria como decimal (antes saía "40,728 … DP = 0.172")
+    from figuras_ptbr import virgula_decimal
+    virgula_decimal(fig)
+    n_txt = f"{len(blups):,}".replace(",", ".")
+    sd_txt = f"{sd:.3f}".replace(".", ",")
+    ax2.set_title(f"Bairros: {n_txt} interceptos aleatórios — DP = {sd_txt} "
+                  f"(≈ ±{(np.exp(1.96 * sd) - 1) * 100:.0f}% de renda)",
+                  fontsize=10, color="#424242")
     fig.suptitle("Onde se mora importa: a variação entre bairros supera a variação entre estados",
                  fontsize=12, fontweight="bold", color="#212121")
     plt.tight_layout()
@@ -431,7 +441,8 @@ def write_tex(R, seq, fit_df, gap_df, n_upa, n_uf, lr_rs, p_rs):
         if v not in r.params.index:
             return "---"
         c, s = r.params[v], r.bse[v]
-        s_txt = f"{s:.4f}" if s >= 0.00005 else f"{s:.1e}"
+        # EP abaixo da 4ª casa: "<0,0001" e não notação científica ("1,8e-05" quebrava a célula)
+        s_txt = f"{s:.4f}" if s >= 0.00005 else "$<$0.0001"
         return f"{fmt(c, 4)} ({s_txt.replace('.', ',')})"
     cols = seq
     L = []

@@ -190,7 +190,7 @@ Legenda: 🖥 reestimação · ✍ texto/gerador · 🎨 layout · ❓ decisão 
 - [x] E0.4 `run_konfound_evalues.py` neutralizado (legado, só com `--legado`): β digitados e logit-FE; o TCC usa hlm_stepup_konfound.csv e gerar_tabela_glmm.py
       (β M1 −0,215 × −0,112) — hoje fora dos entregáveis, mas produz figura inconsistente
 
-- [ ] E0.5 Escada educacional (pedido 02/10): `run_hlm_negro_por_educ.py` (M3 + negro:C(nivel),
+- [x] E0.5 (feito 03/10: retas no corpo + slide do diploma) Escada educacional (pedido 02/10): `run_hlm_negro_por_educ.py` (M3 + negro:C(nivel),
       5 níveis, LR vs M3) roda pela `fila_pos_reestima.ps1` (espera o FIM_FILA). tab2 ganhou a
       dimensão "Nível (núcleo)" (gap bruto, entra pela fila_loo2/tabelas_compl). Texto e figura
       `fig:hlm_negro_educ` montados do csv em `gerar_relatorio_enxuto.py` (antes do parágrafo dos limites)
@@ -198,12 +198,12 @@ Legenda: 🖥 reestimação · ✍ texto/gerador · 🎨 layout · ❓ decisão 
       (UF × nível, HLM V-known de Raudenbush & Bryk cap. 7: OLS within-UPA por UF + efeitos aleatórios
       DerSimonian-Laird por nível; mapa de calor de BLUPs e τ por nível). Falta: texto e entrada no
       documento das duas figuras novas (depois dos números)
-- [ ] E0.6 Figuras de efeitos aleatórios (pedido 02/10): `tcc/scripts/gerar_figuras_efeitos_aleatorios.py`
+- [x] E0.6 (feito 03/10) Figuras de efeitos aleatórios (pedido 02/10): `tcc/scripts/gerar_figuras_efeitos_aleatorios.py`
       → `hlm_variancia_escada.png` (τ², σ² e explicada M0→M4; já gerada com os números novos) e
       `hlm_encolhimento.png` (BLUP do M0 × desvio bruto, λ = τ²/(τ²+σ²/n)). Falta: entrar no
       documento e no deck da Defesa (Fávero), com texto condicional
 
-- [~] E0.7 Escada (03/10): within-UPA nacional = HLM (9,4×9,6% … 1,1×1,1%) — o desenho não muda a
+- [x] E0.7 Escada (03/10): within-UPA nacional = HLM (9,4×9,6% … 1,1×1,1%) — o desenho não muda a
       conclusão; a média do mapa é ENTRE ESTADOS (DL), não do país: rótulo corrigido, mapa regerado
       após a fila_escada. LR da escada rodando (fila_escada.ps1)
 
@@ -227,19 +227,25 @@ Legenda: 🖥 reestimação · ✍ texto/gerador · 🎨 layout · ❓ decisão 
 
 ## Bloco E2 — Decisões do autor (❓, recomendação de texto pronta para aprovar, após E0)
 
-- [ ] E2.1 "A discriminação opera sobretudo no acesso" × números (OB: porta 12,4 pp × dentro
+- [x] E2.1 (aplicado 03/10 nos geradores; entra na regeneração da fila_e2: Defesa s11 — 17,3 dos 23,4 pontos ficam dentro da ocupação; porta = 6,1) "A discriminação opera sobretudo no acesso" × números (OB: porta 12,4 pp × dentro
       16,5 pp; HLM: ⅓ × ⅔) — reformular a tese central
-- [ ] E2.2 Escada do HLM não aninhada (agregado com UF fixa; M1 sem; M3 com) — mediação de 47%
+- [x] E2.2 (03/10: M1 com UF = −0,0645 → mediação pelo bairro 41,6% contra 39,5% sem UF: a escada da tabela é conservadora; nota condicional na Tab. 5; agregado sem UF = 20,1%) Escada do HLM não aninhada (agregado com UF fixa; M1 sem; M3 com) — mediação de 47%
       mistura duas mudanças; reestimar um degrau (🖥) ou explicitar
-- [ ] E2.3 Interseccionalidade: "+4,6 pp acima da soma" é artefato de escala; em log-pontos é
+- [x] E2.3 (aplicado 03/10 nos geradores; entra na regeneração da fila_e2: em log-pontos 0,592 < 0,182+0,447 → sub-aditivo; sai a "penalidade extra +4,4 pp") Interseccionalidade: "+4,6 pp acima da soma" é artefato de escala; em log-pontos é
       sub-aditivo (coerente com o GLMM) — leitura única em resumo, abstract, conclusão, decks
-- [ ] E2.4 Limite superior × inferior (M3/M4/OB) — um enquadramento só
-- [ ] E2.5 Horas na especificação (A) do Oaxaca × "controles do M3" × limitações (bad control)
-- [ ] E2.6 Resultados regionais citados sem tabela (capitais × interior, DF, N/NE): incluir ou tirar
-- [ ] E2.7 E-value para desfecho comum (√OR) e benchmark das covariáveis
-- [ ] E2.8 "Na base, a maior parte do gap é preço" (35,5% não é maioria) — 4 entregáveis
-- [ ] E2.9 E-mail real do orientador na folha de rosto
-- [ ] E2.10 Lei 12.990/2014: conferir se foi substituída (Lei 15.142/2025?)
+- [x] E2.4 (aplicado 03/10 nos geradores; entra na regeneração da fila_e2: M3 = limite superior da penalidade direta; M4 = inferior; p. 13 corrigida) Limite superior × inferior (M3/M4/OB) — um enquadramento só
+- [x] E2.5 (concluído 04/10 05:21: (A) ≡ M3 em Oaxaca/QR/RIF — OB retornos 17,9% (A) e 15,4% (B); RIF retornos 26,5% q10 → 8,9% q90; QR 4,3% q10 → 8,4% q90, KB Z = −25,9; regeneração 07:48 com portões OK) com log_horas + urbano + UF na (A)/M3; fila_e2 rodando, QR ~4 h) Horas na especificação (A) do Oaxaca × "controles do M3" × limitações (bad control)
+- [x] E2.6 (aplicado 03/10 nos geradores; entra na regeneração da fila_e2: sai — fonte regional_hlm.csv de 16/05; hoje DF é 19º/27 e N/NE = demais) Resultados regionais citados sem tabela (capitais × interior, DF, N/NE): incluir ou tirar
+- [x] E2.7 (aplicado 03/10 nos geradores; entra na regeneração da fila_e2: E-value com √OR para desfecho comum (acesso ≈1,45; top20 ≈1,54); benchmark "mais forte que superior" sai — superior tem OR≈6,4) E-value para desfecho comum (√OR) e benchmark das covariáveis
+- [x] E2.8 (aplicado 03/10 nos geradores; entra na regeneração da fila_e2: "na base o preço pesa 3,5× mais que no topo" — Defesa s15, Executiva s7) "Na base, a maior parte do gap é preço" (35,5% não é maioria) — 4 entregáveis
+- [ ] E2.9 (AGUARDA o e-mail real do orientador) E-mail real do orientador na folha de rosto
+- [x] E2.10 (aplicado 03/10 nos geradores; entra na regeneração da fila_e2: Lei 15.142/2025 revogou a 12.990/2014; reserva de 30%) Lei 12.990/2014: conferir se foi substituída (Lei 15.142/2025?)
+
+- [x] E2.16 (aprovado e aplicado 04/10: frase_cbo_mulher_negra no params; TCC (parágrafo da entrada + legenda), Defesa, Executiva, Guia, narrativa; figura com painel por grande grupo CBO — GLMM por CBO concluído 03/10 23h, grupo_rg_por_cbo.csv — OR da mulher negra vs HB: dirigente 0,63; profissional 1,36 (MB 1,42); técnico 0,87; administrativo 1,96 (MB 2,20); CBO 1–2 1,04 (MB 1,17). entra na regeneração da fila_e2) NOVO (03/10, pedido do autor) — "mulher negra alçada no acesso" (OR 1,31 em CBO 1–4)
+      é composição de ocupações feminizadas: dirigentes 2,3% (HB 5,9%), mas apoio administrativo
+      10,6% (HB 5,4%) e profissionais 12,8% (HB 10,5%, puxado por ensino/saúde); dentro do mesmo
+      grande grupo ela ganha a metade (profissionais: mediana R$ 3.614 × R$ 6.799). Propor:
+      GLMM por grande grupo CBO (1, 2, 3, 4 separados) e reler o achado em todos os entregáveis.
 
 - [x] E2.12 (aprovado 02/10: fundamental entrou em Oaxaca, OB/QR, QR por área, RIF e logit-FE, antes de a fila chegar; perfis contrafactuais do logit-FE corrigidos para dummies cumulativas) Especificação: Oaxaca, QR e RIF não têm educ_fund_completo (HLM, GLMM e OB
       interseccional têm). Com dummies cumulativas, a referência mistura sem instrução com
@@ -251,7 +257,8 @@ Legenda: 🖥 reestimação · ✍ texto/gerador · 🎨 layout · ❓ decisão 
       Reler tese, resumo, títulos e decks quando a fila fechar (todos já vêm do params; o
       risco são as frases qualitativas: "um em cada dez", "metade do gap" etc.)
 
-- [ ] E2.13 Obras citadas sem entrada no .bib — preciso dos dados exatos (não invento referência):
+- [x] E2.17 (aprovado e aplicado 04/10, pedido do autor) Arco narrativo + conceito + críticas/propostas, pelas regras do template oficial: 'Considerações Iniciais' (renomeada; conceito de racismo estrutural por Almeida/Hasenbalg e as 3 marcas; roteiro pela trajetória; 552 palavras ≈1,6 p.); pontes nos Resultados e GLMM antes da QR; Discussão com críticas C1–C4 e propostas P1–P5 (leis no .bib); Conclusão em 2 parágrafos sem citação; Resumo/Abstract reescritos (214/207 palavras); Defesa com slides de críticas e de propostas. Módulo: tcc/scripts/tcc_normas_narrativa.py
+- [~] E2.13 (04/10: favero2024, geron2021, wilm2026 e 7 leis/decretos no BIB de scripts/geradores/gerar_relatorio_tcc.py — o relatorio_tcc.bib é REGERADO a cada rodada, editar o arquivo à mão se perde; 41 referências no Word; CHEN completo; FALTA Alencar 2024 — apostila não pública), geron2021 (2. ed., Alta Books, trad. C. Ravaglia) e wilm2026 (IPS Brasil 2026, Imazon) no .bib e citados; FALTA Alencar 2024 — apostila não pública) Obras citadas sem entrada no .bib — preciso dos dados exatos (não invento referência):
       Alencar (2024), apostila "Árvores, Redes e Ensembles I" USP/ESALQ — nome completo do autor;
       Géron (2021) — edição usada (original ou tradução Alta Books); Imazon e parceiros (2026) —
       título do relatório do IPS municipal; Fávero & Belfiore (cap. 12) — edição do livro
@@ -277,7 +284,7 @@ Legenda: 🖥 reestimação · ✍ texto/gerador · 🎨 layout · ❓ decisão 
 
 ## Bloco E4 — Word de entrega (🎨, conversor `gerar_tcc_normas_docx.py`)
 
-- [~] E4.1 (fonte por nº de colunas e largura mínima 0,07 feitas; paisagem pendente) Larguras de coluna fixas nas tabelas largas (4, 6A, 11, 12, 13, 14, 3); paisagem nas p. 32–34
+- [x] E4.1 (03/10: 8 pt com 7+ colunas, largura mínima pela maior palavra e rótulos A1–A4 — Tab. 9 e 10 cabem em retrato; paisagem dispensada) Larguras de coluna fixas nas tabelas largas (4, 6A, 11, 12, 13, 14, 3); paisagem nas p. 32–34
 - [x] E4.2 Filtrar `\cmidrule` cru (Tabelas 9 e 10)
 - [x] E4.3 Chamadas de nota de rodapé em sobrescrito (hoje "0,69714")
 - [x] E4.4 (``\emph{Como ler:}`` virava ``\emphNota``; painéis saem do table; subfigure herda a largura) Título "Referências"; notas que começam com ":"; legenda duplicada da Tabela 6;
@@ -304,16 +311,35 @@ Legenda: 🖥 reestimação · ✍ texto/gerador · 🎨 layout · ❓ decisão 
   `composicao` — estavam fora de toda fila e não receberiam a deflação. Rodar com
   `-Desde tabelas_compl` (os passos de análise anteriores já estão na fila_reestima).
 
-- [ ] E6.1 `fila_loo2.ps1 -Desde tabelas_compl` (tabelas, figuras, relatório, PDFs, Word,
+- [x] E6.1 (03/10 18:32: 21 passos OK; RIF e VIF na população, opção b; Word travado e validate lento corrigidos no caminho) `fila_loo2.ps1 -Desde tabelas_compl` (tabelas, figuras, relatório, PDFs, Word,
       decks, Guia, Narrativa)
-- [ ] E6.2 Portões: `caca_fosseis.py --vivos` = 0; `conferir_numeros_entregaveis.py` = 0;
+- [x] E6.2 (validate 0/0, caca_fosseis 0, conferir_numeros 0; 61/61 patches) Portões: `caca_fosseis.py --vivos` = 0; `conferir_numeros_entregaveis.py` = 0;
       `validate_consistency.py` = 0; anexos 26/26; hook dos livros 0 ALTO;
       `auditar_wrangling.py` e `checar_escolaridade.py` OK
-- [ ] E6.3 Conferência visual: exportar todos os slides e páginas do Word e olhar
+- [x] E6.3 Conferência visual (03/10; resta só a bib do usuário): exportar todos os slides e páginas do Word e olhar
+  - [x] Figuras: interseccional (rótulos repelidos, ticks), fig_qr_rif (rótulos q10/q90, legenda),
+        BLUPs (título com milhar/decimal certos), fig1 (rótulos), waterfalls SHAP ("R$ 2.832")
+  - [x] Word: capa (título centralizado, autores com respiro, afiliações 10 pt), títulos do
+        Resumo/Abstract; notas de tabela que começavam por ":" (`\footnotesize{Como ler:}`);
+        Nota depois da Fonte e colada a ela; nota solta entre tabela e Fonte (Tab. 1, HLM);
+        legenda inteira e presa ao objeto; tabelas curtas sem quebra, linhas sem quebra;
+        largura mínima pela maior palavra; 8 pt com 7+ colunas; células de texto à esquerda;
+        números das tabelas como texto (não OMML); nº da nota sobrescrito dentro da nota
+  - [x] Tab. 4: EP "(1,8e-05)" -> "(<0,0001)"; Tab. 10: rótulos A1–A4 (definidos na Tab. 9)
+  - [x] CHEN 2016 completo (local, editora, DOI)
+  - [x] Defesa: numeração automática dos títulos (s8 e 9b entram na sequência); s20 cabeçalhos
+        em uma linha; s6 com a pergunta de cada método; s3 espaçamento; s11 figura maior;
+        termos em inglês traduzidos
+  - [x] Executiva: s4 cartões na mesma cor e frase "maior do que a diferença de salário"
+        (odds × log-renda, unidades diferentes) trocada; s5 figura maior
+  - [x] Guia: fórmula de Oaxaca com subscritos; tabelas com cabeçalho repetido e sem quebra;
+        número de página
+  - [x] Regenerado (fila_loo2 -Desde relatorio, 03/10 19:24, 11/11 OK; validate 0, caca_fosseis 0, conferir_numeros 0) e reconferido; s18 da Defesa refeito à parte (cabeçalhos em uma linha)
+  - [ ] Pendente de dado do usuário: bib de Alencar 2024, Géron 2021, Imazon 2026, Fávero & Belfiore
 
 ## Bloco E7 — Releitura final e fechamento
 
-- [ ] E7.1 Releitura corrida (texto) + conferência visual (decks/Word) só sobre o que mudou
-- [ ] E7.2 Atualizar `RETOMADA_reestimacao_loo.md`, `releitura_2026-10-02.md` e memória
+- [x] E7.1 (04/10: releitura por agente — 38 achados; corrigidos ~33 nos geradores: 'pela metade'/'quase à metade'/'dois terços'/'1/3 da chance', três camadas calculadas, limite superior × inferior, interação da pós-graduação, jornada fora do A2, HL por desfecho, nAGQ=0 ≠ Laplace, alçada, títulos dos decks, Gap obs. no RIF, VIF/robustez, QR q25 do β; regeneração 11:08 com portões OK. NÃO feitos: reordenar abertura da interseccionalidade (#36), padronizar 39%/39,5% (#38), explicar 41.454 × 41.459 × 40.728 UPAs (#38)) Releitura corrida (texto) + conferência visual (decks/Word) só sobre o que mudou
+- [x] E7.2 (04/10: RETOMADA com a seção de 04/10; lições 24–27 em tcc/licoes_aprendidas.md; memórias de interseccionalidade e GLMM atualizadas; sobras da releitura feitas — interseccionalidade abre pela pergunta, frase das UPAs por método, 39,5% padronizado; regeneração 11:47 OK) Atualizar `RETOMADA_reestimacao_loo.md`, `releitura_2026-10-02.md` e memória
 - [ ] E7.3 Commits (código / resultados e entregáveis) e tag de entrega
 - [ ] E7.4 Versão para o orientador

@@ -113,6 +113,9 @@ def nota_depois_da_fonte(texto: str) -> str:
     # o rótulo costuma vir dentro de \emph{...}: trocar só "{Como ler:}" deixava
     # "\emphNota:", comando desconhecido que o pandoc descartava junto com a palavra
     texto = re.sub(r"\\(?:emph|textit|textbf)\{Como ler:\}", r"\\emph{Nota:}", texto)
+    # idem com tamanho de fonte: "\footnotesize{Como ler:}" virava "\footnotesizeNota:" e
+    # a nota começava por ":" no Word; o espaço separa o comando do rótulo
+    texto = re.sub(r"\\(footnotesize|small|scriptsize)\{Como ler:\}", r"\\\1 Nota: ", texto)
     return texto.replace("{Como ler:}", "Nota: ").replace("Como ler:", "Nota: ")
 
 
@@ -179,6 +182,37 @@ def resolver_referencias(texto: str) -> str:
     if faltando:
         print(f"  [AVISO] rótulos sem destino: {sorted(faltando)}")
     return texto
+
+
+_MATH_SIMPLES = {r"<": "<", r">": ">", r"-": "−", r"=": "=", r"\times": "×", r"\pm": "±", r"^2": r"\textsuperscript{2}",
+                 r"R^2": r"\emph{R}\textsuperscript{2}", r"\chi^2": r"χ\textsuperscript{2}",
+                 r"-2\,": "−2 "}
+
+
+def numeros_como_texto(texto: str) -> str:
+    """Dentro das tabelas, número entre cifrões vira texto comum.
+
+    O pandoc converte cada $-0{,}0484$ numa equação OMML: no Word a coluna fica em
+    Cambria Math, não alinha com o resto e não aceita o tamanho de fonte da tabela.
+    Só a matemática trivial (número, sinal, letra solta) é convertida; símbolos com
+    chapéu ou índice continuam equação.
+    """
+    def _math(m):
+        c = m.group(1).strip()
+        if c in _MATH_SIMPLES:
+            return _MATH_SIMPLES[c]
+        num = re.fullmatch(r"([<>]?)\s*(-?)\s*(\d+(?:\{,\}\d+)?)\s*(\\%)?", c)
+        if num:
+            sinal = "<" if num.group(1) == "<" else ">" if num.group(1) == ">" else ""
+            return (sinal + ("−" if num.group(2) else "") +
+                    num.group(3).replace("{,}", ",") + (r"\%" if num.group(4) else ""))
+        if re.fullmatch(r"[A-Za-z]", c):
+            return r"\emph{" + c + "}"
+        return m.group(0)
+
+    def _tab(m):
+        return re.sub(r"(?<!\\)\$([^$]{1,40})\$", _math, m.group(0))
+    return re.sub(r"\\begin\{tabular\}.*?\\end\{tabular\}", _tab, texto, flags=re.S)
 
 
 def normalizar(texto: str) -> str:
@@ -253,6 +287,7 @@ def main() -> int:
     texto = nota_depois_da_fonte(texto)
     texto = resolver_referencias(texto)
     texto = um_tabular_por_legenda(texto)
+    texto = numeros_como_texto(texto)
     texto = normalizar(texto)
     with tempfile.NamedTemporaryFile("w", suffix=".tex", delete=False,
                                      encoding="utf-8", dir=str(ROOT)) as fh:

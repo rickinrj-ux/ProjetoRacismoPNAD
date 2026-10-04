@@ -19,7 +19,8 @@ def virgula_decimal(fig=None):
     from matplotlib.text import Text
     fig = fig or plt.gcf()
     # dentro de $...$ (mathtext) a vírgula ganharia espaço: "6, 739"
-    _v = lambda s: re.sub(r"(?<=\d)\.(?=\d)", "{,}" if "$" in s else ",", s)
+    # "{,}" só dentro de fórmula ($...$, dois cifrões); "R$ 4.444" não é fórmula
+    _v = lambda s: re.sub(r"(?<=\d)\.(?=\d)", "{,}" if s.count("$") >= 2 else ",", s)
     fmt = FuncFormatter(lambda v, _p: f"{v:g}".replace(".", ",").replace("-", "−"))
     for ax in fig.axes:
         for eixo in (ax.xaxis, ax.yaxis):

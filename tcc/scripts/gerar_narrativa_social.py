@@ -248,8 +248,8 @@ def corpo(doc: Document) -> None:
     paragrafo(doc,
               "Acrescentar a ocupação faz a diferença cair para "
               f"{N['gap_ocupacao']}%, e é justamente aqui que mora a armadilha "
-              "interpretativa mais comum. É tentador concluir que dois terços do "
-              "problema estão explicados. Mas ocupação não é uma característica "
+              "interpretativa mais comum. É tentador concluir que essa parte do "
+              "problema está explicada. Mas ocupação não é uma característica "
               "que a pessoa traz de casa, como a idade: é um resultado, ao qual "
               "ela precisou conseguir acesso. Controlar por ocupação é descontar "
               "do problema uma parte do próprio problema.",
@@ -327,14 +327,23 @@ def corpo(doc: Document) -> None:
               "credenciadas é feminizada. O grupo mais barrado na entrada é o "
               f"homem negro, com {N['hn_entrada']}% menos chance.",
               realce=[f"{N['mn_entrada']}%"])
+    if "CBO_MN_dirigente" in P:
+        # E2.16: separada a ocupação, a "vantagem" na entrada é de ocupações feminizadas
+        paragrafo(doc,
+                  "Essa vantagem, porém, vem de ocupações feminizadas — apoio "
+                  "administrativo, ensino, saúde —, em que a mulher branca entra "
+                  "ainda mais. Entre os dirigentes, onde se exerce comando, a mulher "
+                  f"negra tem {menos_chance(P['CBO_MN_dirigente'])}% menos chance que o "
+                  "homem branco, a menor de todos os grupos.",
+                  realce=[f"{menos_chance(P['CBO_MN_dirigente'])}%"])
     paragrafo(doc,
               "No topo da renda, a ordem se inverte por completo. A mulher negra "
               f"passa a ser o grupo mais excluído de todos: {N['mn_topo']}% menos "
               "chance de chegar ao décimo mais rico do que um homem branco com as "
-              "mesmas características. A vantagem que a alçava na entrada some "
+              "mesmas características. A vantagem de gênero na entrada some "
               "exatamente onde a ascensão se decide.",
               realce=[f"{N['mn_topo']}%"])
-    respiro(doc, "A mulher negra entra na categoria, mas não chega ao topo.")
+    respiro(doc, "A mulher negra entra pelas ocupações feminizadas, mas não chega ao comando nem ao topo.")
 
     titulo(doc, "A penalidade tem geografia")
     paragrafo(doc,
@@ -409,8 +418,9 @@ def corpo(doc: Document) -> None:
               "diferença observada seja integralmente efeito de discriminação. "
               "O que se pode dizer é que ela persiste depois de descontar tudo "
               "aquilo que os dados permitem observar — e que, para explicá-la por "
-              "outra via, seria preciso um fator não medido mais forte do que "
-              "qualquer um dos que foram medidos, escolaridade inclusive.")
+              "outra via, seria preciso um fator não medido associado tanto à cor "
+              "quanto ao acesso — possível, mas que teria de agir dentro do mesmo "
+              "bairro, entre pessoas com a mesma escolaridade.")
     paragrafo(doc,
               "Há também o que os dados não enxergam: qualidade da escola "
               "frequentada, redes de contato, cor da pele autodeclarada em faixas "

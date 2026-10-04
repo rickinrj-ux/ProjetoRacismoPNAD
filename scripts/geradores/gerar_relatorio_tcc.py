@@ -973,7 +973,10 @@ todos os 40~trimestres disponíveis de 2016T1 a 2025T4, totalizando
 declarada e completude nas variáveis do modelo. Como cada método exige um conjunto um pouco
 diferente de variáveis, o $N$ efetivo varia pouco entre eles: {fmtN(PN['N_HLM'])} no HLM,
 {fmtN(PN['N_GLMM'])} no GLMM, {fmtN(PN['OB_N'])} na Oaxaca--Blinder e {fmtN(PN['ML_N'])} no aprendizado de máquina
-(treino e teste somados).
+(treino e teste somados). Pelo mesmo motivo o número de bairros varia ---
+{fmtN(PN['OB_N_UPAS'])} na Oaxaca--Blinder e {fmtN(PN['N_UPAS'])} no modelo de acesso ---, e o HLM
+usa {fmtN(PN['N_UPAS_HLM'])}, porque exclui as UPAs com menos de dez observações para estimar a
+variância entre bairros com estabilidade.
 
 O desfecho de rendimento é o \textbf{{rendimento mensal efetivo de todos os
 trabalhos}} (VD4020), em logaritmo, convertido para reais constantes do 2º~trimestre
@@ -1226,8 +1229,8 @@ adicional de proporção de negros na UPA reduz o log-rendimento em
 O modelo completo M3 produz $\hat{{\beta}}_1^{{M3}} = {k['b_negro_m3']:.4f}$
 ($p<0{{,}}001$): o \textbf{{gap líquido de {gl:.1f}\%}} representa a fração
 do diferencial salarial não explicável por capital humano individual
-nem pelo contexto de moradia --- o limite inferior da discriminação
-direta no mercado de trabalho.
+nem pelo contexto de moradia --- um limite superior da penalidade
+direta sob seleção em observáveis (o M4, com a ocupação, é o inferior).
 
 {hlm_tab}
 
@@ -1462,8 +1465,9 @@ ocupação qualificada (CBO~1--4), renda no top~20\% e no top~10\%.
   \centering
   \includegraphics[width=0.82\textwidth]{{grupo_rg_interseccional}}
   \caption{{Razões de chance dos quatro grupos raça$\times$gênero \textit{{vs.}}~homem
-  branco, em três desfechos. A mulher negra é \emph{{alçada}} no acesso à categoria,
-  mas torna-se a \emph{{mais excluída}} no topo da renda.}}
+  branco, em três desfechos. Na categoria agregada ela aparece acima da referência,
+  mas por composição: entra pelas ocupações feminizadas e é a mais distante do homem
+  branco entre os dirigentes e no topo da renda.}}
   \label{{fig:interseccional}}
 \end{{figure}}
 
@@ -1581,7 +1585,7 @@ Para verificar se a inclusão simultânea dos 9~dummies
 CBO e das variáveis de vínculo empregatício (\texttt{{emprego\_formal}},
 \texttt{{conta\_propria}}, \texttt{{trab\_domestico}}) introduz colinearidade
 problemática no Modelo~M4, calculou-se o \textit{{Variance Inflation Factor}} (VIF)
-sobre subsample de 200.000 observações da PEA com renda positiva.
+sobre a população completa da PEA com renda positiva.
 Dos ${PN['VIF_N_TOTAL']}$ preditores analisados, VIF máximo~$= {fmt(PN['VIF_MAX'], 2)}$
 ({PN['VIF_MAX_VAR']}); {_pl(PN['VIF_N_CRITICO'], 'variável crítica', 'variáveis críticas')}
 (VIF~$> 10$); {_pl(PN['VIF_N_ALTO'], 'variável alta', 'variáveis altas')} ($5$--$10$);
@@ -1617,9 +1621,10 @@ a diferença entre contextos não é atribuível ao acaso.
 
 \paragraph{{Nota terminológica.}}
 Três conceitos próximos, mas distintos, percorrem este trabalho e não devem ser
-confundidos. \textbf{{Mediação contextual}} (HLM) é a fração do gap bruto que
-\textit{{desaparece}} ao se controlar o local de moradia (UPA/UF) --- mede o
-quanto da penalidade racial transita \textit{{pelo}} território.
+confundidos. \textbf{{Mediação contextual}} (HLM) é a fração do gap agregado
+(condicional a capital humano e estado) que \textit{{desaparece}} ao se compararem
+pessoas do mesmo bairro (UPA) --- mede o quanto da penalidade racial transita
+\textit{{pelo}} território.
 \textbf{{Efeito dotação}} (Oaxaca--Blinder) é a parcela do gap atribuível a
 \textit{{diferenças nas características observáveis}} entre brancos e negros
 (escolaridade, ocupação, contexto), por oposição ao \textbf{{efeito retornos}}
@@ -1682,24 +1687,18 @@ pelo rendimento dos ocupados. Nesse mesmo conceito, a desigualdade \emph{{intern
 é maior entre brancos ($={fmt(P['GINI_BRANCO_TRAB'],3)}$) do que entre negros
 ($={fmt(P['GINI_NEGRO_TRAB'],3)}$) --- não por equidade, mas por confinamento dos
 negros ao piso da distribuição, o reverso distribucional do teto de vidro.
-O contraste territorial reforça a tese: o Distrito
-Federal, de maior renda \emph{{per capita}} do país, é também a UF de \emph{{maior}}
-penalidade racial salarial em nossos modelos regionais --- riqueza média elevada e
-desigualdade racial aguda coexistem no mesmo território.
 
 \paragraph{{Triangulação com o Índice de Progresso Social (IPS).}}
-O IPS municipal (Imazon e parceiros, 2026) --- que avalia a qualidade de vida dos
+O IPS municipal \cite{{wilm2026}} --- que avalia a qualidade de vida dos
 5.570 municípios brasileiros a partir de 57 indicadores sociais e ambientais ---
 oferece corroboração externa e multidimensional do eixo territorial desta tese.
 Uma integração \textit{{fina}} com o nosso proxy de bairro (UPA) é, contudo,
 inviável: o painel público da PNAD não divulga o município (apenas UF e a situação
 capital/RM/interior), e o IPS é municipal --- portanto mais agregado que a UPA, que
-é sub-municipal. O IPS, assim, não valida o achado de \emph{{bairro}} (situa-se
-acima dele na escala), mas ecoa o gradiente macro: as regiões de menor progresso
-social (Norte e Nordeste) coincidem com as de maior penalidade racial em nossos
-modelos. Empregamo-lo, portanto, como evidência \textit{{convergente}} do caráter
-territorial da desigualdade --- não como fonte de dados integrada, e ressalvando que
-o IPS mede progresso social geral, não desigualdade racial.
+é sub-municipal. O IPS, assim, não valida o achado de \emph{{bairro}}: situa-se
+acima dele na escala e mede progresso social geral, não desigualdade racial. Fica
+como agenda: com o município identificado (microdados de acesso restrito), seria
+possível testar se a penalidade de bairro varia com o progresso social do município.
 
 \paragraph{{A segregação residencial como multiplicador da desigualdade.}}
 O achado mais robusto desta análise é que {med:.1f}\% do gap salarial racial
@@ -1725,8 +1724,9 @@ apenas na própria comunidade.
 
 \paragraph{{Persistência da discriminação direta.}}
 O gap líquido de {gl:.1f}\%, estimado após controlar por todos os vetores
-de transmissão contextual, representa um piso para a discriminação direta
-não explicada por diferenças observáveis. Os valores SHAP reforçam essa
+de transmissão contextual, é o limite superior do intervalo --- cujo piso é o
+M4, com a ocupação --- dentro do qual está a penalidade direta não explicada por
+diferenças observáveis. Os valores SHAP reforçam essa
 interpretação: a variável racial mantém o {k['shap_negro_rank']}$^\circ$ lugar
 na importância preditiva do XGBoost mesmo quando o modelo tem acesso
 completo às variáveis educacionais, demográficas e contextuais.
@@ -1750,8 +1750,9 @@ As frentes priorizadas pela Pesquisa Operacional não são abstrações: cada um
 corresponde a um instrumento jurídico-institucional já existente no Brasil, cuja
 intensificação ou aperfeiçoamento a análise recomenda.
 A frente de \textbf{{cotas ocupacionais (CBO~1--4)}} dialoga diretamente com a
-\textit{{Lei~12.990/2014}}, que reserva 20\% das vagas em concursos públicos
-federais a candidatos negros, e cujo escopo o diagnóstico de barreira de acesso
+\textit{{Lei~15.142/2025}}, que substituiu a Lei~12.990/2014 e ampliou a
+reserva de vagas em concursos públicos federais a pessoas negras, indígenas e
+quilombolas, e cujo escopo o diagnóstico de barreira de acesso
 (GLMM, OR~$={or_str(P['OR_M1'])}$) sugere ampliar para níveis hierárquicos
 superiores --- onde o teto de vidro é mais severo
 (OR(top~10\%)~$={or_str(P['OR_TOP10_M1'])}$).
@@ -2026,13 +2027,15 @@ BIB = r"""
   year    = {2001},
 }
 
-@inproceedings{chen2016,
+@incollection{chen2016,
   author    = {Chen, Tianqi and Guestrin, Carlos},
   title     = {{XGBoost}: A Scalable Tree Boosting System},
-  booktitle = {Proceedings of the 22nd ACM SIGKDD International Conference
-               on Knowledge Discovery and Data Mining},
+  booktitle = {Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining},
   pages     = {785--794},
   year      = {2016},
+  address   = {San Francisco},
+  publisher = {ACM},
+  doi       = {10.1145/2939672.2939785},
 }
 
 @article{rousseeuw1987,
@@ -2120,6 +2123,86 @@ BIB = r"""
   number  = {1},
   pages   = {5--50},
   year    = {2010},
+}
+
+@book{favero2024,
+  author    = {Fávero, Luiz Paulo and Belfiore, Patrícia},
+  title     = {Manual de Análise de Dados: estatística e machine learning com Excel, SPSS, Stata, R e Python},
+  edition   = {2},
+  address   = {Rio de Janeiro},
+  publisher = {GEN LTC},
+  year      = {2024},
+  isbn      = {9788595159921},
+}
+
+@book{geron2021,
+  author     = {Géron, Aurélien},
+  title      = {Mãos à obra: aprendizado de máquina com Scikit-Learn, Keras \& TensorFlow: conceitos, ferramentas e técnicas para a construção de sistemas inteligentes},
+  edition    = {2},
+  translator = {Ravaglia, Cibelle},
+  address    = {Rio de Janeiro},
+  publisher  = {Alta Books},
+  year       = {2021},
+  isbn       = {9788550815480},
+}
+
+@techreport{wilm2026,
+  author      = {Wilm, Melissa and Santos, Daniel and Coelho, Luana and Marangoni, Sérgio and Lima, Ricardo Chaves and Gonçalves, Gabriel and Veríssimo, Beto},
+  title       = {Índice de Progresso Social Brasil 2026: resumo executivo},
+  institution = {Imazon},
+  address     = {Belém},
+  year        = {2026},
+  isbn        = {9786589617402},
+  url         = {https://imazon.org.br/relatorios/indice-de-progresso-social-brasil-2026},
+}
+
+@misc{brasil1995lei9029,
+  author       = {{Brasil}},
+  title        = {Lei n. 9.029, de 13 de abril de 1995. Proíbe a exigência de atestados de gravidez e esterilização, e outras práticas discriminatórias, para efeitos admissionais ou de permanência da relação jurídica de trabalho},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {1995},
+}
+
+@misc{brasil2010lei12288,
+  author       = {{Brasil}},
+  title        = {Lei n. 12.288, de 20 de julho de 2010. Institui o Estatuto da Igualdade Racial},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {2010},
+}
+
+@misc{brasil2012lei12711,
+  author       = {{Brasil}},
+  title        = {Lei n. 12.711, de 29 de agosto de 2012. Dispõe sobre o ingresso nas universidades federais e nas instituições federais de ensino técnico de nível médio},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {2012},
+}
+
+@misc{brasil2023decreto11443,
+  author       = {{Brasil}},
+  title        = {Decreto n. 11.443, de 21 de março de 2023. Dispõe sobre o preenchimento por pessoas negras de percentual mínimo de cargos em comissão e funções de confiança no âmbito da administração pública federal},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {2023},
+}
+
+@misc{brasil2023lei14611,
+  author       = {{Brasil}},
+  title        = {Lei n. 14.611, de 3 de julho de 2023. Dispõe sobre a igualdade salarial e de critérios remuneratórios entre mulheres e homens},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {2023},
+}
+
+@misc{brasil2023lei14723,
+  author       = {{Brasil}},
+  title        = {Lei n. 14.723, de 13 de novembro de 2023. Altera a Lei n. 12.711, de 29 de agosto de 2012, para dispor sobre o programa especial para o acesso às instituições federais de educação superior e de ensino técnico de nível médio},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {2023},
+}
+
+@misc{brasil2025lei15142,
+  author       = {{Brasil}},
+  title        = {Lei n. 15.142, de 3 de junho de 2025. Dispõe sobre a reserva às pessoas pretas e pardas, indígenas e quilombolas de vagas oferecidas em concursos públicos e em processos seletivos simplificados no âmbito da administração pública federal},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {2025},
 }
 """
 

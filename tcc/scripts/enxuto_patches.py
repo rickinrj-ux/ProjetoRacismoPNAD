@@ -151,8 +151,7 @@ As barreiras estimadas não são abstrações: cada uma corresponde a um instrum
 jurídico-institucional já existente no Brasil, cuja intensificação ou
 aperfeiçoamento os resultados sugerem.
 A \textbf{barreira de acesso} (GLMM, OR~$=@@GLMM_OR_CBO_M2@@$ para CBO~1--4 no modelo com
-contexto) dialoga diretamente com a \textit{Lei~12.990/2014}, que reserva 20\% das
-vagas em concursos públicos federais a candidatos negros, e cujo escopo o
+contexto) dialoga diretamente com a Lei~15.142/2025, que substituiu a Lei~12.990/2014 e ampliou a reserva de vagas em concursos públicos federais a pessoas negras, indígenas e quilombolas, e cujo escopo o
 diagnóstico sugere ampliar para níveis hierárquicos superiores --- onde o teto de
 vidro é mais severo (OR(top~10\%)~$=@@GLMM_OR_TOP10_M2@@$).
 A \textbf{qualificação e o acesso ao ensino superior} correspondem ao
@@ -233,7 +232,7 @@ justifica reforçar.
      r"a Soares, decompõe essa \\textit\{caixa preta\}: apenas [\d,]+\\% do gap bruto\nsão retornos diferenciais \(potencialmente discriminação direta\); [\d,]+\\%\nsão diferenças de dotações",
      "a Soares, decompõe essa \\textit{caixa preta}. Na especificação comparável à dele\n"
      "(capital humano e contexto, sem ocupação), @@OB_A_COEF@@\\% do gap bruto são retornos\n"
-     "diferenciais --- limite inferior da discriminação direta --- e @@OB_A_DOT@@\\% são\n"
+     "diferenciais --- limite superior do tratamento diferencial --- e @@OB_A_DOT@@\\% são\n"
      "diferenças de dotações; quando a ocupação é tratada como dotação, o não explicado\n"
      "cai para @@OB_B_COEF@@\\%, e @@OB_B_DOT@@\\% passam a ser dotações", 0),
 
@@ -288,7 +287,7 @@ proporcionais à magnitude do problema.
 
     # ── Bloco 7.1 — uma única frase-síntese (substitui as quatro caixas) ──────
     ("7.1 Conclusão: Grande Ideia única",
-     r"\\begin\{quote\}\n\\textit\{Mesmo após controle exaustivo de 24 covariáveis individuais,.*?necessárias, mas insuficientes\.\}\n\\end\{quote\}",
+     r"\\begin\{quote\}\n\\textit\{Mesmo após controle exaustivo de \d+ covariáveis individuais,.*?necessárias, mas insuficientes\.\}\n\\end\{quote\}",
      r"""\begin{quote}
 \textit{@@FRASE_SINTESE@@}
 \end{quote}""", S),
@@ -427,7 +426,7 @@ mesmos bairros, e os bairros pagam diferente. Os controles individuais explicam,
 disso, @@HLM_TAU_EXPL_M1@@\% da variância entre bairros do M0 --- parte do que parecia
 ``bairro'' é composição de quem mora nele.
 
-\noindent Vale guardar a frase: @@P:MED_BAIRRO:0@@\% do gap racial não separam duas pessoas,
+\noindent Vale guardar a frase: @@P:MED_BAIRRO:1@@\% do gap racial não separam duas pessoas,
 separam dois endereços. Resta saber o que, num endereço, produz essa diferença.
 
 \paragraph{Morar onde moram os negros custa outra vez.}
@@ -452,10 +451,10 @@ Com os efeitos fixos de UF, a penalidade é de \textbf{@@HLM_GAP3@@\%}
 ($\hat\beta_{\text{negro}}^{M3} = @@HLM_B3@@$). Na régua do gap
 agregado, @@HLM_MED_ACUM_M3@@\% --- praticamente os mesmos @@HLM_MED_BAIRRO@@\% do M1. O
 dado relevante aqui é o que \emph{não} aconteceu: depois que a comparação já é entre
-vizinhos, nem o contexto do bairro (M2) nem a unidade da federação (M3) retiram mais
-nada do diferencial. É esse patamar que este trabalho chama de \textbf{gap líquido}: o
-que capital humano, contexto de bairro e estado não explicam --- limite inferior da
-discriminação direta sob seleção em observáveis, e não uma medida de
+vizinhos, o contexto do bairro (M2) e a unidade da federação (M3) retiram pouco
+mais do diferencial. É esse patamar que este trabalho chama de \textbf{gap líquido}: o
+que capital humano, contexto de bairro e estado não explicam --- um limite superior da
+penalidade direta sob seleção em observáveis (o M4 é o inferior), e não uma medida de
 discriminação.\footnote{IC~95\% de $\hat\beta_{\text{negro}}^{M3}$: @@HLM_B3_IC@@. O ICC cai para @@HLM_ICC3@@ e os controles acumulados explicam
 @@HLM_TAU_EXPL_M3@@\% da variância entre bairros do M0; a escada completa está nas linhas
 inferiores da Tabela~\ref{tab:hlm_resultados}.}
@@ -472,20 +471,19 @@ O resultado divide o território em duas partes desiguais. Dos
 @@HLM_ICC0_PCT@@\% que o modelo de dois níveis atribui ao bairro,
 \textbf{@@N3_ICC_UPA0@@\%} permanecem entre bairros do \emph{mesmo} estado e
 \textbf{@@N3_ICC_UF0@@\%} são diferenças entre estados. Depois dos controles
-individuais e do contexto do bairro, as duas camadas caem quase na mesma proporção
---- o bairro para @@N3_ICC_UPA2@@\% e o estado para @@N3_ICC_UF2@@\% ---, e a
-hierarquia se mantém: o bairro continua valendo cerca de duas vezes e meia o
-estado.@@N3_NOTA@@
+individuais e do contexto do bairro, o bairro cai para @@N3_ICC_UPA2@@\% e o estado
+para @@N3_ICC_UF2@@\%: @@N3_LEITURA@@@@N3_NOTA@@
 
 
 \paragraph{Dentro da mesma ocupação o gap encolhe --- o que não é o mesmo que explicá-lo.}
 O M4 acrescenta vínculo e grupo ocupacional, e a penalidade cai para
 \textbf{@@HLM_GAP4@@\%} ($\hat\beta_{\text{negro}}^{M4} = @@HLM_B4@@$). A régua vai a
-\textbf{@@HLM_MED_ACUM_M4@@\% do gap agregado}. A tentação é ler esse número como ``dois
-terços do gap estão explicados'', e é precisamente essa leitura que o desenho do estudo
+\textbf{@@HLM_MED_ACUM_M4@@\% do gap agregado}. A tentação é ler esse número como a parte do
+gap que está ``explicada'', e é precisamente essa leitura que o desenho do estudo
 não autoriza: a ocupação não é uma característica que a pessoa traz consigo, é um
 resultado ao qual ela precisou obter acesso --- e o acesso é justamente onde a
-Subseção~\ref{subsec:glmm_resultados} encontra a barreira mais forte. Controlar por
+Subseção~\ref{subsec:glmm_resultados} encontra uma barreira própria, que a decomposição
+salarial só capta em parte. Controlar por
 ocupação é, portanto, descontar do gap uma parte do próprio gap. Por isso o M4 é um
 limite inferior descritivo, e não o número a citar como a penalidade racial brasileira.
 
@@ -588,8 +586,8 @@ oposta, os controles que são desfechos (ocupação no M4) \emph{subestimam}. O 
 deve ser lido entre esses dois limites. Para anular $\hat\beta^{M3}_{\text{negro}}$ seria
 preciso um viés de @@HLM_KONF3@@\% do coeficiente (Konfound, \citeonline{frank2013}), e o
 E-value do modelo de acesso (Tabela~\ref{tab:glmm_glassceil}) exige um confundidor
-associado à raça e ao desfecho com razão de risco $\geq @@G_EV_CBO_M2@@$ --- mais forte que
-qualquer covariável observada.
+associado à raça e ao desfecho com razão de risco $\geq @@G_EV_CBO_M2@@$ --- uma associação
+modesta, que sozinha não descarta viés.
 
 \input{outputs/tables/hlm_stepup.tex}
 
@@ -628,7 +626,13 @@ qualquer covariável observada.
      "Oaxaca--Blinder \\emph{sem} ocupação, sua parcela de retornos na mediana\n"
      "($@@P:RIF_RET_Q50:1@@\\%$) se compara aos $@@P:OB_SEM_RET_PCT:1@@\\%$ da especificação (A)\n"
      "da Tabela~\\ref{tab:oaxaca_blinder}, e não aos $@@P:OB_COM_RET_PCT:1@@\\%$ da (B), que trata a\n"
-     "ocupação como característica.\n\n"
+     "ocupação como característica. O q25 pede cautela: ele cai sobre o salário mínimo,\n"
+     "onde muitos trabalhadores têm exatamente a mesma renda. Num ponto de massa assim a\n"
+     "densidade que a RIF usa não é bem definida e depende da largura de banda do\n"
+     "\\emph{kernel}; por isso, no q25, o gap que a RIF decompõe fica bem abaixo do\n"
+     "observado. As parcelas de dotações e retornos, que são razões, não dependem dessa\n"
+     "escolha --- a densidade escala as duas pelo mesmo fator ---, e o padrão do q10 ao q90\n"
+     "também não.\n\n"
      "@@QR_SEXO@@\n\n"
      "\\paragraph{Por que os dois padrões não se contradizem.} A regressão quantílica\n"
      "estima quantis \\emph{condicionais}: $\\hat\\beta(\\tau)$ compara negros e brancos na\n"
@@ -669,8 +673,10 @@ Seguindo a recomendação de ``ser o próprio cético'' (\citeonline{angrist2009
     negativamente com ser negro e positivamente com renda, o coeficiente \emph{superestima}
     a discriminação --- por isso o gap líquido é apresentado como limite superior dessa
     leitura, e o Konfound/E-value quantificam quanto de confundimento seria preciso.
-  \item \textbf{\emph{Bad controls}.} Ocupação, formalidade e horas são desfechos da
-    própria discriminação. Com eles (M4, Oaxaca-Blinder de acesso) o resultado é um
+  \item \textbf{\emph{Bad controls}.} Ocupação e formalidade são desfechos da
+    própria discriminação; a jornada, não: com renda mensal, ela é controle necessário
+    e entra nas duas especificações da Oaxaca--Blinder --- no modelo de acesso, só no
+    degrau de limite inferior. Com eles (M4, Oaxaca-Blinder de acesso) o resultado é um
     \emph{limite inferior descritivo}: a parcela que opera pela porta de entrada some da
     conta. Sem eles (M3, especificação~(A) da Oaxaca-Blinder) tem-se o gap total
     condicional a capital humano e bairro. As duas versões são reportadas lado a lado.
@@ -685,7 +691,7 @@ Seguindo a recomendação de ``ser o próprio cético'' (\citeonline{angrist2009
     reestimados com efeitos fixos de UF e erro-padrão agrupado por UPA, com as mesmas
     conclusões (Subseção~\ref{subsec:inferencia}).
   \item \textbf{Pesos e desenho amostral.} As estimativas são não ponderadas: descrevem a
-    regressão na amostra. A robustez ponderada pelo peso da PNAD muda o gap em menos de
+    regressão na amostra. A robustez ponderada pelo peso da PNAD muda o gap em cerca de
     meio ponto percentual.
   \item \textbf{Correlação intragrupo.} Ignorá-la subestimaria os erros-padrão (Moulton);
     todos os modelos reportam erro-padrão agrupado por UPA ou o modelam por efeito
@@ -722,8 +728,8 @@ Seguindo a recomendação de ``ser o próprio cético'' (\citeonline{angrist2009
 r"""\begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{shap_beeswarm_xgb}
-  \caption{Contexto do bairro e jornada dominam a previsão de renda; a raça
-  aparece na 11\textsuperscript{a} posição entre 29 preditores (SHAP, XGBoost,
+  \caption{Contexto do bairro, diploma superior e jornada dominam a previsão de renda; a raça
+  aparece na @@P:SHAP_RACA_RANK_XGB:0@@\textsuperscript{a} posição entre @@P:SHAP_N_FEATURES:0@@ preditores (SHAP, XGBoost,
   $N_\text{SHAP}=50.000$).}
   \label{fig:shap}
 \end{figure}""", S),
@@ -897,8 +903,9 @@ referência não discriminatória:
 $\ln \bar W_B - \ln \bar W_N = (\bar X_B - \bar X_N)'\hat\beta_B +
 \bar X_N'(\hat\beta_B - \hat\beta_N)$, em que o primeiro termo é a parcela de
 dotações e o segundo, a de retornos. Duas especificações são reportadas:
-(A)~apenas capital humano e contexto de bairro, comparável à literatura; e
-(B)~acrescentando horas, formalidade e grupo ocupacional como dotações. Como
+(A)~capital humano, jornada, área urbana, contexto de bairro e efeitos fixos de UF ---
+os controles do HLM~M3 ---, comparável à literatura; e (B)~acrescentando formalidade e
+grupo ocupacional como dotações (os controles do M4). Como
 adverte \citeonline{oaxaca_ransom1999}, a especificação~(B) subestima a
 discriminação total, porque a segregação ocupacional é ela própria seu
 produto --- por isso ela é lida como limite inferior, e não como a estimativa
@@ -953,15 +960,12 @@ inferência.
      'ocupação qualificada (CBO~1--4), renda no top~20\\% e no top~10\\%. A Tabela~\\ref{tab:interseccional} traz a decomposição de Oaxaca--Blinder dos quatro grupos contra o homem branco, e a Figura~\\ref{fig:interseccional}, as razões de chance nos três desfechos.', 0),
 
     # ── Títulos de ação nas figuras que ainda eram descritivas (SWD-55) ──
-    ("rev-final SWD: título de ação na figura SHAP",
-     r"\\caption\{Análise SHAP --- XGBoost \(\$N_\\text\{SHAP\}=50\.000\$\)\.\}",
-     "\\caption{Contexto do bairro e jornada dominam a previsão de renda; a raça "
-     "aparece na 11\\textsuperscript{a} posição entre 29 preditores "
-     "(SHAP, XGBoost, $N_\\text{SHAP}=50.000$).}", 0),
+    # (patch "rev-final SWD: título de ação na figura SHAP" removido em 03/10/2026: o bloco da
+    #  figura SHAP acima já traz o título de ação, e o alvo nunca chegava até aqui)
 
     ("rev-final SWD: título de ação na figura interseccional",
      r"\\caption\{Razões de chance dos quatro grupos raça\$\\times\$gênero",
-     "\\caption{A mulher negra entra na categoria, mas não chega ao topo: razões de "
+     "\\caption{A mulher negra entra pelas ocupações feminizadas, mas não chega ao comando nem ao topo: razões de "
      "chance dos quatro grupos raça$\\times$gênero", 0),
 
     # ── Limitações ────────────────────────────────────────────────────────────
@@ -1077,7 +1081,7 @@ variáveis absorvem parte do que o território explicava.""", 0),
      r"CBO e das variáveis de vínculo empregatício \(\\texttt\{emprego\\_formal\},\s+"
      r"\\texttt\{conta\\_propria\}, \\texttt\{trab\\_domestico\}\) introduz colinearidade\s+"
      r"problemática no Modelo~M4, calculou-se o \\textit\{Variance Inflation Factor\} \(VIF\)\s+"
-     r"sobre subsample de ([\d.]+) observações da PEA com renda positiva\.\s+"
+     r"sobre (?:subsample de ([\d.]+) observações|a população completa) da PEA com renda positiva\.\s+"
      r"(Dos .*?variáveis baixas \(\$< 2\$\)\.)",
      lambda m: (
          "Os controles do M4 estão brigando entre si? A pergunta é legítima: o modelo "
@@ -1086,8 +1090,9 @@ variáveis absorvem parte do que o território explicava.""", 0),
          "instável justamente o coeficiente que interessa. O \\textit{Variance Inflation "
          "Factor} mede esse efeito: quanto a variância de cada estimativa cresce "
          "em razão das demais. A resposta, aqui, é que há colinearidade --- mas não onde ela "
-         "importaria.\\footnote{Calculado sobre " + m.group(1) + " observações da PEA com "
-         "renda positiva. " + m.group(2) + "}"),
+         "importaria.\\footnote{Calculado sobre "
+         + (m.group(1) + " observações" if m.group(1) else "a população completa")
+         + " da PEA com renda positiva. " + m.group(2) + "}"),
      S),
 
 
@@ -1123,26 +1128,27 @@ renda no top~20\% e no top~10\%.}""", 0),
      r"mulher negra acumule a barreira racial \\emph\{e\} o teto de vidro de gênero exatamente\s+"
      r"onde mais importa para a ascensão --- o topo da distribuição\.",
      lambda m: (
-         "\\paragraph{Na entrada, a mulher negra não é o grupo mais barrado.}\n"
-         "No acesso à ocupação qualificada a resposta contraria a expectativa: a mulher negra\n"
-         "tem OR~$=" + m.group(1) + "$, ou seja, mais chance do que o homem branco de\n"
-         "referência. A razão é que o efeito de gênero é positivo nesse desfecho --- boa parte\n"
-         "das profissões credenciadas de CBO~1--4 é feminizada ---, e ele compensa a penalidade\n"
-         "racial. O grupo mais penalizado na entrada é o \\textbf{homem negro}\n"
-         "(OR~$=" + m.group(2) + "$). Se a análise parasse aqui, concluiria que a\n"
-         "interseccionalidade não se confirma nestes dados.\n\n"
+         "\\paragraph{Na entrada, a vantagem da mulher negra é de ocupações feminizadas.}\n"
+         "No acesso à ocupação qualificada (CBO~1--4) a mulher negra tem OR~$=" + m.group(1) + "$,\n"
+         "mais chance do que o homem branco de referência, e o grupo mais penalizado na entrada\n"
+         "é o \\textbf{homem negro} (OR~$=" + m.group(2) + "$). O agregado, porém, junta portas\n"
+         "muito diferentes, e estimar o mesmo modelo para cada grande grupo da CBO muda o\n"
+         "quadro. @@FRASE_CBO_MN@@ Se a análise parasse no agregado, concluiria que a\n"
+         "interseccionalidade não se confirma na entrada; separada a ocupação, ela se confirma.\n\n"
          "\\paragraph{No topo, a ordem se inverte e ela passa a ser a mais excluída.}\n"
          "No decil superior de renda o quadro vira: a mulher negra tem OR~$=" + m.group(3) + "$,\n"
          "abaixo da mulher branca ($" + m.group(4) + "$) e do homem negro\n"
-         "($" + m.group(5) + "$). Em linguagem de leitor: a chance de uma mulher negra\n"
-         "chegar aos 10\\% mais ricos é cerca de um terço da chance de um homem branco com a\n"
-         "mesma escolaridade, idade, jornada, estado e bairro. A vantagem de gênero que a\n"
-         "alçava na entrada desaparece exatamente onde a ascensão se decide, e o que sobra é a\n"
-         "soma das duas barreiras.\\footnote{A interação \\texttt{negro$\\times$sexo\\_fem} é\n"
+         "($" + m.group(5) + "$). Em linguagem de leitor: as chances (\\emph{odds}) de uma\n"
+         "mulher negra chegar aos 10\\% mais ricos equivalem a "
+         + f"{float(m.group(3).replace(',', '.')) * 100:.0f}" + "\\% das de um homem branco com a\n"
+         "mesma escolaridade, idade, jornada, estado e bairro. A vantagem de gênero na\n"
+         "entrada, que já vinha das ocupações feminizadas, desaparece exatamente onde a ascensão\n"
+         "se decide, e o que sobra é o acúmulo das duas barreiras, um pouco abaixo da soma.\\footnote{A interação \\texttt{negro$\\times$sexo\\_fem} é\n"
          "\\emph{sub-aditiva} em todos os desfechos (OR~$=" + m.group(6) + "$ no acesso;\n"
          "$=" + m.group(7) + "$ no top~10\\%): a penalidade racial é um pouco menor entre\n"
          "mulheres do que entre homens, o que atenua a soma sem desfazê-la.}\n\n"
-         "Em uma frase: a mulher negra entra na categoria, mas não chega ao topo."),
+         "Em uma frase: a mulher negra entra pelas ocupações feminizadas, mas não chega ao\n"
+         "comando nem ao topo."),
      S),
 
 
@@ -1219,6 +1225,7 @@ A regressão quantílica estima o gap em cada ponto da distribuição de renda; 
          "\\emph{per capita} de " + m.group(3) + " em 2025 "
          "\\cite{ibge_pof_2019, ibge_rendimentos_2025}.}"),
      S),
+
 
 ]
 

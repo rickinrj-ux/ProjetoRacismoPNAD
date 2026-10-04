@@ -63,7 +63,7 @@ rodape(s, 1, "")
 
 # ══ 2 — A pergunta ════════════════════════════════════════════════════════════
 s = novo()
-header_bar(s, "Educação explica o gap racial de renda? Os dados dizem que não",
+header_bar(s, "Educação explica o gap racial de renda? Só em parte",
            "A pergunta que organiza o trabalho")
 add_text(s, "A explicação usual para o gap racial de renda é diferença de "
             "qualificação. Se fosse só isso, ampliar o acesso ao ensino "
@@ -115,25 +115,25 @@ kpi(s, "Acesso a cargo qualificado", f"−{pt(PCT_CBO, 0)}%",
     In(0.6), In(1.45), In(3.8), In(2.5), cor_valor=C_RED)
 kpi(s, "Chegar ao topo 20% da renda", f"−{pt((1 - P['OR_y_top20_M2']) * 100, 0)}%",
     ["a barreira aperta conforme", "a posição sobe"],
-    In(4.75), In(1.45), In(3.8), In(2.5))
+    In(4.75), In(1.45), In(3.8), In(2.5), cor_valor=C_RED)
 kpi(s, "Chegar ao topo 10% da renda", f"−{pt(PCT_T10, 0)}%",
     ["é o teto de vidro:", "quanto mais alto, mais estreita a porta"],
     In(8.9), In(1.45), In(3.8), In(2.5), cor_valor=C_RED)
 add_multiline(s, [
     "Mesma escolaridade. Mesma idade. Mesmo sexo. Mesmo bairro. A diferença "
-    "que resta é o acesso à ocupação — e ela é maior do que a diferença de salário.",
-    f"Seria preciso um fator não medido associado tanto à raça quanto ao acesso "
-    f"com força de {pt(P['EV_ocp_qualif_M2'], 1)}× para explicar esse resultado por "
-    f"inteiro — mais forte que ter ensino superior.",
+    "que resta é o acesso à ocupação — uma barreira que o salário sozinho não mostra.",
+    f"Para explicar esse resultado por inteiro, um fator não medido teria de se associar "
+    f"à raça e ao acesso com força de {pt(P['EV_ocp_qualif_M2'], 1)}× — não é impossível, e "
+    f"por isso o resultado se apoia também em comparar pessoas do mesmo bairro.",
 ], In(0.6), In(4.2), In(12.2), In(1.9), font_size=16.5)
-faixa_final(s, "A exclusão começa antes do contracheque.", cor=C_RED)
+faixa_final(s, "A exclusão não começa só no contracheque: começa também na porta.", cor=C_RED)
 rodape(s, 4)
 
 # ══ 5 — Barreira II: o salário e o bairro ═════════════════════════════════════
 s = novo()
 header_bar(s, titulo_bairro(P),
            "E o que sobra não é explicado por escolaridade, estado nem ocupação")
-add_img(s, FIGS / "fig_hlm_gap.png", In(0.55), In(1.35), In(7.5))
+add_img(s, FIGS / "fig_hlm_gap.png", In(0.4), In(1.5), In(8.1))
 bullets(s, [
     f"Gap de partida: {pct(P['GAP_POOL'])} a menos, mesma escolaridade e idade.",
     f"{pct(P['MED_BAIRRO'])} desse gap é mediado pelo bairro de moradia.",
@@ -141,8 +141,8 @@ bullets(s, [
     f"Dentro da mesma ocupação ainda restam {pct(P['GAP_M4'])}.",
     f"{pct(P['ICC_M0'] * 100, 0)} da variação de renda está entre bairros, "
     f"não entre pessoas.",
-], In(8.3), In(1.6), In(4.6), In(4.2), font_size=15.5)
-faixa_final(s, f"Onde a pessoa mora responde por {pct(P['MED_BAIRRO'], 0)} do gap — "
+], In(8.7), In(1.6), In(4.3), In(4.2), font_size=15.5)
+faixa_final(s, f"Onde a pessoa mora responde por {pct(P['MED_BAIRRO'], 1)} do gap — "
                "política de renda que ignora território tem eficácia limitada.")
 rodape(s, 5)
 
@@ -168,8 +168,10 @@ rodape(s, 6)
 
 # ══ 7 — Onde pesa na distribuição ═════════════════════════════════════════════
 s = novo()
-header_bar(s, "Quanto mais alto o salário, maior a penalidade racial",
-           "E, na base da distribuição, a maior parte do gap é preço, não característica")
+header_bar(s, "Entre pares, a penalidade racial cresce rumo ao topo",
+           (f"E, na base da distribuição, o preço pesa {pt(P['RIF_RET_RAZAO'], 1)} vezes mais que no topo"
+            if P["RIF_RET_Q10"] < 50 else
+            "E, na base da distribuição, a maior parte do gap é preço, não característica"))
 add_img(s, FIGS / "fig_qr_rif.png", In(0.5), In(1.3), In(12.4), In(4.05))
 add_multiline(s, [
     f"À esquerda: a penalidade cresce de {pct(P['QR_GAP_Q10'])} na base para "
@@ -183,14 +185,20 @@ rodape(s, 7)
 
 # ══ 8 — Interseccionalidade ═══════════════════════════════════════════════════
 s = novo()
-header_bar(s, "A mulher negra entra na categoria, mas não chega ao topo",
-           "Raça e gênero não se somam: combinam-se")
+header_bar(s, "A mulher negra entra pelas ocupações feminizadas, mas não chega ao comando nem ao topo",
+           "Raça e gênero se acumulam, sem se multiplicar")
 add_img(s, FIGS / "grupo_rg_interseccional.png", In(0.7), In(1.4), In(6.6))
 kpi(s, "Gap da mulher negra vs. homem branco", pct(P["INT_MULHER_NEGRA_GAP"]),
     ["o maior de todos os grupos"],
     In(8.0), In(1.55), In(4.6), In(2.0), cor_valor=C_RED)
-kpi(s, "Penalidade além da soma raça + gênero", f"+{pt(P['INT_PENAL_EXTRA'], 1)} p.p.",
-    ["o efeito interseccional puro —", "existe, e é menor que o dobro"],
+# E2.3: em log-pontos (escala aditiva), raça e gênero se somam; a "penalidade extra" em
+# percentuais saía positiva só pela convexidade da escala
+from params_nucleo import _int_logs
+_mn, _soma = _int_logs(P)
+kpi(s, "Raça + gênero, em log-pontos", f"{pt(_mn, 3)} {'<' if _mn < _soma else '>'} {pt(_soma, 3)}",
+    (["gap dela × soma dos dois eixos:", "acumula as duas desvantagens, sem multiplicá-las"]
+     if _mn < _soma else
+     ["gap dela × soma dos dois eixos:", "efeito interseccional além da soma"]),
     In(8.0), In(3.8), In(4.6), In(2.3))
 faixa_final(s, "Política desenhada só para “negros” ou só para “mulheres” deixa "
                "essa parcela de fora.")
@@ -198,7 +206,7 @@ rodape(s, 8)
 
 # ══ 9 — Robustez ══════════════════════════════════════════════════════════════
 s = novo()
-header_bar(s, "O resultado sobrevive a tudo o que se tentou contra ele",
+header_bar(s, "O resultado resiste às checagens feitas",
            "Quatro checagens independentes")
 caixas = [
     ("Sem impor forma funcional",
@@ -227,15 +235,15 @@ for i, (titulo_c, corpo) in enumerate(caixas):
     add_text(s, corpo, x + In(0.25), y + In(0.65), In(5.6), In(1.5),
              font_size=14, color=C_BLACK)
 faixa_final(s, "Nenhuma dessas checagens é decisiva sozinha — juntas, tornam a "
-               "explicação alternativa implausível.")
+               "explicação alternativa menos provável.")
 rodape(s, 9)
 
 # ══ 10 — O que fazer ══════════════════════════════════════════════════════════
 s = novo()
-header_bar(s, "Cada barreira medida tem um instrumento legal que já existe",
-           "O diagnóstico aponta onde intensificar, não o que inventar")
+header_bar(s, "Onde os instrumentos vigentes alcançam as barreiras, e onde não alcançam",
+           "O diagnóstico aponta o que intensificar e o que ainda falta")
 itens = [
-    ("Barreira de acesso", "Lei 12.990/2014 (cotas em concursos federais)",
+    ("Barreira de acesso", "Lei 15.142/2025 (30% das vagas em concursos federais)",  # sem-fossil: percentual fixado em lei, não é resultado
      f"O diagnóstico sugere ampliar o alcance para níveis hierárquicos "
      f"superiores, onde a porta é mais estreita (−{pt(PCT_T10, 0)}% no topo 10%)."),
     ("Retorno da qualificação", "Prouni, Fies e o legado do PRONATEC",

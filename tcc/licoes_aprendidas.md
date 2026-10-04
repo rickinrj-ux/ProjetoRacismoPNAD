@@ -148,6 +148,26 @@ A perda do leave-one-out do desemprego (lição 4), os geradores antigos que sob
 - **O que aconteceu:** 7,7 milhões de linhas estouraram a memória várias vezes (seis HLMs juntos, um `glm()` acima de 20 GB, processos encerrados por falta de memória). A saída foi uma fila de passos, um modelo por processo, retomando do que já estava gravado.
 - **E o que ainda está em risco:** nada do que aconteceu de 29/09 a 03/10 foi para o git — 233 arquivos modificados, incluindo a correção da escolaridade. É a lição mais barata de aplicar: **commitar a cada correção que muda números, com o porquê na mensagem.** Foram as mensagens de commit que permitiram reconstruir este documento.
 
+### 24. "Os mesmos controles" precisa ser verificado, não declarado
+
+- **O que aconteceu:** o texto dizia que a Oaxaca, a RIF e a regressão quantílica usavam os controles do HLM M3, mas jornada, área urbana e UF faltavam nas três. Com eles, a parcela "preço" da Oaxaca caiu de 23,4% para 17,9% e a penalidade da QR na base, de 5,7% para 4,3%.
+- **Prática:** comparar as fórmulas lado a lado por código (conjuntos de variáveis), e não pela legenda.
+
+### 25. O agregado esconde a composição
+
+- **O que aconteceu:** a mulher negra parecia "alçada" no acesso a cargos CBO 1–4 (OR 1,31). Separado por grande grupo, era o apoio administrativo e as profissões feminizadas; entre dirigentes, ela tinha a menor chance de todos (OR 0,63). Foi a desconfiança do autor, apoiada no que se noticia, que puxou a desagregação.
+- **Prática:** antes de narrar um resultado surpreendente, desagregar a categoria.
+
+### 26. Escala e fórmula mudam a conclusão
+
+- **O que aconteceu:** a "penalidade extra de +4,4 pp" da mulher negra somava percentuais (escala convexa); em log-pontos o efeito era sub-aditivo. E o E-value aplicado direto à razão de chances de um desfecho com 30% de prevalência saía 1,76 em vez de 1,46.
+- **Prática:** somar efeitos só na escala aditiva (log); conferir a hipótese de cada fórmula (desfecho raro) antes de aplicá-la.
+
+### 27. Arquivo gerado não se edita
+
+- **O que aconteceu:** referências acrescentadas direto no `.bib` sumiram na regeneração seguinte, porque o arquivo é escrito por um gerador.
+- **Prática:** antes de editar um arquivo, saber quem o escreve; editar a fonte.
+
 ## Checklist para o próximo projeto
 
 Os 23 episódios cabem em quinze perguntas. Antes de confiar num número:

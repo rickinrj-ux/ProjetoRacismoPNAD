@@ -108,7 +108,8 @@ def escrever_tabela(destino: Path | None = None) -> Path:
 
     A(BAR + "midrule")
     A(BAR + r"textbf{Δ (q90−q10)} & $" + BAR + r"mathbf{" +
-      br(float(kb["diff_q90_q10"]) * 100, 2) + BAR + r"text{pp}}^{***}$ (" +
+      # diferença de coeficientes: log-pontos, não pontos percentuais (E7.1)
+      br(float(kb["diff_q90_q10"]), 4) + BAR + r"text{ log-pt}}^{***}$ (" +
       br(float(kb["se_boot"]), 4) + r") & " + BAR +
       r"multicolumn{2}{c}{$Z = " + br(float(kb["z_stat"]), 2) + r"$} & " + BAR +
       r"multicolumn{2}{c}{$" + p_br(float(kb["p_valor_z"])) + r"$} " + BAR * 2)

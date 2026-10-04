@@ -101,8 +101,8 @@ dotações e uma parcela não explicada (retornos diferenciais --- limite inferi
 discriminação). A Tabela~\ref{tab:oaxaca_blinder} apresenta duas especificações,
 porque ocupação e formalidade são \emph{bad controls} \cite{angrist2009}:
 são elas próprias resultado da discriminação. Em (A), com os controles do HLM~M3
-(capital humano e contexto de UPA), @@OB_A_COEF@@\% do gap não é explicado por
-características observáveis; em (B), tratando também horas, formalidade e grupo
+(capital humano, jornada, contexto de UPA e estado), @@OB_A_COEF@@\% do gap não é
+explicado por características observáveis; em (B), tratando também formalidade e grupo
 CBO como dotações, a parcela não explicada cai para @@OB_B_COEF@@\% --- a
 discriminação salarial \emph{dentro} da ocupação. A diferença entre as duas
 (@@OB_DIF@@ pontos percentuais) é a parcela da discriminação que opera pela
@@ -111,7 +111,7 @@ GLMM de acesso mede adiante. Os erros-padrão vêm de bootstrap em blocos por UP
 
 \paragraph{Pressupostos das regressões por grupo.} As duas regressões auxiliares
 (brancos e negros) foram submetidas aos testes de Breusch--Pagan e RESET
-(Fávero \& Belfiore, cap.~12). Há heterocedasticidade --- esperada em log-rendimento ---
+\cite[cap.~12]{favero2024}. Há heterocedasticidade --- esperada em log-rendimento ---
 mas de magnitude modesta: o $R^2$ da regressão auxiliar do Breusch--Pagan é @@BP_R2_B@@
 (brancos) e @@BP_R2_N@@ (negros), e é justamente por isso que os erros-padrão são
 agrupados por UPA e a decomposição usa bootstrap em blocos. O RESET rejeita a forma
@@ -124,9 +124,9 @@ magnitude, não o $p$-valor \cite{angrist2009}.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.95\textwidth]{fig_ob_cascata}
-  \caption{Tratar a ocupação como ``característica'' derruba pela metade a discriminação
-  medida: de @@OB_A_COEF@@\% para @@OB_B_COEF@@\% do gap. A parcela que some é a que opera
-  na porta de entrada das ocupações --- medida adiante pelo modelo de acesso.}
+  \caption{Tratar a ocupação como ``característica'' reduz a discriminação medida de
+  @@OB_A_COEF@@\% para @@OB_B_COEF@@\% do gap. Os @@OB_DIF@@ pontos que somem são a parte que
+  opera na porta de entrada das ocupações --- medida diretamente pelo modelo de acesso.}
   \label{fig:ob_cascata}
 \end{figure}
 
@@ -165,7 +165,9 @@ acesso, nenhuma política salarial a alcança. Três desfechos respondem --- ocu
 qualificado (CBO~1--4), estar no top~20\% e no top~10\% da renda ---, cada um estimado
 em quatro degraus próprios, rotulados A1 a A4 para não se confundirem com os do HLM
 ---aos quais não correspondem um a um---, com intercepto aleatório de UPA e efeitos fixos
-de UF.\footnote{\texttt{lme4::glmer}, aproximação de Laplace sobre a população completa.
+de UF.\footnote{\texttt{lme4::glmer} com \texttt{nAGQ = 0} --- os efeitos fixos são estimados
+junto com os modos condicionais, aproximação mais rápida que a de Laplace e adequada a $N$
+de milhões ---, sobre a população completa.
 Os degraus são: A1 individual; A2 $+$ contexto do bairro; A3 $+$ vínculo (formalidade,
 setor público, conta própria, doméstico), que é desfecho da própria discriminação e por
 isso faz do A3 um limite inferior; A4 $+$ interação \texttt{negro}$\times$credencial. A
@@ -185,8 +187,8 @@ sua escolaridade. E a fração é maior para o top~10\% do que para o cargo qual
 quanto mais alto o degrau, mais o endereço pesa.
 
 \paragraph{A porta é mais estreita para negros --- e estreita ainda mais no topo.}
-Comparando pessoas do mesmo bairro, com a mesma escolaridade, sexo, idade, jornada e
-estado, a chance de um trabalhador negro ocupar cargo qualificado é
+Comparando pessoas do mesmo bairro, com a mesma escolaridade, sexo, idade e estado,
+a chance de um trabalhador negro ocupar cargo qualificado é
 OR~$=$~@@G_OR_CBO_M2@@\footnote{IC~95\% @@G_CI_CBO_M2@@. \emph{Odds ratio} abaixo de~1 é
 desvantagem; acima de~1, vantagem.} da chance de um branco --- \textbf{chances (\emph{odds})
 @@G_PCT_CBO_M2@@\% menores}. Traduzido para probabilidade, que é a medida a reter
@@ -198,7 +200,7 @@ salário visto de outro ângulo --- é uma barreira que age antes, na distribui�
 posições, e que nenhuma política de remuneração igual alcançaria.
 
 Em síntese, a desigualdade racial no mercado de trabalho brasileiro não começa
-no contracheque, começa na porta.
+só no contracheque: começa também na porta.
 
 \paragraph{Vínculo e credencial não desfazem a barreira.}
 Duas explicações alternativas se apresentam naturalmente, e o modelo testa as duas. A
@@ -207,24 +209,27 @@ vínculos precários. Descontar o vínculo (A3) praticamente não move o OR do c
 qualificado (@@G_OR_CBO_M3@@) nem o do top~10\% (@@G_OR_T10_M3@@), de modo que não é
 isso. A segunda é o diploma: bastaria credenciar-se. A interação
 \texttt{negro}$\times$credencial do A4 é de @@G_ORI_SUP_CBO@@ para o superior completo e
-@@G_ORI_POS_CBO@@ para a pós-graduação --- o diploma @@G_INTER_TXT@@ ---, mas o OR
-combinado de um trabalhador negro com superior completo ainda é @@G_OR_CBO_SUP@@. A
-credencial reduz a barreira; não a neutraliza. A Figura~\ref{fig:glmm_or} reúne as razões
+@@G_ORI_POS_CBO@@ para a pós-graduação --- @@G_INTER_TXT@@ ---, e o OR combinado de um
+trabalhador negro com superior completo ainda é @@G_OR_CBO_SUP@@. A credencial não
+neutraliza a barreira. A Figura~\ref{fig:glmm_or} reúne as razões
 de chance dos três desfechos e dos modelos de cada um.
 
-\paragraph{Seria preciso um confundidor mais forte que qualquer variável observada.}
+\paragraph{Quão forte teria de ser um confundidor omitido.}
 O modelo separa bem quem acessa de quem não acessa\footnote{AUC de @@G_AUC_CBO_M2@@ com
 efeitos aleatórios e @@G_AUCFE_CBO_M2@@ só com efeitos fixos, para o cargo qualificado;
 no \emph{cutoff} de Youden (@@G_CUT_CBO_M2@@), sensibilidade @@G_SENS_CBO_M2@@ e
 especificidade @@G_ESP_CBO_M2@@. O teste de Hosmer--Lemeshow rejeita a calibração
 perfeita em todos os degraus --- inevitável com $N$ de milhões \cite{angrist2009} ---,
-mas a estatística cai @@G_HL_QUEDA@@ ao se acrescentar o vínculo (A3).}, mas a
+mas a estatística @@G_HL_QUEDA@@ ao se acrescentar o vínculo (A3).}, mas a
 pergunta que interessa não é essa: é se a desvantagem poderia ser obra de algo que o
 modelo não viu. O E-value responde quanto um confundidor omitido teria de ser forte para
 anular o resultado, e aqui ele vale \textbf{@@G_EV_CBO_M2@@}: seria preciso uma
 característica não medida associada tanto a ser negro quanto a ocupar cargo qualificado
-com razão de risco de pelo menos @@G_EV_CBO_M2@@ em ambas as pontas --- mais forte do que
-qualquer covariável efetivamente observada nestes dados, escolaridade inclusive. Por fim,
+com razão de risco de pelo menos @@G_EV_CBO_M2@@ em ambas as pontas (com o desfecho comum, a
+razão de chances é convertida em razão de risco pela raiz quadrada). É uma associação
+modesta --- a escolaridade, sozinha, tem efeito muito maior sobre o acesso ---, e por isso o
+E-value não basta para descartar viés: o que sustenta o resultado é ele sobreviver ao
+contexto de bairro e ao teste de Konfound do modelo de renda. Por fim,
 o logit com efeitos fixos de UF e erro-padrão agrupado por UPA (última coluna da
 Tabela~\ref{tab:glmm_glassceil}) @@G_FE_TXT@@
 
@@ -263,8 +268,8 @@ efeitos fixos de estado) mostra que @@HLM_ICC0_PCT@@\% da variância do log-rend
 entre bairros e estima que profissionais negros recebem, em média, @@HLM_GAP_POOL@@\% a menos
 que brancos comparáveis em escolaridade, sexo e idade. Desse diferencial, @@HLM_MED_BAIRRO@@\%
 é mediado pelo contexto de moradia (nível~2), reduzindo o \textit{gap} líquido --- não
-explicado por capital humano, bairro nem estado, limite inferior da discriminação
-direta --- a @@HLM_GAP3@@\%.
+explicado por capital humano, bairro nem estado, limite superior da penalidade
+direta sob seleção em observáveis --- a @@HLM_GAP3@@\%.
 
 A decomposição de Oaxaca--Blinder atribui @@OB_A_COEF@@\% do gap bruto a retornos
 diferenciais não explicados por capital humano e contexto; quando a ocupação e a
@@ -539,7 +544,7 @@ LEGENDAS = [
      r"\noindent\emph{Como ler a Figura~\ref{fig:glmm_or}:} cada ponto é uma razão de "
      r"chances e a linha horizontal, seu intervalo de confiança de 95\%; a linha tracejada "
      r"em~1 marca a paridade, de modo que quanto mais à esquerda, maior a desvantagem. Os "
-     r"blocos são os três desfechos e, dentro de cada um, os modelos; em azul, o M2, que "
+     r"blocos são os três desfechos e, dentro de cada um, os modelos; em azul, o A2, que "
      r"compara pessoas do mesmo bairro."),
     (r"\label{fig:shap_wf}", r"\end{figure}",
      r"\noindent\emph{Como ler a Figura~\ref{fig:shap_wf}:} cada linha é uma variável de "
@@ -599,7 +604,8 @@ texto = re.sub(r"\\emph\{ampliar\} a base\s+de amostral para populacional \\emph
 # garante que entrem na lista de referências. Ver tcc/PERICIA.md (bibliografia).
 print("Inserindo \\nocite das referências do núcleo…")
 NOCITE = (r"\nocite{oaxaca1973,blinder1973,oaxaca_ransom1999,koenker1978,firpo2018,cameron2008,bickel2008,"
-          r"vanderweele2017,crenshaw1989,manski1993,becker1957,arrow1973,almeida2019}")
+          r"vanderweele2017,crenshaw1989,manski1993,becker1957,arrow1973,almeida2019,"
+          r"geron2021}")
 texto, n_nc = inserir_apos_linha(texto, r"\begin{document}", NOCITE)
 if n_nc != 1:
     print(f"  [AVISO] \\nocite não inserido (n={n_nc}).")
@@ -726,7 +732,7 @@ explicação usual --- ``é diferença de qualificação'' --- já está descont
 
 \medskip
 \noindent\textbf{O desequilíbrio.} Esse gap não é uma coisa só. Quando se compara apenas
-pessoas \emph{do mesmo bairro}, ele cai quase pela metade: @@HLM_MED_BAIRRO@@\% do gap
+pessoas \emph{do mesmo bairro}, ele encolhe: @@HLM_MED_BAIRRO@@\% do gap
 transita pela segregação residencial. O que resta --- @@HLM_GAP3@@\% --- não é explicado
 por capital humano, bairro ou estado. E, ao olhar quem \emph{entra} nas ocupações
 qualificadas, a barreira aparece inteira: com o mesmo perfil e o mesmo bairro, a chance de
@@ -748,7 +754,8 @@ conglomerados.
 \noindent\textbf{O que isso muda.} Se o gargalo fosse escolaridade, bastaria ampliar
 acesso ao ensino. Os resultados dizem outra coisa: parte do gap está em \emph{onde se
 consegue morar} e a maior parte da barreira está na \emph{porta de entrada} das ocupações
---- que é onde a Lei~12.990/2014 e a fiscalização da Lei~9.029/1995 atuam. Educação é
+--- que é onde a Lei~15.142/2025 (cotas em concursos federais, sucessora da
+Lei~12.990/2014) e a fiscalização da Lei~9.029/1995 atuam. Educação é
 necessária; sozinha, insuficiente.
 
 \medskip
@@ -899,6 +906,22 @@ def _num3(v):
         return float(v)
     except (TypeError, ValueError):
         return None            # o M0 é nulo: não tem b_negro
+def _leitura_tres_camadas(n3) -> str:
+    """E7.1: a frase antiga ("caem quase na mesma proporção", "duas vezes e meia") era
+    fóssil; razão e quedas agora saem dos componentes do HLM de três níveis."""
+    u0, f0 = n3["M0"]["icc_upa"], n3["M0"]["icc_uf"]
+    u2, f2 = n3["M2"]["icc_upa"], n3["M2"]["icc_uf"]
+    qu, qf = 1 - u2 / u0, 1 - f2 / f0
+    r0, r2 = u0 / f0, u2 / f2
+    _r = lambda x: f"{x:.1f}".replace(".", ",")
+    if r2 > 1:
+        s = (f"a camada do bairro encolhe {'mais' if qu > qf else 'menos'} "
+             f"(de {_r(r0)} para {_r(r2)} vez o estado), mas continua sendo a maior.")
+    else:
+        s = "depois dos controles, o estado passa a pesar mais que o bairro."
+    return s
+
+
 _niv3 = {r["modelo"]: {k: (v if k == "modelo" else _num3(v)) for k, v in r.items()}
          for r in _rd("hlm_tres_niveis.csv")}
 _coef = {(r["modelo"], r["variavel"]): r for r in _rd("hlm_stepup_coefs.csv")}
@@ -934,6 +957,7 @@ if _gap and _fit and _coef:
             "@@N3_ICC_UF2@@":  _pt(_niv3["M2"]["icc_uf"] * 100),
             "@@N3_ICC_UPA2@@": _pt(_niv3["M2"]["icc_upa"] * 100),
             "@@N3_B_NEGRO@@":  _pt(_niv3["M2"]["b_negro"], 4),
+            "@@N3_LEITURA@@": _leitura_tres_camadas(_niv3),
             "@@N3_NOTA@@": (
                 r"\footnote{Estimado com " + r"\texttt{lme4} sobre a mesma "
                 r"população. A especificação do trabalho "
@@ -996,9 +1020,7 @@ if _src:
     })
 if _glmer:
     import math as _m2
-    def _ev(o):
-        o = 1 / o if o < 1 else o
-        return o + _m2.sqrt(o * (o - 1))
+    from params_nucleo import evalue as _ev   # √OR para desfecho comum (E2.7)
     _g = lambda d, m, c: float(_glmer[(d, m)][c])
     _ci = lambda d, m, sep: f"{_pt(_g(d, m, 'CI95_lo'), 3)}{sep}{_pt(_g(d, m, 'CI95_hi'), 3)}"
     _oi_sup, _oi_pos = _g("ocp_qualif", "M4", "OR_inter_superior"), _g("ocp_qualif", "M4", "OR_inter_pos")
@@ -1022,21 +1044,33 @@ if _glmer:
         "@@G_OR_CBO_M3@@": _pt(_g("ocp_qualif", "M3", "OR_negro"), 3),
         "@@G_OR_T10_M3@@": _pt(_g("y_top10", "M3", "OR_negro"), 3),
         "@@G_ORI_SUP_CBO@@": _pt(_oi_sup, 3), "@@G_ORI_POS_CBO@@": _pt(_oi_pos, 3),
-        "@@G_INTER_TXT@@": ("atenua a penalidade sem eliminá-la" if _oi_sup > 1 else "não atenua a penalidade"),
+        # a leitura segue o sinal das DUAS interações (a pós-graduação pode agravar)
+        "@@G_INTER_TXT@@": ("o superior completo atenua levemente a barreira, mas a "
+                            "pós-graduação volta a agravá-la" if _oi_sup > 1 and _oi_pos < 1 else
+                            "o diploma atenua a penalidade sem eliminá-la" if _oi_sup > 1 else
+                            "o diploma não atenua a penalidade"),
         "@@G_OR_CBO_SUP@@": _pt(_g("ocp_qualif", "M4", "OR_negro") * _oi_sup, 3),
         "@@G_AUC_CBO_M2@@": _pt(_g("ocp_qualif", "M2", "AUC_com_RE"), 3),
         "@@G_AUCFE_CBO_M2@@": _pt(_g("ocp_qualif", "M2", "AUC_so_FE"), 3),
         "@@G_CUT_CBO_M2@@": _pt(_g("ocp_qualif", "M2", "cutoff_youden"), 2),
         "@@G_SENS_CBO_M2@@": _pt(_g("ocp_qualif", "M2", "sens"), 2),
         "@@G_ESP_CBO_M2@@": _pt(_g("ocp_qualif", "M2", "espec"), 2),
-        "@@G_EV_CBO_M2@@": _pt(_ev(_g("ocp_qualif", "M2", "OR_negro")), 1),
-        "@@G_EV_CBO_M2_EN@@": _pten(_ev(_g("ocp_qualif", "M2", "OR_negro")), 1),
+        "@@G_EV_CBO_M2@@": _pt(_ev(_g("ocp_qualif", "M2", "OR_negro"), "ocp_qualif"), 1),
+        "@@G_EV_CBO_M2_EN@@": _pten(_ev(_g("ocp_qualif", "M2", "OR_negro"), "ocp_qualif"), 1),
     })
     # Hosmer-Lemeshow: queda do A2 para o A3 em cada desfecho (antes: "cai à metade", fóssil)
     _hl = [1 - _g(d, "M3", "HL_chi2") / _g(d, "M2", "HL_chi2")
            for d in ("ocp_qualif", "y_top20", "y_top10")]
-    _V2_hl = (f"entre {_pt(min(_hl) * 100, 0)}\\% e {_pt(max(_hl) * 100, 0)}\\%"
-              if max(_hl) - min(_hl) > 0.05 else f"cerca de {_pt(sum(_hl) / 3 * 100, 0)}\\%")
+    # E7.1: a estatística sobe num desfecho e cai nos outros — "cai entre −185% e 69%"
+    # era ininteligível; a frase segue a direção de cada desfecho
+    _nomes = {"ocp_qualif": "no cargo qualificado", "y_top20": "no top~20\\%",
+              "y_top10": "no top~10\\%"}
+    _cai = [(d, q) for d, q in zip(("ocp_qualif", "y_top20", "y_top10"), _hl) if q > 0]
+    _sobe = [d for d, q in zip(("ocp_qualif", "y_top20", "y_top10"), _hl) if q <= 0]
+    _V2_hl = ("cai " + " e ".join(f"{_pt(q * 100, 0)}\\% {_nomes[d]}" for d, q in _cai)
+              if _cai else "não cai")
+    if _sobe:
+        _V2_hl += ", embora suba " + " e ".join(_nomes[d] for d in _sobe)
     texto = texto.replace("@@G_HL_QUEDA@@", _V2_hl)
     # logit-FE × GLMM: a concordância só vale com o contexto do bairro (A2 em diante)
     if _glm:
@@ -1086,7 +1120,7 @@ if _vif:
         if all(k.startswith("educ_") for k, _ in _altos):
             _abre += (r" É colinearidade \emph{por construção} dentro do bloco educacional: as "
                       r"\textit{dummies} de conclusão são cumulativas e, portanto, aninhadas "
-                      r"(Fávero \& Belfiore, cap.~12). Ela infla o erro-padrão dos retornos "
+                      r"\cite[cap.~12]{favero2024}. Ela infla o erro-padrão dos retornos "
                       r"educacionais, que por isso são lidos com cautela.")
     for _k, _v in {"@@VIF_ABERTURA@@": _abre,
                    "@@VIF_NEGRO@@": _pt(_vif.get("negro", float("nan")), 2),
@@ -1118,7 +1152,7 @@ if {"Homens", "Mulheres"} <= set(_qr):
                            f"{_fq(_g[50])} na mediana e {_fq(_g[90])} no q90 ---, de modo que ao teto "
                            r"de vidro se soma um piso pegajoso \emph{condicional}")
         else:
-            _partes.append(f"{_rot}, ela {'cresce' if _p == 'cresce' else 'diminui'} de "
+            _partes.append(f"{_rot}, a penalidade {'cresce' if _p == 'cresce' else 'diminui'} de "
                            f"{_fq(_g[10])} (q10) para {_fq(_g[90])} (q90)")
     _qrs = (r"\paragraph{Por sexo.} As colunas por sexo da Tabela~\ref{tab:qr_melhorias} "
             r"mostram que o padrão não é o mesmo para todos: " + "; ".join(_partes) + ".")
@@ -1309,7 +1343,10 @@ elif _dp:
 
 # frases-manchete compartilhadas (params_nucleo): síntese e título do bairro
 from params_nucleo import titulo_bairro as _tit_bairro, frase_sintese as _fr_sint  # noqa: E402
+from params_nucleo import frase_cbo_mulher_negra as _fr_cbo  # noqa: E402
 texto = (texto.replace("@@FRASE_SINTESE@@", _fr_sint(_PN).replace("%", r"\%"))
+              .replace("@@FRASE_CBO_MN@@", _fr_cbo(_PN).replace("%", r"\%")
+                       .replace("CBO 1–4", "CBO~1--4"))
               .replace("@@TITULO_BAIRRO@@", _tit_bairro(_PN).replace("%", r"\%")))
 
 

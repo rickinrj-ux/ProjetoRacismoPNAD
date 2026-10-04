@@ -71,6 +71,73 @@ def frase_sintese(P: dict) -> str:
             f"qualificado. " + frase_diploma(P)).strip()
 
 
+def _int_logs(P: dict) -> tuple[float, float]:
+    """(gap da mulher negra, soma mulher branca + homem negro), em log-pontos."""
+    return (P["INT_MULHER_NEGRA_LOG"],
+            P["INT_MULHER_BRANCA_LOG"] + P["INT_HOMEM_NEGRO_LOG"])
+
+
+def frase_interseccional(P: dict) -> str:
+    """Leitura única da interseccionalidade (E2.3, 03/10/2026).
+
+    A "penalidade extra" somava percentuais, escala convexa: 80,7% > 19,9% + 56,4%, mas em
+    log-pontos (escala aditiva) 0,592 < 0,182 + 0,447 — sub-aditivo, como a interação
+    negro×mulher do GLMM. O texto segue o sinal em log-pontos.
+    """
+    mn, soma = _int_logs(P)
+    base = (f"A mulher negra teve o maior gap ({pct(P['INT_MULHER_NEGRA_GAP'])} contra o homem "
+            f"branco), ")
+    if mn < soma:
+        return base + (f"mas suas desvantagens de raça e de gênero se acumularam sem se "
+                       f"multiplicar: em log-pontos, o gap dela ({pt(mn, 3)}) ficou abaixo da "
+                       f"soma das penalidades isoladas ({pt(soma, 3)}).")
+    return base + (f"e ele superou em {pt(mn - soma, 3)} log-pontos a soma das penalidades "
+                   f"isoladas de raça e de gênero.")
+
+
+def frase_interseccional_en(P: dict) -> str:
+    mn, soma = _int_logs(P)
+    e = lambda x, d=1: f"{x:.{d}f}"
+    base = (f"Black women faced the largest gap ({e(P['INT_MULHER_NEGRA_GAP'])}% relative to "
+            f"white men), ")
+    if mn < soma:
+        return base + (f"but their race and gender disadvantages accumulated without "
+                       f"multiplying: in log points, their gap ({e(mn, 3)}) fell below the sum "
+                       f"of the separate penalties ({e(soma, 3)}).")
+    return base + (f"exceeding the sum of the separate race and gender penalties by "
+                   f"{e(mn - soma, 3)} log points.")
+
+
+def frase_cbo_mulher_negra(P: dict) -> str:
+    """E2.16 (03/10/2026): a "vantagem" da mulher negra no acesso a CBO 1-4 é composição.
+
+    GLMM por grande grupo CBO (run_grupo_rg_por_cbo.R): ela entra mais no apoio
+    administrativo e nas profissões de ensino e saúde — ocupações feminizadas em que a mulher
+    branca entra ainda mais — e é o grupo com menor chance entre os dirigentes. O texto segue
+    os números: cada trecho só é afirmado se o sinal o sustentar.
+    """
+    if "CBO_MN_dirigente" not in P:
+        return ""
+    o = lambda k: pt(P[k], 2)
+    partes = []
+    fem = [g for g in ("administrativo", "profissional")
+           if P[f"CBO_MN_{g}"] > 1 and P[f"CBO_MB_{g}"] > P[f"CBO_MN_{g}"]]
+    if fem:
+        nomes = {"administrativo": "do apoio administrativo", "profissional": "das profissões de nível superior, sobretudo ensino e saúde"}
+        partes.append(
+            "A aparente vantagem da mulher negra no acesso a cargos CBO 1–4 é composição: vem "
+            + " e ".join(f"{nomes[g]} (OR {o(f'CBO_MN_{g}')})" for g in fem)
+            + ", ocupações feminizadas em que a mulher branca entra ainda mais ("
+            + " e ".join(o(f"CBO_MB_{g}") for g in fem) + ").")
+    menor = min(("MB", "HN", "MN"), key=lambda g: P[f"CBO_{g}_dirigente"])
+    if P["CBO_MN_dirigente"] < 1:
+        partes.append(
+            f"Entre os dirigentes, onde se exerce comando, a mulher negra tem "
+            + ("a menor chance de todos os grupos" if menor == "MN" else "chance menor que o homem branco")
+            + f" (OR {o('CBO_MN_dirigente')}).")
+    return " ".join(partes)
+
+
 def _rows(nome: str) -> list[dict]:
     p = TAB / nome
     if not p.exists():
@@ -93,10 +160,35 @@ def _limpar_tex(s: str) -> str:
     return re.sub(r"\\[a-zA-Z]+", "", s).replace("{", "").replace("}", "").strip()
 
 
-def _evalue(or_val: float) -> float:
-    """VanderWeele & Ding (2017); para OR < 1 usa-se o inverso."""
+def _prevalencias() -> dict:
+    out = {}
+    for r in _rows("glmm_prevalencias.csv"):
+        out[r["desfecho"]] = float(r["prevalencia"])
+    return out
+
+
+_PREV = None
+
+
+def evalue(or_val: float, desfecho: str | None = None) -> float:
+    """E-value de VanderWeele & Ding (2017) para uma razão de chances (OR < 1: o inverso).
+
+    Desfecho comum (prevalência >= 15%): a OR exagera a razão de risco, e o E-value usa
+    RR ≈ √OR (E2.7, 03/10/2026 — antes aplicava-se a fórmula direto à OR do acesso, com 30%
+    de prevalência, e o E-value saía 1,76 em vez de 1,45). Desfecho raro: RR ≈ OR.
+    É a ÚNICA implementação: tabela do GLMM, relatório, robustez e validate importam daqui.
+    """
+    global _PREV
+    if _PREV is None:
+        _PREV = _prevalencias()
     o = 1 / or_val if or_val < 1 else or_val
+    if desfecho is not None and _PREV.get(desfecho, 0.0) >= 0.15:
+        o = math.sqrt(o)
     return o + math.sqrt(o * (o - 1))
+
+
+def _evalue(or_val: float, desfecho: str | None = None) -> float:
+    return evalue(or_val, desfecho)
 
 
 # ── leitura ───────────────────────────────────────────────────────────────────
@@ -148,6 +240,16 @@ def carregar() -> dict:
             if f"B_{m}" in P:
                 P[f"MED_ACUM_{m}"] = (abs(P["B_POOL"]) - abs(P[f"B_{m}"])) / abs(P["B_POOL"]) * 100
         P["MED_BAIRRO"] = (abs(P["B_POOL"]) - abs(P["B_M1"])) / abs(P["B_POOL"]) * 100
+    # E2.2: teste da escada — o agregado tem UF e o M1 não; o M1 com UF (mesma base) mostra
+    # quanto da "mediação pelo bairro" seria o estado saindo do modelo
+    for r in _rows("hlm_m1_uf.csv"):
+        P["B_M1_UF"] = _f(r["b_negro"])
+        P["GAP_M1_UF"] = abs(_f(r["gap_pct"]))
+        if "B_POOL" in P:
+            P["MED_BAIRRO_UF"] = (abs(P["B_POOL"]) - abs(P["B_M1_UF"])) / abs(P["B_POOL"]) * 100
+    for r in _rows("gap_agregado.csv"):
+        if r["modelo"] == "agregado_sem_UF":
+            P["GAP_POOL_SEM_UF"] = abs(_f(r["gap_pct"]))
         P["MED_OCUP"] = (abs(P["B_M3"]) - abs(P["B_M4"])) / abs(P["B_POOL"]) * 100
         P["RESID_PCT"] = abs(P["B_M4"]) / abs(P["B_POOL"]) * 100
 
@@ -167,7 +269,9 @@ def carregar() -> dict:
         if r["grupo"] == "Global":
             q = str(round(_f(r["quantil"]) * 100))
             P[f"QR_B_Q{q}"] = _f(r["b_negro"])
-            P[f"QR_GAP_Q{q}"] = abs(_f(r["gap_pct"]))
+            # do β, não do gap_pct do csv (2 casas): 4,25 arredondava para 4,2 no Guia
+            # enquanto o TCC, que parte do β (4,257), mostrava 4,3 (E7.1)
+            P[f"QR_GAP_Q{q}"] = abs((math.exp(_f(r["b_negro"])) - 1) * 100)
     # HLM de TRÊS níveis (pessoa < UPA < UF, ambos aleatórios) — robustez.
     # Não é a especificação do trabalho; serve para separar o que o modelo de
     # dois níveis credita ao "território" em bairro e estado.
@@ -228,7 +332,7 @@ def carregar() -> dict:
         P[f"AUC_{k}"] = _f(r["AUC_com_RE"])
         P[f"AUCFE_{k}"] = _f(r["AUC_so_FE"])
         P[f"LR_{k}"] = _f(r["LR_vs_pooled"])
-        P[f"EV_{k}"] = _evalue(P[f"OR_{k}"])
+        P[f"EV_{k}"] = _evalue(P[f"OR_{k}"], r["desfecho"])
         # A4: razão de chances da raça para quem tem superior e para quem tem pós. As
         # dummies são cumulativas (pós ⊂ superior), então a pós soma as duas interações.
         if r["modelo"] == "M4" and _f(r.get("OR_inter_superior")) is not None:
@@ -251,6 +355,7 @@ def carregar() -> dict:
     for r in _rows("interseccional_ob4grupos_nucleo.csv"):
         g = r["grupo"].replace(" ", "_").upper()
         P[f"INT_{g}_GAP"] = _f(r["gap_pct"])
+        P[f"INT_{g}_LOG"] = _f(r["gap"])            # log-pontos (escala aditiva)
         P[f"INT_{g}_DOT"] = _f(r["end_pct"])
         P[f"INT_{g}_RET"] = _f(r["ret_pct"])
         P[f"INT_{g}_N"] = int(_f(r["n_n"]))
@@ -269,6 +374,16 @@ def carregar() -> dict:
         P[f"GRG_HN_{d}"] = _f(r["OR_homem_negro"])
         P[f"GRG_MN_{d}"] = _f(r["OR_mulher_negra"])
         P[f"GRG_INT_{d}"] = _f(r["OR_interacao"])
+    # E2.16: os 4 grupos por grande grupo CBO (dirigente, profissional, tecnico,
+    # administrativo, cbo12), mesma especificação do GLMM acima
+    for r in _rows("grupo_rg_por_cbo.csv"):
+        g = r["desfecho"].replace("y_", "")
+        P[f"CBO_MB_{g}"] = _f(r["OR_mulher_branca"])
+        P[f"CBO_HN_{g}"] = _f(r["OR_homem_negro"])
+        P[f"CBO_MN_{g}"] = _f(r["OR_mulher_negra"])
+        P[f"CBO_MN_{g}_LO"] = _f(r["OR_mn_lo"])
+        P[f"CBO_MN_{g}_HI"] = _f(r["OR_mn_hi"])
+        P[f"CBO_PREV_{g}"] = _f(r["prevalencia"])
 
     # Gini intra-raça da renda do trabalho entre ocupados (ponderado por V1028)
     for r in _rows("gini_raca.csv"):

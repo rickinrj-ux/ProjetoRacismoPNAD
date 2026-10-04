@@ -78,9 +78,11 @@ chk("ICC_M2_pct", float(_m2["ICC_UPA"]) * 100,  label="glmm_resumo_full M2 ICC*1
 chk("N_GLMM",     int(_m1["N"]),                label="glmm_resumo_full N")
 
 # E-values (computed from OR)
+# a mesma implementação dos geradores (params_nucleo.evalue: √OR para desfecho comum, E2.7)
+sys.path.insert(0, str(Path(__file__).resolve().parent / "tcc" / "scripts"))
+from params_nucleo import evalue as _ev_nucleo
 def _evalue(or_val):
-    inv = 1 / or_val
-    return inv + math.sqrt(inv * (inv - 1))
+    return _ev_nucleo(or_val, "ocp_qualif")
 chk("EVAL_M1", _evalue(float(_m1["OR_negro"])), tolerance=1e-3, label="VanderWeele M1")
 chk("EVAL_M2", _evalue(float(_m2["OR_negro"])), tolerance=1e-3, label="VanderWeele M2")
 
@@ -444,6 +446,7 @@ def _is_comment_or_pdict(line: str) -> bool:
         or "chk(" in line        # próprio validator
         or "expected" in line    # próprio validator
         or "In(" in line         # coordenadas de layout PPTX em polegadas
+        or "sem-fossil" in line  # constante de desenho marcada (mesma convenção do caca_fosseis)
         or "textwidth" in line   # frações de coluna LaTeX (\begin{subfigure}[b]{0.49\textwidth})
     )
 
@@ -467,11 +470,14 @@ for gen_path in GENERATORS:
         continue
     lines = gen_path.read_text(encoding="utf-8", errors="replace").splitlines()
     for lineno, line in enumerate(lines, 1):
-        if _is_comment_or_pdict(line):
+        # linha sem dígito não pode conter número: poupa o laço inteiro
+        if _is_comment_or_pdict(line) or not any(ch.isdigit() for ch in line):
             continue
         for key, reprs in CRITICAL_PARAMS.items():
             for r in reprs:
-                if r in WHITELIST_PATTERNS:
+                # filtro barato antes do regex: com ~400 parâmetros, compilar um padrão por
+                # teste estourava o cache do `re` e o passo levava dezenas de minutos
+                if r not in line or r in WHITELIST_PATTERNS:
                     continue
                 # Busca a representação como palavra delimitada (não como parte de outra)
                 pattern = r"(?<![0-9,.])" + re.escape(r) + r"(?![0-9,.])"

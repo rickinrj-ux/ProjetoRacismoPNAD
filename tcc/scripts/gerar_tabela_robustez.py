@@ -64,8 +64,11 @@ def linhas_tabela() -> list[tuple[str, str, str]]:
         L.append((
             "Multicolinearidade (VIF)",
             (f"VIF de \\texttt{{negro}} $=$ {pt(neg)}; "
-             f"{len(alto)} preditores acima de 10, todos do bloco educacional"),
-            "colinearidade por construção; não atinge o coeficiente de interesse"))
+             + ("nenhum preditor acima de 10" if len(alto) == 0 else
+              f"{len(alto)} preditores acima de 10, todos do bloco educacional")),
+            ("sem colinearidade relevante; o coeficiente de interesse não é afetado"
+             if len(alto) == 0 else
+             "colinearidade por construção; não atinge o coeficiente de interesse")))
 
     fit = ler("hlm_stepup_fit.csv")
     if fit is not None:
@@ -101,10 +104,8 @@ def linhas_tabela() -> list[tuple[str, str, str]]:
     gl = ler("glmm_glassceil_glmer.csv")
     if gl is not None and "OR_negro" in gl.columns:
         import math
-        def _ev(o):
-            inv = 1 / o if o < 1 else o
-            return inv + math.sqrt(inv * (inv - 1))
-        e = gl["OR_negro"].astype(float).map(_ev)
+        from params_nucleo import evalue   # √OR para desfecho comum (E2.7)
+        e = pd.Series([evalue(float(o), d) for o, d in zip(gl["OR_negro"], gl["desfecho"])])
         L.append((
             "Confundidor não observado (E-value)",
             f"E-value entre {pt(e.min())} e {pt(e.max())}",

@@ -38,6 +38,10 @@ sys.stdout.reconfigure(encoding="utf-8")
 from params_nucleo import P, milhar, pct, pt
 from tcc_normas_texto import (PREAMBULO, FOLHA_ROSTO, RESUMO_ABSTRACT,
                               INTRODUCAO, CONCLUSAO, FECHO)
+# fio narrativo (04/10/2026): Considerações Iniciais com o conceito de racismo estrutural,
+# pontes nos Resultados, críticas e propostas na Discussão, Conclusão em dois parágrafos
+from tcc_normas_narrativa import (INTRODUCAO, CONCLUSAO, ABERTURA_RESULTADOS,  # noqa: F811
+                                  PONTES, DISCUSSAO_POLITICAS)
 
 ROOT = Path(__file__).resolve().parents[2]
 FONTE = ROOT / "relatorio_tcc_enxuto.tex"
@@ -349,8 +353,9 @@ def main() -> int:
         "Base de dados: PNAD Contínua",
         "Modelo Linear Hierárquico: indivíduos em bairros",
         "Decomposição de Oaxaca--Blinder",
-        "Regressão quantílica e decomposição RIF",
+        # a ordem da trajetória (04/10/2026): a porta (acesso) antes da escada (quantis)
         "Modelo logístico multinível de acesso",
+        "Regressão quantílica e decomposição RIF",
         "Sensibilidade a variáveis omitidas",
         "Inferência: erros-padrão agrupados",
         "Random Forest, XGBoost e SHAP Values",
@@ -361,8 +366,8 @@ def main() -> int:
         "Modelos Hierárquicos Lineares",
         "Decomposição do gap por mediação contextual",
         "Decomposição de Oaxaca--Blinder: composição",
-        "Regressão Quantílica e RIF-OB",
         "GLMM logístico: o teto de vidro no acesso",
+        "Regressão Quantílica e RIF-OB",
         "Interseccionalidade: raça e gênero",
         "Modelos de Machine Learning e SHAP Values",
         "Multicolinearidade do Modelo M4",
@@ -371,12 +376,42 @@ def main() -> int:
     partes = [PREAMBULO, FOLHA_ROSTO, RESUMO_ABSTRACT, INTRODUCAO,
               "\n\\section*{Implementação de Algoritmo(s) de Machine Learning}\n"]
     partes += [bloco(n) for n in METODO]
-    partes.append("\n\\section*{Resultados e Discussão}\n")
-    partes += [bloco(n) for n in RESULTADOS]
+    partes.append("\n\\section*{Resultados e Discussão}\n\n" + ABERTURA_RESULTADOS)
+
+    def _com_ponte(nome: str) -> str:
+        """Frase-ponte logo depois do título da subseção (fio narrativo, 04/10/2026)."""
+        b = bloco(nome)
+        ponte = PONTES.get(nome)
+        if not ponte or "\n" not in b:
+            return b
+        titulo, resto = b.split("\n", 1)
+        if nome.startswith("Interseccionalidade"):
+            # E7.1: no bloco de origem a tabela vinha antes do parágrafo que faz a pergunta
+            # ("Raça e gênero simplesmente se somam?"), e a montagem punha uma chamada solta
+            # antes dela; a pergunta abre a subseção e a tabela vem depois do parágrafo
+            # no bloco a tabela ainda é um \input (expandido depois)
+            m = re.match(r"\s*(\\input\{[^}]*\}|\\begin\{table\}.*?\\end\{table\})(.*)",
+                         resto, flags=re.S)
+            if m:
+                tabela, depois = m.group(1), m.group(2)
+                fim_par = depois.find("\n\n", depois.find("Raça e gênero simplesmente"))
+                if fim_par > 0:
+                    resto = depois[:fim_par] + "\n\n" + tabela + depois[fim_par:]
+        return f"{titulo}\n{ponte} {resto.lstrip()}"
+    partes += [_com_ponte(n) for n in RESULTADOS]
     # a Discussão entrava SEM cabeçalho (o título era trocado por "") e o texto ficava
     # pendurado dentro da subseção do VIF; vira subseção própria
-    partes.append(bloco("Discussão e Prescrição").replace(
-        "\\section{Discussão e Prescrição}", "\\subsection*{Discussão}"))
+    _disc = bloco("Discussão e Prescrição").replace(
+        "\\section{Discussão e Prescrição}", "\\subsection*{Discussão}")
+    # a "Ancoragem em políticas públicas existentes" dá lugar às críticas e às propostas
+    # (04/10/2026); a Conclusão, pelo manual, só as resume, sem citações
+    _anc = _disc.find("\\paragraph{Ancoragem em políticas públicas existentes.}")
+    if _anc >= 0:
+        _disc = _disc[:_anc] + DISCUSSAO_POLITICAS
+    else:
+        print("  [AVISO] parágrafo de ancoragem não encontrado; críticas acrescentadas ao fim")
+        _disc += DISCUSSAO_POLITICAS
+    partes.append(_disc)
     # o bloco das Limitações ia até a próxima seção e trazia junto o parágrafo da
     # declaração de IA, que é acrescentada abaixo como subseção — saía em dobro
     _lim = bloco("Limitações e escopo de validade")

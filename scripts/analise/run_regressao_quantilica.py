@@ -47,7 +47,7 @@ COLS = [
     "Ano", "negro", "sexo_fem", "idade_c", "idade_sq",
     "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao", "educ_cat",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
-    "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
+    "horas_c", "log_horas", "urbano", "emprego_formal", "conta_propria", "trab_domestico",
     "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
     "ocp_servicos", "ocp_agro", "ocp_operario", "ocp_operador", "ocp_ffaa",
     "log_renda", "renda_bruta", "pea", "UF", "V1023",
@@ -63,7 +63,8 @@ df   = df[mask].copy()
 
 BASE_DROP = ["negro","sexo_fem","idade_c","idade_sq",
              "educ_fund_completo", "educ_medio_completo","educ_superior_completo","educ_pos_graduacao",
-             "pct_negro_upa_z","tx_desemprego_upa_z","media_educ_upa_z","log_renda"]
+             "pct_negro_upa_z","tx_desemprego_upa_z","media_educ_upa_z","log_renda",
+             "log_horas","urbano"]
 df = df.dropna(subset=BASE_DROP)
 
 if SAMPLE_FRAC:
@@ -78,10 +79,12 @@ HAS_OCC = all(c in df.columns for c in ["horas_c","emprego_formal","ocp_dirigent
           and df["horas_c"].notna().any()
 
 # ── Fórmulas ──────────────────────────────────────────────────────────────────
+# E2.5 (03/10/2026): log_horas e urbano entram no M3 da QR, como no HLM M3 — a renda é
+# MENSAL, a jornada é controle necessário (antes ficava só no M4)
 _IND = ("negro + educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
-        " + idade_c + idade_sq + sexo_fem")
+        " + idade_c + idade_sq + sexo_fem + log_horas + urbano")
 _UPA = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z + C(Ano)"
-_OCC = ("horas_c + emprego_formal + conta_propria + trab_domestico"
+_OCC = ("emprego_formal + conta_propria + trab_domestico"
         " + ocp_dirigente + ocp_profissional + ocp_tecnico + ocp_administrativo"
         " + ocp_servicos + ocp_agro + ocp_operario + ocp_operador + ocp_ffaa")
 
@@ -93,7 +96,7 @@ if HAS_OCC:
 
 MODEL_LABELS = {
     "M3_sem_ocp": "M3 — sem variáveis ocupacionais",
-    "M4_com_ocp": "M4 — com CBO + formalidade + horas",
+    "M4_com_ocp": "M4 — com CBO + formalidade",
 }
 MODEL_COLORS = {
     "M3_sem_ocp": "#1565C0",
@@ -353,7 +356,7 @@ if "M4_com_ocp" in MODELS:
     ax.set_xlabel("Quantil", fontsize=12)
     ax.set_ylabel("Gap racial (%)", fontsize=12)
     ax.set_title("Mediação Ocupacional do Gap Racial por Quantil\n"
-                 "(diferença M3→M4 = porção explicada por CBO + formalidade + horas)",
+                 "(diferença M3→M4 = porção explicada por CBO + formalidade)",
                  fontsize=12, fontweight="bold")
     ax.legend(fontsize=9)
     ax.spines["top"].set_visible(False)

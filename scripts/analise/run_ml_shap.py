@@ -438,6 +438,8 @@ def plot_shap_waterfall_cases(model, explainer, X_tr, df_shap, model_name):
             rotulo = {"A_branco_alta_renda": "Trabalhador branco, percentil 75 da renda dos brancos",
                       "B_negro_alta_renda": "Trabalhador negro, percentil 75 da renda dos negros",
                       "C_negro_baixa_renda": "Trabalhador negro, percentil 25 da renda dos negros"}[case_name]
+            # vírgula decimal ANTES do título: o milhar de "R$ 4.444" seria lido como decimal
+            _virgula_decimal()
             reais = f"{np.exp(renda_real):,.0f}".replace(",", ".")
             plt.title(
                 f"{rotulo}\n"
@@ -445,7 +447,6 @@ def plot_shap_waterfall_cases(model, explainer, X_tr, df_shap, model_name):
                 + f" (R$ {reais}/mês, reais do 2º tri/2026)",
                 fontsize=10,
             )
-            _virgula_decimal()
             plt.tight_layout()
             path = OUTPUTS_FIG / f"shap_waterfall_{case_name}_{model_name.lower()}.png"
             plt.savefig(path, dpi=150, bbox_inches="tight")

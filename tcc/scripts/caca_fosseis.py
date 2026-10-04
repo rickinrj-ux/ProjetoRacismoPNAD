@@ -81,6 +81,7 @@ DESENHO = [
     r"Arial \d|palavras|\d cm\b|entrelinha|ajustes|\(251, 252\)",          # normas de formatação
     r"95\\{0,2}% CI|IC 95|95\\{0,2}% com erro",                             # convenção de IC
     r"volume|pages|number|year",                                           # bibliografia
+    r"(?:Lei|Decreto) n\. \d",                                             # legislação no .bib
     r"\\\*\{",                                                             # quantificador de regex
     r"& 100,0|Total",                                                      # linha de total = 100
     # fatos EXTERNOS citados (IBGE, literatura), não estimados neste trabalho

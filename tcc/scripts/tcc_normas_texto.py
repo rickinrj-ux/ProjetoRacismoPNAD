@@ -21,6 +21,10 @@ from __future__ import annotations
 
 from params_nucleo import P, milhar, pt
 from params_nucleo import pct as _pct_bruto
+from params_nucleo import frase_interseccional, frase_interseccional_en
+# leitura única da interseccionalidade (E2.3), com o % escapado para o LaTeX
+_INT_PT = frase_interseccional(P).replace("%", r"\%")
+_INT_EN = frase_interseccional_en(P).replace("%", r"\%")
 
 
 def pct(x: float, d: int = 1) -> str:
@@ -100,6 +104,12 @@ _DIPLOMA_CONCL = _diploma_concl()
 _CONCLUSAO_RESUMO = _conclusao_resumo()
 _CONCLUSAO_ABSTRACT = _conclusao_resumo(ingles=True)
 _PCT_T10 = pt((1 - P["OR_y_top10_M2"]) * 100, 0)
+_MN_DIR = ("CBO_MN_dirigente" in P and
+           P["CBO_MN_dirigente"] < min(P["CBO_MB_dirigente"], P["CBO_HN_dirigente"], 1))
+_RESUMO_CBO = (" A mulher negra entrou pelas ocupações feminizadas, mas teve a menor chance "
+               "de chegar ao comando." if _MN_DIR else "")
+_ABSTRACT_CBO = (" Black women entered through feminised occupations but had the lowest odds "
+                 "of reaching management." if _MN_DIR else "")
 
 PREAMBULO = r"""% ══════════════════════════════════════════════════════════════════════════════
 % VERSÃO NORMATIVA — MBA USP/Esalq (Manual de Instruções e Normas, itens 15–19)
@@ -216,27 +226,20 @@ e de decomposição salarial\par}
 \vspace{\baselineskip}
 
 \begin{singlespace}\noindent
-""" + f"""Este trabalho investigou o diferencial racial de rendimentos e as barreiras de
-acesso ocupacional no Brasil com a série completa da Pesquisa Nacional por
-Amostra de Domicílios Contínua, de 2016 a 2025, sobre {milhar(P['N_GLMM'])}
-observações da população ocupada com rendimento positivo em
-{milhar(P['N_UPAS'])} bairros --- as unidades primárias de amostragem (UPAs) da própria
-PNAD, setores censitários ou pequenos grupos de setores vizinhos. Quatro métodos foram aplicados de
-forma articulada: modelo linear hierárquico de dois níveis, com indivíduos
-aninhados em bairros e efeitos fixos de estado; decomposição de
-Oaxaca--Blinder; regressão quantílica com decomposição por função de influência
-recentrada; e modelo logístico multinível de acesso, estimado por máxima
-verossimilhança. Um modelo de aprendizado de máquina interpretável serviu de
-contraprova à forma funcional. O gap agregado foi de {pct(P['GAP_POOL'])}, dos
-quais {pct(P['MED_BAIRRO'])} resultaram da mediação pelo bairro de moradia;
-o diferencial que sobreviveu ao controle de capital humano, contexto e estado
-foi de {pct(P['GAP_M3'])}, e {pct(P['GAP_M4'])} persistiram dentro da mesma
-ocupação. A decomposição atribuiu {pct(P['OB_SEM_RET_PCT'])} do gap a retornos
-diferenciais. O modelo de acesso estimou razão de chances de {_OR_CBO} para
-cargo qualificado e {_OR_T10} para o décimo superior da renda, indicando
-barreira que se agrava no topo. A desvantagem da mulher negra excedeu em
-{pt(P['INT_PENAL_EXTRA'], 1)} pontos percentuais a soma das penalidades de raça
-e de gênero isoladas. {_CONCLUSAO_RESUMO}
+""" + f"""A desigualdade racial de renda no Brasil persistiu apesar da expansão do ensino,
+o que sugere mecanismos estruturais que a qualificação não alcança. O objetivo foi
+identificar e quantificar esses mecanismos no salário e no acesso a ocupações
+qualificadas. Utilizou-se a série completa da Pesquisa Nacional por Amostra de
+Domicílios Contínua, de 2016 a 2025, com {milhar(P['N_GLMM'])} observações da
+população ocupada em {milhar(P['N_UPAS'])} bairros --- as unidades primárias de
+amostragem da própria pesquisa. Foram aplicados modelo linear hierárquico,
+decomposição de Oaxaca--Blinder, regressão quantílica com decomposição por função de
+influência recentrada e modelo logístico multinível de acesso, com aprendizado de
+máquina como verificação. Com a mesma escolaridade, idade, sexo e bairro,
+trabalhadores negros ganharam {pct(P['GAP_M3'])} a menos; o bairro mediou
+{pct(P['MED_BAIRRO'])} do gap agregado, e as chances de chegar a cargo qualificado
+foram {_PCT_CBO}\\% menores, e {_PCT_T10}\\% menores no décimo mais rico.{_RESUMO_CBO}
+{_CONCLUSAO_RESUMO}
 """ + r"""\end{singlespace}
 
 \vspace{\baselineskip}
@@ -258,26 +261,19 @@ wage-decomposition approach\par}
 \vspace{\baselineskip}
 
 \begin{singlespace}\noindent
-""" + f"""This study examined the racial earnings differential and occupational access
-barriers in Brazil using the complete series of the Brazilian Continuous
-National Household Sample Survey, from 2016 to 2025, covering
-{en_milhar(P['N_GLMM'])} observations of employed workers with positive earnings
-in {en_milhar(P['N_UPAS'])} neighbourhoods --- the survey's own primary sampling units
-(PSUs), census tracts or small clusters of adjacent tracts. Four methods were jointly applied: a
-two-level hierarchical linear model, with individuals nested in neighbourhoods
-and state fixed effects; an Oaxaca--Blinder decomposition; quantile regression
-with recentred influence function decomposition; and a multilevel logistic
-model of occupational access, estimated by maximum likelihood. An interpretable
-machine learning model served as a functional-form check. The aggregate gap was
-{en_pct(P['GAP_POOL'])}, of which {en_pct(P['MED_BAIRRO'])} was mediated by
-neighbourhood of residence; the differential surviving controls for human
-capital, context and state was {en_pct(P['GAP_M3'])}, and {en_pct(P['GAP_M4'])}
-persisted within the same occupation. The decomposition attributed
-{en_pct(P['OB_SEM_RET_PCT'])} of the gap to differential returns. The access model
-estimated odds ratios of {_OR_CBO_EN} for qualified occupations and {_OR_T10_EN} for
-the top income decile, indicating a barrier that tightens towards the top. The
-disadvantage faced by Black women exceeded the sum of the separate race and
-gender penalties by {en(P['INT_PENAL_EXTRA'], 1)} percentage points. {_CONCLUSAO_ABSTRACT}
+""" + f"""Racial income inequality in Brazil persisted despite the expansion of schooling,
+which suggests structural mechanisms that qualification does not reach. The aim was
+to identify and quantify these mechanisms in wages and in access to qualified
+occupations. The complete series of the Brazilian Continuous National Household Sample
+Survey, from 2016 to 2025, was used, with {en_milhar(P['N_GLMM'])} observations of
+employed workers in {en_milhar(P['N_UPAS'])} neighbourhoods --- the survey's own primary
+sampling units. A hierarchical linear model, an Oaxaca--Blinder decomposition, quantile
+regression with recentred influence function decomposition and a multilevel logistic
+model of access were applied, with machine learning as a check. With the same schooling,
+age, sex and neighbourhood, Black workers earned {en_pct(P['GAP_M3'])} less; the
+neighbourhood mediated {en_pct(P['MED_BAIRRO'])} of the aggregate gap, and the odds of
+reaching a qualified job were {_PCT_CBO}\\% lower, and {_PCT_T10}\\% lower for the
+top income decile.{_ABSTRACT_CBO} {_CONCLUSAO_ABSTRACT}
 """ + r"""\end{singlespace}
 
 \vspace{\baselineskip}
@@ -390,10 +386,9 @@ permanecem estreitos.
 
 O contexto de moradia respondeu por {pct(P['MED_BAIRRO'])} do diferencial
 agregado, o que indica que política de renda que ignore o território tem eficácia
-limitada. A desvantagem da mulher negra excedeu em
-{pt(P['INT_PENAL_EXTRA'], 1)} pontos percentuais a soma das penalidades de raça e
-de gênero isoladas, de modo que intervenções desenhadas para um eixo de cada vez
-deixam de fora justamente quem está na interseção.
+limitada. {_INT_PT} Como ela acumula as duas desvantagens,
+intervenções desenhadas para um eixo de cada vez deixam de fora justamente quem
+está na interseção.
 
 A penalidade também não foi uniforme ao longo da distribuição: partiu de
 {pct(P['QR_GAP_Q10'])} entre os que menos ganham e alcançou

@@ -5,6 +5,7 @@ Usa python-pptx (pip install python-pptx).
 """
 
 # --- bootstrap raiz do projeto (reorg estrutura) ---
+import re
 import os as _os, sys as _sys
 from pathlib import Path as _Path
 _os.chdir(_Path(__file__).resolve().parents[2])
@@ -26,6 +27,11 @@ import numpy as np
 # (OR 0,693 do logit-FE, ICC de UF do HLM de três níveis).
 _sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / "tcc" / "scripts"))
 from params_nucleo import P as _PN, milhar, pt as _pt, titulo_bairro, frase_sintese, frase_diploma
+from params_nucleo import _int_logs
+# E2.3: interseccionalidade lida em log-pontos (escala aditiva) — sub-aditiva quando o gap da
+# mulher negra fica abaixo da soma mulher branca + homem negro
+_INT_MN, _INT_SOMA = _int_logs(_PN)
+_INT_SUB = _INT_MN < _INT_SOMA
 
 
 def fmt(v, dec=3):    return _pt(v, dec).replace("−", "-")
@@ -150,7 +156,16 @@ def add_img(slide, img_path, l, t, w, h=None):
     esc = min(w / iw, h / ih)
     slide.shapes.add_picture(str(p), l, t, int(iw * esc), int(ih * esc))
 
-def header_bar(slide, title, subtitle=None):
+_N_TITULO = [0]
+
+
+def header_bar(slide, title, subtitle=None, numerar=True):
+    # numeração automática: com números fixos no texto, os slides inseridos depois
+    # (penalidade por bairro, diploma) ficavam sem número ou com "9b"
+    title = re.sub(r"^\d+[a-z]?\.\s+", "", title)
+    if numerar:
+        _N_TITULO[0] += 1
+        title = f"{_N_TITULO[0]}. {title}"
     add_rect(slide, 0, 0, W, In(1.10), fill_rgb=C_DARK)
     # título longo quebrava em duas linhas e cobria o subtítulo
     tam = 26 if len(title) <= 60 else (22 if len(title) <= 72 else 19)
@@ -282,19 +297,19 @@ add_text(s, "Orientador: Edilson José Rodrigues",
 # SLIDE 2 — EM TRÊS MINUTOS (resumo executivo: a resposta antes da evidência)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "Em três minutos", "O que foi medido, o que se achou e o que isso muda")
+header_bar(s, "Em três minutos", "O que foi medido, o que se achou e o que isso muda", numerar=False)
 
 _tres = [
     ("O contexto",
      f"Entre 2016 e 2025, um trabalhador negro ganhou em média {fmt(P['GAP_POOL'],1)}% a menos "
      f"que um branco com a mesma escolaridade, idade e sexo."),
     ("O desequilíbrio",
-     f"Comparando só pessoas do mesmo bairro, o gap cai {fmt(P['MED_BAIRRO'],0)}% "
+     f"Comparando só pessoas do mesmo bairro, o gap cai {fmt(P['MED_BAIRRO'],1)}% "
      f"(a parte mediada pela segregação residencial) — e ainda sobram "
      f"{fmt(P['GAP_M3'],1)}%, dos quais {fmt(P['GAP_M4'],1)}% persistem dentro da mesma ocupação."),
     ("A evidência",
      f"Quatro métodos independentes sobre a população da PNAD Contínua "
-     f"({fmtN(P['N_UPAS'])} bairros): o bairro medeia {fmt(P['MED_BAIRRO'],0)}% do gap; "
+     f"({fmtN(P['N_UPAS'])} bairros): o bairro medeia {fmt(P['MED_BAIRRO'],1)}% do gap; "
      f"{fmt(P['RET_PCT'],1)}% do gap são retornos diferenciais; a penalidade cresce no topo; "
      f"e a chance de chegar a um cargo qualificado é {fmt(P['OR_M2_menor_pct'],0)}% menor."),
     ("O que muda",
@@ -319,7 +334,7 @@ footer(s, 2)
 # SLIDE 2 — O PROBLEMA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "1. Mesma escolaridade, salário menor: o gap racial não é só qualificação",
+header_bar(s, "Mesma escolaridade, salário menor: o gap racial não é só qualificação",
            "Por que olhar o gap racial brasileiro com métodos multinível?")
 
 add_text(s, "O gap salarial racial persiste mesmo após décadas de políticas inclusivas",
@@ -340,12 +355,18 @@ add_text(s, "Inovações deste TCC", In(8.0), In(1.35), In(4.8), In(0.4),
 for i, item in enumerate([
     f"✦ {fmt(P['N_BRUTO'] / 1e6, 1)}M obs. — série histórica completa",
     "✦ CBO, vínculo, horas e escolaridade (V4010/VD4009/VD4031/VD3004) extraídos dos ZIPs brutos do IBGE",
-    "✦ Discriminação de ACESSO (logit)",
+    "✦ Discriminação de ACESSO (GLMM logístico)",
     "✦ Discriminação de REMUNERAÇÃO (HLM + QR)",
     "✦ Convergência de 4 métodos do núcleo + robustez",
 ]):
-    add_text(s, item, In(8.1), In(1.85)+i*In(0.65), In(4.7), In(0.6),
+    # altura pelo número de linhas (~42 caracteres por linha em 13 pt): com passo fixo,
+    # o item de três linhas encostava no seguinte e os vãos ficavam desiguais
+    if i == 0:
+        _y = In(1.85)
+    _linhas = -(-len(item) // 42)
+    add_text(s, item, In(8.1), _y, In(4.7), In(0.27) * _linhas + In(0.1),
              font_size=13, color=C_BLACK if i > 0 else C_BLUE)
+    _y += In(0.27) * _linhas + In(0.3)
 
 footer(s, 2)
 
@@ -353,7 +374,7 @@ footer(s, 2)
 # SLIDE 3 — DADOS E DATASET
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, f"2. Dez anos de PNAD Contínua: {fmt(P['N_GLMM'] / 1e6, 1)} milhões de trabalhadores, "
+header_bar(s, f"Dez anos de PNAD Contínua: {fmt(P['N_GLMM'] / 1e6, 1)} milhões de trabalhadores, "
               f"{fmt(P['N_UPAS'] / 1e3, 0)} mil bairros",
            "PNAD Contínua 2016–2025 | renda em reais do 2º tri/2026 (deflator IBGE) + efeito de ano")
 
@@ -399,7 +420,7 @@ footer(s, 3)
 # SLIDE 4 — ANÁLISE DESCRITIVA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "3. Antes de qualquer modelo: brancos e negros não moram nos mesmos bairros",
+header_bar(s, "Antes de qualquer modelo: brancos e negros não moram nos mesmos bairros",
            f"Gap mediano bruto de {fmt(P['GAP_MEDIANA'],1)}% | ponderado pelo desenho amostral | "
            f"reais do 2º tri/2026 | PNAD Contínua 2016–2025")
 
@@ -414,8 +435,8 @@ kpi_box(s, "Gap na média", f"{fmt(P['GAP_MEDIA'],1)}%",
         f"brancos R${fmtN(P['MEDIA_BR'])} vs negros R${fmtN(P['MEDIA_NG'])}", In(10.1), In(1.75), w=In(3.1), val_color=C_RED)
 kpi_box(s, "Gap log-renda", f"{fmt(P['GAP_LOG'],1)}",
         "diferença de médias do log, em log-pontos", In(7.0), In(3.15), w=In(2.9), val_color=C_RED)
-kpi_box(s, "Formal (brancos/neg.)", f"{fmt(P['FORMAL_BR'],0)}%/{fmt(P['FORMAL_NG'],0)}%",
-        f"{fmt(P['FORMAL_DIF'],0)} p.p. a menos de emprego formal", In(10.1), In(3.15), w=In(3.1), val_color=C_AMBER)
+kpi_box(s, "Formal (brancos/neg.)", f"{fmt(P['FORMAL_BR'],1)}%/{fmt(P['FORMAL_NG'],1)}%",
+        f"{fmt(P['FORMAL_DIF'],1)} p.p. a menos de emprego formal", In(10.1), In(3.15), w=In(3.1), val_color=C_AMBER)
 
 add_rect(s, In(7.0), In(4.55), In(6.1), In(1.15),     # termina antes da faixa vermelha
          fill_rgb=RGBColor(0xE3,0xF2,0xFD), line_rgb=C_DARK, line_pt=0.8)
@@ -425,7 +446,7 @@ add_text(s, "Interpretação da curva de densidade:",
 add_multiline(s, [
     "▸  Curva vermelha (negros) deslocada à esquerda ao longo de toda a distribuição",
     "▸  Linhas tracejadas = médias de log-renda de cada grupo",
-    "▸  O deslocamento é estrutural — não se concentra em nenhuma faixa específica",
+    "▸  A curva dos negros está à esquerda em toda a distribuição; a QR e a RIF mostram onde pesa mais",
 ], In(7.15), In(4.88), In(5.8), In(0.8), font_size=11, color=C_BLACK)
 
 add_rect(s, In(0.3), In(5.85), In(12.7), In(0.65),
@@ -440,17 +461,22 @@ footer(s, 4)
 # SLIDE 5 — ARQUITETURA METODOLÓGICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "4. Quatro métodos que respondem a quatro perguntas diferentes",
+header_bar(s, "Quatro métodos que respondem a quatro perguntas diferentes",
            "Núcleo de 4 métodos + robustez (ML/SHAP) — convergência de evidências")
 
 metodos = [
-    (C_DARK,  "HLM",            "Modelo Hierárquico Linear\n(indivíduo em UPA, UF fixa)", "Gap médio e\nmediação contextual"),
-    (C_RED,   "Oaxaca-Blinder", "Decomposição do gap\nem dotações vs retornos",     "ONDE opera\na discriminação"),
-    (C_AMBER, "GLMM logístico", "Regressão logística\ncom intercepto de UPA",       "Gap de ACESSO\na oportunidades"),
-    (C_GREEN, "QR + RIF-OB",    "Gap por quantil\nda distribuição",                 "Teto de vidro e\npiso pegajoso"),
-    (C_GRAY2, "Robustez",       "XGBoost + SHAP,\nE-value, Konfound",               "Fora do núcleo:\nconfere o núcleo"),
+    (C_DARK,  "HLM",            "Modelo Hierárquico Linear\n(indivíduo em UPA, UF fixa)", "Gap médio e\nmediação contextual",
+     "Quanto do gap está no bairro onde se mora?"),
+    (C_RED,   "Oaxaca-Blinder", "Decomposição do gap\nem dotações vs retornos",     "ONDE opera\na discriminação",
+     "O gap é diferença de características ou de preço pago por elas?"),
+    (C_AMBER, "GLMM logístico", "Regressão logística\ncom intercepto de UPA",       "Gap de ACESSO\na oportunidades",
+     "Quem, com o mesmo perfil, chega ao cargo qualificado e ao topo da renda?"),
+    (C_GREEN, "QR + RIF-OB",    "Gap por quantil\nda distribuição",                 "Teto de vidro e\npiso pegajoso",
+     "A penalidade é a mesma na base e no topo da distribuição?"),
+    (C_GRAY2, "Robustez",       "XGBoost + SHAP,\nE-value, Konfound",               "Fora do núcleo:\nconfere o núcleo",
+     "O resultado sobrevive a outro modelo e a um confundidor omitido?"),
 ]
-for i, (color, title, desc, purpose) in enumerate(metodos):
+for i, (color, title, desc, purpose, pergunta) in enumerate(metodos):
     x = In(0.25) + i * In(2.6)
     add_rect(s, x, In(1.25), In(2.45), In(4.8),
              fill_rgb=RGBColor(0xF5,0xF5,0xF5), line_rgb=color, line_pt=1.5)
@@ -462,10 +488,13 @@ for i, (color, title, desc, purpose) in enumerate(metodos):
     add_rect(s, x+In(0.1), In(2.85), In(2.25), In(0.02), fill_rgb=color)
     add_text(s, purpose, x+In(0.1), In(2.95), In(2.25), In(0.7),
              font_size=12, bold=True, color=color, align=PP_ALIGN.CENTER)
+    # a pergunta que o método responde: preenche a metade de baixo, que ficava vazia
+    add_rect(s, x+In(0.1), In(3.85), In(2.25), In(0.02), fill_rgb=color)
+    add_text(s, "Pergunta", x+In(0.1), In(3.95), In(2.25), In(0.35),
+             font_size=10.5, bold=True, color=C_GRAY2, align=PP_ALIGN.CENTER)
+    add_text(s, pergunta, x+In(0.15), In(4.3), In(2.15), In(1.6),
+             font_size=14, color=C_DARK, align=PP_ALIGN.CENTER)
 
-add_text(s, "↓ Convergência do núcleo de 4 métodos = robustez diagnóstica ↓",
-         In(0.3), In(6.1), In(12.7), In(0.45),
-         font_size=15, bold=True, color=C_DARK, align=PP_ALIGN.CENTER)
 add_rect(s, In(0.3), In(6.15), In(12.7), In(0.5),
          fill_rgb=RGBColor(0xE8,0xEA,0xF0), line_rgb=C_DARK, line_pt=0.5)
 add_text(s, "Discriminação de ACESSO (GLMM) + Discriminação de REMUNERAÇÃO (HLM + Quantílica/RIF) + Penalidade interseccional (raça×gênero)",
@@ -477,7 +506,7 @@ footer(s, 5)
 # SLIDE 14 — JUSTIFICAÇÃO METODOLÓGICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, f"5. Por que multinível: {fmt(P['ICC_UPA_pct'], 0)}% da variação da renda está entre bairros",
+header_bar(s, f"Por que multinível: {fmt(P['ICC_UPA_pct'], 0)}% da variação da renda está entre bairros",
            f"Modelo nulo: τ²={fmt(P['TAU2_M0'], 4)} entre bairros e σ²={fmt(P['SIGMA2_M0'], 4)} dentro deles "
            f"— ignorar essa estrutura invalida a inferência")
 
@@ -520,7 +549,7 @@ footer(s)
 # SLIDE 6 — HLM: DECOMPOSIÇÃO DO GAP
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, f"6. {titulo_bairro(_PN)}",
+header_bar(s, f"{titulo_bairro(_PN)}",
            f"Do gap agregado de {fmt(P['GAP_POOL'], 1)}% ao que persiste dentro da mesma ocupação, "
            f"{fmt(P['GAP_M4'], 1)}% — cada degrau acrescenta um bloco de controles")
 
@@ -567,7 +596,7 @@ footer(s, 6)
 # SLIDE 7 — COMPOSIÇÃO OCUPACIONAL E GLASS CEILING
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "7. A ocupação explica muito — mas a ocupação é ela própria desigual",
+header_bar(s, "A ocupação explica muito — mas a ocupação é ela própria desigual",
            "Sub-representação sistemática nos grupos de alto prestígio")
 
 # uma figura só, em largura total: as duas lado a lado ficavam ilegíveis, e a dos
@@ -592,34 +621,41 @@ footer(s, 7)
 # SLIDE 7 — OAXACA-BLINDER
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "8. Tratar a ocupação como “característica” corta a discriminação medida pela metade",
+header_bar(s, "Tratar a ocupação como “característica” reduz pouco a discriminação medida",
            f"Gap total {fmt(P['GAP_PCT'],1)}% | {fmt(P['DOT_PCT'],0)}% explicado por características sem a ocupação, "
            f"{fmt(P['DOT_PCT_COM'],0)}% com ela")
 
-add_img(s, FIGURES / "fig_ob_cascata.png", In(0.3), In(1.2), In(7.5))
+# figura maior (8,5" em vez de 7,5") e implicação numa faixa larga embaixo: antes a
+# metade inferior do slide ficava vazia
+add_img(s, FIGURES / "fig_ob_cascata.png", In(0.3), In(1.3), In(8.5))
 
-add_text(s, "Interpretação", In(8.1), In(1.2), In(5.0), In(0.4),
+add_text(s, "Interpretação", In(9.0), In(1.2), In(4.1), In(0.4),
          font_size=16, bold=True, color=C_DARK)
 bullet_box(s, [
     f"{fmt(P['DOT_PCT_COM'],0)}% = Efeito DOTAÇÕES\nNegros têm menor acesso a ocupações de prestígio, emprego formal, mais horas em subemprego",
     f"{fmt(P['RET_PCT_COM'],0)}% = Efeito RETORNOS\nO mercado remunera as mesmas características a taxas diferentes por raça",
-    "Conclusão: discriminação opera primariamente no ACESSO, não no salário dentro da função",
-], In(8.1), In(1.7), In(5.0), In(3.5), font_size=13, dot_color=C_BLUE)
+    (f"Conclusão: {fmt(P['OB_COM_RET_PCT'],1)} dos {fmt(P['OB_SEM_RET_PCT'],1)} pontos não explicados "
+     f"persistem dentro da mesma ocupação; a porta de entrada responde pelos outros "
+     f"{fmt(P['OB_SEM_RET_PCT'] - P['OB_COM_RET_PCT'],1)} — e é medida diretamente pelo GLMM "
+     f"(OR {or_str(P['OR_M2'])})")
+    if P['OB_COM_RET_PCT'] > P['OB_SEM_RET_PCT'] - P['OB_COM_RET_PCT'] else
+    "Conclusão: a maior parte da parcela não explicada opera na porta de entrada das ocupações",
+], In(9.0), In(1.7), In(4.1), In(3.6), font_size=13, dot_color=C_BLUE)
 
-add_rect(s, In(8.1), In(5.4), In(5.0), In(1.0),
+add_rect(s, In(0.3), In(5.55), In(12.8), In(0.95),
          fill_rgb=RGBColor(0xE3,0xF2,0xFD), line_rgb=C_BLUE, line_pt=0.8)
-add_text(s, "Implicação de política:", In(8.25), In(5.45), In(4.7), In(0.3),
-         font_size=11, bold=True, color=C_BLUE)
+add_text(s, "Implicação de política:", In(0.5), In(5.62), In(12.4), In(0.3),
+         font_size=12, bold=True, color=C_BLUE)
 add_text(s, "Combater APENAS desigualdade salarial é insuficiente. É preciso atacar as barreiras de ACESSO a ocupações qualificadas.",
-         In(8.25), In(5.77), In(4.7), In(0.6),
-         font_size=12, color=C_BLACK)
+         In(0.5), In(5.95), In(12.4), In(0.45),
+         font_size=14, color=C_BLACK)
 footer(s, 8)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 10 — LOGIT MULTINÍVEL
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, f"9. Também há barreira na porta: chances {fmt(P['OR_M2_menor_pct'],0)}% menores de chegar a cargo qualificado",
+header_bar(s, f"Também há barreira na porta: chances {fmt(P['OR_M2_menor_pct'],0)}% menores de chegar a cargo qualificado",
            f"GLMM lme4 com efeito aleatório de UPA — barreira de ACESSO "
            f"(n={fmtN(P['N_GLMM'])}, {fmtN(P['N_UPAS'])} UPAs)")
 
@@ -657,7 +693,7 @@ footer(s, 10)
 _fd = frase_diploma(_PN)
 if _fd.startswith("O diploma quase iguala") and (FIGURES / "hlm_negro_por_educ_retas.png").exists():
     s = prs.slides.add_slide(BLANK)
-    header_bar(s, "9b. O diploma quase iguala o salário — não a porta",
+    header_bar(s, "O diploma quase iguala o salário — não a porta",
                "Penalidade salarial por nível de escolaridade (HLM) × chances de chegar a "
                "cargo qualificado (GLMM, A4)")
     add_img(s, FIGURES / "hlm_negro_por_educ_retas.png", In(0.3), In(1.2), In(7.6), In(5.4))
@@ -676,7 +712,7 @@ if _fd.startswith("O diploma quase iguala") and (FIGURES / "hlm_negro_por_educ_r
 # SLIDE 11 — REGRESSÃO QUANTÍLICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "10. Quanto mais alto o salário, maior a penalidade racial",
+header_bar(s, "Entre pares, a penalidade racial cresce rumo ao topo",
            "O gap racial aumenta no topo da distribuição de renda — confirmação formal")
 
 # figura larga (dois painéis): ocupa a largura do slide; a leitura vai numa faixa abaixo
@@ -695,7 +731,9 @@ footer(s, 11)
 # SLIDE 12 — RIF-OB: STICKY FLOOR vs GLASS CEILING POR DOTAÇÕES
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "11. Na base da distribuição, a maior parte do gap é preço, não característica",
+header_bar(s, (f"Na base da distribuição, o preço pesa {fmt(P['RIF_RET_RAZAO'],1)} vezes mais que no topo"
+               if P["RIF_RET_Q10"] < 50 else
+               "Na base da distribuição, a maior parte do gap é preço, não característica"),
            f"Firpo, Fortin & Lemieux (2018) | N={fmtN(P['OB_N'])} | Decomposição incondicional por quantil")
 
 # Tabela no lugar da figura rif_ob_retornos_quantis.png: aquela normaliza pelo gap
@@ -703,7 +741,7 @@ header_bar(s, "11. Na base da distribuição, a maior parte do gap é preço, n�
 # normaliza pelo gap RIF (Dotações + Retornos = 100%, tab:rif_ob).
 add_table_resumo(
     s,
-    ["Quantil", "Gap RIF (log)", "Dotações", "Retornos"],
+    ["Quantil", "Gap obs. (log)", "Dotações", "Retornos"],
     [[f"q{q}", fmt(P[f"RIF_GAP_Q{q}"], 3), f"{fmt(P[f'RIF_DOT_Q{q}'],1)}%", f"{fmt(P[f'RIF_RET_Q{q}'],1)}%"]
      for q in ("10", "25", "50", "75", "90")],
     In(0.4), In(1.35), In(6.7), In(3.9), col_w=[In(1.3), In(1.9), In(1.75), In(1.75)], font_size=14)
@@ -718,7 +756,7 @@ bullet_box(s, [
     f"(Δ = {fmt(P['RIF_RET_DELTA'],1)} pp)",
     f"Dotações CRESCEM: q10={fmt(P['RIF_DOT_Q10'],1)}% → q90={fmt(P['RIF_DOT_Q90'],1)}%  "
     f"(Δ = +{fmt(P['RIF_DOT_DELTA'],1)} pp)",
-    "No topo, o gap é consistente com desvantagens PRÉ-MERCADO\n(educação, ocupação, segregação residencial)",
+    "No topo, o gap é consistente com desvantagens PRÉ-MERCADO\n(educação, jornada, segregação residencial)",
     "Mais do que com um preço diferente cobrado no topo",
 ], In(7.5), In(1.75), In(5.6), In(3.6), font_size=14, dot_color=C_RED)
 
@@ -735,9 +773,11 @@ footer(s, 12)
 # SLIDE 13 — INTERSECCIONALIDADE OB 4 GRUPOS
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "12. A mulher negra entra na categoria, mas não chega ao topo",
+header_bar(s, "A mulher negra entra pelas ocupações feminizadas, mas não chega ao comando nem ao topo",
            f"À esquerda, o acesso (GLMM por grupo); à direita, o salário (Oaxaca-Blinder vs. homem branco) "
-           f"| penalidade salarial extra = +{fmt(P['INT_PENAL_EXTRA'],1)} pp")
+           + (f"| em log-pontos, gap dela {fmt(_INT_MN,3)} < soma {fmt(_INT_SOMA,3)}: as desvantagens se acumulam"
+              if _INT_SUB else
+              f"| em log-pontos, gap dela {fmt(_INT_MN,3)} > soma {fmt(_INT_SOMA,3)}"))
 
 add_img(s, FIGURES / "grupo_rg_interseccional.png", In(0.3), In(1.2), In(6.5))
 
@@ -752,8 +792,10 @@ grupos_int = [
      f"Dotações dominam: {fmt(P['INT_HOMEM_NEGRO_DOT'],0)}%\nGap majoritariamente de composição\n"
      "(escolaridade, ocupação, bairro)"),
     (RGBColor(0x6A, 0x00, 0x8A),   f"Mulher Negra — gap {fmt(P['INT_MULHER_NEGRA_GAP'],1)}%",
-     f"Penalidade extra: +{fmt(P['INT_PENAL_EXTRA'],1)} pp\nacima da soma Mulher Branca + Homem Negro\n"
-     "(consistente com Crenshaw, 1989)"),
+     (f"O maior gap, mas abaixo da soma dos dois eixos\nem log-pontos ({fmt(_INT_MN,3)} < {fmt(_INT_SOMA,3)}): "
+      "acumula as duas\ndesvantagens sem multiplicá-las (Crenshaw, 1989)") if _INT_SUB else
+     (f"Acima da soma dos dois eixos em log-pontos\n({fmt(_INT_MN,3)} > {fmt(_INT_SOMA,3)}): efeito "
+      "interseccional\nalém da soma (Crenshaw, 1989)")),
 ]
 for i, (color, titulo, desc) in enumerate(grupos_int):
     add_rect(s, In(7.1), In(1.72)+i*In(1.68), In(5.9), In(1.52),
@@ -766,9 +808,15 @@ for i, (color, titulo, desc) in enumerate(grupos_int):
 
 add_rect(s, In(0.3), In(6.78), In(12.7), In(0.56),
          fill_rgb=RGBColor(0xE3,0xF2,0xFD), line_rgb=C_DARK, line_pt=0.8)
-add_text(s, f"Acesso: OR={fmt(P['GRG_MN_OCP_QUALIF'],2)}, acima do homem branco; top 10%: "
-            f"OR={fmt(P['GRG_MN_TOP10'],2)}, o grupo mais distante dele. "
-            f"Interação negro×mulher sub-aditiva (OR={fmt(P['GRG_INT_OCP_QUALIF'],2)}).",
+# E2.16: o OR agregado de CBO 1–4 (acima de 1) junta portas diferentes — por grande grupo
+add_text(s, (f"Acesso por grande grupo: dirigentes OR={fmt(P['CBO_MN_dirigente'],2)}; "
+             f"apoio administrativo {fmt(P['CBO_MN_administrativo'],2)} (mulher branca "
+             f"{fmt(P['CBO_MB_administrativo'],2)}). Top 10%: OR={fmt(P['GRG_MN_TOP10'],2)}, "
+             f"o grupo mais distante do homem branco.")
+            if "CBO_MN_dirigente" in P else
+            (f"Acesso: OR={fmt(P['GRG_MN_OCP_QUALIF'],2)}, acima do homem branco; top 10%: "
+             f"OR={fmt(P['GRG_MN_TOP10'],2)}, o grupo mais distante dele. "
+             f"Interação negro×mulher sub-aditiva (OR={fmt(P['GRG_INT_OCP_QUALIF'],2)})."),
          In(0.5), In(6.83), In(12.3), In(0.45),
          font_size=12, color=C_DARK)
 footer(s, 13)
@@ -777,8 +825,8 @@ footer(s, 13)
 # SLIDE 14 — SENSIBILIDADE A VARIÁVEIS OMITIDAS
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "13. Para derrubar o resultado, faltaria um confundidor mais forte que tudo o que medimos",
-           "Konfound (salário) e E-value (acesso) — nenhum anula o gap racial observado")
+header_bar(s, "Quão forte teria de ser o que não medimos para derrubar o resultado",
+           "Konfound (salário) e E-value (acesso, com RR ≈ √OR para desfecho comum)")
 
 # Tabela no lugar da figura sensibilidade_konfound_evalues.png, que vem de
 # run_konfound_evalues.py e ainda usa coeficientes de uma especificação antiga.
@@ -823,7 +871,7 @@ footer(s, 14)
 # SLIDE 10 — ML/SHAP
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "14. Sem impor forma funcional, a raça continua pesando na previsão da renda",
+header_bar(s, "Sem impor forma funcional, a raça continua pesando na previsão da renda",
            f"XGBoost com R² de teste {fmt(P['ML_XGB_R2'], 3)} | profundidade escolhida por validação cruzada ({P['CV_DEPTH']})")
 
 add_img(s, FIGURES / "shap_importance_xgb.png", In(0.3), In(1.2), In(6.8))
@@ -834,7 +882,7 @@ add_text(s, "Destaques com as novas variáveis", In(7.4), In(1.2), In(5.8), In(0
 # ranking lido de shap_importance_comparada.csv: os quatro primeiros e a raça
 _shap = pd.read_csv(TABLES / "shap_importance_comparada.csv").sort_values("Rank_XGB")
 _notas = {
-    "Renda média UPA (exceto o próprio)": "Wilson (1987): onde mora pesa mais que o quanto estudou",
+    "Renda média UPA (exceto o próprio)": "Wilson (1987): o contexto do bairro pesa tanto quanto o diploma",
     "Horas trabalhadas": "jornada — a variável de esforço declarado",
     "CBO: Profissionais": "grupo ocupacional, a porta que o GLMM mede",
     "Emprego formal (carteira)": "vínculo, também desfecho da discriminação",
@@ -868,7 +916,7 @@ footer(s, 16)
 # SLIDE — RESUMO DOS RESULTADOS (tabela real)
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "15. Os quatro métodos apontam para o mesmo lugar",
+header_bar(s, "Os quatro métodos apontam para o mesmo lugar",
            "Os quatro métodos convergem: há barreira no salário e no acesso às ocupações")
 add_table_resumo(
     s,
@@ -883,8 +931,10 @@ add_table_resumo(
       f"Gap {fmt(P['QR_GAP_Q10'],1)}% (q10) → {fmt(P['QR_GAP_Q90'],1)}% (q90); piso pegajoso: retornos "
       f"{fmt(P['RIF_RET_Q10'],0)}% → {fmt(P['RIF_RET_Q90'],0)}%"],
      ["Interseccionalidade", "Oaxaca 4 grupos + GLMM",
-      f"Mulher Negra: gap {fmt(P['INT_MULHER_NEGRA_GAP'],1)}%, +{fmt(P['INT_PENAL_EXTRA'],1)} p.p. além da soma; "
-      f"OR {fmt(P['GRG_MN_OCP_QUALIF'],2)} no acesso, {fmt(P['GRG_MN_TOP10'],2)} no top 10%"],
+      f"Mulher Negra: gap {fmt(P['INT_MULHER_NEGRA_GAP'],1)}% ({'abaixo' if _INT_SUB else 'acima'} da soma dos eixos em log); "
+      + (f"OR {fmt(P['CBO_MN_dirigente'],2)} entre dirigentes, {fmt(P['GRG_MN_TOP10'],2)} no top 10%"
+       if "CBO_MN_dirigente" in P else
+       f"OR {fmt(P['GRG_MN_OCP_QUALIF'],2)} no acesso, {fmt(P['GRG_MN_TOP10'],2)} no top 10%")],
      ["Robustez", "XGBoost + SHAP / E-value",
       f"R²={fmt(P['ML_XGB_R2'],2)}; raça é o {P['SHAP_RACA_RANK_XGB']}º de {P['SHAP_N_FEATURES']} preditores; "
       f"E-value {fmt(P['EVAL_M2'],1)}"]],
@@ -899,21 +949,24 @@ footer(s, 22)
 # SLIDE 15 — SÍNTESE: TRIÂNGULO DE EVIDÊNCIAS
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "16. Duas barreiras, um sistema: porta de entrada e salário",
+header_bar(s, "Duas barreiras, um sistema: porta de entrada e salário",
            "Os métodos do núcleo apontam para o mesmo diagnóstico")
 
 # Três vértices do triângulo
 vertices = [
-    (In(0.3),  In(1.3),  C_RED,   "DISCRIMINAÇÃO\nDE ACESSO",
+    (In(0.3),  In(1.3),  C_RED,   "DISCRIMINAÇÃO DE ACESSO",
      [f"GLMM: OR={or_str(P['OR_M2'])} para ocp. qualificada", f"AME={ame(P['AME_M2_pp'])} no A2 (mesmo bairro)", "Persiste após todos os controles observáveis"]),
-    (In(6.9),  In(1.3),  C_BLUE,  "DISCRIMINAÇÃO\nDE REMUNERAÇÃO",
+    (In(6.9),  In(1.3),  C_BLUE,  "DISCRIMINAÇÃO DE REMUNERAÇÃO",
      [f"HLM M4: gap de {fmt(P['GAP_M4'],1)}% dentro da ocupação",
       f"Quantílica: de {fmt(P['QR_GAP_Q10'],1)}% no q10 a {fmt(P['QR_GAP_Q90'],1)}% no q90 (penalidade condicional)",
       f"SHAP: raça é o {P['SHAP_RACA_RANK_XGB']}º de {P['SHAP_N_FEATURES']} preditores no XGBoost"]),
-    (In(3.6),  In(3.95), C_DARK,  "PENALIDADE\nINTERSECCIONAL",
+    (In(3.6),  In(3.95), C_DARK,  "PENALIDADE INTERSECCIONAL",
      [f"Mulher Negra: gap de {fmt(P['INT_MULHER_NEGRA_GAP'],1)}%",
-      f"Penalidade extra de +{fmt(P['INT_PENAL_EXTRA'],1)} p.p. além da soma",
-      f"Acesso: OR {fmt(P['GRG_MN_OCP_QUALIF'],2)}; top 10%: OR {fmt(P['GRG_MN_TOP10'],2)}"]),
+      ("Acumula raça e gênero, sem multiplicar (log)" if _INT_SUB
+       else "Além da soma de raça e gênero (log)"),
+      (f"Dirigentes: OR {fmt(P['CBO_MN_dirigente'],2)}; top 10%: OR {fmt(P['GRG_MN_TOP10'],2)}"
+       if "CBO_MN_dirigente" in P else
+       f"Acesso: OR {fmt(P['GRG_MN_OCP_QUALIF'],2)}; top 10%: OR {fmt(P['GRG_MN_TOP10'],2)}")]),
 ]
 for l, t, color, title, items in vertices:
     add_rect(s, l, t, In(5.8), In(2.3),            # 3.95 + 2.3 < 6.4 (faixa final)
@@ -927,7 +980,7 @@ for l, t, color, title, items in vertices:
 
 add_rect(s, In(0.3), In(6.4), In(12.7), In(0.5),
          fill_rgb=RGBColor(0x1F,0x38,0x64), line_rgb=C_AMBER, line_pt=0)
-add_text(s, f"Oaxaca: {fmt(P['DOT_PCT'],1)}% do gap é composição e {fmt(P['RET_PCT'],1)}% retornos | GLMM mostra a barreira de acesso (OR={fmt(P['OR_OCP_M2'],3)}) | RIF: discriminação de preço maior na base (sticky floor)",
+add_text(s, f"Oaxaca: {fmt(P['DOT_PCT'],1)}% do gap é composição e {fmt(P['RET_PCT'],1)}% retornos | GLMM mostra a barreira de acesso (OR={fmt(P['OR_OCP_M2'],3)}) | RIF: discriminação de preço maior na base (piso pegajoso)",
          In(0.5), In(6.45), In(12.3), In(0.45),
          font_size=12, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
 footer(s, 22)
@@ -936,45 +989,76 @@ footer(s, 22)
 # SLIDE 13 — IMPLICAÇÕES DE POLÍTICA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "17. Cotas de acesso e fiscalização atacam a barreira que medimos",
-           "Três eixos simultâneos — ações isoladas são insuficientes para romper a armadilha estrutural")
-
-politicas = [
-    (C_RED,   "Eixo 1 — Acesso",
-     ["Cotas de acesso CBO Dirigente/Profissional:\nmeta IR ≥ 0,80 até 2030",
-      "PRONATEC c/ recorte racial e subsídio de\ntransporte para trabalhadores de UPAs pobres",
-      "Bolsas de residência profissional em empresas\nde alta remuneração para egressos negros"]),
-    (C_BLUE,  "Eixo 2 — Remuneração",
-     ["Transparência salarial por raça/gênero\nobrigatória (empresas > 100 funcionários)",
-      "Auditoria de igual pagamento por trabalho igual\ncom penalidades progressivas (gap HLM M4)",
-      f"Piso salarial indexado nas categorias com\nmaior gap racial residual ({fmt(P['GAP_M4'],1)}% no HLM M4)"]),
-    (C_GREEN, "Eixo 3 — Acesso a Ocupações",
-     ["Mentoria e acesso a redes profissionais\nqualificadas para egressos negros",
-      "30% dos cargos DAS e liderança corporativa\npara negros até 2030",  # sem-fossil: meta de política proposta, não resultado
-      "Ampliar acesso a ocupações qualificadas:\nprincipal canal do gap (Oaxaca + GLMM)"]),
-]
-for i, (color, title, items) in enumerate(politicas):
-    x = In(0.3) + i * In(4.35)
-    add_rect(s, x, In(1.2), In(4.1), In(5.5),
-             fill_rgb=C_LGRAY, line_rgb=color, line_pt=1.5)
-    add_rect(s, x, In(1.2), In(4.1), In(0.55), fill_rgb=color)
-    add_text(s, title, x+In(0.1), In(1.25), In(3.9), In(0.5),
+# 04/10/2026: críticas à política de diversidade vigente (C1–C4) e propostas (P1–P5),
+# as mesmas da Discussão do TCC; cada crítica só entra se o número a sustentar
+header_bar(s, "As políticas de diversidade cuidam da entrada, não da subida",
+           "O que os resultados dizem sobre os instrumentos vigentes")
+_crit = []
+if P["OR_y_top10_M2"] < P["OR_ocp_qualif_M2"]:
+    _crit.append((C_RED, "Ingresso, não ascensão",
+                  "Cotas no ensino (Lei 12.711/2012, atualizada em 2023) e nos concursos "
+                  "(Lei 15.142/2025) atuam na entrada. A barreira cresce no topo: chances "
+                  f"{fmt((1 - P['OR_y_top10_M2']) * 100, 0)}% menores no décimo mais rico. "
+                  "A reserva de cargos de confiança (Decreto 11.443/2023) vale só no governo federal."))
+if _PN.get("NE_GAP_POS") is not None and _PN["NE_GAP_POS"] < 3 and _PN.get("PCTPOS_ocp_qualif", 0) >= 10:
+    _crit.append((C_BLUE, "Educação iguala o salário, não a porta",
+                  f"A penalidade cai a {fmt(_PN['NE_GAP_POS'],1)}% na pós-graduação, mas as "
+                  f"chances de acesso seguem {fmt(_PN['PCTPOS_ocp_qualif'],0)}% menores. "
+                  "Prouni, Fies e cotas no ensino atacam a barreira que mais cede ao diploma."))
+if P["MED_BAIRRO"] > 0:
+    _crit.append((C_GREEN, "Sem território",
+                  f"{fmt(P['MED_BAIRRO'],1)}% do gap passa pelo bairro de moradia, e nenhum "
+                  "instrumento federal de diversidade usa o local de moradia como critério."))
+if "CBO_MN_dirigente" in P:
+    _crit.append((RGBColor(0x6A, 0x00, 0x8A), "Um eixo de cada vez",
+                  "Metas separadas por raça e por gênero podem ser cumpridas sem alcançar a "
+                  f"mulher negra: entre dirigentes, OR {fmt(P['CBO_MN_dirigente'],2)}. A lei de "
+                  "transparência salarial (14.611/2023) coleta raça, mas exige igualdade só "
+                  "entre mulheres e homens."))
+_w = In(12.7) / max(len(_crit), 1)
+for i, (cor, tit, txt) in enumerate(_crit):
+    x = In(0.3) + i * _w
+    add_rect(s, x + In(0.05), In(1.25), _w - In(0.1), In(5.3),
+             fill_rgb=C_LGRAY, line_rgb=cor, line_pt=1.5)
+    add_rect(s, x + In(0.05), In(1.25), _w - In(0.1), In(0.55), fill_rgb=cor)
+    add_text(s, tit, x + In(0.15), In(1.3), _w - In(0.3), In(0.5),
              font_size=13, bold=True, color=C_WHITE)
-    for j, item in enumerate(items):
-        add_text(s, "▸  " + item, x+In(0.2), In(1.85)+j*In(0.85), In(3.7), In(0.8),
-                 font_size=12, color=C_BLACK)
-
-add_text(s, f"⚠  Política só de salário deixa de fora a barreira maior: a chance de acesso a cargo qualificado "
-            f"é {fmt(P['OR_M2_menor_pct'],0)}% menor.",
-         In(0.3), In(6.8), In(12.7), In(0.45),
-         font_size=13, bold=True, color=C_RED, align=PP_ALIGN.CENTER)
+    add_text(s, txt, x + In(0.2), In(1.95), _w - In(0.4), In(4.4), font_size=13, color=C_BLACK)
+add_text(s, "Associações condicionais, não efeitos causais: os números mostram onde a política "
+            "não chega, não o efeito de uma política.",
+         In(0.3), In(6.75), In(12.7), In(0.45), font_size=12, color=C_GRAY2, align=PP_ALIGN.CENTER)
 footer(s, 28)
+
+s = prs.slides.add_slide(BLANK)
+header_bar(s, "Cinco propostas para reduzir o racismo estrutural no mercado de trabalho",
+           "Sugeridas pelos resultados, não avaliadas por eles")
+_prop = [
+    (C_RED, "Metas de comando",
+     "Representação em cargos de direção e gerência no setor privado, com recorte "
+     "interseccional, no relatório que a Lei 14.611 já exige."),  # sem-fossil: número de lei, não resultado
+    (C_BLUE, "Igualdade salarial por raça",
+     "Obrigação, não só dado, com fiscalização dirigida à diferença dentro da mesma "
+     f"ocupação ({fmt(P['GAP_M4'],1)}%)."),
+    (C_GREEN, "Território",
+     "Intermediação de emprego, transporte e qualificação priorizados nos bairros de maior "
+     "proporção de população negra."),
+    (C_AMBER, "Promoção, não só ingresso",
+     "Estender a reserva de cargos de confiança a estatais e à progressão nas carreiras."),
+    (C_DARK, "Monitoramento anual",
+     "Gap líquido, chance de acesso e chance de comando por raça e gênero, reproduzíveis "
+     "com a PNAD Contínua."),
+]
+for i, (cor, tit, txt) in enumerate(_prop):
+    y = In(1.3) + i * In(1.05)
+    add_rect(s, In(0.3), y, In(0.12), In(0.85), fill_rgb=cor)
+    add_text(s, f"{i + 1}. {tit}", In(0.6), y, In(3.6), In(0.85), font_size=16, bold=True, color=cor)
+    add_text(s, txt, In(4.3), y + In(0.05), In(8.7), In(0.85), font_size=14, color=C_BLACK)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SLIDE 14 — LIMITAÇÕES E AGENDA FUTURA
 # ══════════════════════════════════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header_bar(s, "18. O que estes números não dizem",
+header_bar(s, "O que estes números não dizem",
            "Honestidade acadêmica: o que este trabalho não faz e por quê")
 
 add_text(s, "Limitações", In(0.4), In(1.25), In(6.0), In(0.4),
@@ -986,7 +1070,7 @@ bullet_box(s, [
     f"{fmtN(P['N_UPAS'])} UPAs), com efeito aleatório de UPA",
     "Médias de bairro calculadas sem a própria pessoa (leave-one-out), mas choques comuns "
     "ao bairro ainda impedem leitura causal do contexto",
-    "CBO auto-declarado pode ter viés de classificação por raça (deflation de ocupação)",
+    "CBO auto-declarado pode ter viés de classificação por raça (rebaixamento da ocupação declarada)",
 ], In(0.4), In(1.75), In(6.2), In(3.8), font_size=13, dot_color=C_RED)
 
 add_text(s, "Agenda Futura", In(7.0), In(1.25), In(6.0), In(0.4),
@@ -995,7 +1079,7 @@ bullet_box(s, [
     "Análise de variáveis instrumentais (IV) para identificação causal — distância à escola técnica como instrumento",
     "RAIS linkada à PNAD para rastrear trajetórias de mobilidade intraempresa",
     "Análise de mediação formal (path analysis) raça → ocupação → renda",
-    "Extensão ao setor público por UF — heterogeneidade do glass ceiling entre estados",
+    "Extensão ao setor público por UF — heterogeneidade do teto de vidro entre estados",
     "Modelo longitudinal com painéis rotativos da PNAD (2T seguidos) para efeitos fixos de indivíduo",
 ], In(7.0), In(1.75), In(6.2), In(3.8), font_size=13, dot_color=C_BLUE)
 

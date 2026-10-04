@@ -46,8 +46,8 @@ def _cv(cfg, met):
 
 tex = (r"""\begin{table}[!ht]
 \centering
-\caption{Escolha de hiperparâmetros e validação cruzada do XGBoost (Alencar, 2024;
-Géron, 2021). Painel~A: seis configurações comparadas numa partição de validação
+\caption{Escolha de hiperparâmetros e validação cruzada do XGBoost (Alencar, 2024)
+\cite{geron2021}. Painel~A: seis configurações comparadas numa partição de validação
 \emph{dentro} do treino --- o conjunto de teste permanece intocado. Painel~B: validação
 cruzada $k$-\emph{fold} ($k=""" + str(int(rs["k"])) + r"""$) no treino completo, com média e
 desvio-padrão entre \emph{folds}. População completa: """ + fmtN(int(rs["n_treino"])) + r""" observações de

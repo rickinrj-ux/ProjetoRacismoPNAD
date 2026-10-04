@@ -91,7 +91,7 @@ SEED = 42
 COLS = ["Ano", "log_renda", "negro", "sexo_fem", "idade_c", "idade_sq",
         "educ_fund_completo", "educ_medio_completo", "educ_superior_completo",
         "educ_pos_graduacao", "educ_cat", "pct_negro_upa_z", "tx_desemprego_upa_z",
-        "media_educ_upa_z", "pea", "renda_bruta", "UF", "UPA"]
+        "media_educ_upa_z", "log_horas", "urbano", "pea", "renda_bruta", "UF", "UPA"]  # E2.5: CONTROLES do M3
 
 
 def carregar():

@@ -47,20 +47,19 @@ MOD = {"M1": r"A1 individual + UF", "M2": r"A2 + contexto do bairro", "M3": r"A3
 FE_MAP = {"M1": "M1", "M2": "M2", "M3": "M2", "M4": "M3"}
 
 
-def evalue(or_):
-    o = 1 / or_ if or_ < 1 else or_
-    return o + math.sqrt(o * (o - 1))
+from params_nucleo import evalue   # a única implementação (√OR para desfecho comum, E2.7)
 
 
-def evalue_ci(or_, lo, hi):
-    """E-value do limite do IC mais próximo de 1 (0 se o IC contém 1)."""
+def evalue_ci(or_, lo, hi, desfecho):
+    """E-value do limite do IC mais próximo de 1 (1 se o IC contém 1)."""
     if lo <= 1 <= hi:
         return 1.0
-    return evalue(hi if or_ < 1 else lo)
+    return evalue(hi if or_ < 1 else lo, desfecho)
 
 
-g["E_value"] = g["OR_negro"].map(evalue)
-g["E_value_CI"] = [evalue_ci(o, lo, hi) for o, lo, hi in zip(g["OR_negro"], g["CI95_lo"], g["CI95_hi"])]
+g["E_value"] = [evalue(o, d) for o, d in zip(g["OR_negro"], g["desfecho"])]
+g["E_value_CI"] = [evalue_ci(o, lo, hi, d) for o, lo, hi, d
+                   in zip(g["OR_negro"], g["CI95_lo"], g["CI95_hi"], g["desfecho"])]
 g[["desfecho", "modelo", "OR_negro", "CI95_lo", "CI95_hi", "E_value", "E_value_CI"]].rename(
     columns={"desfecho": "Desfecho", "modelo": "Modelo", "OR_negro": "OR", "CI95_lo": "IC 95% lo",
              "CI95_hi": "IC 95% hi", "E_value": "E-value (OR)", "E_value_CI": "E-value (CI)"}
@@ -118,7 +117,7 @@ A = [r"\begin{table}[!ht]", r"\centering",
      r"teste de razão de verossimilhança do A2 contra o logit sem efeito aleatório (fronteira, $p/2$); "
      r"AUC com efeitos aleatórios (ajuste na amostra) e só com efeitos fixos; \emph{cutoff} de Youden "
      r"(maximiza sensibilidade $+$ especificidade) com as taxas correspondentes; Hosmer--Lemeshow em "
-     r"10 decis. Com $N = " + fmt(_PN["N_GLMM"] / 1e6, 1).replace(",", "{,}") + r"$~milhões qualquer desvio de calibração é ``significativo'' --- o "
+     r"10 decis. Modelos A1--A4 como na Tabela~\ref{tab:glmm_glassceil}. Com $N = " + fmt(_PN["N_GLMM"] / 1e6, 1).replace(",", "{,}") + r"$~milhões qualquer desvio de calibração é ``significativo'' --- o "
      r"$\chi^2$ deve ser lido como magnitude relativa entre degraus, não como teste (MHE, cap.~8).}",
      r"\label{tab:glmm_ajuste}", r"\resizebox{\textwidth}{!}{%", r"\begin{tabular}{llcccccccc}", r"\toprule",
      r"Desfecho & Modelo & $-2\,$LL & AIC & LR vs.\ pooled & AUC (RE) & AUC (FE) & Cutoff & Sens./Espec. & HL $\chi^2$ \\",
@@ -128,7 +127,7 @@ for d in DESF:
     first = True
     for _, r in sub.iterrows():
         lr = "---" if pd.isna(r["LR_vs_pooled"]) else fmtN(int(round(r["LR_vs_pooled"])))
-        A.append(f"{DESF[d] if first else ''} & {MOD[r['modelo']]} & {fmtN(int(round(-2 * r['LL'])))} & "
+        A.append(f"{DESF[d] if first else ''} & {r['modelo'].replace('M', 'A')} & {fmtN(int(round(-2 * r['LL'])))} & "
                  f"{fmtN(int(round(r['AIC'])))} & {lr} & {fmt(r['AUC_com_RE'], 3)} & {fmt(r['AUC_so_FE'], 3)} & "
                  f"{fmt(r['cutoff_youden'], 2)} & {fmt(r['sens'], 2)}/{fmt(r['espec'], 2)} & "
                  f"{fmtN(int(round(r['HL_chi2'])))} \\\\")

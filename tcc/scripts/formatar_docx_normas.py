@@ -52,7 +52,7 @@ def _fonte_do_run(run) -> None:
         run.font.color.rgb = RGBColor(0, 0, 0)
 
 
-SECOES = {"Resumo", "Abstract", "Introdução", "Conclusão", "Referências",
+SECOES = {"Resumo", "Abstract", "Considerações Iniciais", "Conclusão", "Referências",
           "Implementação de Algoritmo(s) de Machine Learning",
           "Resultados e Discussão", "Agradecimentos"}
 
@@ -150,6 +150,130 @@ def formatar_corpo(doc: Document) -> tuple[int, int]:
     return corpo, legendas
 
 
+def formatar_capa(doc: Document) -> int:
+    """Folha de rosto e títulos do Resumo/Abstract (anexos pp. 61-62).
+
+    O corpo genérico dava a tudo recuo de 1,25 cm, entrelinha 1,5 e justificado: o
+    título saía torto, os autores colados nele e as afiliações do tamanho do texto.
+    """
+    n = 0
+    na_capa = True
+    for p in doc.paragraphs:
+        texto = p.text.strip()
+        if not texto:
+            continue
+        pf = p.paragraph_format
+        if texto in ("Resumo", "Abstract"):
+            na_capa = False
+            pf.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            pf.space_before = Pt(ESPACO)
+            n += 1
+            continue
+        if texto == "Considerações Iniciais":
+            break
+        if texto.startswith(INICIAM_PAGINA):             # título (pt ou en)
+            pf.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            pf.first_line_indent = Cm(0)
+            pf.left_indent = Cm(0)
+            pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
+            pf.space_after = Pt(ESPACO)
+            for r in p.runs:
+                r.font.bold = True
+            n += 1
+        elif texto.startswith(("Palavras-chave", "Keywords")):
+            pf.space_before = Pt(ESPACO)                 # uma linha depois do resumo
+        elif na_capa and re.match(r"^\d\*?\s", texto):   # afiliações (notas da capa)
+            pf.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            pf.first_line_indent = Cm(0)
+            pf.left_indent = Cm(0)
+            pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
+            pf.space_before = Pt(12) if texto.startswith("1") else Pt(0)
+            pf.space_after = Pt(0)
+            for r in p.runs:
+                r.font.size = Pt(10)
+            n += 1
+        elif na_capa and ";" in texto and len(texto) < 120:   # linha dos autores
+            pf.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            pf.first_line_indent = Cm(0)
+            pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
+            pf.space_before = Pt(24)
+            n += 1
+    return n
+
+
+def formatar_notas(doc: Document) -> int:
+    """Legenda, objeto, Fonte e Nota formam um bloco que não se separa.
+
+    · a Nota vem depois da Fonte (norma): as notas de tabela chegavam antes dela;
+    · Fonte e Nota coladas, com o respiro de 12 pt só depois do bloco;
+    · a legenda e a imagem ficam presas ao parágrafo seguinte: a legenda da Tabela 6
+      ficava no pé de uma página e a tabela na outra.
+    """
+    from docx.text.paragraph import Paragraph
+    corpo = doc.element.body
+    W_P = qn("w:p")
+
+    def _txt(el):
+        return "".join(t.text or "" for t in el.iter(qn("w:t"))).strip()
+
+    # 1) Nota imediatamente antes da Fonte: troca a ordem
+    n = 0
+    filhos = list(corpo.iterchildren())
+    for a, b in zip(filhos, filhos[1:]):
+        if a.tag == W_P and b.tag == W_P and _txt(a).startswith("Nota:") \
+                and RE_FONTE.match(_txt(b)) and not _txt(b).startswith("Nota"):
+            corpo.remove(a)
+            b.addnext(a)
+            n += 1
+
+    # 1b) texto solto entre a tabela e a Fonte é nota da tabela ("Suporte comum: ..."
+    #     na Tabela 1): vai para depois da Fonte, com o rótulo Nota
+    filhos = list(corpo.iterchildren())
+    for i, el in enumerate(filhos):
+        if el.tag != qn("w:tbl"):
+            continue
+        # o pandoc deixa um bookmarkEnd ou um parágrafo vazio depois de cada tabela
+        seguintes = [x for x in filhos[i + 1:i + 6]
+                     if x.tag == qn("w:tbl") or (x.tag == W_P and _txt(x))]
+        if len(seguintes) < 2:
+            continue
+        a, b = seguintes[0], seguintes[1]
+        if a.tag == W_P and b.tag == W_P and _txt(a) and not RE_FONTE.match(_txt(a))                 and _txt(b).startswith("Fonte"):
+            corpo.remove(a)
+            b.addnext(a)
+            if not _txt(a).startswith("Nota"):
+                runs = a.findall(qn("w:r"))
+                if runs:
+                    from docx.text.run import Run
+                    r0 = Run(runs[0], None)
+                    r0.text = "Nota: " + r0.text
+            n += 1
+
+    # 2) espaçamentos e "manter com o próximo"
+    filhos = list(corpo.iterchildren())
+    for i, el in enumerate(filhos):
+        if el.tag != W_P:
+            continue
+        p = Paragraph(el, doc._body)
+        pf = p.paragraph_format
+        t = _txt(el)
+        prox = filhos[i + 1] if i + 1 < len(filhos) else None
+        prox_txt = _txt(prox) if prox is not None and prox.tag == W_P else ""
+        if el.findall(".//" + qn("w:drawing")) or RE_LEGENDA.match(t):
+            pf.keep_with_next = True
+            pf.keep_together = True          # a legenda longa não se parte entre páginas
+        if t.startswith("Fonte") and prox_txt.startswith("Nota:"):
+            pf.space_after = Pt(0)
+            pf.keep_with_next = True
+        if t.startswith("Nota:"):
+            pf.space_before = Pt(0)
+            pf.space_after = Pt(12)
+            pf.first_line_indent = Cm(0)
+            pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
+            n += 1
+    return n
+
+
 def chamadas_de_nota(doc: Document) -> int:
     """Chamada de nota de rodapé em sobrescrito. O pandoc usa o estilo de caractere
     'Footnote Reference', que o template oficial não define como sobrescrito: a chamada
@@ -157,8 +281,18 @@ def chamadas_de_nota(doc: Document) -> int:
     from docx.oxml.ns import qn
     n = 0
     corpo = doc.element.body
-    for r in corpo.iter(qn("w:r")):
-        if r.find(qn("w:footnoteReference")) is not None:
+    # o número também aparece dentro da própria nota (w:footnoteRef, em footnotes.xml):
+    # lá saía em tamanho cheio, "7 τ²" em vez de "⁷ τ²"
+    raizes = [corpo]
+    parte_notas = None
+    for rel in doc.part.rels.values():
+        if rel.reltype.endswith("/footnotes"):
+            from docx.oxml import parse_xml
+            parte_notas = rel.target_part           # Part genérico: XML só no blob
+            raizes.append(parse_xml(parte_notas.blob))
+    for r in (r for raiz in raizes for r in raiz.iter(qn("w:r"))):
+        if r.find(qn("w:footnoteReference")) is not None or \
+                r.find(qn("w:footnoteRef")) is not None:
             rpr = r.get_or_add_rPr()
             va = rpr.find(qn("w:vertAlign"))
             if va is None:
@@ -166,6 +300,10 @@ def chamadas_de_nota(doc: Document) -> int:
                 rpr.append(va)
             va.set(qn("w:val"), "superscript")
             n += 1
+    if parte_notas is not None:
+        from lxml import etree
+        parte_notas._blob = etree.tostring(raizes[-1], xml_declaration=True,
+                                           encoding="UTF-8", standalone=True)
     return n
 
 
@@ -176,14 +314,16 @@ def formatar_tabelas(doc: Document) -> int:
     numeros = 0
     for t in doc.tables:
         bordas_da_norma(t)
-        ajustar_larguras(t)
         numeros += alinhar_numeros(t)
+        n_col = len(t.columns)
+        # 7+ colunas em 9 pt não cabiam na janela de 16 cm (Tab. 9: "0,08/7")
+        tam = 11 if n_col <= 4 else 10 if n_col <= 6 else 8
+        ajustar_larguras(t, tam)
+        manter_inteira(t)
         # Fonte da tabela conforme o número de colunas. Em Arial 11 fixo, as tabelas de
         # 7 a 10 colunas quebravam os números dentro da célula ("0,/83/0", "Qua/ntil");
         # o PDF de entrega já usa fonte menor nessas tabelas. CONFIRMAR com o orientador
         # se o manual admite tamanho menor que 11 em tabela.
-        n_col = len(t.columns)
-        tam = 11 if n_col <= 4 else 10 if n_col <= 6 else 9 if n_col <= 8 else 8
         for linha in t.rows:
             for cel in linha.cells:
                 for p in cel.paragraphs:
@@ -275,7 +415,8 @@ def alinhar_numeros(t) -> int:
                     par.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.RIGHT
                     n += 1
                 else:
-                    par.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                    # à esquerda: justificado numa célula estreita abria buracos entre palavras
+                    par.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
     return n
 
 
@@ -284,7 +425,24 @@ def alinhar_numeros(t) -> int:
 JANELA_CM = 16.0
 
 
-def ajustar_larguras(t) -> None:
+def manter_inteira(t, max_linhas: int = 30) -> None:
+    """Tabela curta não se parte entre páginas, e nenhuma linha se parte ao meio.
+
+    Cada linha fica presa à seguinte (keep with next) e a última, à Fonte. As longas
+    podem atravessar a página, com o cabeçalho repetido (bordas_da_norma).
+    """
+    curta = len(t.rows) <= max_linhas
+    for linha in t.rows:
+        trPr = linha._tr.get_or_add_trPr()
+        if not trPr.findall(qn("w:cantSplit")):
+            trPr.append(OxmlElement("w:cantSplit"))
+        if curta:
+            for cel in linha.cells:
+                for par in cel.paragraphs:
+                    par.paragraph_format.keep_with_next = True
+
+
+def ajustar_larguras(t, tam: float = 11) -> None:
     """Reparte a largura entre as colunas conforme o conteúdo.
 
     A medida é o comprimento típico da célula (percentil alto, não o máximo,
@@ -313,6 +471,21 @@ def ajustar_larguras(t) -> None:
         tipico = comprimentos[min(int(len(comprimentos) * 0.8), len(comprimentos) - 1)]
         larguras.append(max(tipico, 4))
 
+    # piso por coluna: a maior palavra tem de caber inteira (Arial ~0,5 em por caractere
+    # + margens da célula); senão o Word a parte ao meio ("Qua/ntil", "Predeterminado/s";
+    # 0,5 em ainda partia: minúsculas do Arial têm ~0,55 em)
+    cm_por_car = 0.58 * tam * 0.03528
+    piso_cm = []
+    for j in range(n_col):
+        palavra = 0
+        for linha in t.rows:
+            try:
+                palavra = max(palavra, max((len(w) for w in linha.cells[j].text.split()),
+                                           default=0))
+            except IndexError:
+                continue
+        piso_cm.append(palavra * cm_por_car + 0.45)
+
     total = sum(larguras)
     # piso maior: com 0,055 da janela (~0,9 cm) um número de três casas não cabia
     minimo, maximo = 0.07, 0.42             # fração da janela
@@ -321,6 +494,21 @@ def ajustar_larguras(t) -> None:
         fracoes.append(min(max(w / total, minimo), maximo))
     soma = sum(fracoes)
     fracoes = [f / soma for f in fracoes]    # renormaliza depois do corte
+    # garante o piso da palavra, tirando a diferença das colunas com folga; se nem a
+    # soma dos pisos cabe na janela, reparte proporcionalmente a eles
+    if sum(piso_cm) >= JANELA_CM:
+        fracoes = [c / sum(piso_cm) for c in piso_cm]
+    for _ in range(3):
+        falta = sum(max(piso_cm[j] / JANELA_CM - f, 0) for j, f in enumerate(fracoes))
+        if falta <= 1e-6:
+            break
+        folga = {j: f - piso_cm[j] / JANELA_CM for j, f in enumerate(fracoes)
+                 if f > piso_cm[j] / JANELA_CM}
+        tot_folga = sum(folga.values())
+        if tot_folga <= 0:
+            break
+        fracoes = [max(f, piso_cm[j] / JANELA_CM) if j not in folga
+                   else f - falta * folga[j] / tot_folga for j, f in enumerate(fracoes)]
 
     t.autofit = False
     for j, f in enumerate(fracoes):
@@ -525,6 +713,8 @@ def main() -> int:
     quebras = quebras_de_pagina(doc)
     numero_em_todas_as_paginas(doc)
     corpo, legendas = formatar_corpo(doc)
+    print(f"     {formatar_capa(doc)} parágrafos da folha de rosto/resumo ajustados")
+    print(f"     {formatar_notas(doc)} notas de tabela/figura em corpo de nota")
     celulas = formatar_tabelas(doc)
     n_notas = chamadas_de_nota(doc)
     print(f"     {n_notas} chamadas de nota de rodapé em sobrescrito")

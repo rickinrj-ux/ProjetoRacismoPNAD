@@ -42,8 +42,16 @@ def _load() -> dict:
     # ── E-values lme4 (calculados via VanderWeele & Ding 2017) ───────────────
     # Fórmula: E = OR + sqrt(OR*(OR-1)) para OR<1 usa o inverso
     import math
+    # E2.7: desfecho comum (prevalência >= 15%) usa RR ≈ √OR (VanderWeele & Ding, 2017);
+    # a prevalência vem de outputs/tables/glmm_prevalencias.csv (gerar_prevalencias_glmm.py)
+    _pv = Path(__file__).resolve().parent / "outputs/tables/glmm_prevalencias.csv"
+    _comum = (pd.read_csv(_pv).set_index("desfecho").loc["ocp_qualif", "prevalencia"] >= 0.15
+              if _pv.exists() else False)
+
     def _evalue(or_val):
         inv = 1 / or_val
+        if _comum:
+            inv = math.sqrt(inv)
         return round(inv + math.sqrt(inv * (inv - 1)), 3)
 
     p["EVAL_M1"]     = _evalue(p["OR_M1"])   # 2.331

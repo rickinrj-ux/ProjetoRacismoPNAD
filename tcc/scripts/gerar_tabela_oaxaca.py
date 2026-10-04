@@ -3,9 +3,13 @@ gerar_tabela_oaxaca.py
 ======================
 Gera a tabela Oaxaca-Blinder do NÚCLEO do TCC em DUAS especificações lado a lado:
 
-  (A) capital humano + contexto de UPA  — sem ocupação (≡ controles do HLM M3)
+  (A) capital humano + jornada + contexto de UPA + UF — sem ocupação (≡ controles do HLM M3)
       → gap "total" e parcela não explicada comparável à literatura (Soares, 2009).
-  (B) acesso — (A) + horas, formalidade e grupo CBO como dotações (≡ HLM M4)
+  (B) acesso — (A) + formalidade e grupo CBO como dotações (≡ HLM M4)
+
+E2.5 (03/10/2026): até aqui a (A) não tinha horas, área urbana nem UF, e a jornada
+entrava só na (B) — contra a regra da Tabela 3 (o desfecho é renda MENSAL, a jornada
+é controle necessário nos dois modelos). Agora (A) ≡ M3 e (B) ≡ M4, variável por variável.
       → parcela não explicada *dentro* da ocupação (limite inferior; Oaxaca & Ransom, 1999).
 
 Apresentar as duas é a resposta ao problema do *bad control* (Angrist & Pischke, cap. 3):
@@ -54,21 +58,23 @@ SEED   = 42
 EDUC_F    = "educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
 DEMO_F    = "idade_c + idade_sq + sexo_fem + C(Ano)"   # ano: renda deflacionada + efeito de ano
 CONTEXT_F = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
-OCC_F     = ("horas_c + emprego_formal + conta_propria + trab_domestico"
+# jornada, área urbana e UF: controles do M3, logo da (A)
+INSERCAO_F = "log_horas + urbano + C(UF)"
+OCC_F     = ("emprego_formal + conta_propria + trab_domestico"
              " + ocp_dirigente + ocp_profissional + ocp_tecnico + ocp_administrativo"
              " + ocp_servicos + ocp_agro + ocp_operario + ocp_operador + ocp_ffaa")
 
 ESPECS = {
     "sem_ocupacao": {"rotulo": "Capital humano + contexto (sem ocupação)",
-                     "rhs": f"{EDUC_F} + {DEMO_F} + {CONTEXT_F}"},
-    "acesso":       {"rotulo": "Acesso (+ horas, formalidade e CBO)",
-                     "rhs": f"{EDUC_F} + {DEMO_F} + {CONTEXT_F} + {OCC_F}"},
+                     "rhs": f"{EDUC_F} + {DEMO_F} + {INSERCAO_F} + {CONTEXT_F}"},
+    "acesso":       {"rotulo": "Acesso (+ formalidade e CBO)",
+                     "rhs": f"{EDUC_F} + {DEMO_F} + {INSERCAO_F} + {CONTEXT_F} + {OCC_F}"},
 }
 
 COLS = ["Ano", "negro", "sexo_fem", "idade_c", "idade_sq",
         "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
         "educ_cat", "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
-        "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
+        "log_horas", "urbano", "emprego_formal", "conta_propria", "trab_domestico",
         "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
         "ocp_servicos", "ocp_agro", "ocp_operario", "ocp_operador", "ocp_ffaa",
         "log_renda", "renda_bruta", "pea", "UF", "UPA"]
@@ -185,9 +191,9 @@ tex = rf"""\begin{{table}}[!ht]
 \centering
 \caption{{Decomposição de Oaxaca--Blinder (\emph{{twofold}}, referência: estrutura de preços
 dos brancos) do gap salarial racial em duas especificações. (A)~\emph{{Capital humano +
-contexto}}: escolaridade, idade, sexo e contexto de UPA --- os mesmos controles do HLM~M3;
-a parcela não explicada é comparável à da literatura. (B)~\emph{{Acesso}}: (A) + horas,
-formalidade e grupo CBO tratados como dotações --- a parcela não explicada é a discriminação
+contexto}}: escolaridade, idade, sexo, jornada, área urbana, contexto de UPA e efeitos fixos
+de UF --- os mesmos controles do HLM~M3; a parcela não explicada é comparável à da literatura.
+(B)~\emph{{Acesso}}: (A) + formalidade e grupo CBO tratados como dotações (os controles do M4) --- a parcela não explicada é a discriminação
 \emph{{dentro}} da ocupação, um limite inferior, pois a segregação ocupacional é ela própria
 discriminatória \cite{{oaxaca_ransom1999}} (ver o GLMM de acesso, Tabela~\ref{{tab:glmm_glassceil}}).
 População completa da PEA com renda positiva ($N = {fmtN(n_b + n_n)}$; {fmtN(G)}~UPAs).

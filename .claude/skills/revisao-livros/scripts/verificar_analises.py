@@ -152,6 +152,7 @@ def check_glmm(tex: str) -> None:
     extras = set()
     for f in ("glmm_glassceil_glmer.csv", "grupo_rg_glmm_ocp.csv", "grupo_rg_glmm_rs_interacao.csv",
               "glmm_odds_ratios_full.csv", "evalues_glmm.csv", "grupo_rg_4grupos_desfechos.csv",
+              "grupo_rg_por_cbo.csv",
               "interseccional_coeficientes.csv"):
         for r in csv_rows(f):
             for k, v in r.items():
@@ -258,18 +259,19 @@ def check_hlm(tex: str) -> None:
 
 
 def check_ob(tex: str) -> None:
-    rows = {r["Componente"]: r for r in csv_rows("oaxaca_resultados.csv")}
-    if not rows:
-        return
-    dot = num(rows["Efeito Dotacoes"]["Pct_do_gap"])
-    ret = num(rows["Efeito Retornos"]["Pct_do_gap"])
-    for v, lab in ((dot, "dotações"), (ret, "retornos")):
-        if v is None:
-            continue
-        s1, s2 = f"{v:.1f}", f"{v:.1f}".replace(".", ",")
-        if s1 not in tex and s2 not in tex:
-            add("ALTO", "FAV-91", "relatorio", f"% {lab} do OB no csv ({v:.1f}) não aparece no texto.",
-                "Regerar ob_acesso.tex/texto.")
+    # fonte da Tab. 6 do TCC (gerar_tabela_oaxaca.py, especificações A e B); o antigo
+    # oaxaca_resultados.csv, do run_oaxaca_blinder.py, não alimenta nenhum entregável
+    # desde a reespecificação de 04/10/2026 (E2.5) e dava alarme falso
+    for r in csv_rows("ob_acesso.csv"):
+        for col, lab in (("pct_dotacao", "dotações"), ("pct_coeficiente", "retornos")):
+            v = num(r.get(col, ""))
+            if v is None:
+                continue
+            s1, s2 = f"{v:.1f}", f"{v:.1f}".replace(".", ",")
+            if s1 not in tex and s2 not in tex:
+                add("ALTO", "FAV-91", "relatorio",
+                    f"% {lab} do OB ({r.get('espec')}) no csv ({v:.1f}) não aparece no texto.",
+                    "Regerar ob_acesso.tex/texto.")
     script = read(ROOT / "scripts" / "analise" / "run_oaxaca_blinder.py")
     if "ocp_" in script and "bootstrap" not in script.lower():
         add("MÉDIO", "MHE-81/FAV-91", "run_oaxaca_blinder.py",
@@ -532,7 +534,12 @@ def check_entregaveis() -> None:
                          | _col_csv("grupo_rg_4grupos_desfechos.csv", "OR_mulher_negra")
                          | _col_csv("grupo_rg_4grupos_desfechos.csv", "OR_homem_negro")
                          | _col_csv("grupo_rg_4grupos_desfechos.csv", "OR_mulher_branca")
-                         | _col_csv("grupo_rg_4grupos_desfechos.csv", "OR_interacao"),   # negro×mulher
+                         | _col_csv("grupo_rg_4grupos_desfechos.csv", "OR_interacao")    # negro×mulher
+                         # E2.16: os 4 grupos por grande grupo CBO
+                         | _col_csv("grupo_rg_por_cbo.csv", "OR_mulher_negra")
+                         | _col_csv("grupo_rg_por_cbo.csv", "OR_homem_negro")
+                         | _col_csv("grupo_rg_por_cbo.csv", "OR_mulher_branca")
+                         | _col_csv("grupo_rg_por_cbo.csv", "OR_interacao"),
                          (2, 3))),
         "ICC": (r"ICC[^=\n]{0,20}[=:]\s*(\d{1,2},\d{1,2})\s*%",
                 _formatos(_col_csv("hlm_stepup_fit.csv", "icc_upa", 100)

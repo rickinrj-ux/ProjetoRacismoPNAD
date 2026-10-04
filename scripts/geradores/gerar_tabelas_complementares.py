@@ -362,8 +362,14 @@ for label, color, mask in [
     med_log   = float(np.average(sub, weights=w_s))
     kde_y_med = float(kde(np.array([med_log]))[0])
     ax.axvline(med_log, color=color, lw=1.4, ls="--", alpha=0.8)
-    ax.text(med_log + 0.05, kde_y_med * 0.6,
-            f"Média\n{label.lower()}: {med_log:.2f}".replace(".", ","), fontsize=8.5, color=color)
+    # rótulo no alto, do lado de fora da linha tracejada (negros à esquerda, brancos à
+    # direita) e com fundo branco: no meio das curvas, a linha cortava os algarismos
+    _ytop = float(kde(xs).max())
+    _negro = label.startswith("Negro")
+    ax.text(med_log + (-0.75 if _negro else 0.06), _ytop * (0.70 if _negro else 0.80),
+            f"Média\n{label.lower()}: {med_log:.2f}".replace(".", ","), fontsize=8.5,
+            color=color, ha="right" if _negro else "left", va="top",
+            bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.9))
 
 ax.set_xlabel("Rendimento mensal (escala log; R$ do 2º tri/2026)", fontsize=12)
 ax.set_ylabel("Densidade (estimativa ponderada)", fontsize=12)

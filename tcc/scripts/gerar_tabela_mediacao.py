@@ -84,15 +84,44 @@ Modelo (controles acumulados) & $\beta_{\text{negro}}$ & Gap (\%) & Mediação a
 é a penalidade racial em log-rendimento (mais próximo de zero = menor gap); ``Gap (\%)'' é a
 penalidade em \% de renda; ``Mediação acum.''\ é a fração do gap agregado (primeira linha) já
 explicada. O salto da primeira para a segunda linha é a mediação pela segregação residencial:
-comparar negros e brancos \emph{do mesmo bairro} reduz o gap quase à metade. Do modelo agregado
+comparar negros e brancos \emph{do mesmo bairro} reduz o gap em <<MED1>>\%. Do modelo agregado
 ao M4 o gap cai de <<G1>>\% para <<G4>>\%: <<M4>>\% do gap é mediado por
 onde a pessoa mora, o estado e a ocupação que acessa --- e a penalidade de <<G4>>\% persiste
-dentro da mesma ocupação (limite inferior, pois a ocupação é ela própria resultado da barreira de acesso).
+dentro da mesma ocupação (limite inferior, pois a ocupação é ela própria resultado da barreira de acesso).<<ESCADA>>
 \end{table}
 """)
 # os números da nota entram por substituição: a string acima é raw, não f-string
+# E2.2: o agregado tem efeitos fixos de UF e o M1/M2 não (o M3 volta a tê-los). O M1
+# reestimado com UF, na mesma base, testa se a "mediação pelo bairro" carrega o estado.
+escada = ""
+if (T / "hlm_m1_uf.csv").exists():
+    import numpy as np
+    m1uf = pd.read_csv(T / "hlm_m1_uf.csv").iloc[0]
+    b1 = float(d.loc[d["Modelo"] == "M1_Individual", "b_negro"].iloc[0])
+    med_sem = (abs(bp) - abs(b1)) / abs(bp) * 100
+    med_com = (abs(bp) - abs(m1uf["b_negro"])) / abs(bp) * 100
+    dif = med_com - med_sem
+    escada = (r" O agregado inclui efeitos fixos de UF e o M1 e o M2 não (o M3 os reintroduz)."
+              rf" Reestimado com UF, na mesma base, o M1 dá $\beta_{{\text{{negro}}}} = "
+              rf"{fmt(m1uf['b_negro'], 4).replace(',', '{,}')}$ e uma mediação pelo bairro de "
+              rf"{fmt(med_com, 1)}\% (contra {fmt(med_sem, 1)}\% na tabela)"
+              # a direção decide a leitura: com UF a mediação maior = a tabela é conservadora
+              + (r": o estado não contamina a mediação atribuída ao bairro." if abs(dif) < 1 else
+                 r": com o estado mantido no modelo, a mediação pelo bairro é ainda maior --- a "
+                 r"leitura da tabela é conservadora." if dif > 0 else
+                 r": parte da mediação atribuída ao bairro é o estado saindo do modelo, e a "
+                 r"leitura de bairro deve usar o valor com UF."))
+    ga = T / "gap_agregado.csv"
+    if ga.exists():
+        sem = pd.read_csv(ga).set_index("modelo").loc["agregado_sem_UF", "gap_pct"]
+        escada += (rf" Sem os efeitos fixos de UF, o gap agregado seria de {fmt(abs(sem), 1)}\%"
+                   r" --- a diferença entre estados é, ela própria, parte do diferencial.")
+tex = tex.replace("<<ESCADA>>", escada)
 tex = (tex.replace("<<G1>>", fmt(abs(g1), 1))
           .replace("<<G4>>", fmt(abs(g4), 1))
+          # mediação do primeiro degrau (bairro); "quase à metade" era fóssil (E7.1)
+          .replace("<<MED1>>", fmt(float(d.loc[d["Modelo"] == "M1_Individual",
+                                               "Mediacao_total%"].iloc[0]), 1))
           .replace("<<M4>>", fmt(m4, 1)))
 out = T / "gap_mediacao_tcc.tex"
 out.write_text(tex, encoding="utf-8")

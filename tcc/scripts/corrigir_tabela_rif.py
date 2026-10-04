@@ -72,7 +72,7 @@ tex = (r"""\begin{table}[!ht]
 \caption{Decomposição RIF-OB \cite{firpo2018} do gap salarial racial
 por quantil incondicional, em formato \emph{two-fold} (referência: estrutura de preços
 dos brancos). Mesmos controles da decomposição de Oaxaca--Blinder sem ocupação (escolaridade,
-idade, sexo, ano e contexto do bairro), mais efeitos fixos de UF; a ocupação \emph{não} entra.
+idade, sexo, jornada, área urbana, ano e contexto do bairro), mais efeitos fixos de UF; a ocupação \emph{não} entra.
 Dotações: diferença de características observáveis. Retornos: parcela não explicada, que
 inclui a discriminação e o que não foi observado. Dotações + Retornos
 $=100\%$ \emph{do gap RIF} --- que é o gap decomposto pelo

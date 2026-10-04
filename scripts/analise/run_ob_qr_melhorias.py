@@ -55,7 +55,7 @@ COLS = [
     "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
     "educ_cat",
     "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z",
-    "horas_c", "emprego_formal", "conta_propria", "trab_domestico",
+    "horas_c", "log_horas", "urbano", "emprego_formal", "conta_propria", "trab_domestico",
     "ocp_dirigente", "ocp_profissional", "ocp_tecnico", "ocp_administrativo",
     "ocp_servicos", "ocp_agro", "ocp_operario", "ocp_operador", "ocp_ffaa",
     "log_renda", "renda_bruta", "pea", "Ano", "UF", "UPA",
@@ -71,7 +71,8 @@ df_full["educ_missing"] = df_full["educ_cat"].isna().astype(int)
 
 BASE_DROP = ["negro", "sexo_fem", "idade_c", "idade_sq",
              "educ_fund_completo", "educ_medio_completo", "educ_superior_completo", "educ_pos_graduacao",
-             "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z", "log_renda"]
+             "pct_negro_upa_z", "tx_desemprego_upa_z", "media_educ_upa_z", "log_renda",
+             "log_horas", "urbano"]
 mask = (df_full["pea"] == 1) & (df_full["renda_bruta"] > 0) & df_full["negro"].notna()
 df_full = df_full[mask].dropna(subset=BASE_DROP)
 
@@ -99,8 +100,10 @@ _BASE_NOSEX = _BASE_F.replace(" + sexo_fem", "")
 FORMULA_FULL = f"log_renda ~ {_BASE_F}" + (f" + {_OCC_F}" if HAS_OCC else "")
 FORMULA_NOSEX = f"log_renda ~ {_BASE_NOSEX}" + (f" + {_OCC_F}" if HAS_OCC else "")
 
+# E2.5 (03/10/2026): log_horas e urbano entram no M3 da QR, como no HLM M3 — a renda é
+# MENSAL, a jornada é controle necessário (antes ficava só no M4)
 _IND_QR = ("negro + educ_fund_completo + educ_medio_completo + educ_superior_completo + educ_pos_graduacao"
-           " + idade_c + idade_sq + sexo_fem")
+           " + idade_c + idade_sq + sexo_fem + log_horas + urbano")
 _UPA_QR = "pct_negro_upa_z + tx_desemprego_upa_z + media_educ_upa_z"
 QR_FORMULA = f"log_renda ~ {_IND_QR} + {_UPA_QR} + C(UF_str) + C(Ano)"
 

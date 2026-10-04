@@ -38,7 +38,9 @@ CSV_DIRETOS = ["composicao_por_grupo_cbo.csv", "shap_importance_comparada.csv",
 # Números externos (citados, não estimados aqui) e códigos: contexto que os identifica.
 EXTERNOS = re.compile(
     r"Lei \d|DeclareUnicodeCharacter|munic[íi]pios|Gini|IBGE|Nordeste|Norte \(|Sul \("
-    r"|chefiad|índice de [0-9]|qualidade de vida")
+    r"|chefiad|índice de [0-9]|qualidade de vida"
+    # número de lei/decreto (04/10/2026): "Decreto 11.443/2023", "(14.611/2023)"
+    r"|Decreto \d|\d{1,2}\.\d{3}/(?:19|20)\d{2}")
 ENTREGAVEIS = [
     ROOT / "tcc_normas.tex",
     ROOT / "relatorio_tcc_enxuto.tex",          # vira entregaveis/relatorio_tcc_enxuto.pdf/.docx

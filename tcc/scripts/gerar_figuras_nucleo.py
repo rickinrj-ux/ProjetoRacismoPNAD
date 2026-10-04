@@ -139,11 +139,17 @@ def fig_qr_rif():
     x = g["quantil"] * 100
     ax1.fill_between(x, g["ci_lo"] * 100, g["ci_hi"] * 100, color=AZUL_CLARO, alpha=0.45, zorder=2)
     ax1.plot(x, g["b_negro"] * 100, color=AZUL, lw=2.2, marker="o", ms=5, zorder=3)
-    for xi, yi in [(x.iloc[0], g["b_negro"].iloc[0] * 100), (x.iloc[-1], g["b_negro"].iloc[-1] * 100)]:
-        ax1.annotate(f"{yi:.1f}".replace(".", ",") + " log-pontos", (xi, yi),
-                     # o rótulo do q10 ia para cima do eixo y: desloca para a direita
-                     textcoords="offset points", xytext=(34 if xi < 50 else -10, -16),
-                     ha="center", fontsize=9.5, color=AZUL, fontweight="bold")
+    # rótulos no q10 e no q90 — o "topo" do texto é o q90 (o teste Z compara q90 × q10);
+    # o τ = 0,95 aparece na curva, mas não é o número citado
+    _q90 = g[g["quantil"].round(2) == 0.90].iloc[0]
+    for xi, yi in [(x.iloc[0], g["b_negro"].iloc[0] * 100), (_q90["quantil"] * 100, _q90["b_negro"] * 100)]:
+        # q10: abaixo e à direita do ponto (à esquerda bateria no eixo y); q90: abaixo e à
+        # esquerda, sob a curva (acima cruzava a linha, que desce rumo ao topo)
+        ax1.annotate(f"{yi:.1f}".replace(".", ",").replace("-", "−") + " log-pontos", (xi, yi),
+                     textcoords="offset points",
+                     xytext=(34, -16) if xi < 50 else (-10, -18),
+                     ha="center" if xi < 50 else "right", fontsize=9.5, color=AZUL,
+                     fontweight="bold")
     ax1.set_xlabel("Quantil condicional da renda (τ)")
     ax1.set_ylabel("Penalidade racial (×100)")
     ax1.set_title("Regressão quantílica: a penalidade condicional cresce no topo",
@@ -160,6 +166,8 @@ def fig_qr_rif():
     ax2.set_xlabel("Quantil incondicional da renda")
     ax2.set_ylim(0, 100); ax2.set_yticks([])
     ax2.set_title("RIF-OB: a parcela não explicada é maior na base", fontsize=10, color="#424242")
+    ax2.legend(loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=2, frameon=False, fontsize=9,
+               handlelength=1.2)
     _limpa(ax2)
     _titulo(fig, "Teto de vidro entre pares, piso pegajoso na renda do país: duas perguntas, dois padrões",
             "À esquerda, quantis condicionais (dispersão maior no topo); à direita, quantis "

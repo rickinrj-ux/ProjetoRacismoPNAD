@@ -44,26 +44,40 @@ def _cel(v, g, col, dec=1):
 
 linhas = []
 for _, r in d.iterrows():
-    pen = "---" if abs(r["penalidade_extra_pct"]) < 1e-6 else fmt(r["penalidade_extra_pct"], 1)
+    # E2.3: o gap em log-pontos (escala aditiva) no lugar da "penalidade extra", que somava
+    # percentuais (escala convexa) e saía positiva com a interação sub-aditiva
     g = r["grupo"]
     linhas.append(
-        f"{g} & {_cel(r['gap_pct'], g, 'gap_pct')} & {_cel(r['end_pct'], g, 'end_pct')} "
-        f"& {_cel(r['ret_pct'], g, 'ret_pct')} & {pen} & {fmtN(int(r['n_n']))} \\\\")
+        f"{g} & {_cel(r['gap_pct'], g, 'gap_pct')} & {fmt(r['gap'], 3)} & "
+        f"{_cel(r['end_pct'], g, 'end_pct')} "
+        f"& {_cel(r['ret_pct'], g, 'ret_pct')} & {fmtN(int(r['n_n']))} \\\\")
+
+_lg = d.set_index("grupo")["gap"]
+_mn, _soma = float(_lg["Mulher Negra"]), float(_lg["Mulher Branca"] + _lg["Homem Negro"])
+_leitura = (
+    "Em log-pontos, o gap da Mulher Negra (" + fmt(_mn, 3) + ") fica abaixo da soma dos gaps da "
+    "Mulher Branca e do Homem Negro (" + fmt(_soma, 3) + "): as desvantagens de raça e de gênero "
+    "se acumulam sem se multiplicar --- a interação é sub-aditiva, como no modelo de acesso. "
+    "Somar os percentuais daria a impressão contrária, porque a escala percentual é convexa."
+    if _mn < _soma else
+    "Em log-pontos, o gap da Mulher Negra (" + fmt(_mn, 3) + ") supera a soma dos gaps da "
+    "Mulher Branca e do Homem Negro (" + fmt(_soma, 3) + "): há um efeito interseccional além "
+    "da soma dos dois eixos.")
 
 tex = (r"""\begin{table}[!ht]
 \centering
 \caption{Decomposição interseccional (raça $\times$ gênero) do gap de rendimento
 \emph{vs.}\ o Homem Branco (grupo de referência). Dotações: parcela explicada por
-características observáveis; Retornos: parcela não explicada (discriminação). Penalidade
-extra: o quanto o gap da Mulher Negra excede a soma das penalidades de raça e de gênero
-isoladas (efeito interseccional puro, Crenshaw, 1989). PNAD Contínua, população completa
+características observáveis; Retornos: parcela não explicada (discriminação). Gap (log):
+a mesma desvantagem em log-pontos, a escala em que os efeitos de raça e de gênero se somam
+\cite{crenshaw1989}. PNAD Contínua, população completa
 ($N$ do grupo de referência --- homens brancos --- na última linha da nota). Entre
 parênteses: erro-padrão por bootstrap em blocos por UPA.}
 \label{tab:interseccional}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrrrr}
 \toprule
-Grupo & Gap vs HB (\%) & Dotações (\%) & Retornos (\%) & Penal.\ extra (p.p.) & $N$ do grupo \\
+Grupo & Gap vs HB (\%) & Gap (log) & Dotações (\%) & Retornos (\%) & $N$ do grupo \\
 \midrule
 """ + "\n".join(linhas) + r"""
 \bottomrule
@@ -72,8 +86,7 @@ Grupo & Gap vs HB (\%) & Dotações (\%) & Retornos (\%) & Penal.\ extra (p.p.) 
 \par\smallskip
 \footnotesize\emph{Como ler:} ``Gap vs HB'' é a desvantagem de renda de cada grupo
 \emph{vs.}\ o Homem Branco; Dotações $+$ Retornos $=100\%$ do gap. A Mulher Negra tem o
-maior gap e ainda uma penalidade \emph{extra} que não se reduz à soma de ``ser negro'' e
-``ser mulher'' --- a marca da interseccionalidade. O sinal negativo das dotações da Mulher
+maior gap. """ + _leitura + r""" O sinal negativo das dotações da Mulher
 Branca indica que suas características observáveis \emph{superam} as do homem branco: todo
 o gap vem de retornos diferenciais. Grupo de referência: """ + fmtN(int(d["n_ref"].iloc[0])) + r""" homens brancos.
 \end{table}

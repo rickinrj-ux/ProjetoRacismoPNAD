@@ -159,3 +159,22 @@ saem incompletos. O csv íntegro anterior está em `outputs/_backup_pre_loo/`.
   5ª casa); β_desemprego −0,00509 → −0,00497 (EP 0,0012); correlação das duas versões 0,9999.
   Decisão do autor (03/10): corrigir o código na origem e NÃO reestimar. Teste novo em
   `checar_escolaridade.py` acusa médias de contexto constantes dentro da UPA.
+
+## 04/10/2026 — E2, especificação simétrica e fechamento do texto
+- **E2.5 (reestimado):** a especificação (A) do Oaxaca, a RIF, a RIF interseccional e a QR não
+  tinham jornada, área urbana e UF, embora o texto dissesse "os controles do M3". Com eles:
+  OB retornos 23,4% → 17,9% (A) e 17,3% → 15,4% (B); RIF retornos q10 32,3% → 26,5%, q90 9,1% → 8,9%
+  (razão 3,5 → 3,0); QR q10 5,7% → 4,3%, q90 8,7% → 8,4%, KB Z −25,9. Fila: `tcc/scripts/fila_e2.ps1`.
+- **E2.2:** M1 reestimado com UF (`--fit M1_UF`, `exportar_m1_uf.py`): mediação pelo bairro 41,6%
+  contra 39,5% sem UF — a escada é conservadora; nota condicional na Tab. 5. Agregado sem UF: 20,1%.
+- **E2.16:** GLMM dos 4 grupos por grande grupo CBO (`scripts/R/run_grupo_rg_por_cbo.R`): a mulher
+  negra tem OR 0,63 entre dirigentes (o menor) e 1,96 no apoio administrativo (mulher branca 2,20);
+  o OR 1,31 de CBO 1–4 era composição de ocupações feminizadas.
+- **E2.7:** E-value com √OR para desfecho comum (`params_nucleo.evalue`, única implementação):
+  acesso 1,76 → 1,46.
+- **E2.17:** Considerações Iniciais (conceito de racismo estrutural), pontes nos Resultados, críticas e
+  propostas na Discussão, Conclusão em dois parágrafos — `tcc/scripts/tcc_normas_narrativa.py`.
+- **E7.1:** releitura por agente (38 achados, 35 corrigidos). Regeneração final com portões OK.
+- **Armadilha:** `relatorio_tcc.bib` é REGERADO por `gerar_relatorio_tcc.py` (string BIB) e completado
+  pelo enxuto; entrada editada no arquivo se perde.
+- **Sem commit** desde ba20b77 (03/10): ~150 arquivos.

@@ -14,7 +14,7 @@ xml = z.read("word/document.xml").decode("utf8")
 cab = z.read("word/header1.xml").decode("utf8")
 txt = "\n".join(p.text for p in d.paragraphs)
 
-SEC = {"Resumo", "Abstract", "Introdução", "Conclusão", "Referências",
+SEC = {"Resumo", "Abstract", "Considerações Iniciais", "Conclusão", "Referências",
        "Implementação de Algoritmo(s) de Machine Learning",
        "Resultados e Discussão"}
 
@@ -94,7 +94,7 @@ a(("Palavras-chave e Keywords presentes",
    "Palavras-chave" in txt and "Keywords" in txt))
 
 # ── seções do corpo (p. 63 a 66) ─────────────────────────────────────────────
-for nome in ("Introdução", "Implementação de Algoritmo(s) de Machine Learning",
+for nome in ("Considerações Iniciais", "Implementação de Algoritmo(s) de Machine Learning",
              "Resultados e Discussão", "Conclusão"):
     p = fmt(nome)
     ok = (p is not None
@@ -104,12 +104,14 @@ for nome in ("Introdução", "Implementação de Algoritmo(s) de Machine Learnin
     a((f"'{nome[:34]}': negrito, à esquerda, sem recuo", ok))
 
 # corpo com recuo e 1,5
-corpo = [p for p in d.paragraphs
+# o Resumo e o Abstract (simples, sem recuo) ficam antes da primeira seção do corpo:
+# separá-los pela posição, e não pelas primeiras palavras, que mudam quando o texto muda
+_paras = list(d.paragraphs)
+_ini = next((i for i, p in enumerate(_paras) if p.text.strip() == "Considerações Iniciais"), 0)
+corpo = [p for p in _paras[_ini:]
          if len(p.text.strip()) > 200 and p.text.strip() not in SEC
          and not p.text.strip().startswith(("Tabela", "Figura", "Fonte", "Nota",
-                                            "Palavras-chave", "Keywords",
-                                            "Este trabalho investigou",
-                                            "This study examined"))]
+                                            "Palavras-chave", "Keywords"))]
 a(("Corpo: 1,5 com recuo de 1,25 cm",
    bool(corpo) and corpo[0].paragraph_format.line_spacing == 1.5
    and abs(corpo[0].paragraph_format.first_line_indent.cm - 1.25) < 0.02))
@@ -134,13 +136,13 @@ def _pos(trecho: str) -> int:
 pos_filiacao = _pos("E-mail autor correspondente")
 pos_resumo = _pos("\nResumo")
 pos_abstract = _pos("\nAbstract")
-pos_intro = _pos("\nIntrodução")
+pos_intro = _pos("\nConsiderações Iniciais")   # nome do template de Implementação de ML
 a(("Resumo depois da folha de rosto",
    -1 < pos_filiacao < pos_resumo))
 a(("Resumo começa em página nova (quebra entre ele e a capa)",
    _quebra_entre(d, "E-mail autor correspondente", "Resumo")))
 a(("Abstract depois do Resumo", pos_resumo < pos_abstract))
-a(("Introdução depois do Abstract", pos_abstract < pos_intro))
+a(("Considerações Iniciais depois do Abstract", pos_abstract < pos_intro))
 
 # ── proibições ───────────────────────────────────────────────────────────────
 a(("Sem Sumário (o formato não o prevê)", "Sumário" not in txt[:3000]))
