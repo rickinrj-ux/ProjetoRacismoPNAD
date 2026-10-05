@@ -627,6 +627,26 @@ def carregar() -> dict:
     if ("setor0", "OCP") in _ic and ("setor1", "OCP") in _ic:
         P["HET_SETOR_OCP_SOBREPOE"] = float(_sobrepoe(("setor0", "OCP"), ("setor1", "OCP")))
         P["HET_SETOR_T10_SEPARA"] = float(not _sobrepoe(("setor0", "T10"), ("setor1", "T10")))
+    # ── Estudo de evento da COVID (E8.8, run_covid_evento.py): penalidade com efeito fixo de
+    # bairro, ano a ano contra 2019, e ocupação na força de trabalho ─────────────────────
+    _ev = {(r["desfecho"], int(float(r["ano"]))): r for r in _rows("covid_evento.csv")}
+    _rs = {r["desfecho"]: r for r in _rows("covid_evento_resumo.csv")}
+    if "log_renda" in _rs and "ocupado" in _rs:
+        b19 = _f(_rs["log_renda"]["beta_negro_2019"])
+        for a in (2019, 2020, 2025):                       # penalidade implícita, em %
+            P[f"COV_PEN_{a}"] = abs((math.exp(b19 + _f(_ev[("log_renda", a)]["delta"])) - 1) * 100)
+        r, e = _rs["log_renda"], _rs["ocupado"]
+        P["COV_D2020"] = _f(_ev[("log_renda", 2020)]["delta"]) * 100      # log-pontos
+        P["COV_D2025"] = _f(_ev[("log_renda", 2025)]["delta"]) * 100
+        P["COV_P2025"] = _f(_ev[("log_renda", 2025)]["p"])
+        P["COV_DEV2020"] = _f(r["desvio_2020"]) * 100
+        P["COV_P_DEV2020"] = _f(r["p_desvio_2020"])
+        P["COV_P_INCL_PRE"] = _f(r["p_inclinacao_pre"])
+        P["COV_EMP_D2020"] = _f(_ev[("ocupado", 2020)]["delta"]) * 100    # p.p.
+        P["COV_EMP_P_DEV2020"] = _f(e["p_desvio_2020"])
+        P["COV_EMP_D2022"] = _f(_ev[("ocupado", 2022)]["delta"]) * 100
+        P["COV_EMP_P2022"] = _f(_ev[("ocupado", 2022)]["p"])
+        P["COV_N_UPA"] = _f(r["n_upa"])
     for r in _rows("oaxaca_por_cor.csv"):
         P[f"HET_OB_{r['cor'].upper()}_{r['espec']}"] = _f(r["pct_retornos"])
     for r in _rows("qr_por_cor.csv"):

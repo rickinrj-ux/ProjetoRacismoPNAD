@@ -1145,6 +1145,8 @@ for i, (val, lbl) in enumerate(numeros):
 # frase_conclusao_convergencia no texto): nada de "resistente" se o gap recua com p < 0,05
 if P["TEND_P"] >= 0.05:
     _conv = "estrutural, multicausal e sem convergência distinguível de zero na última década"
+elif P["TEND_DELTA"] > 0 and "COV_D2020" in _PN:
+    _conv = "estrutural e multicausal: o gap recuou num degrau em 2020, sem ritmo para fechar sozinho"
 elif P["TEND_DELTA"] > 0:
     _conv = "estrutural e multicausal: o gap recua, mas devagar demais para fechar sozinho"
 else:

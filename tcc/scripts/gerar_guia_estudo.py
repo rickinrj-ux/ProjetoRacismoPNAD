@@ -621,8 +621,25 @@ pergunta(f"Com {pt(P['N_GLMM'] / 1e6, 1)} milhões de observações, tudo não f
          f"tendência temporal do gap tem p = {pt(P['TEND_P'], 3)}"
          + (" e não se distingue de zero; a conclusão conservadora é que a década não "
             "produziu convergência mensurável." if P["TEND_P"] >= 0.05 else
+            f", significante: {pt(abs(P['TEND_DELTA']), 4)} log-ponto por ano. Mas o estudo "
+            "de evento mostra que não é um ritmo: a penalidade oscilou sem tendência até 2019, "
+            f"caiu em 2020 ({pt(P['COV_PEN_2019'], 1)}% → {pt(P['COV_PEN_2020'], 1)}%, com efeito "
+            f"fixo de bairro) e não voltou ao nível anterior ({pt(P['COV_PEN_2025'], 1)}% em 2025) — "
+            "um degrau, não uma rampa a extrapolar."
+            if "COV_D2020" in P else
             f", significante e lenta: {pt(abs(P['TEND_DELTA']), 4)} log-ponto por ano — "
             "a convergência existe, mas no ritmo da década levaria gerações."))
+
+pergunta("E a quebra de 2020? A pandemia não contamina a série?",
+         (f"Testado com um estudo de evento (base 2019, efeito fixo de bairro, erro por UPA). A "
+          f"penalidade caiu de {pt(P['COV_PEN_2019'], 1)}% para {pt(P['COV_PEN_2020'], 1)}% em 2020 "
+          f"({pt(P['COV_DEV2020'], 1)} log-ponto acima da tendência, p = {pt(P['COV_P_DEV2020'], 3)}) "
+          f"e não voltou ({pt(P['COV_PEN_2025'], 1)}% em 2025). Não é seleção: a ocupação dos negros "
+          f"caiu só {pt(abs(P['COV_EMP_D2020']), 2)} p.p. a mais em 2020, dentro da tendência, e "
+          "cresceu mais que a dos brancos desde 2022. Não é a entrevista por telefone: persiste "
+          "após a volta da coleta presencial. Sem grupo de controle, não se identifica a causa; os "
+          "resultados agrupados de 2016–2025 são uma média de antes e depois do degrau.")
+         if "COV_D2020" in P else "Não testado.")
 
 pergunta("Por que UPA como efeito aleatório e UF como efeito fixo?",
          "Porque 27 unidades são poucas para estimar uma distribuição no terceiro "

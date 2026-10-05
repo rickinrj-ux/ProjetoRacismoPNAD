@@ -1574,9 +1574,9 @@ O diferencial de log-rendimento reduziu-se de {k['gap_2016']:.3f} (2016)
 para {k['gap_2025']:.3f} (2025), queda de {abs(k['gap_2025']-k['gap_2016']):.3f}
 em dez anos --- uma redução de apenas {abs(k['gap_2025']-k['gap_2016'])/k['gap_2016']*100:.1f}\%
 em relação ao patamar inicial. A tendência positiva mais pronunciada
-ocorreu em 2020--2021, provavelmente como efeito composição
-da pandemia de COVID-19 sobre os rendimentos formais, e não como
-resultado estrutural de políticas de inclusão.
+ocorreu em 2020--2021 e não se desfez depois; o estudo de evento com
+efeito fixo de bairro não a atribui à composição do emprego na pandemia
+(ver a Discussão).
 
 \subsection{{Multicolinearidade do Modelo M4: Análise VIF}}
 \label{{subsec:vif}}
