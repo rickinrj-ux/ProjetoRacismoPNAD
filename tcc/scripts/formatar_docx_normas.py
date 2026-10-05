@@ -128,6 +128,11 @@ def formatar_corpo(doc: Document) -> tuple[int, int]:
             pf.space_before = Pt(0)
             pf.space_after = Pt(6)
             pf.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            # mesmo autor e ano (Alencar 2026a/b/c): o CSL do pandoc põe a letra antes do
+            # ano ("a2026"); a ABNT pede depois ("2026a"), como na citação do texto
+            for r in p.runs:
+                if re.search(r"\b[a-h](?:19|20)\d{2}\b", r.text):
+                    r.text = re.sub(r"\b([a-h])((?:19|20)\d{2})\b", r"\2\1", r.text)
             corpo += 1
             continue
 
