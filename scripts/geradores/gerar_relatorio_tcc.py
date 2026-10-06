@@ -329,7 +329,7 @@ def shap_table_latex(r):
         r"\centering",
         r"\caption{Importância SHAP Comparada --- Random Forest e XGBoost. "
         r"Predição de log-rendimento, PNAD 2016--2025 ($N_{\text{SHAP}}=50.000$). "
-        r"Valores: $|\text{SHAP}|$ médio. Destaque em negrito: variáveis raciais/contextuais.}",
+        r"Valores: $|\text{SHAP}|$ médio.}",
         r"\label{tab:shap_importance}",
         r"\begin{tabular}{lcccc}",
         r"\toprule",

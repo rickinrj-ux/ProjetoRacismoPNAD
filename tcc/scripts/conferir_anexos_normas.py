@@ -144,6 +144,20 @@ a(("Resumo começa em página nova (quebra entre ele e a capa)",
 a(("Abstract depois do Resumo", pos_resumo < pos_abstract))
 a(("Considerações Iniciais depois do Abstract", pos_abstract < pos_intro))
 
+# ── tabelas, figuras e notas (Tabelas 4, 7 e 9 do manual) — 05/10/2026 ───────
+_notas_xml = z.read("word/footnotes.xml").decode("utf8") if "word/footnotes.xml" in z.namelist() else ""
+_corpo_notas = re.findall(r'<w:footnote (?:(?!w:type="separator"|w:type="continuationSeparator")[^>])*>.*?</w:footnote>',
+                          _notas_xml, re.S)
+_runs_notas = [r for f in _corpo_notas for r in re.findall(r"<w:r>.*?</w:r>|<w:r .*?</w:r>", f, re.S)
+               if "<w:t" in r]
+a((f"Notas de rodapé em tamanho 9 ({len(_runs_notas)} trechos)",
+   bool(_runs_notas) and all('<w:sz w:val="18"/>' in r for r in _runs_notas)))
+_rotulos = [p.text.strip() for p in d.paragraphs
+            if re.match(r"^(Tabela|Figura)\s+\d+\.", p.text.strip())
+            or p.text.strip().startswith(("Fonte:", "Nota:"))]
+_com_ponto = [t[:40] for t in _rotulos if t.endswith(".") and not t.endswith("...")]
+a((f"Títulos, Fontes e Notas sem ponto final ({len(_com_ponto)} com ponto)", not _com_ponto))
+
 # ── proibições ───────────────────────────────────────────────────────────────
 a(("Sem Sumário (o formato não o prevê)", "Sumário" not in txt[:3000]))
 a(("Conclusão sem tabela ou figura",
