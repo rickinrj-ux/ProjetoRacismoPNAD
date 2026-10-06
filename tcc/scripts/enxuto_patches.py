@@ -183,7 +183,7 @@ PATCHES = [
     # ── Bloco 0.1 — PO ────────────────────────────────────────────────────────
     ("0.1 título",
      r"UMA ABORDAGEM MULTINÍVEL, DE MACHINE LEARNING, REDES SOCIAIS\nE PESQUISA OPERACIONAL COM DADOS DA PNAD CONTÍNUA \(2016--2025\)",
-     "UMA ABORDAGEM MULTINÍVEL E DE DECOMPOSIÇÃO SALARIAL\nCOM DADOS DA PNAD CONTÍNUA (2016--2025)", 0),
+     "BAIRRO, PORTA E TOPO,\nCOM DADOS DA PNAD CONTÍNUA (2016--2025)", 0),
 
     ("0.1 Discussão: da diagnose à prescrição (sem PO)",
      r"\\paragraph\{Da diagnose à prescrição\.\}.*?(?=\n\\paragraph\{O que este trabalho acrescenta)",

@@ -189,8 +189,8 @@ FOLHA_ROSTO = r"""
 
 \begin{center}
 {\fontsize{11}{13}\selectfont\bfseries
-Racismo estrutural no mercado de trabalho brasileiro: uma abordagem multinível
-e de decomposição salarial\par}
+Bairro, porta e topo: o racismo estrutural no mercado de trabalho
+brasileiro\par}
 \end{center}
 
 \vspace{2\baselineskip}      % dois espaços de caractere
@@ -216,8 +216,8 @@ RESUMO_ABSTRACT = (r"""
 % ── Título + Resumo + Palavras-chave (norma, item 16.2) ──────────────────────
 \begin{center}
 {\fontsize{11}{14}\selectfont\bfseries
-Racismo estrutural no mercado de trabalho brasileiro: uma abordagem multinível
-e de decomposição salarial\par}
+Bairro, porta e topo: o racismo estrutural no mercado de trabalho
+brasileiro\par}
 \end{center}
 
 \vspace{\baselineskip}
@@ -251,8 +251,8 @@ interseccionalidade.
 % ── Título em inglês + Abstract + Keywords ───────────────────────────────────
 \begin{center}
 {\fontsize{11}{14}\selectfont\bfseries
-Structural racism in the Brazilian labour market: a multilevel and
-wage-decomposition approach\par}
+Neighbourhood, door and top: structural racism in the Brazilian
+labour market\par}
 \end{center}
 
 \vspace{\baselineskip}
