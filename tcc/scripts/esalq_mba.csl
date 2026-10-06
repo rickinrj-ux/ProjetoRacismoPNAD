@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Estilo de citação e referências do Manual de Instruções e Normas para TCC do MBA USP/Esalq
+  (Pecege), itens 17 a 19. Escrito em 06/10/2026 depois do Relatório de Formatação do Sistema de
+  Trabalho Final, que acusou ~110 alertas contra o estilo ABNT usado até então.
+
+  Citação (17.2): (Sobrenome, ano); dois autores ligados por "e"; três ou mais, "et al." sem
+  itálico; mesmo autor e ano, 2026a, b; várias obras separadas por ";".
+  Referência (18-19): Sobrenome, I.I.; Sobrenome, I. Ano. Título. ... — todos os autores, sem
+  caixa alta, sem negrito, itálico nenhum; páginas com hífen.
+-->
+<style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0"
+       demote-non-dropping-particle="never" default-locale="pt-BR"
+       page-range-format="expanded">
+  <info>
+    <title>MBA USP/Esalq (Pecege) — Manual de Normas para TCC</title>
+    <id>esalq-mba-pecege-2026</id>
+    <updated>2026-10-06T00:00:00+00:00</updated>
+  </info>
+  <locale xml:lang="pt-BR">
+    <terms>
+      <term name="et-al">et al.</term>
+      <term name="and">e</term>
+      <term name="page" form="short">p.</term>
+      <term name="edition" form="short">ed.</term>
+      <term name="available at">Disponível em</term>
+      <term name="accessed">Acesso em</term>
+    </terms>
+  </locale>
+
+  <!-- ── autoria ─────────────────────────────────────────────────────────── -->
+  <macro name="autor-citacao">
+    <names variable="author">
+      <name form="short" and="text" delimiter-precedes-last="never"
+            et-al-min="3" et-al-use-first="1"/>
+      <et-al term="et-al"/>
+      <substitute>
+        <names variable="editor"/>
+        <text variable="title" form="short"/>
+      </substitute>
+    </names>
+  </macro>
+
+  <macro name="autor-referencia">
+    <names variable="author">
+      <name name-as-sort-order="all" sort-separator=", " initialize-with="."
+            delimiter="; " delimiter-precedes-last="always"/>
+      <substitute>
+        <names variable="editor"/>
+        <text variable="title"/>
+      </substitute>
+    </names>
+  </macro>
+
+  <macro name="organizadores">
+    <names variable="editor">
+      <name name-as-sort-order="all" sort-separator=", " initialize-with="."
+            delimiter="; " delimiter-precedes-last="always"/>
+    </names>
+  </macro>
+
+  <macro name="ano">
+    <choose>
+      <if variable="issued">
+        <date variable="issued">
+          <date-part name="year"/>
+        </date>
+        <text variable="year-suffix"/>
+      </if>
+      <else>
+        <text value="n.d."/>
+      </else>
+    </choose>
+  </macro>
+
+  <macro name="ano-citacao">
+    <choose>
+      <if variable="issued">
+        <date variable="issued">
+          <date-part name="year"/>
+        </date>
+      </if>
+      <else>
+        <text value="n.d."/>
+      </else>
+    </choose>
+  </macro>
+
+  <!-- Editora, Cidade, Estado, País. (o local vem completo no campo address do .bib) -->
+  <macro name="editora-local">
+    <group delimiter=", ">
+      <text variable="publisher"/>
+      <text variable="publisher-place"/>
+    </group>
+  </macro>
+
+  <macro name="edicao">
+    <choose>
+      <if is-numeric="edition">
+        <text variable="edition" suffix="ed."/>
+      </if>
+      <else>
+        <text variable="edition"/>
+      </else>
+    </choose>
+  </macro>
+
+  <macro name="acesso">
+    <choose>
+      <if variable="URL">
+        <group delimiter=". ">
+          <group>
+            <text term="available at" suffix=": "/>
+            <text variable="URL" prefix="&lt;" suffix="&gt;"/>
+          </group>
+          <group>
+            <text term="accessed" suffix=": "/>
+            <date variable="accessed">
+              <date-part name="day" form="numeric-leading-zeros" suffix=" "/>
+              <date-part name="month" form="short" suffix=" "/>
+              <date-part name="year"/>
+            </date>
+          </group>
+        </group>
+      </if>
+    </choose>
+  </macro>
+
+  <!-- ── citação no texto ─────────────────────────────────────────────────── -->
+  <citation et-al-min="3" et-al-use-first="1"
+            disambiguate-add-year-suffix="true" collapse="year-suffix"
+            year-suffix-delimiter=", " after-collapse-delimiter="; ">
+    <sort>
+      <key macro="autor-citacao"/>
+      <key macro="ano-citacao"/>
+    </sort>
+    <layout prefix="(" suffix=")" delimiter="; ">
+      <group delimiter=", ">
+        <text macro="autor-citacao"/>
+        <group>
+          <text macro="ano-citacao"/>
+          <text variable="year-suffix"/>
+        </group>
+        <group>
+          <label variable="locator" form="short" suffix=" "/>
+          <text variable="locator"/>
+        </group>
+      </group>
+    </layout>
+  </citation>
+
+  <!-- ── lista de referências ─────────────────────────────────────────────── -->
+  <bibliography hanging-indent="false" entry-spacing="1">
+    <sort>
+      <key macro="autor-referencia"/>
+      <key variable="issued"/>
+      <key variable="title"/>
+    </sort>
+    <layout suffix=".">
+      <group delimiter=". ">
+        <text macro="autor-referencia"/>
+        <text macro="ano"/>
+        <choose>
+          <!-- Periódico: Título. Periódico vol(num): pág-pág -->
+          <if type="article-journal article-magazine article-newspaper" match="any">
+            <text variable="title"/>
+            <group>
+              <text variable="container-title"/>
+              <group prefix=" ">
+                <text variable="volume"/>
+                <text variable="issue" prefix="(" suffix=")"/>
+              </group>
+              <text variable="page" prefix=": "/>
+            </group>
+          </if>
+          <!-- Capítulo: Título. p. x-y. In: Organizadores. Livro. Ned. Editora, Local -->
+          <else-if type="chapter">
+            <text variable="title"/>
+            <text variable="page" prefix="p. "/>
+            <group delimiter=" ">
+              <text value="In:"/>
+              <group delimiter=". ">
+                <text macro="organizadores"/>
+                <text variable="container-title"/>
+                <text macro="edicao"/>
+                <text macro="editora-local"/>
+              </group>
+            </group>
+          </else-if>
+          <!-- Anais: Título. In: Evento, ano, Cidade, Estado, País. Anais... p. x-y -->
+          <else-if type="paper-conference">
+            <text variable="title"/>
+            <group delimiter=", ">
+              <text variable="container-title" prefix="In: "/>
+              <text variable="publisher-place"/>
+            </group>
+            <group delimiter=" ">
+              <text value="Anais..."/>
+              <text variable="page" prefix="p. "/>
+            </group>
+          </else-if>
+          <!-- Livro: Título. Ned. Editora, Cidade, Estado, País -->
+          <else-if type="book">
+            <text variable="title"/>
+            <text macro="edicao"/>
+            <text macro="editora-local"/>
+          </else-if>
+          <!-- Relatório (impresso ou online): Título. [Série nº.] Editora, Local. Disponível em -->
+          <else-if type="report">
+            <text variable="title"/>
+            <group delimiter=" ">
+              <text variable="genre"/>
+              <text variable="number"/>
+            </group>
+            <text macro="editora-local"/>
+            <text macro="acesso"/>
+          </else-if>
+          <!-- Documento jurídico, apostila e demais: Título. Nota (DOU / instituição) -->
+          <else>
+            <text variable="title"/>
+            <text variable="note"/>
+            <text macro="acesso"/>
+          </else>
+        </choose>
+      </group>
+    </layout>
+  </bibliography>
+</style>

@@ -117,8 +117,19 @@ a(("Corpo: 1,5 com recuo de 1,25 cm",
    and abs(corpo[0].paragraph_format.first_line_indent.cm - 1.25) < 0.02))
 
 # referências
-refs = [p for p in d.paragraphs if re.match(r"^[A-ZÀ-Ü][A-ZÀ-Ü\s'-]{2,}(,|;)\s",
-                                            p.text.strip() or "x")]
+# formato do manual (itens 18-19), não ABNT: "Sobrenome, I.I.; Sobrenome, I. Ano." ou autor
+# corporativo ("Brasil. 2014." / "Instituto ... [IBGE]. 2023.") — tudo o que vem depois do título
+_ini_refs = next((i for i, p in enumerate(d.paragraphs) if p.text.strip() == "Referências"), None)
+_cauda = [p for p in (d.paragraphs[_ini_refs + 1:] if _ini_refs is not None else [])
+          if p.text.strip()]
+_RE_REF = re.compile(r"^[A-ZÀ-Ü].{1,400}?\.\s(19|20)\d{2}[a-z]?\.\s")
+refs = [p for p in _cauda if _RE_REF.match(p.text.strip())]
+_fora = [p.text[:50] for p in _cauda if not _RE_REF.match(p.text.strip())]
+a((f"Referências no formato do manual (Autor. Ano.): {len(_fora)} fora",
+   _ini_refs is not None and not _fora))
+# sobrenome em caixa alta é ABNT, não o manual (item 17: só a inicial maiúscula)
+a(("Referências sem sobrenome em caixa alta",
+   not any(re.match(r"^[A-ZÀ-Ü]{3,},", p.text.strip()) for p in refs)))
 a((f"Referências ({len(refs)}): à esquerda, simples, sem recuo",
    bool(refs) and refs[0].paragraph_format.line_spacing in (1.0, None)
    and not refs[0].paragraph_format.first_line_indent

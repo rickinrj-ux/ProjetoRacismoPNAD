@@ -28,6 +28,8 @@ $passos = @(
     @("tab_rif",            "`"$py`" -u tcc/scripts/corrigir_tabela_rif.py"),
     @("figuras_nucleo",     "`"$py`" -u tcc/scripts/gerar_figuras_nucleo.py"),
     @("fig_interseccional", "`"$py`" -u tcc/scripts/gerar_figura_interseccional.py"),
+    @("fig_waterfall_ab",   "`"$py`" -u tcc/scripts/gerar_figura_waterfall_ab.py"),
+    @("fig_shap_sem_titulo","`"$py`" -u tcc/scripts/gerar_figura_shap_sem_titulo.py"),
     @("fig_rs_blups",       "`"$py`" -u tcc/scripts/gerar_figura_rs_blups.py"),
     @("tab_heterog",        "`"$py`" -u tcc/scripts/gerar_tabela_heterogeneidade.py"),
     @("tab_robustez",       "`"$py`" -u tcc/scripts/gerar_tabela_robustez.py"),

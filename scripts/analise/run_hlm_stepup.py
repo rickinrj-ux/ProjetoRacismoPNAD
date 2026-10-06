@@ -423,6 +423,9 @@ def plot_figura(uf_df, blups, tau2, ref_uf="11"):
     fig.suptitle("Onde se mora importa: a variação entre bairros supera a variação entre estados",
                  fontsize=12, fontweight="bold", color="#212121")
     plt.tight_layout()
+    import sys as _sn; _sn.path.insert(0, str(_Path(__file__).resolve().parents[2] / "src"))
+    from figuras_ptbr import norma_manual  # manual MBA: sem título no gráfico, painéis A/B
+    norma_manual(plt.gcf())
     plt.savefig(FIGURES / "hlm_efeitos_uf_blup_upa.png", dpi=150, bbox_inches="tight")
     plt.close()
 

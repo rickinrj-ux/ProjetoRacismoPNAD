@@ -96,6 +96,11 @@ def formatar_corpo(doc: Document) -> tuple[int, int]:
             continue
 
         if RE_LEGENDA.match(texto) or RE_FONTE.match(texto):
+            # manual, Tabelas 7 e 9: "Dados originais da pesquisa" na seção de métodos;
+            # "Resultados originais da pesquisa" em Resultados e Discussão
+            if secao.startswith("Implementação") and "Resultados originais" in texto:
+                for r in p.runs:
+                    r.text = r.text.replace("Resultados originais", "Dados originais")
             pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
             pf.first_line_indent = Cm(0)
             pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
@@ -133,6 +138,9 @@ def formatar_corpo(doc: Document) -> tuple[int, int]:
             for r in p.runs:
                 if re.search(r"\b[a-h](?:19|20)\d{2}\b", r.text):
                     r.text = re.sub(r"\b([a-h])((?:19|20)\d{2})\b", r"\2\1", r.text)
+                # manual, 19.1: "sempre inserir um hífen entre as páginas" (o citeproc põe "–")
+                if "–" in r.text:
+                    r.text = re.sub(r"(\d)\s*–\s*(\d)", r"\1-\2", r.text)
             corpo += 1
             continue
 
@@ -448,6 +456,15 @@ def titulos_concisos(doc: Document) -> tuple[int, int]:
             pontos += _tirar_ponto_final(p._p)
         if t.startswith("Nota:"):
             _maiuscula_depois(p._p, "Nota:")
+            anterior = ""
+            for r in p.runs:                    # "...milhão). como ler a Tabela 13" no meio da Nota
+                if "como ler a" in r.text:
+                    r.text = re.sub(r"([.:)]\s+)como ler a", lambda m: m.group(1) + "Como ler a", r.text)
+                    # o ponto pode estar no trecho (run) anterior
+                    if r.text.startswith("como ler a") and anterior.rstrip().endswith((".", ":", ")")):
+                        r.text = "C" + r.text[1:]
+                if r.text:
+                    anterior = r.text
     return movidos, pontos
 
 
@@ -482,6 +499,83 @@ def _maiuscula_depois(p_el, rotulo: str) -> None:
                 return
             if not s[k].isspace() and s[k] not in "(\"“":
                 return
+
+
+# definições cuja sigla não sai das iniciais (inglês ou termo composto)
+_SIGLAS_FIXAS = {
+    "razão de verossimilhança (LR)": "razão de verossimilhança [LR]",
+    "máxima verossimilhança (ML)": "máxima verossimilhança [ML]",
+    "Domicílios Contínua (PNAD Contínua)": "Domicílios Contínua [PNAD Contínua]",
+}
+_RE_DEF = re.compile(r"((?:[A-ZÀ-Ú][\wÀ-ú\-]+)(?:\s+(?:[A-ZÀ-Ú][\wÀ-ú\-]+|de|da|do|das|dos|por|e|em))"
+                     r"{1,8})\s+\(([A-Z]{2,8})\)")
+
+
+def siglas_em_colchetes(doc: Document) -> int:
+    """Manual, Tabela 6: na 1.ª ocorrência a sigla vai entre colchetes depois da definição —
+    "Taxa Interna de Retorno [TIR]". Só troca quando é definição de fato: as iniciais das
+    palavras com maiúscula formam a sigla (não "(H1)", "(M3)", "(VD4020)")."""
+    n = 0
+    for p in doc.paragraphs:
+        for r in p.runs:
+            s = r.text
+            for a, b in _SIGLAS_FIXAS.items():
+                if a in s:
+                    s, n = s.replace(a, b), n + 1
+
+            def _sub(m):
+                nonlocal n
+                import unicodedata
+                ini = "".join(w[0] for w in m.group(1).split() if w[0].isupper())
+                ini = unicodedata.normalize("NFKD", ini).encode("ascii", "ignore").decode()
+                # pelo final: "A Unidade Primária de Amostragem" → "AUPA" termina em "UPA"
+                if ini.upper().endswith(m.group(2)):
+                    n += 1
+                    return f"{m.group(1)} [{m.group(2)}]"
+                return m.group(0)
+            s = _RE_DEF.sub(_sub, s)
+            if s != r.text:
+                r.text = s
+    return n
+
+
+def numerar_equacoes(doc: Document) -> int:
+    """Manual, 15.3: equação alinhada à direita, com o número "(1)" no fim da linha.
+
+    O "(1)" vinha dentro da própria equação (\\qquad\\text{(1)}), e o Sistema de Trabalho Final
+    não o reconhecia como numeração. Aqui ele sai da equação e vira texto depois dela; a equação
+    deixa de ser bloco (oMathPara) e fica em linha, no parágrafo alinhado à direita."""
+    M = "{http://schemas.openxmlformats.org/officeDocument/2006/math}"
+    n = 0
+    for p in doc.paragraphs:
+        for mp in p._p.findall(M + "oMathPara"):
+            ts = [t for t in mp.iter(M + "t") if (t.text or "").strip()]
+            if not ts:
+                continue
+            m = re.search(r"\s*\((\d+)\)\s*$", ts[-1].text)
+            if not m:
+                continue
+            ts[-1].text = ts[-1].text[:m.start()]
+            pai, pos = mp.getparent(), mp.getparent().index(mp)
+            for k, om in enumerate(mp.findall(M + "oMath")):
+                pai.insert(pos + k, om)
+            pai.remove(mp)
+            r = OxmlElement("w:r")
+            rpr = OxmlElement("w:rPr")
+            fonte = OxmlElement("w:rFonts")
+            fonte.set(qn("w:ascii"), FONTE_NOME)
+            fonte.set(qn("w:hAnsi"), FONTE_NOME)
+            rpr.append(fonte)
+            r.append(rpr)
+            t = OxmlElement("w:t")
+            t.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+            t.text = f"   ({m.group(1)})"
+            r.append(t)
+            p._p.append(r)
+            p.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            p.paragraph_format.first_line_indent = Cm(0)
+            n += 1
+    return n
 
 
 def notas_de_rodape_9(doc: Document) -> int:
@@ -1002,6 +1096,8 @@ def main() -> int:
     corpo, legendas = formatar_corpo(doc)
     print(f"     {formatar_capa(doc)} parágrafos da folha de rosto/resumo ajustados")
     print(f"     {formatar_notas(doc)} notas de tabela/figura em corpo de nota")
+    print(f"     {siglas_em_colchetes(doc)} siglas definidas entre colchetes")
+    print(f"     {numerar_equacoes(doc)} equações com número no fim da linha")
     movidos, pontos = titulos_concisos(doc)
     print(f"     {movidos} títulos de tabela encurtados (explicação → Nota); "
           f"{pontos} pontos finais retirados de títulos, Fontes e Notas")

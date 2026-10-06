@@ -133,7 +133,8 @@ CHAMADAS = {
         "os interceptos estimados para os bairros.",
     "tab:shap_importance":
         "A Tabela~\\ref{tab:shap_importance} traz o ranking completo das "
-        "variáveis nos dois modelos.",
+        "variáveis nos dois modelos, e a Figura~\\ref{fig:shap} mostra como cada uma "
+        "move a previsão, trabalhador a trabalhador.",
     # fig:shap_bee não entra: é uma subfigure, absorvida pela figura-mãe na
     # conversão para .docx — a chamada da mãe (fig:shap) já a cobre
     "fig:shap_wf":

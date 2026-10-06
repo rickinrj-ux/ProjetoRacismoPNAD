@@ -44,28 +44,39 @@ cv = fd.groupby("config")[["r2", "mae", "rmse"]].agg(["mean", "std"])
 def _cv(cfg, met):
     return (fmt(cv.loc[cfg, (met, "mean")], 4) + r" $\pm$ " + fmt(cv.loc[cfg, (met, "std")], 4))
 
+# 06/10/2026: dois painéis viravam, no Word, duas tabelas sob um título só, e o Sistema de
+# Trabalho Final acusou "tabela sem título e sem fonte". Agora são duas tabelas, cada uma com
+# título, Fonte e chamada no texto (tab:ml_cv e tab:ml_cv_b); sem negrito (manual 15.2).
+_ganho = fmt((cv.loc["escolhida", ("r2", "mean")] - cv.loc["atual_tcc", ("r2", "mean")]) * 100, 1)
 tex = (r"""\begin{table}[!ht]
 \centering
-\caption{Escolha de hiperparâmetros e validação cruzada do XGBoost
-\cite{alencar2026a, alencar2026b, alencar2026c, geron2021}. Painel~A: seis configurações comparadas numa partição de validação
-\emph{dentro} do treino --- o conjunto de teste permanece intocado. Painel~B: validação
-cruzada $k$-\emph{fold} ($k=""" + str(int(rs["k"])) + r"""$) no treino completo, com média e
-desvio-padrão entre \emph{folds}. População completa: """ + fmtN(int(rs["n_treino"])) + r""" observações de
-treino e """ + fmtN(int(rs["n_teste"])) + r""" de teste; nenhuma amostragem.}
+\caption{Escolha de hiperparâmetros do XGBoost na partição de validação
+\cite{alencar2026a, alencar2026b, alencar2026c, geron2021}. Seis configurações comparadas
+\emph{dentro} do treino --- o conjunto de teste permanece intocado. População completa:
+""" + fmtN(int(rs["n_treino"])) + r""" observações de treino e """ + fmtN(int(rs["n_teste"])) + r""" de teste; nenhuma amostragem.}
 \label{tab:ml_cv}
 \small
 \begin{tabular}{lccccc}
-\multicolumn{6}{l}{\textbf{A. Busca na partição de validação}} \\
 \toprule
 Profundidade & Taxa de aprendizado & Árvores & $R^2$ & MAE & Sobreajuste \\
 \midrule
-""" + "\n".join(linhas) + r"""
+""" + "\n".join(linhas).replace(r"\textbf{", "{") + r"""
 \bottomrule
 \end{tabular}
+\normalsize
+\par\smallskip
+\footnotesize\emph{Como ler:} ``Sobreajuste'' é a diferença entre o $R^2$ de treino e o de
+validação --- valores próximos de zero indicam que o modelo não decorou os dados. A
+primeira linha é a configuração escolhida.
+\end{table}
 
-\vspace{0.6em}
+\begin{table}[!ht]
+\centering
+\caption{Validação cruzada $k$-\emph{fold} ($k=""" + str(int(rs["k"])) + r"""$) do XGBoost no treino completo,
+com média e desvio-padrão entre \emph{folds}.}
+\label{tab:ml_cv_b}
+\small
 \begin{tabular}{lccc}
-\multicolumn{4}{l}{\textbf{B. Validação cruzada no treino (""" + str(int(rs["k"])) + r""" \emph{folds})}} \\
 \toprule
 Configuração & $R^2$ (média $\pm$ dp) & MAE & RMSE \\
 \midrule
@@ -75,12 +86,9 @@ Referência (profundidade 6) & """ + _cv("atual_tcc", "r2") + " & " + _cv("atual
 \end{tabular}
 \normalsize
 \par\smallskip
-\footnotesize\emph{Como ler:} ``Sobreajuste'' é a diferença entre o $R^2$ de treino e o de
-validação --- valores próximos de zero indicam que o modelo não decorou os dados. A
-configuração escolhida ganha """ + fmt((cv.loc["escolhida", ("r2", "mean")] - cv.loc["atual_tcc", ("r2", "mean")]) * 100, 1) + r""" ponto percentual de $R^2$ ao custo de um
-sobreajuste maior, mas ainda pequeno (Painel~A). No conjunto de teste (intocado durante a
-escolha), $R^2 = """ + fmt(rs["teste_r2"], 4) + r"""$; a estabilidade entre \emph{folds} e o erro em reais são
-discutidos no texto.
+\footnotesize\emph{Como ler:} a configuração escolhida ganha """ + _ganho + r""" ponto percentual
+de $R^2$ ao custo de um sobreajuste maior, mas ainda pequeno (Tabela~\ref{tab:ml_cv}). No
+conjunto de teste (intocado durante a escolha), $R^2 = """ + fmt(rs["teste_r2"], 4) + r"""$.
 \end{table}
 """)
 (T / "ml_cv.tex").write_text(tex, encoding="utf-8")

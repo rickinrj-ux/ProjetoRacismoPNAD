@@ -25,8 +25,12 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parents[2]
 TEX = ROOT / "tcc_normas.tex"
-BIB = ROOT / "relatorio_tcc.bib"
-CSL = Path(__file__).with_name("abnt.csl")
+# Citações e referências no estilo do Manual de Normas do MBA (itens 17-19), não em ABNT: o
+# Relatório de Formatação do Sistema de Trabalho Final (06/10/2026) acusou ~110 alertas contra o
+# ABNT. O .bib do Word é próprio (autoria, local com UF e país, DOU com seção e página, títulos de
+# artigo só com a inicial maiúscula); o relatorio_tcc.bib continua servindo ao LaTeX.
+BIB = Path(__file__).with_name("bib_manual_esalq.bib")
+CSL = Path(__file__).with_name("esalq_mba.csl")
 SAIDA = ROOT / "entregaveis" / "TCC_Ricardo_Calheiros_MBA_USP_Esalq.docx"
 SAIDA_PDF = SAIDA.with_suffix(".pdf")   # o PDF da entrega sai do MESMO .tex
 
@@ -75,6 +79,114 @@ def _arg_caption(corpo: str) -> tuple[int, int] | None:
             nivel -= 1
         j += 1
     return i + len("\\caption{"), j - 1
+
+
+# figuras de dois painéis: a legenda e a nota passam a nomeá-los pela letra (manual, 15.1),
+# já que o título de cada painel saiu da imagem (figuras_ptbr.norma_manual)
+_PAINEIS = {"fig:hlm_blups", "fig:hlm_rs", "fig:qr_rif", "fig:interseccional", "fig:ob_cascata"}
+_FRASE_OB = (" O painel A traz a especificação A, sem ocupação; o painel B, a especificação B,"
+             " com ocupação e vínculo.")
+
+
+def paineis_por_letra(texto: str) -> str:
+    def _lado(s: str) -> str:
+        for a, b in (("À esquerda", "No painel A"), ("à esquerda", "no painel A"),
+                     ("À direita", "No painel B"), ("à direita", "no painel B")):
+            s = s.replace(a, b)
+        return s
+
+    def _fig(m):
+        corpo = m.group(0)
+        rot = re.findall(r"\\label\{([^}]+)\}", corpo)
+        if not set(rot) & _PAINEIS:
+            return corpo
+        corpo = _lado(corpo)
+        if "fig:ob_cascata" in rot:
+            pos = _arg_caption(corpo)
+            if pos:
+                corpo = corpo[:pos[1]] + _FRASE_OB + corpo[pos[1]:]
+        return corpo
+    texto = re.sub(r"\\begin\{figure\}.*?\\end\{figure\}", _fig, texto, flags=re.S)
+    # as notas "Como ler a Figura~\ref{...}" dessas figuras
+    def _nota(m):
+        return _lado(m.group(0)) if m.group(1) in _PAINEIS else m.group(0)
+    return re.sub(r"Como ler a Figura~\\ref\{([^}]+)\}[^\n]*(?:\n(?!\s*\n)[^\n]*)*", _nota, texto)
+
+
+def chamada_antes(texto: str) -> str:
+    """Cada tabela e figura logo depois do parágrafo que a cita (manual, 15.1 e 15.2).
+
+    O Sistema de Trabalho Final (06/10/2026) acusou objetos citados só depois de inseridos ou
+    citados longe deles. A regra: se o parágrafo imediatamente anterior não chama o objeto, ele
+    vai para logo depois do parágrafo que o chama — o mais próximo antes dele, na mesma seção;
+    senão, o primeiro depois dele, na mesma seção. Nunca troca de seção (Considerações Iniciais
+    e Conclusão não admitem tabela nem figura). As notas "Como ler" acompanham o objeto.
+    """
+    objetos: list[str] = []
+
+    def _extrair(m):
+        objetos.append(m.group(0))
+        return f"\n\n@@OBJ{len(objetos) - 1}@@\n\n"
+
+    t = re.sub(r"\\begin\{(table|figure)\}.*?\\end\{\1\}", _extrair, texto, flags=re.S)
+    itens: list[dict] = []
+    secao = 0
+    for bloco in re.split(r"\n[ \t]*\n", t):
+        s = bloco.strip()
+        if not s:
+            continue
+        m = re.fullmatch(r"@@OBJ(\d+)@@", s)
+        if m:
+            k = int(m.group(1))
+            itens.append({"obj": k, "txt": objetos[k], "anexos": [], "sec": secao,
+                          "rot": re.findall(r"\\label\{([^}]+)\}", objetos[k])})
+        elif (re.match(r"\\noindent\s*(?:\\emph|\\textit)?\s*\{?\s*(?:\\emph\{)?Como ler a (?:Figura|Tabela)", s)
+              and itens and "obj" in itens[-1]):
+            itens[-1]["anexos"].append(bloco)
+        else:
+            if re.search(r"\\section\*?\{", s):
+                secao += 1
+            itens.append({"par": bloco, "sec": secao})
+
+    def _cita(item, rotulos):
+        return "par" in item and any("\\ref{" + r + "}" in item["par"] for r in rotulos)
+
+    movidos, sem_chamada = 0, []
+    for k in range(len(objetos)):
+        i = next(n for n, it in enumerate(itens) if it.get("obj") == k)
+        obj = itens[i]
+        if not obj["rot"]:
+            continue
+        j = i - 1                                   # parágrafo imediatamente anterior
+        while j >= 0 and "obj" in itens[j]:
+            j -= 1
+        if j >= 0 and _cita(itens[j], obj["rot"]):
+            continue
+        antes = [n for n in range(i) if itens[n]["sec"] == obj["sec"] and _cita(itens[n], obj["rot"])]
+        depois = [n for n in range(i + 1, len(itens))
+                  if itens[n]["sec"] == obj["sec"] and _cita(itens[n], obj["rot"])]
+        alvo = antes[-1] if antes else (depois[0] if depois else None)
+        if alvo is None:
+            sem_chamada.append(obj["rot"][0])
+            continue
+        itens.pop(i)
+        alvo = alvo if alvo < i else alvo - 1
+        pos = alvo + 1
+        while pos < len(itens) and "obj" in itens[pos]:   # depois dos que já foram para lá
+            pos += 1
+        itens.insert(pos, obj)
+        movidos += 1
+
+    print(f"     {movidos} tabelas/figuras levadas para depois do parágrafo que as cita")
+    if sem_chamada:
+        print(f"  [AVISO] objetos sem chamada no texto da própria seção: {sem_chamada}")
+    partes = []
+    for it in itens:
+        if "obj" in it:
+            partes.append("\n\n".join([it["txt"]] + it["anexos"]))
+        else:
+            partes.append(it["par"])
+    return "\n\n".join(partes)
 
 
 def legendas_numeradas(texto: str) -> str:
@@ -258,6 +370,8 @@ def normalizar(texto: str) -> str:
     # caminhos das figuras (o \graphicspath não viaja para o pandoc)
     def _fig(m: re.Match) -> str:
         opts, nome = m.group(1) or "", m.group(2)
+        if nome == "shap_beeswarm_xgb":         # cópia sem o título interno (manual, Tab. 8)
+            nome = "shap_beeswarm_xgb_tcc"
         if "/" not in nome:
             nome = f"outputs/figures/{nome}"
         if not Path(nome).suffix:
@@ -283,6 +397,8 @@ def main() -> int:
     texto = TEX.read_text(encoding="utf-8")
     # a subfigure tem legenda propria e roubaria o numero da figura-mae
     texto = sem_subfigure(texto)
+    texto = paineis_por_letra(texto)
+    texto = chamada_antes(texto)
     texto = legendas_numeradas(texto)
     texto = nota_depois_da_fonte(texto)
     texto = resolver_referencias(texto)

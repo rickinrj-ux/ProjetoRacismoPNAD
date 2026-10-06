@@ -155,6 +155,9 @@ def figura_retas(out: pd.DataFrame) -> None:
              "inclinação de cada reta (penalidade condicional).", fontsize=9, color="#616161")
     fig.tight_layout(rect=(0, 0, 1, 0.9))
     virgula_decimal(fig)
+    import sys as _sn; _sn.path.insert(0, str(_Path(__file__).resolve().parents[2] / "src"))
+    from figuras_ptbr import norma_manual  # manual MBA: sem título no gráfico, painéis A/B
+    norma_manual(fig)
     fig.savefig(H.FIGURES / "hlm_negro_por_educ_retas.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
     log.info("figura: outputs/figures/hlm_negro_por_educ_retas.png")
@@ -192,6 +195,9 @@ def figura(out: pd.DataFrame) -> None:
              "PNAD Contínua 2016–2025, população completa.", fontsize=9, color="#616161")
     fig.tight_layout(rect=(0, 0, 1, 0.9))
     virgula_decimal(fig)
+    import sys as _sn; _sn.path.insert(0, str(_Path(__file__).resolve().parents[2] / "src"))
+    from figuras_ptbr import norma_manual  # manual MBA: sem título no gráfico, painéis A/B
+    norma_manual(fig)
     fig.savefig(H.FIGURES / "hlm_negro_por_educ.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
     log.info("figura: outputs/figures/hlm_negro_por_educ.png")

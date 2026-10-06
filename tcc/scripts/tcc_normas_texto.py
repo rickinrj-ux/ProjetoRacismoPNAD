@@ -69,20 +69,20 @@ def _conclusao_resumo(ingles: bool = False) -> str:
     padrao = sal_pos is not None and ac_pos is not None and sal_pos < 3 and ac_pos >= 10
     if ingles:
         if padrao:
-            return ("It was concluded that racial inequality operates on two fronts that respond "
-                    "differently to schooling: the wage penalty is largest among the least "
+            return ("Racial inequality operated on two fronts that responded "
+                    "differently to schooling: the wage penalty was largest among the least "
                     "educated and small among postgraduates, while the disadvantage in access to "
-                    "qualified jobs persists at every level. Policies centred solely on schooling "
+                    "qualified jobs persisted at every level. Policies centred solely on schooling "
                     "reach the former but not the latter.")
-        return ("It was concluded that racial inequality operates both in wages and in access to "
+        return ("Racial inequality operated both in wages and in access to "
                 "qualified occupations, so that policies centred solely on schooling are insufficient.")
     if padrao:
-        return ("Concluiu-se que a desigualdade racial opera em duas frentes que respondem de modo "
-                "diferente à escolaridade: a penalidade salarial é maior entre os menos "
+        return ("A desigualdade racial operou em duas frentes que responderam de modo "
+                "diferente à escolaridade: a penalidade salarial foi maior entre os menos "
                 "escolarizados e pequena entre os pós-graduados, enquanto a desvantagem no acesso "
-                "a cargos qualificados persiste em todos os níveis. Políticas centradas apenas em "
+                "a cargos qualificados persistiu em todos os níveis. Políticas centradas apenas em "
                 "escolaridade alcançam a primeira, mas não a segunda.")
-    return ("Concluiu-se que a desigualdade racial opera tanto no salário quanto no acesso a "
+    return ("A desigualdade racial operou tanto no salário quanto no acesso a "
             "ocupações qualificadas, de modo que políticas centradas apenas em escolaridade são "
             "insuficientes.")
 
@@ -205,8 +205,7 @@ Ricardo Gomes Calheiros\textsuperscript{1*}; Edilson José Rodrigues\textsupersc
 {\fontsize{9}{11}\selectfont
 \noindent\textsuperscript{1*} Especialista em Finanças, Controladoria e Auditoria.
 E-mail autor correspondente: rickinrj@gmail.com\par
-\noindent\textsuperscript{2} Doutor em Engenharia Elétrica. MBA USP/Esalq.
-E-mail: orientador@usp.br\par}
+\noindent\textsuperscript{2} Doutor em Engenharia Elétrica. MBA USP/Esalq.\par}
 
 \end{singlespace}
 
