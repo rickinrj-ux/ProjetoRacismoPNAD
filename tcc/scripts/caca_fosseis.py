@@ -75,7 +75,7 @@ DESENHO = [
     r"lr\}?=0,05|\\textlr|taxa de aprendizado|learning",                    # hiperparâmetro
     r"limiar de 5|acima de 5\\?% justific|> ?0,05\$ justific|rho_UF > 0,05",  # limiar do ICC
     r"\b10 decis|200 reps|200 réplicas|1:1,5",                              # HL, bootstrap, IBGE
-    r"reserva 20\\{0,2}% das\s+vagas|Lei 12[.]990",                         # lei de cotas
+    r"(?:reserva|Reserva aos negros) 20\\{0,2}% das\s+vagas|Lei 12[.]990",                         # lei de cotas
     r"profund|n_estimators|iterações",                                     # hiperparâmetros
     r"DeclareUnicodeCharacter|âncora \d{4}",                               # códigos Unicode
     r"Arial \d|palavras|\d cm\b|entrelinha|ajustes|\(251, 252\)",          # normas de formatação

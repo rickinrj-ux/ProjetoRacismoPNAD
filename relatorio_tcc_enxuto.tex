@@ -1019,7 +1019,7 @@ risco de sobreajuste em vez de aumentá-lo.
 
 \begin{table}[H]
 \centering
-\caption{Importância SHAP Comparada --- Random Forest e XGBoost. Predição de log-rendimento, PNAD 2016--2025 ($N_{\text{SHAP}}=50.000$). Valores: $|\text{SHAP}|$ médio. Destaque em negrito: variáveis raciais/contextuais.}
+\caption{Importância SHAP Comparada --- Random Forest e XGBoost. Predição de log-rendimento, PNAD 2016--2025 ($N_{\text{SHAP}}=50.000$). Valores: $|\text{SHAP}|$ médio.}
 \label{tab:shap_importance}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{lcccc}
@@ -1384,13 +1384,13 @@ renda no top~20\% e no top~10\%.} A Tabela~\ref{tab:interseccional} traz a decom
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.82\textwidth]{grupo_rg_interseccional}
-  \caption{A mulher negra entra pelas ocupações feminizadas, mas não chega ao comando nem ao topo: razões de chance dos quatro grupos raça$\times$gênero \textit{vs.}~homem
+  \caption{A vantagem aparente da mulher negra no acesso é de composição: razões de chance dos quatro grupos raça$\times$gênero \textit{vs.}~homem
   branco, em três desfechos. Na categoria agregada ela aparece acima da referência,
   mas por composição: entra pelas ocupações feminizadas e é a mais distante do homem
   branco entre os dirigentes e no topo da renda.}
   \label{fig:interseccional}
 \end{figure}
-\noindent\emph{Como ler a Figura~\ref{fig:interseccional}:} cada linha é um grupo raça$\times$gênero e cada ponto, a razão de chances contra o homem branco, cuja referência é a linha tracejada em 1; abaixo dela, o grupo tem menos chance que ele. À esquerda, siga a linha azul: a mulher negra aparece acima da referência na categoria agregada e termina como o grupo mais distante dela no topo da renda. À direita, a mesma comparação por grande grupo da CBO mostra de onde vem a aparente vantagem: das ocupações feminizadas, não do comando.
+\noindent\emph{Como ler a Figura~\ref{fig:interseccional}:} cada série é um grupo raça$\times$gênero e cada ponto, a razão de chances contra o homem branco, cuja referência é a linha tracejada em 1; abaixo dela, o grupo tem menos chance que ele. À esquerda, siga a série azul (mulher negra): ela aparece acima da referência na categoria agregada e termina como o grupo mais distante da referência no topo da renda. À direita, a mesma comparação por grande grupo da CBO mostra de onde vem a aparente vantagem: das ocupações feminizadas, não do comando.
 
 \paragraph{Na entrada, a vantagem da mulher negra é de ocupações feminizadas.}
 No acesso à ocupação qualificada (CBO~1--4) a mulher negra tem OR~$=1,31$,
@@ -1546,8 +1546,8 @@ Essa evidência é consistente com os experimentos de auditoria de
 \citeonline{pager2007}, que demonstram experimentalmente a discriminação
 racial em processos seletivos.
 
-\paragraph{A convergência existe, mas é lenta.}
-Em dez anos o gap encolheu 14{,}7\%, e a inclinação é estatisticamente distinta de zero\footnote{$\delta = 0{,}000928$ log-ponto por ano, IC~95\% $[0{,}000133;\ 0{,}001723]$, $p = 0{,}027$, por mínimos quadrados ponderados sobre o $\hat\beta_{\text{negro}}$ do M3 estimado ano a ano, 2016--2025.}. Mantido o ritmo, eliminar o diferencial observado em 2016 levaria cerca de 76 anos. Nada disso trivializa os avanços recentes em políticas de cotas e de acesso ao ensino superior. Diz, sim, que reformas no campo educacional, sem intervenção simultânea nos mecanismos de segregação residencial e de acesso às ocupações, são insuficientes --- que é precisamente o que a sequência de modelos deste trabalho mostrou.
+\paragraph{A convergência veio num degrau, e não num ritmo.}
+Em dez anos o gap encolheu 14{,}7\%, e a inclinação é estatisticamente distinta de zero\footnote{$\delta = 0{,}000928$ log-ponto por ano, IC~95\% $[0{,}000133;\ 0{,}001723]$, $p = 0{,}027$, por mínimos quadrados ponderados sobre o $\hat\beta_{\text{negro}}$ do M3 estimado ano a ano, 2016--2025.}. Uma reta, porém, descreve mal a série. No estudo de evento --- a penalidade de cada ano contra a de 2019, com efeito fixo de bairro e erro agrupado por UPA, nível que difere do M3 por comparar só vizinhos ---, ela oscilou sem tendência de 2016 a 2019 e caiu em 2020, de 7{,}0\% para 5{,}9\% (1{,}0 log-ponto acima da tendência anterior, $p = 0{,}004$), sem voltar depois: em 2025 era de 5{,}2\%. A queda não reflete a saída dos negros de menor renda do emprego: a ocupação deles caiu só 0{,}26 ponto percentual a mais que a dos brancos em 2020, dentro da tendência anterior, e passou a crescer mais que a deles a partir de 2022, quando a penalidade seguia menor. Também não reflete a entrevista por telefone, adotada pelo IBGE em 2020 e 2021: a penalidade menor persistiu depois da volta da coleta presencial. Sem grupo de controle, a série não identifica a causa do degrau; ela mostra que a década não teve um ritmo de convergência a extrapolar, e que os resultados agrupados de 2016--2025 são uma média dos dois patamares. Nada disso trivializa os avanços recentes em políticas de cotas e de acesso ao ensino superior. Diz, sim, que reformas no campo educacional, sem intervenção simultânea nos mecanismos de segregação residencial e de acesso às ocupações, são insuficientes --- que é precisamente o que a sequência de modelos deste trabalho mostrou.
 
 \paragraph{Ancoragem em políticas públicas existentes.}
 As barreiras estimadas não são abstrações: cada uma corresponde a um instrumento
@@ -1591,7 +1591,7 @@ os canais que os convertem em mobilidade profissional permanecem estreitos.
 Políticas baseadas apenas em educação são, portanto, necessárias, mas
 estruturalmente insuficientes.
 
-O ritmo observado na última década reforça a urgência: há convergência estatisticamente distinguível de zero ($p = 0{,}027$), mas lenta --- mantido o ritmo, eliminar o diferencial levaria cerca de 76 anos.
+A última década não autoriza esperar: a penalidade caiu sobretudo em 2020, de 7{,}0\% para 5{,}9\%, e não mostrou um ritmo de convergência a extrapolar.
 Significa, concretamente, que reformas incrementais são insuficientes:
 é necessário atacar as duas barreiras de forma simultânea e com recursos
 proporcionais à magnitude do problema.
@@ -1718,7 +1718,11 @@ vaga e currículos, como nos experimentos de auditoria \cite{pager2007} --- perm
 medir o conteúdo das funções e a triagem na contratação, que os códigos ocupacionais
 não captam. A descrição oficial dos códigos não supriria essa lacuna: seria a
 ocupação de novo, um \emph{bad control} no modelo de rendimento e o próprio desfecho
-no de acesso.
+no de acesso. Fica ainda como agenda relacionar a penalidade estimada em cada estado
+à presença de pretos e pardos nos cargos eletivos, que a Justiça Eleitoral registra
+por cor ou raça desde 2014: a sub-representação negra no comando político seria a
+face institucional do teto de vidro aqui medido \cite{almeida2019}, mas, com uma
+observação por estado, a comparação seria apenas ecológica.
 
 \bigskip
 

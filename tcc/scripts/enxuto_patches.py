@@ -40,6 +40,29 @@ def _tendencia():
     return t
 
 
+def _params():
+    import sys as _s
+    from pathlib import Path as _P
+    _s.path.insert(0, str(_P(__file__).resolve().parent))
+    from params_nucleo import P
+    return P
+
+
+def _degrau() -> bool:
+    """Estudo de evento (E8.8): pré-2020 sem inclinação, salto em 2020 acima da tendência e
+    persistência em 2025 — só então o texto troca a extrapolação pelo degrau."""
+    P = _params()
+    return ("COV_D2020" in P and P["COV_P_INCL_PRE"] >= 0.10 and P["COV_DEV2020"] > 0
+            and P["COV_P_DEV2020"] < 0.05 and P["COV_D2025"] > 0 and P["COV_P2025"] < 0.05)
+
+
+def _sem_selecao() -> bool:
+    """Ocupação dos negros em 2020 dentro da tendência e recuperação relativa desde 2022."""
+    P = _params()
+    return (P["COV_EMP_P_DEV2020"] >= 0.05 and P["COV_EMP_D2022"] > 0
+            and P["COV_EMP_P2022"] < 0.05)
+
+
 def _prazo(anos):
     if anos is None or anos == float("inf"):
         return None
@@ -59,6 +82,11 @@ def frase_conclusao_convergencia():
                 + (f", e mesmo no cenário mais otimista que os dados admitem, eliminá-lo "
                    f"levaria {otim}." if otim else ".")
                 + " Esperar não resolve.")
+    if t["TEND_DELTA"] > 0 and _degrau():
+        P = _params()
+        return ("A última década não autoriza esperar: a penalidade caiu sobretudo em 2020, de "
+                f"{_virg(P['COV_PEN_2019'], 1)}\\% para {_virg(P['COV_PEN_2020'], 1)}\\%, e não "
+                "mostrou um ritmo de convergência a extrapolar.")
     if t["TEND_DELTA"] > 0:
         return ("O ritmo observado na última década reforça a urgência: há convergência "
                 f"estatisticamente distinguível de zero ($p = {_virgm(t['TEND_P'], 3)}$), mas "
@@ -100,6 +128,30 @@ def _paragrafo_convergencia():
                  + quebra
                  + " Extrapolar dez pontos anuais por décadas não é previsão; o que a série "
                    "sustenta é mais modesto e mais firme --- esperar não resolve.")
+    elif t["TEND_DELTA"] > 0 and _degrau():
+        # E8.8 (05/10/2026): o estudo de evento mostra um degrau em 2020, não um ritmo — a reta
+        # não tem o que extrapolar, e o prazo em anos sai do texto
+        P = _params()
+        titulo = "A convergência veio num degrau, e não num ritmo"
+        corpo = (f"{mov}, e a inclinação é estatisticamente distinta de zero{nota}. Uma reta, "
+                 "porém, descreve mal a série. No estudo de evento --- a penalidade de cada ano "
+                 "contra a de 2019, com efeito fixo de bairro e erro agrupado por "
+                 f"UPA, nível que difere do M3 por comparar só vizinhos ---, ela oscilou sem tendência de 2016 a 2019 e caiu em 2020, de "
+                 f"{_virg(P['COV_PEN_2019'], 1)}\\% para {_virg(P['COV_PEN_2020'], 1)}\\% "
+                 f"({_virg(P['COV_DEV2020'], 1)} log-ponto acima da tendência anterior, "
+                 f"$p = {_virgm(P['COV_P_DEV2020'], 3)}$), sem voltar depois: em 2025 era de "
+                 f"{_virg(P['COV_PEN_2025'], 1)}\\%.")
+        if _sem_selecao():
+            corpo += (" A queda não reflete a saída dos negros de menor renda do emprego: a "
+                      "ocupação deles caiu só "
+                      f"{_virg(abs(P['COV_EMP_D2020']), 2)} ponto percentual a mais que a dos "
+                      "brancos em 2020, dentro da tendência anterior, e passou a crescer mais que "
+                      "a deles a partir de 2022, quando a penalidade seguia menor. Também não "
+                      "reflete a entrevista por telefone, adotada pelo IBGE em 2020 e 2021: a "
+                      "penalidade menor persistiu depois da volta da coleta presencial.")
+        corpo += (" Sem grupo de controle, a série não identifica a causa do degrau; ela mostra "
+                  "que a década não teve um ritmo de convergência a extrapolar, e que os resultados "
+                  "agrupados de 2016--2025 são uma média dos dois patamares.")
     elif t["TEND_DELTA"] > 0:
         titulo = "A convergência existe, mas é lenta"
         corpo = (f"{mov}, e a inclinação é estatisticamente distinta de zero{nota}. Mantido o "
@@ -963,9 +1015,11 @@ inferência.
     # (patch "rev-final SWD: título de ação na figura SHAP" removido em 03/10/2026: o bloco da
     #  figura SHAP acima já traz o título de ação, e o alvo nunca chegava até aqui)
 
+    # 04/10/2026 (releitura E8): a imagem já traz "entra pelas ocupações feminizadas, mas não
+    # chega ao comando"; a legenda afirma o achado com outra frase, para não repetir o título
     ("rev-final SWD: título de ação na figura interseccional",
      r"\\caption\{Razões de chance dos quatro grupos raça\$\\times\$gênero",
-     "\\caption{A mulher negra entra pelas ocupações feminizadas, mas não chega ao comando nem ao topo: razões de "
+     "\\caption{A vantagem aparente da mulher negra no acesso é de composição: razões de "
      "chance dos quatro grupos raça$\\times$gênero", 0),
 
     # ── Limitações ────────────────────────────────────────────────────────────
@@ -985,7 +1039,11 @@ inferência.
      "medir o conteúdo das funções e a triagem na contratação, que os códigos ocupacionais\n"
      "não captam. A descrição oficial dos códigos não supriria essa lacuna: seria a\n"
      "ocupação de novo, um \\emph{bad control} no modelo de rendimento e o próprio desfecho\n"
-     "no de acesso.", 0),
+     "no de acesso. Fica ainda como agenda relacionar a penalidade estimada em cada estado\n"
+     "à presença de pretos e pardos nos cargos eletivos, que a Justiça Eleitoral registra\n"
+     "por cor ou raça desde 2014: a sub-representação negra no comando político seria a\n"
+     "face institucional do teto de vidro aqui medido \\cite{almeida2019}, mas, com uma\n"
+     "observação por estado, a comparação seria apenas ecológica.", 0),
 
     # ── Bloco 1 — fonte única de números ──────────────────────────────────────
     ("1.4 nota terminológica: líquido = M3, residual = M4",

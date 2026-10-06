@@ -526,20 +526,20 @@ if "HET_HLM_PRETO" in P:
     bullet(f"Pretos × pardos (mesmo perfil e bairro): salário {pct(P['HET_HLM_PRETO'])} × "
            f"{pct(P['HET_HLM_PARDO'])}; acesso OR {pt(P['HET_OR_PRETO_OCP'], 3)} × "
            f"{pt(P['HET_OR_PARDO_OCP'], 3)}; top 10% OR {pt(P['HET_OR_PRETO_T10'], 3)} × "
-           f"{pt(P['HET_OR_PARDO_T10'], 3)}. A distância cresce no topo (QR q95: "
-           f"{pct(P['HET_QR_PRETO_Q95'])} × {pct(P['HET_QR_PARDO_Q95'])}). Leitura: compatível com "
-           "colorismo; 'negro' segue como categoria da política, porque os dois grupos estão "
-           "abaixo dos brancos em tudo.")
-    bullet(f"Setor: a porta é igual (acesso OR {pt(P['HET_OR_SETOR0_OCP'], 3)} no privado × "
+           f"{pt(P['HET_OR_PARDO_T10'], 3)}. A distância cresce no topo (QR, 9º decil: "
+           f"{pct(P['HET_QR_PRETO_Q90'])} × {pct(P['HET_QR_PARDO_Q90'])}). Leitura: compatível com "
+           "colorismo (discriminação graduada pela tonalidade da pele, Telles 2004); 'negro' segue como categoria da política, porque os dois grupos estão "
+           "abaixo dos brancos em todas as medidas.")
+    bullet(f"Setor: a porta é igualmente desigual (acesso OR {pt(P['HET_OR_SETOR0_OCP'], 3)} no privado × "
            f"{pt(P['HET_OR_SETOR1_OCP'], 3)} no público); o teto não (top 10% "
            f"{pt(P['HET_OR_SETOR0_T10'], 3)} × {pt(P['HET_OR_SETOR1_T10'], 3)}; salário "
            f"{pct(P['HET_HLM_SETOR0'])} × {pct(P['HET_HLM_SETOR1'])}).")
     bullet(f"Idade: {pct(P['HET_IDADE_14_29'])} (14–29) a {pct(P['HET_IDADE_65MAIS'])} (65+). "
            "Pergunta provável: 'é coorte ou ciclo de vida?' — resposta: dado transversal não "
-           "separa; as duas leituras são compatíveis com o teto de vidro.")
-    bullet(f"Teto de vidro dentro de cada UF: OR {pt(P['HET_OR_T10UF'], 3)} — não é efeito da "
-           "geografia. Peso amostral (V1028): OR do acesso "
-           f"{pt(P['PESO_OR_OCP_S'], 3)} → {pt(P['PESO_OR_OCP_P'], 3)}. WeMix: inviável com 41 mil UPAs.")
+           "separa; ciclo de vida é compatível com o teto de vidro, coorte com melhora entre gerações; 65+ é grupo selecionado (só quem ainda trabalha).")
+    bullet(f"Teto de vidro dentro de cada UF: OR {pt(P['HET_OR_T10UF'], 3)} — não decorre da "
+           "composição regional dos salários. Peso amostral (V1028), no logit com efeito fixo de estado: OR do acesso "
+           f"{pt(P['PESO_OR_OCP_S'], 3)} → {pt(P['PESO_OR_OCP_P'], 3)}. WeMix (pacote R de multinível ponderado): inviável com 41 mil UPAs.")
 doc.add_page_break()
 
 # ══ Parte 5 — equações ════════════════════════════════════════════════════════
@@ -621,8 +621,25 @@ pergunta(f"Com {pt(P['N_GLMM'] / 1e6, 1)} milhões de observações, tudo não f
          f"tendência temporal do gap tem p = {pt(P['TEND_P'], 3)}"
          + (" e não se distingue de zero; a conclusão conservadora é que a década não "
             "produziu convergência mensurável." if P["TEND_P"] >= 0.05 else
+            f", significante: {pt(abs(P['TEND_DELTA']), 4)} log-ponto por ano. Mas o estudo "
+            "de evento mostra que não é um ritmo: a penalidade oscilou sem tendência até 2019, "
+            f"caiu em 2020 ({pt(P['COV_PEN_2019'], 1)}% → {pt(P['COV_PEN_2020'], 1)}%, com efeito "
+            f"fixo de bairro) e não voltou ao nível anterior ({pt(P['COV_PEN_2025'], 1)}% em 2025) — "
+            "um degrau, não uma rampa a extrapolar."
+            if "COV_D2020" in P else
             f", significante e lenta: {pt(abs(P['TEND_DELTA']), 4)} log-ponto por ano — "
             "a convergência existe, mas no ritmo da década levaria gerações."))
+
+pergunta("E a quebra de 2020? A pandemia não contamina a série?",
+         (f"Testado com um estudo de evento (base 2019, efeito fixo de bairro, erro por UPA). A "
+          f"penalidade caiu de {pt(P['COV_PEN_2019'], 1)}% para {pt(P['COV_PEN_2020'], 1)}% em 2020 "
+          f"({pt(P['COV_DEV2020'], 1)} log-ponto acima da tendência, p = {pt(P['COV_P_DEV2020'], 3)}) "
+          f"e não voltou ({pt(P['COV_PEN_2025'], 1)}% em 2025). Não é seleção: a ocupação dos negros "
+          f"caiu só {pt(abs(P['COV_EMP_D2020']), 2)} p.p. a mais em 2020, dentro da tendência, e "
+          "cresceu mais que a dos brancos desde 2022. Não é a entrevista por telefone: persiste "
+          "após a volta da coleta presencial. Sem grupo de controle, não se identifica a causa; os "
+          "resultados agrupados de 2016–2025 são uma média de antes e depois do degrau.")
+         if "COV_D2020" in P else "Não testado.")
 
 pergunta("Por que UPA como efeito aleatório e UF como efeito fixo?",
          "Porque 27 unidades são poucas para estimar uma distribuição no terceiro "

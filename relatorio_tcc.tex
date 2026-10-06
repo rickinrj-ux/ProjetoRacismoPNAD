@@ -832,7 +832,7 @@ de amostral para populacional, \emph{reduz} --- não aumenta --- o risco de sobr
 
 \begin{table}[H]
 \centering
-\caption{Importância SHAP Comparada --- Random Forest e XGBoost. Predição de log-rendimento, PNAD 2016--2025 ($N_{\text{SHAP}}=50.000$). Valores: $|\text{SHAP}|$ médio. Destaque em negrito: variáveis raciais/contextuais.}
+\caption{Importância SHAP Comparada --- Random Forest e XGBoost. Predição de log-rendimento, PNAD 2016--2025 ($N_{\text{SHAP}}=50.000$). Valores: $|\text{SHAP}|$ médio.}
 \label{tab:shap_importance}
 \begin{tabular}{lcccc}
 \toprule
@@ -1090,9 +1090,9 @@ O diferencial de log-rendimento reduziu-se de 0.441 (2016)
 para 0.431 (2025), queda de 0.011
 em dez anos --- uma redução de apenas 2.4\%
 em relação ao patamar inicial. A tendência positiva mais pronunciada
-ocorreu em 2020--2021, provavelmente como efeito composição
-da pandemia de COVID-19 sobre os rendimentos formais, e não como
-resultado estrutural de políticas de inclusão.
+ocorreu em 2020--2021 e não se desfez depois; o estudo de evento com
+efeito fixo de bairro não a atribui à composição do emprego na pandemia
+(ver a Discussão).
 
 \subsection{Multicolinearidade do Modelo M4: Análise VIF}
 \label{subsec:vif}

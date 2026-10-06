@@ -185,7 +185,7 @@ rodape(s, 7)
 
 # ══ 8 — Interseccionalidade ═══════════════════════════════════════════════════
 s = novo()
-header_bar(s, "A mulher negra entra pelas ocupações feminizadas, mas não chega ao comando nem ao topo",
+header_bar(s, "A mulher negra entra pelas ocupações feminizadas, mas não chega ao comando",
            "Raça e gênero se acumulam, sem se multiplicar")
 add_img(s, FIGS / "grupo_rg_interseccional.png", In(0.7), In(1.4), In(6.6))
 kpi(s, "Gap da mulher negra vs. homem branco", pct(P["INT_MULHER_NEGRA_GAP"]),

@@ -439,6 +439,13 @@ def corpo(doc: Document) -> None:
                  + (f" Mesmo no cenário mais otimista que eles admitem, fechá-la levaria "
                     f"cerca de {_otim:.0f} anos." if _otim else "")
                  + " Esperar não resolve.")
+    elif "COV_D2020" in P:
+        # E8.8: o estudo de evento mostra um degrau em 2020, não um ritmo a extrapolar
+        _conv = ("Por fim, a diferença diminuiu, mas de uma vez só: ficou estável até 2019, "
+                 f"caiu em 2020 (de {pc(P['COV_PEN_2019'])}% para {pc(P['COV_PEN_2020'])}%, "
+                 "entre pessoas do mesmo bairro) e não voltou ao nível anterior "
+                 f"({pc(P['COV_PEN_2025'])}% em 2025). Não há um ritmo que permita dizer quando "
+                 "ela se fecha sozinha.")
     else:
         _conv = ("Por fim, a diferença vem diminuindo de forma estatisticamente "
                  "mensurável, mas devagar: no ritmo da década, fechá-la levaria cerca de "

@@ -16,6 +16,7 @@ $passos = @(
     @("konfound_evalues",   "python -u scripts/analise/run_konfound_evalues.py"),
     # RIF pontual: tem checkpoint por quantil em outputs/tables/rif_checkpoints (esvaziar antes!)
     @("rif_decomp",         "python -u scripts/analise/run_rif_decomp.py"),
+    @("covid_evento",       "python -u scripts/analise/run_covid_evento.py"),
     # geradores fora do run_tcc.ps1
     # tab1/tab2 (MED_BR, GAP_MEDIANA… do params) e fig1; composição (csv e figuras do deck).
     # Leem renda_bruta, que passou a ser deflacionada — não podem ficar de fora

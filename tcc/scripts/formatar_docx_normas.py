@@ -128,6 +128,11 @@ def formatar_corpo(doc: Document) -> tuple[int, int]:
             pf.space_before = Pt(0)
             pf.space_after = Pt(6)
             pf.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            # mesmo autor e ano (Alencar 2026a/b/c): o CSL do pandoc põe a letra antes do
+            # ano ("a2026"); a ABNT pede depois ("2026a"), como na citação do texto
+            for r in p.runs:
+                if re.search(r"\b[a-h](?:19|20)\d{2}\b", r.text):
+                    r.text = re.sub(r"\b([a-h])((?:19|20)\d{2})\b", r"\2\1", r.text)
             corpo += 1
             continue
 
@@ -241,7 +246,10 @@ def formatar_notas(doc: Document) -> int:
         if len(seguintes) < 2:
             continue
         a, b = seguintes[0], seguintes[1]
-        if a.tag == W_P and b.tag == W_P and _txt(a) and not RE_FONTE.match(_txt(a))                 and _txt(b).startswith("Fonte"):
+        # legenda não é nota: a Figura 10 vem numa tabela de leiaute do pandoc, e a sua
+        # legenda (entre essa "tabela" e a Fonte) virava "Nota: Figura 10."
+        if a.tag == W_P and b.tag == W_P and _txt(a) and not RE_FONTE.match(_txt(a)) \
+                and not RE_LEGENDA.match(_txt(a)) and _txt(b).startswith("Fonte"):
             corpo.remove(a)
             b.addnext(a)
             if not _txt(a).startswith("Nota"):
@@ -275,6 +283,265 @@ def formatar_notas(doc: Document) -> int:
             pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
             n += 1
     return n
+
+
+_W_T, _M_T = qn("w:t"), "{http://schemas.openxmlformats.org/officeDocument/2006/math}t"
+# abreviaturas que terminam em ponto sem encerrar a frase
+_ABREV = {"vs", "i.e", "e.g", "p", "n", "fig", "tab", "al", "cf", "ex", "aprox", "obs"}
+
+
+def _texto_el(el) -> str:
+    """Texto de um elemento, contando também o das equações (m:t), na ordem do documento."""
+    return "".join(x.text or "" for x in el.iter() if x.tag in (_W_T, _M_T))
+
+
+def _fim_da_primeira_frase(texto: str, inicio: int) -> int | None:
+    """Posição do ponto que encerra a primeira frase depois de `inicio` (None se só há uma)."""
+    for m in re.finditer(r"\.\s+(?=[A-ZÀ-Ü(])", texto[inicio:]):
+        pos = inicio + m.start()
+        palavra = re.search(r"([\w.]+)$", texto[:pos])
+        if palavra and palavra.group(1).lower().rstrip(".") in _ABREV:
+            continue
+        return pos
+    return None
+
+
+def _cortar_paragrafo(p_el, pos: int) -> list:
+    """Corta o parágrafo no caractere `pos` (o ponto da frase): o que vem depois sai do
+    parágrafo e é devolvido como lista de elementos. Runs e equações são movidos inteiros;
+    só o run onde cai o corte é partido, para não perder itálico nem equação."""
+    import copy
+    resto, acum, cortado = [], 0, False
+    for filho in [c for c in p_el if c.tag != qn("w:pPr")]:
+        t = _texto_el(filho)
+        if cortado:
+            p_el.remove(filho)
+            resto.append(filho)
+        elif acum + len(t) > pos:
+            k = pos - acum                      # posição do ponto dentro deste filho
+            if filho.tag == qn("w:r") and filho.find(_W_T) is not None:
+                ws = filho.find(_W_T)
+                antes, depois = ws.text[:k].rstrip(), ws.text[k + 1:].lstrip()
+                ws.text = antes
+                if depois:
+                    novo = copy.deepcopy(filho)
+                    novo.find(_W_T).text = depois
+                    novo.find(_W_T).set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+                    resto.append(novo)
+            else:                               # corte dentro de equação: ela fica no título
+                pass
+            cortado = True
+        acum += len(t)
+    return resto
+
+
+def _tirar_ponto_final(p_el) -> bool:
+    """Manual, Tabelas 7 e 9: sem ponto depois do título, da Fonte e da Nota."""
+    textos = [x for x in p_el.iter() if x.tag in (_W_T, _M_T) and (x.text or "").strip()]
+    if not textos:
+        return False
+    ult = textos[-1]
+    s = ult.text.rstrip()
+    if s.endswith(".") and not s.endswith("..."):
+        ult.text = s[:-1]
+        return True
+    return False
+
+
+def titulos_concisos(doc: Document) -> tuple[int, int]:
+    """Título da tabela = primeira frase; o restante vai para a Nota, depois da Fonte.
+
+    Os títulos chegavam com 25 a 130 palavras. O manual pede tabela autoexplicativa e prevê a
+    Nota, depois da Fonte, para o que a explica; deixa o título curto, que é o que se lê
+    primeiro. Depois tira o ponto final de títulos, Fontes e Notas (Tabelas 7 e 9 do manual).
+    """
+    import copy
+    from docx.text.paragraph import Paragraph
+    corpo = doc.element.body
+    W_P, W_TBL = qn("w:p"), qn("w:tbl")
+    movidos = 0
+    filhos = list(corpo.iterchildren())
+    for i, el in enumerate(filhos):
+        if el.tag != W_P:
+            continue
+        txt = _texto_el(el)
+        m = re.match(r"^\s*Tabela\s+\d+\.\s*", txt)
+        if not m:
+            continue
+        prox = [x for x in filhos[i + 1:i + 4] if x.tag == W_TBL or (x.tag == W_P and _texto_el(x).strip())]
+        if not prox or prox[0].tag != W_TBL:
+            continue
+        pos = _fim_da_primeira_frase(txt, m.end())
+        resto1 = _cortar_paragrafo(el, pos) if pos is not None else []
+        # primeira frase ainda longa (> 20 palavras): corta no travessão ou no primeiro
+        # parêntese que não seja citação logo no início ("RIF-OB (Firpo; …, 2018)")
+        txt2 = _texto_el(el)
+        resto2 = []
+        if len(txt2[m.end():].split()) > 20:
+            pos2 = _corte_secundario(txt2, m.end())
+            if pos2 is not None:
+                resto2 = _cortar_paragrafo(el, pos2)
+        if not resto1 and not resto2:
+            continue
+        # destino: depois da Fonte da tabela (ou da própria tabela, se não houver Fonte)
+        tbl = prox[0]
+        seguintes = []
+        x = tbl.getnext()
+        while x is not None and len(seguintes) < 3:
+            if x.tag == W_P and _texto_el(x).strip():
+                seguintes.append(x)
+            elif x.tag == W_TBL:
+                break
+            x = x.getnext()
+        fonte = next((s for s in seguintes[:1] if _texto_el(s).strip().startswith("Fonte")), None)
+        nota = None
+        if fonte is not None and len(seguintes) > 1 and _texto_el(seguintes[1]).strip().startswith("Nota:"):
+            nota = seguintes[1]
+        modelo = fonte if fonte is not None else el
+        novo = copy.deepcopy(modelo)
+        for c in [c for c in novo if c.tag != qn("w:pPr")]:
+            novo.remove(c)
+        r_rot = copy.deepcopy(next(c for c in el if c.tag == qn("w:r")))
+        for c in [c for c in r_rot if c.tag != qn("w:rPr")]:
+            r_rot.remove(c)
+        t_rot = OxmlElement("w:t")
+        t_rot.text = "Nota: "
+        t_rot.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+        r_rot.append(t_rot)
+        novo.append(r_rot)
+        for c in resto2:
+            novo.append(c)
+        if resto2 and resto1:                   # fim do título que desceu + resto da legenda
+            _tirar_ponto_final(novo)
+            sep1 = copy.deepcopy(r_rot)
+            sep1.find(_W_T).text = ". "
+            novo.append(sep1)
+        for c in resto1:
+            novo.append(c)
+        if nota is not None:                    # a Nota que já existia continua a nova
+            _tirar_ponto_final(novo)
+            sep = copy.deepcopy(r_rot)
+            sep.find(_W_T).text = ". "
+            novo.append(sep)
+            primeiro = next((x for x in nota.iter() if x.tag == _W_T and x.text), None)
+            if primeiro is not None:
+                primeiro.text = re.sub(r"^\s*Nota:\s*", "", primeiro.text)
+            for c in [c for c in nota if c.tag != qn("w:pPr")]:
+                novo.append(c)
+            corpo.remove(nota)
+        (fonte if fonte is not None else tbl).addnext(novo)
+        pf = Paragraph(novo, doc._body).paragraph_format
+        pf.space_before, pf.space_after = Pt(0), Pt(12)
+        pf.first_line_indent = Cm(0)
+        pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
+        pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        pf.keep_with_next = False
+        if fonte is not None:
+            fp = Paragraph(fonte, doc._body).paragraph_format
+            fp.space_after, fp.keep_with_next = Pt(0), True
+        movidos += 1
+
+    pontos = 0
+    for p in doc.paragraphs:
+        t = p.text.strip()
+        if RE_LEGENDA.match(t) or t.startswith(("Fonte", "Nota:")):
+            pontos += _tirar_ponto_final(p._p)
+        if t.startswith("Nota:"):
+            _maiuscula_depois(p._p, "Nota:")
+    return movidos, pontos
+
+
+def _corte_secundario(texto: str, inicio: int) -> int | None:
+    """Onde encurtar um título que é uma frase só: no travessão; senão, no primeiro
+    parêntese que venha depois da 6.ª palavra (os anteriores costumam ser citação)."""
+    corpo = texto[inicio:]
+    i = corpo.find(" — ")
+    if i > 0 and len(corpo[:i].split()) >= 5:
+        return inicio + i + 1                   # o próprio travessão sai
+    for mt in re.finditer(r" \(", corpo):
+        if len(corpo[:mt.start()].split()) >= 6:
+            return inicio + mt.start()          # sai o espaço; o parêntese desce
+    return None
+
+
+def _maiuscula_depois(p_el, rotulo: str) -> None:
+    """Primeira letra depois do rótulo em maiúscula ("Nota: como ler" → "Nota: Como ler")."""
+    passou = False
+    for x in p_el.iter(_W_T):
+        s = x.text or ""
+        if not passou:
+            j = s.find(rotulo)
+            if j < 0:
+                continue
+            passou, s0 = True, j + len(rotulo)
+        else:
+            s0 = 0
+        for k in range(s0, len(s)):
+            if s[k].isalpha():
+                x.text = s[:k] + s[k].upper() + s[k + 1:]
+                return
+            if not s[k].isspace() and s[k] not in "(\"“":
+                return
+
+
+def notas_de_rodape_9(doc: Document) -> int:
+    """Manual, Tabela 4: notas de rodapé em Arial 9, espaçamento simples (estavam em 11)."""
+    from docx.oxml import parse_xml
+    from lxml import etree
+    n = 0
+    for rel in doc.part.rels.values():
+        if not rel.reltype.endswith("/footnotes"):
+            continue
+        parte = rel.target_part
+        raiz = parse_xml(parte.blob)
+        for r in raiz.iter(qn("w:r")):
+            rpr = r.find(qn("w:rPr"))
+            if rpr is None:
+                rpr = OxmlElement("w:rPr")
+                r.insert(0, rpr)
+            for tag in ("w:sz", "w:szCs"):
+                e = rpr.find(qn(tag))
+                if e is None:
+                    e = OxmlElement(tag)
+                    rpr.append(e)
+                e.set(qn("w:val"), "18")
+            n += 1
+        for p in raiz.iter(qn("w:p")):
+            ppr = p.find(qn("w:pPr"))
+            if ppr is None:
+                ppr = OxmlElement("w:pPr")
+                p.insert(0, ppr)
+            sp = ppr.find(qn("w:spacing"))
+            if sp is None:
+                sp = OxmlElement("w:spacing")
+                ppr.append(sp)
+            sp.set(qn("w:line"), "240")
+            sp.set(qn("w:lineRule"), "auto")
+            sp.set(qn("w:after"), "0")
+        parte._blob = etree.tostring(raiz, xml_declaration=True, encoding="UTF-8", standalone=True)
+    return n
+
+
+def exportar_pdf() -> bool:
+    """PDF de entrega a partir do próprio .docx formatado (automação do Word), para que os
+    dois sejam o mesmo documento: o PDF do LaTeX tinha ~6 páginas a menos e não recebia a
+    formatação da norma aplicada aqui. Sem Office, fica o PDF copiado do LaTeX."""
+    try:
+        import win32com.client as w32
+    except ImportError:
+        return False
+    wd = w32.DispatchEx("Word.Application")
+    wd.Visible = False
+    try:
+        d = wd.Documents.Open(str(ALVO), False, True)
+        d.ExportAsFixedFormat(str(ALVO.with_suffix(".pdf")), 17)
+        d.Close(0)
+        return True
+    except Exception as e:
+        print(f"[AVISO] PDF pelo Word falhou ({e}); fica o do LaTeX")
+        return False
+    finally:
+        wd.Quit()
 
 
 def chamadas_de_nota(doc: Document) -> int:
@@ -316,6 +583,8 @@ def formatar_tabelas(doc: Document) -> int:
     celulas = 0
     numeros = 0
     for t in doc.tables:
+        if len(t.columns) == 1 and t._tbl.findall(".//" + qn("w:drawing")):
+            continue        # tabela de leiaute do pandoc em volta de figura: não é tabela de dados
         bordas_da_norma(t)
         numeros += alinhar_numeros(t)
         n_col = len(t.columns)
@@ -339,6 +608,21 @@ def formatar_tabelas(doc: Document) -> int:
                         r.font.size = Pt(tam)
                         r.font.bold = False
                     celulas += 1
+        # sem bordas internas (norma), um registro de várias linhas se fundia ao seguinte
+        # (Tabela 2): respiro de 4 pt depois de cada linha, texto alinhado ao topo. Só nas
+        # tabelas de texto; nas numéricas, de uma linha por célula, o respiro só ocupa página
+        textual = any(len(c.text) > 30 for linha in t.rows[1:] for c in linha.cells)
+        if textual:
+            for linha in t.rows[1:]:
+                for cel in linha.cells:
+                    tcPr = cel._tc.get_or_add_tcPr()
+                    va = tcPr.find(qn("w:vAlign"))
+                    if va is None:
+                        va = OxmlElement("w:vAlign")
+                        tcPr.append(va)
+                    va.set(qn("w:val"), "top")
+                    if cel.paragraphs:
+                        cel.paragraphs[-1].paragraph_format.space_after = Pt(4)
     print(f"     {numeros} células numéricas alinhadas à direita")
     return celulas
 
@@ -718,9 +1002,13 @@ def main() -> int:
     corpo, legendas = formatar_corpo(doc)
     print(f"     {formatar_capa(doc)} parágrafos da folha de rosto/resumo ajustados")
     print(f"     {formatar_notas(doc)} notas de tabela/figura em corpo de nota")
+    movidos, pontos = titulos_concisos(doc)
+    print(f"     {movidos} títulos de tabela encurtados (explicação → Nota); "
+          f"{pontos} pontos finais retirados de títulos, Fontes e Notas")
     celulas = formatar_tabelas(doc)
     n_notas = chamadas_de_nota(doc)
     print(f"     {n_notas} chamadas de nota de rodapé em sobrescrito")
+    print(f"     {notas_de_rodape_9(doc)} trechos de nota de rodapé em Arial 9")
 
     try:
         doc.save(str(ALVO))
@@ -731,6 +1019,8 @@ def main() -> int:
     print(f"OK -> {ALVO.relative_to(ROOT)}")
     if transplantar_cabecalho(ALVO):
         print("     cabeçalho e logo transplantados do template oficial")
+    if exportar_pdf():
+        print(f"     PDF de entrega exportado do próprio Word -> {ALVO.with_suffix('.pdf').name}")
     print(f"     {quebras} quebra(s) de página inserida(s); numeração desde a "
           f"folha de rosto")
     print(f"     {corpo} parágrafos de corpo (Arial 11, 1,5, recuo 1,25 cm, "

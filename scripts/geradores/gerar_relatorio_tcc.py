@@ -329,7 +329,7 @@ def shap_table_latex(r):
         r"\centering",
         r"\caption{Importância SHAP Comparada --- Random Forest e XGBoost. "
         r"Predição de log-rendimento, PNAD 2016--2025 ($N_{\text{SHAP}}=50.000$). "
-        r"Valores: $|\text{SHAP}|$ médio. Destaque em negrito: variáveis raciais/contextuais.}",
+        r"Valores: $|\text{SHAP}|$ médio.}",
         r"\label{tab:shap_importance}",
         r"\begin{tabular}{lcccc}",
         r"\toprule",
@@ -1574,9 +1574,9 @@ O diferencial de log-rendimento reduziu-se de {k['gap_2016']:.3f} (2016)
 para {k['gap_2025']:.3f} (2025), queda de {abs(k['gap_2025']-k['gap_2016']):.3f}
 em dez anos --- uma redução de apenas {abs(k['gap_2025']-k['gap_2016'])/k['gap_2016']*100:.1f}\%
 em relação ao patamar inicial. A tendência positiva mais pronunciada
-ocorreu em 2020--2021, provavelmente como efeito composição
-da pandemia de COVID-19 sobre os rendimentos formais, e não como
-resultado estrutural de políticas de inclusão.
+ocorreu em 2020--2021 e não se desfez depois; o estudo de evento com
+efeito fixo de bairro não a atribui à composição do emprego na pandemia
+(ver a Discussão).
 
 \subsection{{Multicolinearidade do Modelo M4: Análise VIF}}
 \label{{subsec:vif}}
@@ -2203,6 +2203,42 @@ BIB = r"""
   title        = {Lei n. 15.142, de 3 de junho de 2025. Dispõe sobre a reserva às pessoas pretas e pardas, indígenas e quilombolas de vagas oferecidas em concursos públicos e em processos seletivos simplificados no âmbito da administração pública federal},
   howpublished = {Diário Oficial da União, Brasília, DF},
   year         = {2025},
+}
+
+@misc{brasil2014lei12990,
+  author       = {{Brasil}},
+  title        = {Lei n. 12.990, de 9 de junho de 2014. Reserva aos negros 20\% das vagas oferecidas nos concursos públicos para provimento de cargos efetivos e empregos públicos no âmbito da administração pública federal, das autarquias, das fundações públicas, das empresas públicas e das sociedades de economia mista controladas pela União},
+  howpublished = {Diário Oficial da União, Brasília, DF},
+  year         = {2014},
+}
+
+@misc{alencar2026a,
+  author       = {Alencar, Valquíria},
+  title        = {Árvores, Redes e Ensembles {I}},
+  howpublished = {Apostila do MBA em Data Science e Analytics. Piracicaba: Escola Superior de Agricultura ``Luiz de Queiroz'', Universidade de São Paulo},
+  year         = {2026},
+}
+
+@misc{alencar2026b,
+  author       = {Alencar, Valquíria},
+  title        = {Árvores, Redes e Ensembles {II}},
+  howpublished = {Apostila do MBA em Data Science e Analytics. Piracicaba: Escola Superior de Agricultura ``Luiz de Queiroz'', Universidade de São Paulo},
+  year         = {2026},
+}
+
+@misc{alencar2026c,
+  author       = {Alencar, Valquíria},
+  title        = {Árvores, Redes e Ensembles {III}},
+  howpublished = {Apostila do MBA em Data Science e Analytics. Piracicaba: Escola Superior de Agricultura ``Luiz de Queiroz'', Universidade de São Paulo},
+  year         = {2026},
+}
+
+@book{telles2004,
+  author    = {Telles, Edward E.},
+  title     = {Race in Another America: The Significance of Skin Color in Brazil},
+  publisher = {Princeton University Press},
+  address   = {Princeton},
+  year      = {2004},
 }
 """
 

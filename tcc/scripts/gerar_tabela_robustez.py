@@ -129,16 +129,19 @@ def linhas_tabela() -> list[tuple[str, str, str]]:
                 "Ganho do ML sobre o linear",
                 (f"$R^2$ de teste: MQO {pt(mqo, 3)}; RF {pt(r2.get('Random Forest'), 3)}; "
                  f"XGBoost {pt(r2.get('XGBoost'), 3)}"),
-                "mesmo treino e teste; o ganho real está no XGBoost"))
+                f"mesmo treino e teste: o RF empata com o linear (+{pt(r2.get('Random Forest') - mqo, 3)}); "
+                 f"o XGBoost ganha {pt(r2.get('XGBoost') - mqo, 3)}"))
     gp, op = ler("glmm_ponderado_a2.csv"), ler("oaxaca_ponderado_ab.csv")
     if gp is not None and op is not None:
         g_ = gp[gp["desfecho"] == "ocp_qualif"].set_index("ponderado")["OR_negro"]
         o_ = op[op["espec"] == "A"].set_index("ponderado")["pct_retornos"]
+        t_ = gp[gp["desfecho"] == "y_top10"].set_index("ponderado")["OR_negro"]
         L.append((
-            "Peso amostral (V1028) no acesso e na decomposição",
-            (f"OR do acesso {pt(g_[False], 3)} $\\to$ {pt(g_[True], 3)}; preço da Oaxaca (A) "
+            "Peso amostral (V1028) no acesso, no topo e na decomposição",
+            (f"OR do acesso {pt(g_[False], 3)} $\\to$ {pt(g_[True], 3)}; topo 10\\% "
+             f"{pt(t_[False], 3)} $\\to$ {pt(t_[True], 3)}; preço da Oaxaca (A, com peso) "
              f"{pt(o_[False], 1)}\\% $\\to$ {pt(o_[True], 1)}\\%"),
-            "logit com UF fixo e erro agrupado por UPA; conclusão inalterada"))
+            "logit com efeito fixo de estado e erro agrupado por UPA; conclusão inalterada"))
 
     cv = ler("ml_cv_resumo.csv")
     if cv is not None and len(cv):

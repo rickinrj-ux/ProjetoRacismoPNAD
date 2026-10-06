@@ -559,11 +559,11 @@ LEGENDAS = [
      r"quanto mais à direita (ou maior a barra), maior o efeito da variável na renda "
      r"prevista. A cor indica se o valor da variável é alto ou baixo."),
     (r"\label{fig:interseccional}", r"\end{figure}",
-     r"\noindent\emph{Como ler a Figura~\ref{fig:interseccional}:} cada linha é um grupo "
+     r"\noindent\emph{Como ler a Figura~\ref{fig:interseccional}:} cada série é um grupo "
      r"raça$\times$gênero e cada ponto, a razão de chances contra o homem branco, cuja "
      r"referência é a linha tracejada em 1; abaixo dela, o grupo tem menos chance que ele. "
-     r"À esquerda, siga a linha azul: a mulher negra aparece acima da referência na "
-     r"categoria agregada e termina como o grupo mais distante dela no topo da renda. À "
+     r"À esquerda, siga a série azul (mulher negra): ela aparece acima da referência na "
+     r"categoria agregada e termina como o grupo mais distante da referência no topo da renda. À "
      r"direita, a mesma comparação por grande grupo da CBO mostra de onde vem a aparente "
      r"vantagem: das ocupações feminizadas, não do comando."),
     (r"\label{tab:ml_perf}", r"\end{table}",

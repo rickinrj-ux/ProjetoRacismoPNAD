@@ -99,7 +99,7 @@ trabalhador: onde mora (modelo linear hierárquico, que separa a variação entr
 bairros), de que é feito o diferencial de renda (decomposição de Oaxaca--Blinder), que
 porta encontra (modelo logístico multinível de acesso a ocupações qualificadas), até
 onde sobe (regressão quantílica e decomposição por função de influência recentrada) e
-quem está na interseção de raça e gênero. Um modelo de aprendizado supervisionado
+quem está na interseção de raça e gênero, com os mesmos modelos repetidos por cor, setor e idade. Um modelo de aprendizado supervisionado
 (\\emph{{gradient boosting}}, interpretado por valores SHAP) serviu de verificação sem
 forma funcional imposta.
 
@@ -110,8 +110,8 @@ forma funcional imposta.
 # ══ Resultados: abertura e pontes ═════════════════════════════════════════════
 ABERTURA_RESULTADOS = (
     "Os resultados seguem a trajetória anunciada nas Considerações Iniciais: o bairro, a "
-    "composição do diferencial, a porta das ocupações, a escada da distribuição de renda e "
-    "a interseção de raça e gênero. Cada etapa responde a uma pergunta e deixa a seguinte; "
+    "composição do diferencial, a porta das ocupações, a escada da distribuição de renda, "
+    "a interseção de raça e gênero e o que o agregado esconde por cor, setor e idade. Cada etapa responde a uma pergunta e deixa a seguinte; "
     "a Discussão, ao final, reúne as respostas e as confronta com as políticas vigentes.\n")
 
 # uma frase no início de cada subseção, ligando a resposta anterior à próxima pergunta
@@ -144,7 +144,7 @@ def _criticas() -> str:
         c.append(
             "\\textbf{As políticas cuidam do ingresso, não da subida.} A reserva de vagas no "
             "ensino superior federal \\cite{brasil2012lei12711, brasil2023lei14723} e nos concursos "
-            "federais \\cite{brasil2025lei15142} atua na entrada. A desvantagem medida aqui, "
+            "federais \\cite{brasil2014lei12990, brasil2025lei15142} atua na entrada. A desvantagem medida aqui, "
             "porém, cresce onde se decide a ascensão: as chances de alcançar o décimo mais rico "
             f"foram {_menos(P['OR_y_top10_M2'])}\\% menores"
             + (f", e, entre os dirigentes, a mulher negra teve a menor chance de todos os "
@@ -153,14 +153,19 @@ def _criticas() -> str:
             "em comissão e funções de confiança \\cite{brasil2023decreto11443}, vale apenas "
             "para a administração pública federal, e o setor privado, que concentra a maior "
             "parte do emprego, não tem obrigação equivalente."
-            + (" O recorte por setor precisa o diagnóstico: entre pessoas comparáveis, o setor "
-               "público não abre mais a porta do cargo qualificado "
-               f"(OR~${pt(P['HET_OR_SETOR1_OCP'], 3)}$, contra ${pt(P['HET_OR_SETOR0_OCP'], 3)}$ no "
-               "privado), mas tem teto bem mais baixo --- no décimo mais rico, "
-               f"${pt(P['HET_OR_SETOR1_T10'], 3)}$ contra ${pt(P['HET_OR_SETOR0_T10'], 3)}$ --- e "
-               f"penalidade salarial menor ({pct(P['HET_HLM_SETOR1'])} contra "
-               f"{pct(P['HET_HLM_SETOR0'])}). É no setor privado, sem obrigação, que a subida mais "
-               "se fecha." if "HET_OR_SETOR1_OCP" in P and P["HET_OR_SETOR0_T10"] < P["HET_OR_SETOR1_T10"]
+            + (" O recorte por setor torna o diagnóstico mais preciso. Mesmo com reserva de vagas "
+               "nos concursos desde 2014, o setor público não abre mais a porta do cargo "
+               f"qualificado (OR~${pt(P['HET_OR_SETOR1_OCP'], 3)}$, contra "
+               f"${pt(P['HET_OR_SETOR0_OCP'], 3)}$ no privado): a reserva opera na admissão ao "
+               "serviço público, não no nível da ocupação, e os ocupados incluem coortes "
+               "anteriores a ela. O que o setor público tem é um teto que pesa bem menos --- no "
+               f"décimo mais rico, ${pt(P['HET_OR_SETOR1_T10'], 3)}$ contra "
+               f"${pt(P['HET_OR_SETOR0_T10'], 3)}$ --- e penalidade salarial menor "
+               f"({pct(P['HET_HLM_SETOR1'])} contra {pct(P['HET_HLM_SETOR0'])}). É no setor "
+               "privado que a subida mais se fecha, o que é compatível com a ausência de "
+               "obrigação, mas também com a estrutura salarial regulada do setor público; os "
+               "dados não separam as duas leituras."
+               if "HET_OR_SETOR1_OCP" in P and P["HET_OR_SETOR0_T10"] < P["HET_OR_SETOR1_T10"]
                else ""))
     # C2 — aposta educacional
     if _DIPLOMA:
@@ -203,17 +208,18 @@ def _propostas() -> str:
         f"dentro da mesma ocupação ({pct(P['GAP_M4'])}), base que a proibição de práticas "
         "discriminatórias e o Estatuto da Igualdade Racial já oferecem "
         "\\cite{brasil1995lei9029, brasil2010lei12288}. \\textbf{(iii) Um componente "
-        "territorial}, já que o bairro carrega parte do diferencial: transporte e intermediação "
-        "de emprego que liguem os bairros segregados aos polos de emprego qualificado; "
-        "aprendizagem, estágio e mentoria que levem redes de contato a quem não as tem --- a "
-        "entrada na carreira é o momento de maior retorno, pois a penalidade é mínima entre os "
-        "mais jovens ---; currículo sem endereço nas primeiras etapas de seleção, para que o "
-        "CEP não funcione como sinal de raça; escola de tempo integral e ensino técnico nos "
-        "bairros de maior proporção de população negra; habitação de interesse social em áreas "
-        "centrais, e não em novos conjuntos periféricos; e, como a penalidade é maior nos "
-        "bairros de renda mais alta, fiscalização também ali, e não só na periferia. As "
-        "estimativas por bairro do modelo hierárquico servem para escolher onde começar e para "
-        "medir se a penalidade mudou. \\textbf{(iv) Promoção, e não só "
+        "territorial}. Dos resultados decorrem três pontos: o bairro carrega parte do "
+        "diferencial; a penalidade é maior nos bairros de renda mais alta, o que pede "
+        "fiscalização também ali, e não só na periferia; e as estimativas por bairro do modelo "
+        "hierárquico servem para escolher onde começar e para medir se a penalidade mudou. A "
+        "literatura de efeitos de vizinhança \\cite{wilson1987, sampson1997, marques2010} "
+        "sugere os instrumentos: transporte e intermediação de emprego que liguem os bairros "
+        "segregados aos polos de emprego qualificado; aprendizagem, estágio e mentoria que "
+        "levem redes de contato a quem não as tem --- como a penalidade cresce com a idade, "
+        "agir na entrada evita que ela se acumule, se a leitura de ciclo de vida for a "
+        "correta ---; currículo sem endereço nas primeiras etapas de seleção; escola de tempo "
+        "integral e ensino técnico nos bairros de maior proporção de população negra; e "
+        "habitação de interesse social em áreas centrais. \\textbf{(iv) Promoção, e não só "
         "ingresso}: estender a lógica da reserva de cargos de confiança às empresas estatais "
         "e à progressão nas carreiras. \\textbf{(v) Monitoramento anual} destes indicadores "
         "--- o diferencial líquido, a chance de acesso e a chance de comando por raça e "
@@ -244,6 +250,9 @@ def _paragrafo_conclusoes() -> str:
     if _CBO and _MN_MENOR_DIR:
         f.append("A mulher negra entrou pelas ocupações feminizadas, mas foi o grupo com menor "
                  "chance de chegar ao comando.")
+    if "HET_HLM_PRETO" in P and P["HET_HLM_PRETO"] > P["HET_HLM_PARDO"]:
+        f.append(f"A penalidade foi maior para pretos ({pct(P['HET_HLM_PRETO'])}) que para pardos "
+                 f"({pct(P['HET_HLM_PARDO'])}) e cresceu com a idade.")
     if _DIPLOMA:
         f.append(f"O diploma quase igualou o salário ({pct(P['NE_GAP_POS'])} na pós-graduação), "
                  f"mas não a porta: as chances de acesso seguiram {pct(P['PCTPOS_ocp_qualif'], 0)} "
@@ -260,6 +269,9 @@ def _paragrafo_implicacoes() -> str:
     f = ["Esses resultados indicam limites da política de diversidade vigente."]
     if _TOPO_PIOR:
         f.append("As cotas atuam no ingresso, mas a desvantagem cresce onde se decide a ascensão.")
+        if "HET_OR_SETOR1_T10" in P and P["HET_OR_SETOR0_T10"] < P["HET_OR_SETOR1_T10"]:
+            f.append("No setor público, a porta do cargo qualificado foi tão desigual quanto no "
+                     "privado; o teto pesou menos.")
     if _DIPLOMA:
         f.append("A educação reduz a penalidade salarial, mas não abre a porta.")
     if _H1:
@@ -294,44 +306,53 @@ def _heterogeneidade() -> str:
     preto_pior = (P["HET_HLM_PRETO"] > P["HET_HLM_PARDO"]
                   and P["HET_OR_PRETO_OCP"] < P["HET_OR_PARDO_OCP"])
     if preto_pior:
-        s = ("Pretos e pardos estão abaixo dos brancos em todos os recortes, o que sustenta a "
-             "categoria negro como referência de política; mas a penalidade dos pretos é maior em "
-             f"todos eles: {pct(P['HET_HLM_PRETO'])} contra {pct(P['HET_HLM_PARDO'])} no salário, "
+        s = ("Pretos e pardos estão abaixo dos brancos em todas as medidas (salário, acesso, topo "
+             "e preço), o que sustenta a categoria negro como referência de política; mas a "
+             "penalidade dos pretos é maior em "
+             f"todas elas: {pct(P['HET_HLM_PRETO'])} contra {pct(P['HET_HLM_PARDO'])} no salário, "
              f"OR~$={_o('HET_OR_PRETO_OCP')}$ contra ${_o('HET_OR_PARDO_OCP')}$ no acesso e "
              f"${_o('HET_OR_PRETO_T10')}$ contra ${_o('HET_OR_PARDO_T10')}$ no décimo mais rico "
-             "(Tabela~\\ref{tab:heterogeneidade}).")
-        if P["HET_QR_PRETO_Q95"] - P["HET_QR_PARDO_Q95"] > P["HET_QR_PRETO_Q10"] - P["HET_QR_PARDO_Q10"]:
+             "(Tabela~\\ref{tab:heterogeneidade})"
+             + ("; as diferenças entre os dois grupos ficam fora dos intervalos de 95\\%."
+                if P.get("HET_COR_SEPARA") else "."))
+        if P["HET_QR_PRETO_Q90"] - P["HET_QR_PARDO_Q90"] > P["HET_QR_PRETO_Q10"] - P["HET_QR_PARDO_Q10"]:
             s += (" A distância entre os dois grupos cresce rumo ao topo: na regressão quantílica, "
-                  f"vai de {pct(P['HET_QR_PRETO_Q10'])} e {pct(P['HET_QR_PARDO_Q10'])} na base a "
-                  f"{pct(P['HET_QR_PRETO_Q95'])} e {pct(P['HET_QR_PARDO_Q95'])} no q95.")
+                  f"a penalidade de pretos e pardos, respectivamente, vai de "
+                  f"{pct(P['HET_QR_PRETO_Q10'])} e {pct(P['HET_QR_PARDO_Q10'])} no primeiro decil "
+                  f"a {pct(P['HET_QR_PRETO_Q90'])} e {pct(P['HET_QR_PARDO_Q90'])} no nono.")
         if (P["HET_RIF_PARDO_Q10"] > P["HET_RIF_PARDO_Q90"]
                 and P["HET_RIF_PRETO_Q90"] > P["HET_RIF_PARDO_Q90"]):
-            s += (" O preço também se distribui de outro modo: nos pardos concentra-se na base "
-                  f"({pct(P['HET_RIF_PARDO_Q10'])} do gap RIF no q10, {pct(P['HET_RIF_PARDO_Q90'])} "
-                  f"no q90); nos pretos alcança {pct(P['HET_RIF_PRETO_Q50'])} na mediana e "
-                  f"permanece em {pct(P['HET_RIF_PRETO_Q90'])} no topo. O padrão é compatível com "
-                  "colorismo --- um preço maior para a pele mais escura onde a seleção é mais "
-                  "visível ---, sem que estes dados o identifiquem como causa.")
+            s += (" A parcela de preço da decomposição RIF também se distribui de outro modo: nos "
+                  f"pardos, cai de {pct(P['HET_RIF_PARDO_Q10'])} no primeiro decil para "
+                  f"{pct(P['HET_RIF_PARDO_Q50'])} na mediana e {pct(P['HET_RIF_PARDO_Q90'])} no "
+                  "nono, como no agregado; nos pretos, passa de "
+                  f"{pct(P['HET_RIF_PRETO_Q10'])} para {pct(P['HET_RIF_PRETO_Q50'])} e "
+                  f"{pct(P['HET_RIF_PRETO_Q90'])}, sem ceder no topo. O padrão é compatível com o "
+                  "colorismo --- a discriminação graduada pela tonalidade da pele "
+                  "\\cite{telles2004} ---, sem que estes dados o identifiquem como causa.")
         par.append(s)
     # setor: a porta é igual, o teto não
     if abs(P["HET_OR_SETOR0_OCP"] - P["HET_OR_SETOR1_OCP"]) < 0.03 and P["HET_OR_SETOR0_T10"] < P["HET_OR_SETOR1_T10"]:
         par.append(
             "Entre pessoas comparáveis, a entrada em cargo qualificado é igualmente desigual no "
             f"setor privado (OR~$={_o('HET_OR_SETOR0_OCP')}$) e no público "
-            f"(${_o('HET_OR_SETOR1_OCP')}$); a diferença entre os setores está na subida. No "
+            f"(${_o('HET_OR_SETOR1_OCP')}$"
+            + (", com intervalos de 95\\% que se sobrepõem" if P.get("HET_SETOR_OCP_SOBREPOE") else "")
+            + "); a diferença entre os setores está na subida. No "
             f"privado, a penalidade salarial é de {pct(P['HET_HLM_SETOR0'])} e a chance de chegar "
             f"ao décimo mais rico tem OR~$={_o('HET_OR_SETOR0_T10')}$; no público, "
-            f"{pct(P['HET_HLM_SETOR1'])} e ${_o('HET_OR_SETOR1_T10')}$. O teto de vidro não é efeito "
-            "da geografia: com o topo definido dentro de cada estado, o OR é "
+            f"{pct(P['HET_HLM_SETOR1'])} e ${_o('HET_OR_SETOR1_T10')}$. O teto de vidro não decorre "
+            "da composição regional dos salários: com o topo definido dentro de cada estado, o OR é "
             f"${_o('HET_OR_T10UF')}$, como no corte nacional (${_o('OR_y_top10_M2')}$).")
     # idade
     if P["HET_IDADE_65MAIS"] > P["HET_IDADE_14_29"]:
         par.append(
             f"A penalidade cresce com a idade: {pct(P['HET_IDADE_14_29'])} entre 14 e 29 anos, "
             f"{pct(P['HET_IDADE_50_64'])} entre 50 e 64 e {pct(P['HET_IDADE_65MAIS'])} a partir dos 65. "
-            "Dados transversais não separam as duas leituras possíveis --- coorte (gerações que "
-            "chegaram ao mercado depois das cotas) ou ciclo de vida (a desigualdade se acumula ao "
-            "longo da carreira) ---, e ambas são compatíveis com o teto de vidro.")
+            "Dados transversais não separam as duas leituras possíveis: a de ciclo de vida (a "
+            "desigualdade se acumula ao longo da carreira) é compatível com o teto de vidro; a de "
+            "coorte, com melhora entre gerações. Acima dos 65 anos, o grupo é selecionado --- "
+            "só quem ainda trabalha --- e menor, o que pede cautela com essa estimativa.")
     return ("\n\subsection*{O que o agregado esconde: cor, setor e idade}\n"
             "Os resultados até aqui tratam negros como um grupo e o mercado como um todo. "
             "Estimados os mesmos modelos por recorte, três diferenças aparecem.\n\n"
@@ -343,10 +364,11 @@ HETEROGENEIDADE = _heterogeneidade()
 # robustez ao desenho amostral: completa o parágrafo "Pesos amostrais" da Inferência
 _PESO_ANCORA = "diferença sem relevância econômica; os demais resultados são não ponderados."
 PESO_COMPLEMENTO = (
-    "diferença sem relevância econômica. O mesmo vale para o acesso e para a decomposição: com o "
-    f"peso V1028 e erro agrupado por UPA, o OR do acesso vai de ${_o('PESO_OR_OCP_S')}$ a "
+    "diferença sem relevância econômica. A conclusão também se mantém no acesso e na "
+    "decomposição: com o peso V1028 e erro agrupado por UPA, no logit com efeito fixo de estado, "
+    f"o OR do acesso vai de ${_o('PESO_OR_OCP_S')}$ (sem peso) a "
     f"${_o('PESO_OR_OCP_P')}$, o do décimo mais rico de ${_o('PESO_OR_T10_S')}$ a "
     f"${_o('PESO_OR_T10_P')}$, e a parcela de preço da Oaxaca--Blinder (A) de "
-    f"{pct(P['PESO_OB_A_S'])} a {pct(P['PESO_OB_A_P'])}. O modelo multinível ponderado (WeMix) "
+    f"{pct(P['PESO_OB_A_S'])} a {pct(P['PESO_OB_A_P'])}. O modelo multinível ponderado (pacote WeMix, do R) "
     "mostrou-se computacionalmente inviável com 41 mil UPAs e fica como agenda; os demais "
     "resultados são não ponderados.") if "PESO_OR_OCP_P" in P else _PESO_ANCORA

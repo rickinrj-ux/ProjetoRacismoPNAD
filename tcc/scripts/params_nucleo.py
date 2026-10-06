@@ -589,6 +589,7 @@ def carregar() -> dict:
         t = r["termo"]
         if r["bloco"] == "cor3":
             P[f"HET_HLM_{t.upper()}"] = abs(_f(r["gap_pct"]))
+            P.setdefault("_HET_BSE", {})[t] = (_f(r["beta"]), _f(r["se"]))
         elif r["bloco"] in ("setor0", "setor1"):
             P[f"HET_HLM_SETOR{r['bloco'][-1]}"] = abs(_f(r["gap_pct"]))
         elif r["bloco"] == "idade":
@@ -603,10 +604,49 @@ def carregar() -> dict:
         d = {"ocp_qualif": "OCP", "y_top20": "T20", "y_top10": "T10", "y_top10_uf": "T10UF"}[r["desfecho"]]
         if r["bloco"] == "cor3":
             P[f"HET_OR_{r['termo'].upper()}_{d}"] = _f(r["OR"])
+            P.setdefault("_HET_IC", {})[(r["termo"], d)] = (_f(r["CI95_lo"]), _f(r["CI95_hi"]))
         elif r["bloco"] == "setor":
             P[f"HET_OR_SETOR{int(float(r['setor']))}_{d}"] = _f(r["OR"])
+            P.setdefault("_HET_IC", {})[(f"setor{int(float(r['setor']))}", d)] = (
+                _f(r["CI95_lo"]), _f(r["CI95_hi"]))
         elif r["bloco"] == "topuf":
             P["HET_OR_T10UF"] = _f(r["OR"])
+    # Diferenças entre recortes fora do acaso? (releitura E8.7: a banca perguntará se 7,4 × 5,8
+    # e 0,783 × 0,786 diferem). Salário: z da diferença dos β (covariância ignorada — conservador
+    # quando positiva); OR: sobreposição dos IC 95%. Guardados como 1/0 para o texto condicional.
+    _bse, _ic = P.pop("_HET_BSE", {}), P.pop("_HET_IC", {})
+
+    def _sobrepoe(a, b):
+        return a in _ic and b in _ic and _ic[a][0] <= _ic[b][1] and _ic[b][0] <= _ic[a][1]
+
+    if "preto" in _bse and "pardo" in _bse:
+        (b1, s1), (b2, s2) = _bse["preto"], _bse["pardo"]
+        _sep = abs(b1 - b2) > 1.96 * math.hypot(s1, s2)
+        _sep = _sep and all(not _sobrepoe(("preto", d), ("pardo", d)) for d in ("OCP", "T10"))
+        P["HET_COR_SEPARA"] = float(_sep)
+    if ("setor0", "OCP") in _ic and ("setor1", "OCP") in _ic:
+        P["HET_SETOR_OCP_SOBREPOE"] = float(_sobrepoe(("setor0", "OCP"), ("setor1", "OCP")))
+        P["HET_SETOR_T10_SEPARA"] = float(not _sobrepoe(("setor0", "T10"), ("setor1", "T10")))
+    # ── Estudo de evento da COVID (E8.8, run_covid_evento.py): penalidade com efeito fixo de
+    # bairro, ano a ano contra 2019, e ocupação na força de trabalho ─────────────────────
+    _ev = {(r["desfecho"], int(float(r["ano"]))): r for r in _rows("covid_evento.csv")}
+    _rs = {r["desfecho"]: r for r in _rows("covid_evento_resumo.csv")}
+    if "log_renda" in _rs and "ocupado" in _rs:
+        b19 = _f(_rs["log_renda"]["beta_negro_2019"])
+        for a in (2019, 2020, 2025):                       # penalidade implícita, em %
+            P[f"COV_PEN_{a}"] = abs((math.exp(b19 + _f(_ev[("log_renda", a)]["delta"])) - 1) * 100)
+        r, e = _rs["log_renda"], _rs["ocupado"]
+        P["COV_D2020"] = _f(_ev[("log_renda", 2020)]["delta"]) * 100      # log-pontos
+        P["COV_D2025"] = _f(_ev[("log_renda", 2025)]["delta"]) * 100
+        P["COV_P2025"] = _f(_ev[("log_renda", 2025)]["p"])
+        P["COV_DEV2020"] = _f(r["desvio_2020"]) * 100
+        P["COV_P_DEV2020"] = _f(r["p_desvio_2020"])
+        P["COV_P_INCL_PRE"] = _f(r["p_inclinacao_pre"])
+        P["COV_EMP_D2020"] = _f(_ev[("ocupado", 2020)]["delta"]) * 100    # p.p.
+        P["COV_EMP_P_DEV2020"] = _f(e["p_desvio_2020"])
+        P["COV_EMP_D2022"] = _f(_ev[("ocupado", 2022)]["delta"]) * 100
+        P["COV_EMP_P2022"] = _f(_ev[("ocupado", 2022)]["p"])
+        P["COV_N_UPA"] = _f(r["n_upa"])
     for r in _rows("oaxaca_por_cor.csv"):
         P[f"HET_OB_{r['cor'].upper()}_{r['espec']}"] = _f(r["pct_retornos"])
     for r in _rows("qr_por_cor.csv"):

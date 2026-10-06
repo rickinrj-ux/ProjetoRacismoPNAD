@@ -52,9 +52,11 @@ tex = r"""\begin{table}[!ht]
 \caption{O que a categoria agregada esconde: penalidade racial por cor, setor, idade e
 corte de renda. Penalidade salarial: HLM~M3 (mesmo bairro, escolaridade, idade, sexo,
 jornada e estado), em \% de renda; por idade, M3 com a interação negro $\times$ faixa
-etária. Razões de chance: GLMM de acesso A2, contra brancos de mesmo perfil e bairro.
-Preço: parcela não explicada da Oaxaca--Blinder (A), contra brancos. Cada recorte foi
-estimado na população completa com a especificação do modelo de referência.}
+etária. Razões de chance: GLMM de acesso e de teto de vidro (top 10\%), contra brancos
+de mesmo perfil e bairro. Preço: parcela não explicada da Oaxaca--Blinder (A), contra
+brancos. Setor público: empregados do setor público, inclusive militares e estatutários
+(VD4009); privado: os demais ocupados. Cada recorte foi estimado em todos os seus
+indivíduos, sem amostragem, com a especificação do modelo de referência.}
 \label{tab:heterogeneidade}
 \begin{tabular}{lrrrr}
 \toprule
