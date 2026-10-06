@@ -1160,8 +1160,8 @@ def transplantar_cabecalho(caminho: Path) -> bool:
 
 
 # blocos que a norma manda começar em página nova (item 16 e anexos)
-INICIAM_PAGINA = ("Racismo estrutural no mercado de trabalho brasileiro",
-                  "Structural racism in the Brazilian labour market")
+INICIAM_PAGINA = ("Bairro, porta e topo: o racismo estrutural",
+                  "Neighbourhood, door and top: structural racism")
 
 
 def quebras_de_pagina(doc) -> int:

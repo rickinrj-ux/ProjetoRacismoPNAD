@@ -48,10 +48,10 @@ ROOT = Path(__file__).resolve().parents[2]
 FONTE = ROOT / "relatorio_tcc_enxuto.tex"
 SAIDA = ROOT / "tcc_normas.tex"
 
-TITULO = ("Racismo estrutural no mercado de trabalho brasileiro: uma abordagem "
-          "multinível e de decomposição salarial")
-TITULO_EN = ("Structural racism in the Brazilian labour market: a multilevel and "
-             "wage-decomposition approach")
+TITULO = ("Bairro, porta e topo: o racismo estrutural no mercado de trabalho "
+          "brasileiro")
+TITULO_EN = ("Neighbourhood, door and top: structural racism in the Brazilian "
+             "labour market")
 
 
 # ── extração dos blocos reaproveitados ────────────────────────────────────────

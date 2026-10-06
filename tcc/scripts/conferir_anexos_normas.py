@@ -89,7 +89,7 @@ for nome in ("Resumo", "Abstract"):
        and str(c.paragraph_format.alignment).startswith("JUSTIFY")))
 
 a(("Título em inglês antes do Abstract",
-   "Structural racism in the Brazilian labour market" in txt))
+   "Neighbourhood, door and top: structural racism" in txt))
 a(("Palavras-chave e Keywords presentes",
    "Palavras-chave" in txt and "Keywords" in txt))
 

@@ -190,9 +190,9 @@ for secao in doc.sections:
 # ══ Capa ══════════════════════════════════════════════════════════════════════
 para("GUIA DE ESTUDO PARA A DEFESA", size=22, bold=True, color=AZUL,
      align=WD_ALIGN_PARAGRAPH.CENTER, antes=60, depois=4)
-para("Racismo estrutural no mercado de trabalho brasileiro", size=13,
+para("Bairro, porta e topo: o racismo estrutural no mercado de trabalho brasileiro", size=13,
      color=CINZA, align=WD_ALIGN_PARAGRAPH.CENTER, depois=2)
-para("Uma abordagem multinível e de decomposição salarial — PNAD Contínua 2016–2025",
+para("PNAD Contínua 2016–2025",
      size=11, italic=True, color=CINZA, align=WD_ALIGN_PARAGRAPH.CENTER, depois=24)
 para("Ricardo Calheiros · MBA em Data Science e Analytics · ESALQ/USP", size=11,
      align=WD_ALIGN_PARAGRAPH.CENTER, depois=30)

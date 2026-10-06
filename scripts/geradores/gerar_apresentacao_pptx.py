@@ -259,9 +259,9 @@ add_rect(s, 0, 0, W, H, fill_rgb=C_DARK)
 add_rect(s, In(0.5), In(0.4), In(12.33), In(3.8),
          fill_rgb=RGBColor(0x0D,0x1F,0x3C), line_rgb=C_AMBER, line_pt=1.5)
 
-add_text(s, "Racismo Estrutural e Mercado de Trabalho no Brasil",
+add_text(s, "Bairro, porta e topo: o racismo estrutural no mercado de trabalho brasileiro",
          In(0.9), In(0.65), In(11.5), In(1.5),
-         font_size=32, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER, font_name="Calibri")
+         font_size=30, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER, font_name="Calibri")
 add_text(s, "Evidências da PNAD Contínua 2016–2025 via HLM, Oaxaca-Blinder,\nGLMM logístico e Regressão Quantílica/RIF (XGBoost/SHAP como robustez)",
          In(0.9), In(2.15), In(11.5), In(0.9),
          font_size=16, color=RGBColor(0xBB,0xDE,0xFB), align=PP_ALIGN.CENTER, font_name="Calibri")
