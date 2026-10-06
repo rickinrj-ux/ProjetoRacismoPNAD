@@ -539,6 +539,87 @@ def siglas_em_colchetes(doc: Document) -> int:
     return n
 
 
+# Notas de tabela enxutas (06/10/2026, pedido do autor): a nota vai em Arial 11 (o Sistema de
+# Trabalho Final a trata como texto da tabela), então em vez de diminuir a fonte retiram-se as
+# frases que repetem a interpretação do corpo do texto, duplicam outra frase ou são ressalva
+# genérica. Retirar (e não reescrever) mantém todo número restante vindo dos resultados.
+_FRASES_FORA_DAS_NOTAS = (
+    "A tabela que mostra de que é feita a comparação",
+    "Valores extraídos dos mesmos csv",
+    "Com N desta ordem quase todo coeficiente",
+    "Cada linha acrescenta um bloco de controles",
+    "cada linha adiciona algo à anterior",
+    "O salto da primeira para a segunda linha",
+    "Do modelo agregado ao M4",
+    "em cada especificação, Dotações",
+    "De (A) para (B), parte do",
+    "qualquer desvio de calibração é",
+    "Todos os OR com p<0,001",
+    "A coluna logit-FE mostra",
+    "Padrão sticky floor",
+    "A Mulher Negra tem o maior gap",
+    "Em log-pontos, o gap da Mulher Negra",
+    "Somar os percentuais daria",
+    "O sinal negativo das dotações da Mulher Branca",
+)
+_FIM_FRASE = re.compile(r"\.\s+(?=[A-ZÀ-Ú(“\"])|\.?\s*$")
+
+
+def enxugar_notas(doc: Document) -> int:
+    """Retira das Notas as frases listadas, preservando runs e equações do que fica."""
+    n = 0
+    for p in doc.paragraphs:
+        if not p.text.strip().startswith("Nota:"):
+            continue
+        filhos = [c for c in p._p if c.tag != qn("w:pPr")]
+        textos = [_texto_el(c) for c in filhos]
+        cheio = "".join(textos)
+        cortes = []
+        for ini_txt in _FRASES_FORA_DAS_NOTAS:
+            i = cheio.find(ini_txt)
+            if i < 0:
+                continue
+            # o trecho pode estar no meio da frase: volta até o início dela
+            ant = [m.end() for m in re.finditer(r"\.\s+|Nota:\s*", cheio[:i])]
+            i = ant[-1] if ant else i
+            fim = len(cheio)                       # fim da frase: ponto + espaço, salvo abreviatura
+            for m in re.finditer(r"\.\s+", cheio[i + len(ini_txt):]):
+                k = i + len(ini_txt) + m.start()
+                palavra = re.search(r"([\w.]+)$", cheio[:k])
+                if palavra and palavra.group(1).lower().rstrip(".") in _ABREV | {"cap"}:
+                    continue
+                fim = k + len(m.group(0))
+                break
+            cortes.append((i, fim))
+        if not cortes:
+            continue
+        # remove os trechos, de trás para a frente, elemento a elemento
+        for i, fim in sorted(cortes, reverse=True):
+            pos = 0
+            for c, t in zip(filhos, textos):
+                a, b = pos, pos + len(t)
+                pos = b
+                if b <= i or a >= fim or not t:
+                    continue
+                if a >= i and b <= fim:              # elemento inteiro dentro do corte
+                    if c.getparent() is not None:
+                        c.getparent().remove(c)
+                    continue
+                if c.tag == qn("w:r") and c.find(_W_T) is not None:
+                    ws = c.find(_W_T)
+                    s = ws.text or ""
+                    ws.text = s[:max(0, i - a)] + s[min(len(s), fim - a):]
+                    ws.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+            n += 1
+            textos = [_texto_el(c) if c.getparent() is not None else "" for c in filhos]
+        # espaços duplos e ponto final que sobrou no fim (norma: sem ponto)
+        for r in p.runs:
+            r.text = re.sub(r"\s{2,}", " ", r.text)
+        _tirar_ponto_final(p._p)
+        _maiuscula_depois(p._p, "Nota:")
+    return n
+
+
 def ordenar_citacoes(doc: Document) -> int:
     """Manual, 17.2: várias obras no mesmo parênteses vão em ordem alfabética, e as de um autor
     vêm antes das de dois, que vêm antes das de "et al." — (Marques, 2010; Wilson, 1987;
@@ -1133,6 +1214,7 @@ def main() -> int:
     movidos, pontos = titulos_concisos(doc)
     print(f"     {movidos} títulos de tabela encurtados (explicação → Nota); "
           f"{pontos} pontos finais retirados de títulos, Fontes e Notas")
+    print(f"     {enxugar_notas(doc)} frases retiradas das Notas (interpretação repetida do texto)")
     celulas = formatar_tabelas(doc)
     n_notas = chamadas_de_nota(doc)
     print(f"     {n_notas} chamadas de nota de rodapé em sobrescrito")
