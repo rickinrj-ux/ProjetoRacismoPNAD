@@ -65,3 +65,18 @@ referências em ABNT (abnTeX2/pandoc), e o manual tem estilo próprio (itens 17�
 Portões: norma 31/31 (novos: referências no formato do manual, sem caixa alta), Word 49 pp.,
 fósseis 0, números sem fonte 0, validate consistente, verificar_analises 0 ALTO.
 Não aplicado: gráfico como objeto do Excel (exceção do manual para software que não reproduz no Excel).
+
+## F. Segundo relatório (06/10 14:06): 0 problemas, 30 alertas
+
+| Alerta | Qtd | Veredito | Ação |
+|---|---|---|---|
+| E-mail do orientador | 1 | procede | decisão do autor: enviar sem (dado não disponível) |
+| Ordem das obras no mesmo parênteses (1 autor → 2 → et al.) | 2 | procede (17.2) | `ordenar_citacoes()` no formatador |
+| Equação (1) com número fora do fim da linha | 1 | procede | equação compactada (vetor **E** das dummies de escolaridade): cabe na linha |
+| Tabela 3 e Tabela 7: chamada só em nota de rodapé | 2 | procede | `chamada_antes` ignora notas de rodapé; chamada da tabela de ajuste do GLMM no corpo |
+| Gráfico como imagem | 1 | não procede (exceção do manual: software que não reproduz no Excel) | — |
+| Subtítulos de livros com iniciais maiúsculas | ~12 | procede (nota 1, p. 51: subtítulo só com a 1.ª letra maiúscula) | subtítulos corrigidos no `bib_manual_esalq.bib` |
+| Título principal de livro em minúsculas ("Racismo estrutural", "brasil") | ~8 | **não procede**: o manual (18.1) manda iniciais maiúsculas em título de livro, exceto preposições; a ferramenta sugere até "brasil" minúsculo | mantido conforme o manual |
+| Data por extenso no nome da lei ("13 de abril de 1995") | 1 | **não procede**: é o nome oficial da norma; o exemplo do próprio manual (19.5) mantém "de 27 de setembro de 2021" e abrevia só a data do DOU | mantido |
+| "Alencar 2026c não citada" / "Alencar 2026 sem sufixo" / "Brasil 2023 sem sufixo" | 3 | **não procede**: o manual (17.2) manda "Mariano (2019a, b)" e o mesmo sufixo na referência; a ferramenta não lê "2026a, b, c" | mantido |
+| Apostilas como "Trabalhos Acadêmicos"; Henriques como relatório online; "Xgboost" | 3 | divergência de classificação ou de grafia (nome próprio XGBoost) | mantido |

@@ -392,12 +392,12 @@ contexto estadual sem hipóteses distribucionais. O modelo de dois níveis é da
 \paragraph{Nível 1 --- indivíduo $i$ na UPA $j$, eq. (1):}
 \begin{equation}
   \ln(W)_{ij} = \beta_{0j} + \beta_1\,\text{Negro}_{ij} + \beta_2\,\text{Sexo}_{ij}
-  + \beta_3\,X_{ij} + \beta_4\,X^2_{ij} + \sum_{e}\beta_{e}\,\text{Educ}_{e,ij}
+  + \beta_3 X_{ij} + \beta_4 X^2_{ij} + \boldsymbol{\beta}_{E}'\mathbf{E}_{ij}
   + \boldsymbol{\beta}_{5}'\mathbf{Z}_{ij} + \varepsilon_{ij}
   \label{eq:nivel1}
 \end{equation}
-em que $\mathbf{Z}$ reúne horas, situação urbana e ano (e, no M4, vínculo e
-grupo CBO), e o termo de erro é $\varepsilon_{ij}\sim\mathcal{N}(0,\sigma^2)$.
+em que $\mathbf{E}$ reúne as variáveis indicadoras cumulativas de escolaridade, $\mathbf{Z}$
+reúne horas, situação urbana e ano (e, no M4, vínculo e grupo CBO), e o termo de erro é $\varepsilon_{ij}\sim\mathcal{N}(0,\sigma^2)$.
 
 \paragraph{Nível 2 --- bairro $j$ (UPA), eq. (2):}
 \begin{equation}
