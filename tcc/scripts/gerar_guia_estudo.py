@@ -535,8 +535,8 @@ if "HET_HLM_PRETO" in P:
            f"{pt(P['HET_OR_SETOR0_T10'], 3)} × {pt(P['HET_OR_SETOR1_T10'], 3)}; salário "
            f"{pct(P['HET_HLM_SETOR0'])} × {pct(P['HET_HLM_SETOR1'])}).")
     bullet(f"Idade: {pct(P['HET_IDADE_14_29'])} (14–29) a {pct(P['HET_IDADE_65MAIS'])} (65+). "
-           "Pergunta provável: 'é coorte ou ciclo de vida?' — resposta: dado transversal não "
-           "separa; ciclo de vida é compatível com o teto de vidro, coorte com melhora entre gerações; 65+ é grupo selecionado (só quem ainda trabalha).")
+           "Pergunta provável: 'é efeito de geração ou de ciclo de vida?' — resposta: dado transversal não "
+           "separa; ciclo de vida é compatível com o teto de vidro, geração com melhora entre gerações; 65+ é grupo selecionado (só quem ainda trabalha).")
     bullet(f"Teto de vidro dentro de cada UF: OR {pt(P['HET_OR_T10UF'], 3)} — não decorre da "
            "composição regional dos salários. Peso amostral (V1028), no logit com efeito fixo de estado: OR do acesso "
            f"{pt(P['PESO_OR_OCP_S'], 3)} → {pt(P['PESO_OR_OCP_P'], 3)}. WeMix (pacote R de multinível ponderado): inviável com 41 mil UPAs.")
