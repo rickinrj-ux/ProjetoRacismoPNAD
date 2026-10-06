@@ -1,6 +1,6 @@
-# Verificação mecânica — 2026-10-06 12:42
+# Verificação mecânica — 2026-10-06 18:44
 
-Gatilho: `C:\Users\user\Documents\ProjetoRacismoPNAD\tcc\scripts\formatar_docx_normas.py`  
+Gatilho: `C:\Users\user\Documents\ProjetoRacismoPNAD\tcc\scripts\tcc_normas_narrativa.py`  
 Achados: **0 ALTO**, 2 MÉDIO, 0 BAIXO, 2 INFO.
 
 | Nível | Critério | Onde | Achado | Correção |
