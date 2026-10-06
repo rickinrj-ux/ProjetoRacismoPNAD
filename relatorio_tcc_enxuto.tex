@@ -560,9 +560,9 @@ amostragem (UPA, o proxy de bairro), dentro de estados. A hipótese substantiva 
 trabalho (H1) é que o \emph{bairro} media parte do gap racial; o modelo, portanto, coloca
 a UPA no nível~2 e trata a UF como conjunto de efeitos fixos --- 27 unidades são poucas para
 um terceiro nível aleatório \cite{angrist2009}, e os 26 \emph{dummies} absorvem todo o
-contexto estadual sem hipóteses distribucionais. O modelo de dois níveis é:
+contexto estadual sem hipóteses distribucionais. O modelo de dois níveis é dado pelas eq. (1) e (2):
 
-\paragraph{Nível 1 --- indivíduo $i$ na UPA $j$:}
+\paragraph{Nível 1 --- indivíduo $i$ na UPA $j$, eq. (1):}
 \begin{equation}
   \ln(W)_{ij} = \beta_{0j} + \beta_1\,\text{Negro}_{ij} + \beta_2\,\text{Sexo}_{ij}
   + \beta_3\,X_{ij} + \beta_4\,X^2_{ij} + \sum_{e}\beta_{e}\,\text{Educ}_{e,ij}
@@ -572,7 +572,7 @@ contexto estadual sem hipóteses distribucionais. O modelo de dois níveis é:
 em que $\mathbf{Z}$ reúne horas, situação urbana e ano (e, no M4, vínculo e
 grupo CBO), e o termo de erro é $\varepsilon_{ij}\sim\mathcal{N}(0,\sigma^2)$.
 
-\paragraph{Nível 2 --- bairro $j$ (UPA):}
+\paragraph{Nível 2 --- bairro $j$ (UPA), eq. (2):}
 \begin{equation}
   \beta_{0j} = \gamma_{00} + \gamma_{01}\,\overline{\%\text{Negro}}_{j}
   + \gamma_{02}\,\overline{\text{Desemprego}}_{j} + \gamma_{03}\,\overline{\text{Educ}}_{j}
@@ -592,7 +592,7 @@ são estimados em degraus aninhados: M0 (nulo: só o intercepto aleatório, que 
 M1 (+ capital humano e demografia); M2 (+ contexto do bairro, nível~2); M3 (+ efeitos
 fixos de UF) --- o modelo principal, que produz o \textbf{gap líquido}; e M4 (+ vínculo
 e grupo ocupacional), reportado como \emph{limite inferior} porque ocupação e formalidade
-são desfechos da própria discriminação (\emph{bad controls}, \citeonline{angrist2009}).
+são desfechos da própria discriminação (\emph{bad controls}) \cite{angrist2009}.
 Cada degrau é comparado ao anterior por teste de razão de verossimilhança (LR), e a
 redução de $\tau^2_{\text{UPA}}$ em relação ao M0 mede a variância entre bairros explicada
 pelos controles. Testa-se ainda uma \emph{inclinação aleatória} de \texttt{negro} por UPA
@@ -607,8 +607,8 @@ ICC idêntico até a quarta casa).
 \label{subsec:oaxaca_metodo}
 
 Estimam-se equações de rendimento separadas para brancos e negros e
-decompõe-se a diferença de médias na forma \emph{twofold}
-\cite{oaxaca1973, blinder1973}, tomando a estrutura de preços dos brancos como
+decompõe-se a diferença de médias na forma \emph{twofold} de
+\citeonline{blinder1973} e \citeonline{oaxaca1973}, tomando a estrutura de preços dos brancos como
 referência não discriminatória:
 $\ln \bar W_B - \ln \bar W_N = (\bar X_B - \bar X_N)'\hat\beta_B +
 \bar X_N'(\hat\beta_B - \hat\beta_N)$, em que o primeiro termo é a parcela de
@@ -840,7 +840,8 @@ entra no bloco individual do modelo de rendimento e, no de acesso, só no degrau
 rotulado como limite inferior, ao lado do vínculo.
 
 O critério que organiza os dois modelos é, então, o \emph{estatuto causal} de cada
-variável em relação ao desfecho daquele modelo, e não a semelhança das listas:
+variável em relação ao desfecho daquele modelo, e não a semelhança das listas
+(Tabela~\ref{tab:simetria}):
 
 \begin{table}[!ht]
 \centering
@@ -942,7 +943,7 @@ renda: omiti-las \emph{superestima} a penalidade --- o que faz do M3 um limite s
 para o efeito de tratamento diferencial condicional a essas características. Na direção
 oposta, os controles que são desfechos (ocupação no M4) \emph{subestimam}. O gap líquido
 deve ser lido entre esses dois limites. Para anular $\hat\beta^{M3}_{\text{negro}}$ seria
-preciso um viés de 98,4\% do coeficiente (Konfound, \citeonline{frank2013}), e o
+preciso um viés de 98,4\% do coeficiente, pelo Konfound \cite{frank2013}, e o
 E-value do modelo de acesso (Tabela~\ref{tab:glmm_glassceil}) exige um confundidor
 associado à raça e ao desfecho com razão de risco $\geq 1,5$ --- uma associação
 modesta, que sozinha não descarta viés.
@@ -988,9 +989,9 @@ A profundidade das árvores, a taxa de aprendizado e o número de iterações n�
 fixados por conveniência: seis configurações foram comparadas numa partição de validação
 \emph{dentro} do conjunto de treino --- o teste permanece intocado ---, e a vencedora foi
 submetida a validação cruzada $k$-\emph{fold} ($k=5$) no treino completo
-(Tabela~\ref{tab:ml_cv}). A configuração escolhida melhora o $R^2$ em relação à configuração de referência
+(Tabelas~\ref{tab:ml_cv} e~\ref{tab:ml_cv_b}). A configuração escolhida melhora o $R^2$ em relação à configuração de referência
 (profundidade~6), com sobreajuste maior, mas ainda desprezível
-(Tabela~\ref{tab:ml_cv}).\footnote{Profundidade 10, com
+(Tabelas~\ref{tab:ml_cv} e~\ref{tab:ml_cv_b}).\footnote{Profundidade 10, com
 $R^2 = 0,6435 \pm 0,0006$ entre os \emph{folds}, contra
 0,6294 $\pm$ 0,0006 da profundidade~6 de referência, sobre
 6.159.418 observações de treino.} Com um treino desse tamanho, a variação entre
@@ -1122,21 +1123,16 @@ do modelo à forma como o erro é decomposto.
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.49\textwidth}
-    \includegraphics[width=\textwidth]{shap_waterfall_A_branco_alta_renda_xgb}
-    \caption{Trabalhador branco.}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.49\textwidth}
-    \includegraphics[width=\textwidth]{shap_waterfall_B_negro_alta_renda_xgb}
-    \caption{Trabalhador negro.}
-  \end{subfigure}
+  % 06/10/2026: uma imagem só, painéis A e B (manual 15.1); duas subfiguras viravam, no
+  % Word, uma tabela de leiaute que o Sistema de Trabalho Final acusava como problema
+  \includegraphics[width=0.62\textwidth]{shap_waterfall_AB_xgb}
   \caption{A mesma variável, sinais opostos: a raça soma à previsão do
   trabalhador branco e subtrai da do negro. Decomposição SHAP individual
   (\emph{waterfall}) de dois trabalhadores, cada um no percentil~75 de rendimento
   do próprio grupo; cada barra é a contribuição de uma variável ao afastamento entre
   a previsão média da base e a previsão daquele caso, em log-pontos, e as de menor
-  peso estão agrupadas na linha das demais. Os painéis mostram como o modelo compõe
+  peso estão agrupadas na linha das demais. O painel A é o trabalhador branco, e o B, o
+  negro. Os painéis mostram como o modelo compõe
   uma previsão: a diferença de rendimento entre os dois é bruta, sem os controles
   que os modelos aplicam.}
   \label{fig:shap_wf}
