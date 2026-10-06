@@ -539,6 +539,37 @@ def siglas_em_colchetes(doc: Document) -> int:
     return n
 
 
+def ordenar_citacoes(doc: Document) -> int:
+    """Manual, 17.2: várias obras no mesmo parênteses vão em ordem alfabética, e as de um autor
+    vêm antes das de dois, que vêm antes das de "et al." — (Marques, 2010; Wilson, 1987;
+    Sampson et al., 1997). O citeproc ordena só pelo nome."""
+    import unicodedata
+    item_re = re.compile(r"^[A-ZÀ-Ú][^;()]*?,\s(?:19|20)\d{2}[a-z]?(?:,\s[^;()]+)?$")
+
+    def _chave(it: str):
+        cat = 2 if " et al." in it else 1 if re.match(r"^[^,]+ e [A-ZÀ-Ú]", it) else 0
+        base = unicodedata.normalize("NFKD", it).encode("ascii", "ignore").decode().lower()
+        return cat, base
+
+    n = 0
+    for p in doc.paragraphs:
+        for r in p.runs:
+            if ";" not in r.text:
+                continue
+
+            def _sub(m):
+                nonlocal n
+                itens = [x.strip() for x in m.group(1).split(";")]
+                if len(itens) < 2 or not all(item_re.match(x) for x in itens):
+                    return m.group(0)
+                novo = sorted(itens, key=_chave)
+                if novo != itens:
+                    n += 1
+                return "(" + "; ".join(novo) + ")"
+            r.text = re.sub(r"\(([^()]+)\)", _sub, r.text)
+    return n
+
+
 def numerar_equacoes(doc: Document) -> int:
     """Manual, 15.3: equação alinhada à direita, com o número "(1)" no fim da linha.
 
@@ -1098,6 +1129,7 @@ def main() -> int:
     print(f"     {formatar_notas(doc)} notas de tabela/figura em corpo de nota")
     print(f"     {siglas_em_colchetes(doc)} siglas definidas entre colchetes")
     print(f"     {numerar_equacoes(doc)} equações com número no fim da linha")
+    print(f"     {ordenar_citacoes(doc)} citações múltiplas reordenadas (1 autor, 2 autores, et al.)")
     movidos, pontos = titulos_concisos(doc)
     print(f"     {movidos} títulos de tabela encurtados (explicação → Nota); "
           f"{pontos} pontos finais retirados de títulos, Fontes e Notas")

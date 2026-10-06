@@ -148,8 +148,19 @@ def chamada_antes(texto: str) -> str:
                 secao += 1
             itens.append({"par": bloco, "sec": secao})
 
+    def _sem_notas(s: str) -> str:
+        # chamada em nota de rodapé não conta: o Sistema de Trabalho Final só lê o corpo
+        while (k := s.find("\\footnote{")) >= 0:
+            j, nivel = k + len("\\footnote{"), 1
+            while j < len(s) and nivel:
+                nivel += {"{": 1, "}": -1}.get(s[j], 0)
+                j += 1
+            s = s[:k] + s[j:]
+        return s
+
     def _cita(item, rotulos):
-        return "par" in item and any("\\ref{" + r + "}" in item["par"] for r in rotulos)
+        return "par" in item and any("\\ref{" + r + "}" in _sem_notas(item["par"])
+                                     for r in rotulos)
 
     movidos, sem_chamada = 0, []
     for k in range(len(objetos)):
@@ -171,8 +182,15 @@ def chamada_antes(texto: str) -> str:
             continue
         itens.pop(i)
         alvo = alvo if alvo < i else alvo - 1
+        par = _sem_notas(itens[alvo]["par"])
+
+        def _menção(o):     # onde o parágrafo cita o objeto: a ordem das tabelas segue a do texto
+            ps = [par.find("\\ref{" + r + "}") for r in o["rot"]]
+            ps = [x for x in ps if x >= 0]
+            return min(ps) if ps else -1
         pos = alvo + 1
-        while pos < len(itens) and "obj" in itens[pos]:   # depois dos que já foram para lá
+        while (pos < len(itens) and "obj" in itens[pos]
+               and _menção(itens[pos]) <= _menção(obj)):  # os citados antes vêm antes
             pos += 1
         itens.insert(pos, obj)
         movidos += 1

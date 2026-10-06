@@ -165,7 +165,7 @@ acesso, nenhuma política salarial a alcança. Três desfechos respondem --- ocu
 qualificado (CBO~1--4), estar no top~20\% e no top~10\% da renda ---, cada um estimado
 em quatro degraus próprios, rotulados A1 a A4 para não se confundirem com os do HLM
 ---aos quais não correspondem um a um---, com intercepto aleatório de UPA e efeitos fixos
-de UF.\footnote{\texttt{lme4::glmer} com \texttt{nAGQ = 0} --- os efeitos fixos são estimados
+de UF; o ajuste e a classificação de cada degrau estão na Tabela~\ref{tab:glmm_ajuste}.\footnote{\texttt{lme4::glmer} com \texttt{nAGQ = 0} --- os efeitos fixos são estimados
 junto com os modos condicionais, aproximação mais rápida que a de Laplace e adequada a $N$
 de milhões ---, sobre a população completa.
 Os degraus são: A1 individual; A2 $+$ contexto do bairro; A3 $+$ vínculo (formalidade,
