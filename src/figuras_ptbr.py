@@ -58,3 +58,36 @@ def ativar():
         return original(self, *a, **k)
     savefig._ptbr = True
     Figure.savefig = savefig
+
+
+def norma_manual(fig=None, paineis=None):
+    """Figura conforme o Manual de Normas do MBA USP/Esalq (15.1 e Tabela 8), antes do savefig.
+
+    · sem título do gráfico (suptitle) nem subtítulo/rodapé soltos na figura: o título fica na
+      legenda "Figura N." do texto;
+    · sem linhas de grade;
+    · com mais de um painel, cada um identificado por letra maiúscula, sem parênteses nem
+      ponto, no canto superior esquerdo — no lugar do título do painel (que vai para a legenda).
+    O Sistema de Trabalho Final (06/10/2026) acusou os três pontos.
+    """
+    fig = fig or plt.gcf()
+    if getattr(fig, "_suptitle", None) is not None:
+        fig._suptitle.remove()
+        fig._suptitle = None
+    for t in list(fig.texts):
+        t.remove()
+    eixos = paineis if paineis is not None else [
+        ax for ax in fig.axes if ax.get_visible() and ax.get_label() != "<colorbar>"
+        and ax.get_navigate()]
+    for ax in fig.axes:
+        ax.grid(False)
+    if len(eixos) > 1:
+        for letra, ax in zip("ABCDEFGH", eixos):
+            for loc in ("center", "left", "right"):
+                ax.set_title("", loc=loc)
+            ax.text(-0.02, 1.07, letra, transform=ax.transAxes, fontsize=14,
+                    fontweight="bold", ha="right", va="bottom", color="black")
+    elif eixos:
+        for loc in ("center", "left", "right"):
+            eixos[0].set_title("", loc=loc)
+    return fig

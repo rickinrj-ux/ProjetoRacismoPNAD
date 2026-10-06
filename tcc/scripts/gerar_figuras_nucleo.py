@@ -31,6 +31,10 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import sys as _sys_n
+from pathlib import Path as _Path_n
+_sys_n.path.insert(0, str(_Path_n(__file__).resolve().parents[2] / "src"))
+from figuras_ptbr import norma_manual  # manual MBA: sem título no gráfico, painéis A/B
 
 T = _Path("outputs/tables")
 F = _Path("outputs/figures")
@@ -91,6 +95,7 @@ def fig_hlm():
     _titulo(fig, titulo_bairro(_PN),
             "…mas o que sobra não é explicado por escolaridade, idade, sexo, estado nem ocupação.")
     fig.tight_layout(rect=(0, 0, 1, 0.90))
+    norma_manual(fig)
     fig.savefig(F / "fig_hlm_gap.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
@@ -123,6 +128,7 @@ def fig_ob():
     _titulo(fig, "Tratar a ocupação como \"característica\" derruba a discriminação medida pela metade",
             "A parcela que some é justamente a que opera na porta de entrada das ocupações.")
     fig.tight_layout(rect=(0, 0, 1, 0.88))
+    norma_manual(fig)
     fig.savefig(F / "fig_ob_cascata.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
@@ -173,6 +179,7 @@ def fig_qr_rif():
             "À esquerda, quantis condicionais (dispersão maior no topo); à direita, quantis "
             "incondicionais da renda do país.")
     fig.tight_layout(rect=(0, 0, 1, 0.88))
+    norma_manual(fig)
     fig.savefig(F / "fig_qr_rif.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
@@ -211,6 +218,7 @@ def fig_glmm():
     _titulo(fig, "A porta é mais estreita para negros — e estreita ainda mais no topo da renda",
             "GLMM com intercepto aleatório de UPA; em azul, o modelo com contexto de bairro (A2).")
     fig.tight_layout(rect=(0, 0, 1, 0.88))
+    norma_manual(fig)
     fig.savefig(F / "fig_glmm_or.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 

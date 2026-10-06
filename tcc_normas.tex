@@ -91,8 +91,7 @@ Ricardo Gomes Calheiros\textsuperscript{1*}; Edilson José Rodrigues\textsupersc
 {\fontsize{9}{11}\selectfont
 \noindent\textsuperscript{1*} Especialista em Finanças, Controladoria e Auditoria.
 E-mail autor correspondente: rickinrj@gmail.com\par
-\noindent\textsuperscript{2} Doutor em Engenharia Elétrica. MBA USP/Esalq.
-E-mail: orientador@usp.br\par}
+\noindent\textsuperscript{2} Doutor em Engenharia Elétrica. MBA USP/Esalq.\par}
 
 \end{singlespace}
 
@@ -124,7 +123,7 @@ máquina como verificação. Com a mesma escolaridade, idade, sexo e bairro,
 trabalhadores negros ganharam 6,1\% a menos; o bairro mediou
 39,5\% do gap agregado, e as chances de chegar a cargo qualificado
 foram 19\% menores, e 24\% menores no décimo mais rico. A mulher negra entrou pelas ocupações feminizadas, mas teve a menor chance de chegar ao comando.
-Concluiu-se que a desigualdade racial opera em duas frentes que respondem de modo diferente à escolaridade: a penalidade salarial é maior entre os menos escolarizados e pequena entre os pós-graduados, enquanto a desvantagem no acesso a cargos qualificados persiste em todos os níveis. Políticas centradas apenas em escolaridade alcançam a primeira, mas não a segunda.
+A desigualdade racial operou em duas frentes que responderam de modo diferente à escolaridade: a penalidade salarial foi maior entre os menos escolarizados e pequena entre os pós-graduados, enquanto a desvantagem no acesso a cargos qualificados persistiu em todos os níveis. Políticas centradas apenas em escolaridade alcançam a primeira, mas não a segunda.
 \end{singlespace}
 
 \vspace{\baselineskip}
@@ -158,7 +157,7 @@ model of access were applied, with machine learning as a check. With the same sc
 age, sex and neighbourhood, Black workers earned 6.1\% less; the
 neighbourhood mediated 39.5\% of the aggregate gap, and the odds of
 reaching a qualified job were 19\% lower, and 24\% lower for the
-top income decile. Black women entered through feminised occupations but had the lowest odds of reaching management. It was concluded that racial inequality operates on two fronts that respond differently to schooling: the wage penalty is largest among the least educated and small among postgraduates, while the disadvantage in access to qualified jobs persists at every level. Policies centred solely on schooling reach the former but not the latter.
+top income decile. Black women entered through feminised occupations but had the lowest odds of reaching management. Racial inequality operated on two fronts that responded differently to schooling: the wage penalty was largest among the least educated and small among postgraduates, while the disadvantage in access to qualified jobs persisted at every level. Policies centred solely on schooling reach the former but not the latter.
 \end{singlespace}
 
 \vspace{\baselineskip}
@@ -344,9 +343,9 @@ amostragem (UPA, o proxy de bairro), dentro de estados. A hipótese substantiva 
 trabalho (H1) é que o {bairro} media parte do gap racial; o modelo, portanto, coloca
 a UPA no nível~2 e trata a UF como conjunto de efeitos fixos --- 27 unidades são poucas para
 um terceiro nível aleatório \cite{angrist2009}, e os 26 {dummies} absorvem todo o
-contexto estadual sem hipóteses distribucionais. O modelo de dois níveis é:
+contexto estadual sem hipóteses distribucionais. O modelo de dois níveis é dado pelas eq. (1) e (2):
 
-\paragraph{Nível 1 --- indivíduo $i$ na UPA $j$:}
+\paragraph{Nível 1 --- indivíduo $i$ na UPA $j$, eq. (1):}
 \begin{equation*}
 \ln(W)_{ij} = \beta_{0j} + \beta_1\,\text{Negro}_{ij} + \beta_2\,\text{Sexo}_{ij}
   + \beta_3\,X_{ij} + \beta_4\,X^2_{ij} + \sum_{e}\beta_{e}\,\text{Educ}_{e,ij}
@@ -356,7 +355,7 @@ contexto estadual sem hipóteses distribucionais. O modelo de dois níveis é:
 em que $\mathbf{Z}$ reúne horas, situação urbana e ano (e, no M4, vínculo e
 grupo CBO), e o termo de erro é $\varepsilon_{ij}\sim\mathcal{N}(0,\sigma^2)$.
 
-\paragraph{Nível 2 --- bairro $j$ (UPA):}
+\paragraph{Nível 2 --- bairro $j$ (UPA), eq. (2):}
 \begin{equation*}
 \beta_{0j} = \gamma_{00} + \gamma_{01}\,\overline{\%\text{Negro}}_{j}
   + \gamma_{02}\,\overline{\text{Desemprego}}_{j} + \gamma_{03}\,\overline{\text{Educ}}_{j}
@@ -376,7 +375,7 @@ são estimados em degraus aninhados: M0 (nulo: só o intercepto aleatório, que 
 M1 (+ capital humano e demografia); M2 (+ contexto do bairro, nível~2); M3 (+ efeitos
 fixos de UF) --- o modelo principal, que produz o \textbf{gap líquido}; e M4 (+ vínculo
 e grupo ocupacional), reportado como {limite inferior} porque ocupação e formalidade
-são desfechos da própria discriminação ({bad controls}, \citeonline{angrist2009}).
+são desfechos da própria discriminação ({bad controls}) \cite{angrist2009}.
 Cada degrau é comparado ao anterior por teste de razão de verossimilhança (LR), e a
 redução de $\tau^2_{\text{UPA}}$ em relação ao M0 mede a variância entre bairros explicada
 pelos controles. Testa-se ainda uma {inclinação aleatória} de \texttt{negro} por UPA
@@ -391,8 +390,8 @@ ICC idêntico até a quarta casa).
 \label{subsec:oaxaca_metodo}
 
 Estimam-se equações de rendimento separadas para brancos e negros e
-decompõe-se a diferença de médias na forma {twofold}
-\cite{oaxaca1973, blinder1973}, tomando a estrutura de preços dos brancos como
+decompõe-se a diferença de médias na forma {twofold} de
+\citeonline{blinder1973} e \citeonline{oaxaca1973}, tomando a estrutura de preços dos brancos como
 referência não discriminatória:
 $\ln \bar W_B - \ln \bar W_N = (\bar X_B - \bar X_N)'\hat\beta_B +
 \bar X_N'(\hat\beta_B - \hat\beta_N)$, em que o primeiro termo é a parcela de
@@ -635,7 +634,8 @@ entra no bloco individual do modelo de rendimento e, no de acesso, só no degrau
 rotulado como limite inferior, ao lado do vínculo.
 
 O critério que organiza os dois modelos é, então, o {estatuto causal} de cada
-variável em relação ao desfecho daquele modelo, e não a semelhança das listas:
+variável em relação ao desfecho daquele modelo, e não a semelhança das listas
+(Tabela~\ref{tab:simetria}):
 
 \begin{table}[!ht]
 \centering
@@ -737,7 +737,7 @@ renda: omiti-las {superestima} a penalidade --- o que faz do M3 um limite superi
 para o efeito de tratamento diferencial condicional a essas características. Na direção
 oposta, os controles que são desfechos (ocupação no M4) {subestimam}. O gap líquido
 deve ser lido entre esses dois limites. Para anular $\hat\beta^{M3}_{\text{negro}}$ seria
-preciso um viés de 98,4\% do coeficiente (Konfound, \citeonline{frank2013}), e o
+preciso um viés de 98,4\% do coeficiente, pelo Konfound \cite{frank2013}, e o
 E-value do modelo de acesso (Tabela~\ref{tab:glmm_glassceil}) exige um confundidor
 associado à raça e ao desfecho com razão de risco $\geq 1,5$ --- uma associação
 modesta, que sozinha não descarta viés.
@@ -1371,9 +1371,9 @@ A profundidade das árvores, a taxa de aprendizado e o número de iterações n�
 fixados por conveniência: seis configurações foram comparadas numa partição de validação
 {dentro} do conjunto de treino --- o teste permanece intocado ---, e a vencedora foi
 submetida a validação cruzada $k$-{fold} ($k=5$) no treino completo
-(Tabela~\ref{tab:ml_cv}). A configuração escolhida melhora o $R^2$ em relação à configuração de referência
+(Tabelas~\ref{tab:ml_cv} e~\ref{tab:ml_cv_b}). A configuração escolhida melhora o $R^2$ em relação à configuração de referência
 (profundidade~6), com sobreajuste maior, mas ainda desprezível
-(Tabela~\ref{tab:ml_cv}).\footnote{Profundidade 10, com
+(Tabelas~\ref{tab:ml_cv} e~\ref{tab:ml_cv_b}).\footnote{Profundidade 10, com
 $R^2 = 0,6435 \pm 0,0006$ entre os {folds}, contra
 0,6294 $\pm$ 0,0006 da profundidade~6 de referência, sobre
 6.159.418 observações de treino.} Com um treino desse tamanho, a variação entre
@@ -1381,20 +1381,17 @@ $R^2 = 0,6435 \pm 0,0006$ entre os {folds}, contra
 estimar incerteza e mais para justificar a especificação.
 \begin{table}[!ht]
 \centering
-\caption{Escolha de hiperparâmetros e validação cruzada do XGBoost
-\cite{alencar2026a, alencar2026b, alencar2026c, geron2021}. Painel~A: seis configurações comparadas numa partição de validação
-{dentro} do treino --- o conjunto de teste permanece intocado. Painel~B: validação
-cruzada $k$-{fold} ($k=5$) no treino completo, com média e
-desvio-padrão entre {folds}. População completa: 6.159.418 observações de
-treino e 1.539.855 de teste; nenhuma amostragem.}
+\caption{Escolha de hiperparâmetros do XGBoost na partição de validação
+\cite{alencar2026a, alencar2026b, alencar2026c, geron2021}. Seis configurações comparadas
+{dentro} do treino --- o conjunto de teste permanece intocado. População completa:
+6.159.418 observações de treino e 1.539.855 de teste; nenhuma amostragem.}
 \label{tab:ml_cv}
 \small
 \begin{tabular}{lccccc}
-\multicolumn{6}{l}{\textbf{A. Busca na partição de validação}} \\
 \toprule
 Profundidade & Taxa de aprendizado & Árvores & $R^2$ & MAE & Sobreajuste \\
 \midrule
-\textbf{10} & 0,05 & 300 & 0,6427 & 0,3977 & 0,0120 \\
+{10} & 0,05 & 300 & 0,6427 & 0,3977 & 0,0120 \\
 8 & 0,05 & 600 & 0,6395 & 0,3995 & 0,0075 \\
 8 & 0,05 & 300 & 0,6352 & 0,4022 & 0,0046 \\
 6 & 0,10 & 300 & 0,6322 & 0,4041 & 0,0027 \\
@@ -1402,10 +1399,21 @@ Profundidade & Taxa de aprendizado & Árvores & $R^2$ & MAE & Sobreajuste \\
 4 & 0,05 & 300 & 0,6182 & 0,4128 & 0,0011 \\
 \bottomrule
 \end{tabular}
+\normalsize
+\par\smallskip
+\footnotesize{Como ler:} ``Sobreajuste'' é a diferença entre o $R^2$ de treino e o de
+validação --- valores próximos de zero indicam que o modelo não decorou os dados. A
+primeira linha é a configuração escolhida.
+\par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
+\end{table}
 
-\vspace{0.6em}
+\begin{table}[!ht]
+\centering
+\caption{Validação cruzada $k$-{fold} ($k=5$) do XGBoost no treino completo,
+com média e desvio-padrão entre {folds}.}
+\label{tab:ml_cv_b}
+\small
 \begin{tabular}{lccc}
-\multicolumn{4}{l}{\textbf{B. Validação cruzada no treino (5 {folds})}} \\
 \toprule
 Configuração & $R^2$ (média $\pm$ dp) & MAE & RMSE \\
 \midrule
@@ -1415,12 +1423,9 @@ Referência (profundidade 6) & 0,6294 $\pm$ 0,0006 & 0,4064 $\pm$ 0,0002 & 0,546
 \end{tabular}
 \normalsize
 \par\smallskip
-\footnotesize{Como ler:} ``Sobreajuste'' é a diferença entre o $R^2$ de treino e o de
-validação --- valores próximos de zero indicam que o modelo não decorou os dados. A
-configuração escolhida ganha 1,4 ponto percentual de $R^2$ ao custo de um
-sobreajuste maior, mas ainda pequeno (Painel~A). No conjunto de teste (intocado durante a
-escolha), $R^2 = 0,6444$; a estabilidade entre {folds} e o erro em reais são
-discutidos no texto.
+\footnotesize{Como ler:} a configuração escolhida ganha 1,4 ponto percentual
+de $R^2$ ao custo de um sobreajuste maior, mas ainda pequeno (Tabela~\ref{tab:ml_cv}). No
+conjunto de teste (intocado durante a escolha), $R^2 = 0,6444$.
 \par\smallskip\footnotesize Fonte: Resultados originais da pesquisa.
 \end{table}
 
@@ -1442,7 +1447,7 @@ convergem: a diferença entre treino e teste é praticamente nula; o número de 
 supera em muitas ordens de grandeza a complexidade dos modelos, todos regularizados; e o
 $R^2$ de teste quase não muda ao se passar de uma subamostra para a população inteira. É
 o contrário da intuição corrente: ampliar a base, de amostral para populacional, reduz o
-risco de sobreajuste em vez de aumentá-lo. A Tabela~\ref{tab:shap_importance} traz o ranking completo das variáveis nos dois modelos.
+risco de sobreajuste em vez de aumentá-lo. A Tabela~\ref{tab:shap_importance} traz o ranking completo das variáveis nos dois modelos, e a Figura~\ref{fig:shap} mostra como cada uma move a previsão, trabalhador a trabalhador.
 
 \begin{table}[H]
 \centering
@@ -1550,21 +1555,16 @@ do modelo à forma como o erro é decomposto. A Figura~\ref{fig:shap_wf} ilustra
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.49\textwidth}
-    \includegraphics[width=\textwidth]{shap_waterfall_A_branco_alta_renda_xgb}
-    \caption{Trabalhador branco.}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.49\textwidth}
-    \includegraphics[width=\textwidth]{shap_waterfall_B_negro_alta_renda_xgb}
-    \caption{Trabalhador negro.}
-  \end{subfigure}
+  % 06/10/2026: uma imagem só, painéis A e B (manual 15.1); duas subfiguras viravam, no
+  % Word, uma tabela de leiaute que o Sistema de Trabalho Final acusava como problema
+  \includegraphics[width=0.62\textwidth]{shap_waterfall_AB_xgb}
   \caption{A mesma variável, sinais opostos: a raça soma à previsão do
   trabalhador branco e subtrai da do negro. Decomposição SHAP individual
   ({waterfall}) de dois trabalhadores, cada um no percentil~75 de rendimento
   do próprio grupo; cada barra é a contribuição de uma variável ao afastamento entre
   a previsão média da base e a previsão daquele caso, em log-pontos, e as de menor
-  peso estão agrupadas na linha das demais. Os painéis mostram como o modelo compõe
+  peso estão agrupadas na linha das demais. O painel A é o trabalhador branco, e o B, o
+  negro. Os painéis mostram como o modelo compõe
   uma previsão: a diferença de rendimento entre os dois é bruta, sem os controles
   que os modelos aplicam.}
   \label{fig:shap_wf}

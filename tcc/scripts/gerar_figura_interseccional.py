@@ -25,6 +25,10 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import sys as _sys_n
+from pathlib import Path as _Path_n
+_sys_n.path.insert(0, str(_Path_n(__file__).resolve().parents[2] / "src"))
+from figuras_ptbr import norma_manual  # manual MBA: sem título no gráfico, painéis A/B
 import pandas as pd
 from matplotlib.ticker import FixedLocator, FuncFormatter, NullLocator
 
@@ -151,5 +155,6 @@ fig.text(0.01, 0.925, ("À esquerda, três desfechos; à direita, o acesso separ
 fig.text(0.01, 0.01, "GLMM logístico negro×sexo + controles + (1 | UPA). "
          "PNAD Contínua 2016–2025, população completa.", fontsize=8, color=CINZA, ha="left")
 fig.tight_layout(rect=(0, 0.03, 1, 0.9))
+norma_manual(fig)
 fig.savefig(OUT, dpi=200)
 print(f"OK -> {OUT.relative_to(ROOT)}")

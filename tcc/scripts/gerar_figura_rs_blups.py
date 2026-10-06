@@ -21,6 +21,10 @@ import __main__
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import sys as _sys_n
+from pathlib import Path as _Path_n
+_sys_n.path.insert(0, str(_Path_n(__file__).resolve().parents[2] / "src"))
+from figuras_ptbr import norma_manual  # manual MBA: sem título no gráfico, painéis A/B
 import numpy as np
 import pandas as pd
 
@@ -129,5 +133,6 @@ fig.text(0.01, 0.925, f"M3 com intercepto e inclinação de negro aleatórios po
          fontsize=9.5, color=CINZA_ESC, ha="left")
 fig.tight_layout(rect=(0, 0, 1, 0.92))
 out = ROOT / "outputs/figures/hlm_rs_retas_upa.png"
+norma_manual(fig)
 fig.savefig(out, dpi=200)
 print(f"OK -> {out.relative_to(ROOT)}")
