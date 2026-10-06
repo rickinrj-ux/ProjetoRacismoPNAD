@@ -117,7 +117,7 @@ A = [r"\begin{table}[!ht]", r"\centering",
      r"teste de razão de verossimilhança do A2 contra o logit sem efeito aleatório (fronteira, $p/2$); "
      r"AUC com efeitos aleatórios (ajuste na amostra) e só com efeitos fixos; \emph{cutoff} de Youden "
      r"(maximiza sensibilidade $+$ especificidade) com as taxas correspondentes; Hosmer--Lemeshow em "
-     r"10 decis. Modelos A1--A4 como na Tabela~\ref{tab:glmm_glassceil}. Com $N = " + fmt(_PN["N_GLMM"] / 1e6, 1).replace(",", "{,}") + r"$~milhões qualquer desvio de calibração é ``significativo'' --- o "
+     r"dez decis. Modelos A1--A4 como na Tabela~\ref{tab:glmm_glassceil}. Com $N = " + fmt(_PN["N_GLMM"] / 1e6, 1).replace(",", "{,}") + r"$~milhões qualquer desvio de calibração é ``significativo'' --- o "
      r"$\chi^2$ deve ser lido como magnitude relativa entre degraus, não como teste (MHE, cap.~8).}",
      r"\label{tab:glmm_ajuste}", r"\resizebox{\textwidth}{!}{%", r"\begin{tabular}{llcccccccc}", r"\toprule",
      r"Desfecho & Modelo & $-2\,$LL & AIC & LR vs.\ pooled & AUC (RE) & AUC (FE) & Cutoff & Sens./Espec. & HL $\chi^2$ \\",

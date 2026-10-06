@@ -947,9 +947,12 @@ eixo de cada vez deixam de fora justamente quem está na interseção.
 Estimam-se equações de rendimento separadas para brancos e negros e
 decompõe-se a diferença de médias na forma \emph{twofold} de
 \citeonline{blinder1973} e \citeonline{oaxaca1973}, tomando a estrutura de preços dos brancos como
-referência não discriminatória:
-$\ln \bar W_B - \ln \bar W_N = (\bar X_B - \bar X_N)'\hat\beta_B +
-\bar X_N'(\hat\beta_B - \hat\beta_N)$, em que o primeiro termo é a parcela de
+referência não discriminatória, conforme a eq. (3):
+\begin{equation}
+\ln \bar W_B - \ln \bar W_N = (\bar X_B - \bar X_N)'\hat\beta_B +
+\bar X_N'(\hat\beta_B - \hat\beta_N)
+\end{equation}
+em que o primeiro termo é a parcela de
 dotações e o segundo, a de retornos. Duas especificações são reportadas:
 (A)~capital humano, jornada, área urbana, contexto de bairro e efeitos fixos de UF ---
 os controles do HLM~M3 ---, comparável à literatura; e (B)~acrescentando formalidade e

@@ -80,3 +80,13 @@ Não aplicado: gráfico como objeto do Excel (exceção do manual para software 
 | Data por extenso no nome da lei ("13 de abril de 1995") | 1 | **não procede**: é o nome oficial da norma; o exemplo do próprio manual (19.5) mantém "de 27 de setembro de 2021" e abrevia só a data do DOU | mantido |
 | "Alencar 2026c não citada" / "Alencar 2026 sem sufixo" / "Brasil 2023 sem sufixo" | 3 | **não procede**: o manual (17.2) manda "Mariano (2019a, b)" e o mesmo sufixo na referência; a ferramenta não lê "2026a, b, c" | mantido |
 | Apostilas como "Trabalhos Acadêmicos"; Henriques como relatório online; "Xgboost" | 3 | divergência de classificação ou de grafia (nome próprio XGBoost) | mantido |
+
+## G. Terceiro relatório (06/10, fim da tarde): 0 problemas, 27 alertas
+
+| Alerta | Veredito | Ação |
+|---|---|---|
+| Equação sem número (Implementação) | procede: a decomposição de Oaxaca estava no meio do parágrafo, sem número | virou eq. (3), com chamada "eq. (3)" |
+| "10" por extenso | procede em "Hosmer–Lemeshow em 10 decis" e "VIF acima de 10" | "dez" (os demais são rótulos de tabela e figura) |
+| Citação "(2010)" sem referência | formato "(Brasil, 1995, 2010)" é o do manual, mas a ferramenta lê ", 2010)" sozinho | cada lei citada junto do seu nome |
+| Tabela 14 partida entre páginas | procede no arquivo deles (tabela em Arial 11 e largura total cresce) | Nota presa à Fonte e à tabela: o bloco muda de página inteiro |
+| E-mail do orientador; gráfico como imagem; títulos de livro; datas no nome das leis; 2026a, b, c | mantidos (ver seção F) | — |
