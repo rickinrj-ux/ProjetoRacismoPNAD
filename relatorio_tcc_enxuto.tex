@@ -609,9 +609,12 @@ ICC idêntico até a quarta casa).
 Estimam-se equações de rendimento separadas para brancos e negros e
 decompõe-se a diferença de médias na forma \emph{twofold} de
 \citeonline{blinder1973} e \citeonline{oaxaca1973}, tomando a estrutura de preços dos brancos como
-referência não discriminatória:
-$\ln \bar W_B - \ln \bar W_N = (\bar X_B - \bar X_N)'\hat\beta_B +
-\bar X_N'(\hat\beta_B - \hat\beta_N)$, em que o primeiro termo é a parcela de
+referência não discriminatória, conforme a eq. (3):
+\begin{equation}
+\ln \bar W_B - \ln \bar W_N = (\bar X_B - \bar X_N)'\hat\beta_B +
+\bar X_N'(\hat\beta_B - \hat\beta_N)
+\end{equation}
+em que o primeiro termo é a parcela de
 dotações e o segundo, a de retornos. Duas especificações são reportadas:
 (A)~capital humano, jornada, área urbana, contexto de bairro e efeitos fixos de UF ---
 os controles do HLM~M3 ---, comparável à literatura; e (B)~acrescentando formalidade e
@@ -1423,7 +1426,7 @@ Os controles do M4 estão brigando entre si? A pergunta é legítima: o modelo e
 (VIF~$> 10$); 0~variáveis altas ($5$--$10$);
 6~variáveis moderadas ($2$--$5$);
 17~variáveis baixas ($< 2$).}
-Nenhum preditor do M4 tem VIF acima de 10; o maior é o de \texttt{ocp\_profissional} (2,66). A colinearidade que houver \textbf{não} contamina o coeficiente de
+Nenhum preditor do M4 tem VIF acima de dez; o maior é o de \texttt{ocp\_profissional} (2,66). A colinearidade que houver \textbf{não} contamina o coeficiente de
 interesse: o VIF de
 \texttt{negro} é 1,36 e o das variáveis de contexto da UPA fica abaixo de
 2,2. Entre as \textit{dummies} de CBO e as variáveis de vínculo --- a

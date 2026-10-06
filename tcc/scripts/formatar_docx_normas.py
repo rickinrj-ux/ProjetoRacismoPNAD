@@ -285,6 +285,10 @@ def formatar_notas(doc: Document) -> int:
             pf.space_after = Pt(0)
             pf.keep_with_next = True
         if t.startswith("Nota:"):
+            # a Nota não se parte entre páginas: com a Fonte presa a ela e a tabela presa à
+            # Fonte, o bloco título-tabela-Fonte-Nota muda de página inteiro (o Sistema de
+            # Trabalho Final acusou a Tabela 14 partida, 06/10/2026)
+            pf.keep_together = True
             pf.space_before = Pt(0)
             pf.space_after = Pt(12)
             pf.first_line_indent = Cm(0)
@@ -444,6 +448,7 @@ def titulos_concisos(doc: Document) -> tuple[int, int]:
         pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
         pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
         pf.keep_with_next = False
+        pf.keep_together = True                 # a Nota muda de página inteira, com a tabela
         if fonte is not None:
             fp = Paragraph(fonte, doc._body).paragraph_format
             fp.space_after, fp.keep_with_next = Pt(0), True

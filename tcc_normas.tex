@@ -392,9 +392,13 @@ ICC idêntico até a quarta casa).
 Estimam-se equações de rendimento separadas para brancos e negros e
 decompõe-se a diferença de médias na forma {twofold} de
 \citeonline{blinder1973} e \citeonline{oaxaca1973}, tomando a estrutura de preços dos brancos como
-referência não discriminatória:
-$\ln \bar W_B - \ln \bar W_N = (\bar X_B - \bar X_N)'\hat\beta_B +
-\bar X_N'(\hat\beta_B - \hat\beta_N)$, em que o primeiro termo é a parcela de
+referência não discriminatória, conforme a eq. (3):
+\begin{equation*}
+\ln \bar W_B - \ln \bar W_N = (\bar X_B - \bar X_N)'\hat\beta_B +
+\bar X_N'(\hat\beta_B - \hat\beta_N)
+  \qquad\text{(3)}
+\end{equation*}
+em que o primeiro termo é a parcela de
 dotações e o segundo, a de retornos. Duas especificações são reportadas:
 (A)~capital humano, jornada, área urbana, contexto de bairro e efeitos fixos de UF ---
 os controles do HLM~M3 ---, comparável à literatura; e (B)~acrescentando formalidade e
@@ -1057,7 +1061,7 @@ Top 10\% de renda & A1 individual + UF & 0,748 [0,743; 0,753] & −1,77 & 0,221 
 
 \begin{table}[!ht]
 \centering
-\caption{GLMM logístico --- ajuste e desempenho de classificação por degrau. LR vs.\ pooled: teste de razão de verossimilhança do A2 contra o logit sem efeito aleatório (fronteira, $p/2$); AUC com efeitos aleatórios (ajuste na amostra) e só com efeitos fixos; {cutoff} de Youden (maximiza sensibilidade $+$ especificidade) com as taxas correspondentes; Hosmer--Lemeshow em 10 decis. Modelos A1--A4 como na Tabela~\ref{tab:glmm_glassceil}. Com $N = 7{,}7$~milhões qualquer desvio de calibração é ``significativo'' --- o $\chi^2$ deve ser lido como magnitude relativa entre degraus, não como teste (MHE, cap.~8).}
+\caption{GLMM logístico --- ajuste e desempenho de classificação por degrau. LR vs.\ pooled: teste de razão de verossimilhança do A2 contra o logit sem efeito aleatório (fronteira, $p/2$); AUC com efeitos aleatórios (ajuste na amostra) e só com efeitos fixos; {cutoff} de Youden (maximiza sensibilidade $+$ especificidade) com as taxas correspondentes; Hosmer--Lemeshow em dez decis. Modelos A1--A4 como na Tabela~\ref{tab:glmm_glassceil}. Com $N = 7{,}7$~milhões qualquer desvio de calibração é ``significativo'' --- o $\chi^2$ deve ser lido como magnitude relativa entre degraus, não como teste (MHE, cap.~8).}
 \label{tab:glmm_ajuste}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{llcccccccc}
@@ -1583,7 +1587,7 @@ Os controles do M4 estão brigando entre si? A pergunta é legítima: o modelo e
 (VIF~$> 10$); 0~variáveis altas ($5$--$10$);
 6~variáveis moderadas ($2$--$5$);
 17~variáveis baixas ($< 2$).}
-Nenhum preditor do M4 tem VIF acima de 10; o maior é o de \texttt{ocp\_profissional} (2,66). A colinearidade que houver \textbf{não} contamina o coeficiente de
+Nenhum preditor do M4 tem VIF acima de dez; o maior é o de \texttt{ocp\_profissional} (2,66). A colinearidade que houver \textbf{não} contamina o coeficiente de
 interesse: o VIF de
 \texttt{negro} é 1,36 e o das variáveis de contexto da UPA fica abaixo de
 2,2. Entre as {dummies} de CBO e as variáveis de vínculo --- a
@@ -1716,7 +1720,7 @@ Em dez anos o gap encolheu 14{,}7\%, e a inclinação é estatisticamente distin
 \textbf{Um eixo de cada vez deixa a mulher negra de fora.} Ela entrou mais do que o homem branco nas ocupações feminizadas --- apoio administrativo (OR~$=1,96$), ensino e saúde ---, mas menos do que a mulher branca (OR~$=2,20$ no apoio administrativo); metas separadas para mulheres e para negros podem ser cumpridas pela mulher branca e pelo homem negro sem alcançá-la. A lei de transparência salarial \cite{brasil2023lei14611} coleta raça no relatório das empresas com 100 ou mais empregados, mas a obrigação de igualdade que estabelece é entre mulheres e homens.
 
 \paragraph{Propostas para reduzir o racismo estrutural no mercado de trabalho.}
-As propostas a seguir são sugeridas pelos resultados, não avaliadas por eles. \textbf{(i) Metas de representação em cargos de direção e gerência no setor privado, com recorte interseccional}, apoiadas no relatório que a lei de transparência salarial já exige. \textbf{(ii) Igualdade salarial por raça como obrigação, e não só como dado}, com fiscalização dirigida à diferença que persiste dentro da mesma ocupação (5,6\%), base que a proibição de práticas discriminatórias e o Estatuto da Igualdade Racial já oferecem \cite{brasil1995lei9029, brasil2010lei12288}. \textbf{(iii) Um componente territorial}. Dos resultados decorrem três pontos: o bairro carrega parte do diferencial; a penalidade é maior nos bairros de renda mais alta, o que pede fiscalização também ali, e não só na periferia; e as estimativas por bairro do modelo hierárquico servem para escolher onde começar e para medir se a penalidade mudou. A literatura de efeitos de vizinhança \cite{wilson1987, sampson1997, marques2010} sugere os instrumentos: transporte e intermediação de emprego que liguem os bairros segregados aos polos de emprego qualificado; aprendizagem, estágio e mentoria que levem redes de contato a quem não as tem --- como a penalidade cresce com a idade, agir na entrada evita que ela se acumule, se a leitura de ciclo de vida for a correta ---; currículo sem endereço nas primeiras etapas de seleção; escola de tempo integral e ensino técnico nos bairros de maior proporção de população negra; e habitação de interesse social em áreas centrais. \textbf{(iv) Promoção, e não só ingresso}: estender a lógica da reserva de cargos de confiança às empresas estatais e à progressão nas carreiras. \textbf{(v) Monitoramento anual} destes indicadores --- o diferencial líquido, a chance de acesso e a chance de comando por raça e gênero ---, reproduzíveis com a PNAD Contínua, para verificar se uma intervenção moveu a barreira que importa.
+As propostas a seguir são sugeridas pelos resultados, não avaliadas por eles. \textbf{(i) Metas de representação em cargos de direção e gerência no setor privado, com recorte interseccional}, apoiadas no relatório que a lei de transparência salarial já exige. \textbf{(ii) Igualdade salarial por raça como obrigação, e não só como dado}, com fiscalização dirigida à diferença que persiste dentro da mesma ocupação (5,6\%), base que a proibição de práticas discriminatórias \cite{brasil1995lei9029} e o Estatuto da Igualdade Racial \cite{brasil2010lei12288} já oferecem. \textbf{(iii) Um componente territorial}. Dos resultados decorrem três pontos: o bairro carrega parte do diferencial; a penalidade é maior nos bairros de renda mais alta, o que pede fiscalização também ali, e não só na periferia; e as estimativas por bairro do modelo hierárquico servem para escolher onde começar e para medir se a penalidade mudou. A literatura de efeitos de vizinhança \cite{wilson1987, sampson1997, marques2010} sugere os instrumentos: transporte e intermediação de emprego que liguem os bairros segregados aos polos de emprego qualificado; aprendizagem, estágio e mentoria que levem redes de contato a quem não as tem --- como a penalidade cresce com a idade, agir na entrada evita que ela se acumule, se a leitura de ciclo de vida for a correta ---; currículo sem endereço nas primeiras etapas de seleção; escola de tempo integral e ensino técnico nos bairros de maior proporção de população negra; e habitação de interesse social em áreas centrais. \textbf{(iv) Promoção, e não só ingresso}: estender a lógica da reserva de cargos de confiança às empresas estatais e à progressão nas carreiras. \textbf{(v) Monitoramento anual} destes indicadores --- o diferencial líquido, a chance de acesso e a chance de comando por raça e gênero ---, reproduzíveis com a PNAD Contínua, para verificar se uma intervenção moveu a barreira que importa.
 
 \subsection*{Limitações e escopo de validade}
 

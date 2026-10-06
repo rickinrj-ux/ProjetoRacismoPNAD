@@ -1112,11 +1112,11 @@ if _vif:
     _nome = lambda k: r"\texttt{" + k.replace("_", r"\_") + "}"
     if not _altos:
         _mx = max(_vif.items(), key=lambda kv: kv[1])
-        _abre = (f"Nenhum preditor do M4 tem VIF acima de 10; o maior é o de {_nome(_mx[0])} "
+        _abre = (f"Nenhum preditor do M4 tem VIF acima de dez; o maior é o de {_nome(_mx[0])} "
                  f"({_pt(_mx[1], 2)}).")
     else:
         _lista = ", ".join(f"{_nome(k)} ({_pt(v, 2)})" for k, v in _altos)
-        _abre = (f"{'O VIF acima de 10 é o de' if len(_altos) == 1 else 'Os VIF acima de 10 são os de'} "
+        _abre = (f"{'O VIF acima de dez é o de' if len(_altos) == 1 else 'Os VIF acima de dez são os de'} "
                  f"{_lista}.")
         if all(k.startswith("educ_") for k, _ in _altos):
             _abre += (r" É colinearidade \emph{por construção} dentro do bloco educacional: as "
