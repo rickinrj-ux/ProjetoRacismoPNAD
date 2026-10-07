@@ -1,0 +1,2 @@
+n_bairros,pct_bairros_penalidade,pen_p10,pen_mediana,pen_p90,corr_spearman_pnegro_base,corr_spearman_base_pen,corr_spearman_pnegro_renda,renda_med_q1_pneg,renda_med_q4_pneg,pneg_q1_corte,pneg_q4_corte,uf_med_min,uf_med_min_sigla,uf_med_max,uf_med_max_sigla,uf_med_todas_positivas
+40728,75.72922804949911,-5.9686781093431405,6.0710327145838185,17.591557836131862,0.011919632446829915,0.4158375313221066,-0.645260128778247,2789.535888671875,1486.9232177734375,40.87935546068035,80.76923076923077,5.043670909667986,PB,8.234882912650098,TO,True

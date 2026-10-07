@@ -1,0 +1,1597 @@
+<title>Bairro, porta e topo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..900&family=Literata:opsz,wght@7..72,400;7..72,600&family=IBM+Plex+Sans+Condensed:wght@400;600&display=swap">
+<style>
+/* Layout: reportagem de dados em rolagem. Cada bairro é um ponto num canvas; as "lentes" reorganizam
+   os mesmos pontos (mapa → divisão → renda → estados). Gráficos fixos ao lado do texto em etapas.
+   Cor: azul = negros ganham menos que brancos do mesmo perfil; ocre = o contrário; cinza = neutro. */
+/* Fundo escuro como o do site de referência (eleicoes.tonycelestino.com): grafite #171918, painel #1e2122,
+   borda #2f3335, texto creme #F0EEE9. É o padrão; a versão clara fica para quem forçar o tema claro. */
+:root {
+  --papel: #171918;
+  --tinta: #f0eee9;
+  --tinta-2: #a9a7a1;
+  --linha: #2f3335;
+  --cartao: #1e2122f2;
+  --destaque: #6aaaf2;
+  --destaque-suave: #6aaaf226;
+  --ocre: #e0a04a;
+  --neutro: #5f6a72;
+  --cinza: #7b8288;
+  --fundo-video: #121317;
+  --brilho-a: rgba(224, 160, 74, .16);      /* ocre, atrás do mapa */
+  --brilho-b: rgba(106, 170, 242, .20);     /* azul dos dados */
+  --brilho-c: rgba(44, 50, 65, .38);        /* Slow Swing, a névoa de fundo do site de referência */
+  --grao: .045;
+  --fonte-display: "Archivo", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --fonte-texto: "Literata", Georgia, "Times New Roman", serif;
+  --fonte-dado: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { color-scheme: dark; }
+}
+:root[data-theme="dark"] { color-scheme: dark; }
+:root[data-theme="light"] {
+  --papel: #f4f5f2; --tinta: #141d26; --tinta-2: #4a5763; --linha: #d3d8d4; --cartao: #fffffff0;
+  --destaque: #1565c0; --destaque-suave: #1565c01f; --ocre: #b4741c; --neutro: #a3acb4; --cinza: #9aa4ad;
+  --fundo-video: #0e151c;
+  --brilho-a: transparent; --brilho-b: transparent; --brilho-c: transparent; --grao: 0;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { background: var(--papel); color: var(--tinta); font-family: var(--fonte-texto);
+       font-size: 1.05rem; line-height: 1.6; margin: 0; }
+.envelope { padding-inline: 16px; padding-block: 0; }
+/* ── textura do fundo: luz difusa que deriva devagar atrás do mapa (como a abertura do site de referência),
+      uma névoa leve no resto da página e um grão fino, para o escuro não ficar chapado ── */
+html, body { overflow-x: clip; }
+body { background-image: radial-gradient(90% 60% at 85% 0%, var(--brilho-c), transparent 70%),
+                         radial-gradient(70% 50% at 0% 100%, var(--brilho-c), transparent 70%);
+       background-attachment: fixed; }
+body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: var(--grao);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"); }
+.abertura { isolation: isolate; }
+.abertura::before { content: ""; position: absolute; z-index: -1; pointer-events: none; top: -10%; bottom: -10%;
+  left: calc(50% - 50vw); width: 100vw; animation: deriva 18s ease-in-out infinite alternate; will-change: transform;
+  background: radial-gradient(38% 42% at 80% 32%, var(--brilho-a), transparent 70%),
+              radial-gradient(34% 40% at 66% 76%, var(--brilho-b), transparent 70%),
+              radial-gradient(60% 60% at 70% 50%, var(--brilho-c), transparent 75%); }
+.abertura::after { content: ""; position: absolute; z-index: -1; pointer-events: none; left: calc(50% - 50vw); width: 100vw;
+  bottom: 0; height: 22%; background: linear-gradient(transparent, var(--papel)); }
+.trilha { position: relative; z-index: 2; }
+@keyframes deriva { from { transform: translate(0, 0) scale(1); } to { transform: translate(-3%, 2.5%) scale(1.06); } }
+@media (prefers-reduced-motion: reduce) { .abertura::before { animation: none; } }
+
+a { color: var(--destaque); }
+:focus-visible { outline: 3px solid var(--destaque); outline-offset: 2px; }
+button { font: inherit; cursor: pointer; }
+
+/* ── abertura: mapa de pontos ao vivo ─────────────────────── */
+.abertura { position: relative; max-width: 76rem; margin: 0 auto; min-height: clamp(520px, 80vh, 780px);
+            display: grid; align-items: center; }
+#cv-abertura { position: absolute; inset: 0; width: 100%; height: 100%; }
+.abertura-texto { position: relative; max-width: 34rem; padding-block: 3rem; }
+.rubrica { font-family: var(--fonte-dado); text-transform: uppercase; letter-spacing: .12em;
+           font-size: .78rem; color: var(--tinta-2); margin: 0 0 1rem; }
+h1 { font-family: var(--fonte-display); font-stretch: 76%; font-weight: 900;
+     font-size: clamp(2.8rem, 8vw, 5.6rem); line-height: .93; margin: 0 0 1.1rem; text-wrap: balance; }
+h1 span { display: block; color: var(--destaque); font-size: .52em; line-height: 1.05; margin-top: .35rem; }
+.linha-fina { font-size: clamp(1.05rem, 2vw, 1.25rem); margin: 0 0 1.6rem; color: var(--tinta-2); text-wrap: pretty; }
+.acoes { display: flex; flex-wrap: wrap; gap: .75rem; }
+.botao { display: inline-flex; align-items: center; gap: .55rem; padding: .7rem 1.1rem; border-radius: 999px;
+         border: 1.5px solid var(--tinta); background: var(--tinta); color: var(--papel);
+         font-family: var(--fonte-dado); font-weight: 600; font-size: .98rem; text-decoration: none; }
+.botao.leve { background: transparent; color: var(--tinta); }
+.botao svg { width: 1em; height: 1em; }
+
+/* ── trilha dos três achados ──────────────────────────────── */
+.trilha { max-width: 76rem; margin: 0 auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 1px; background: var(--linha); border: 1px solid var(--linha); padding: 0; list-style: none; }
+.trilha li { background: var(--papel); padding: .9rem 1rem; }
+.trilha b { display: block; font-family: var(--fonte-display); font-stretch: 80%; font-size: 1.45rem; font-weight: 800; }
+.trilha span { font-family: var(--fonte-dado); font-size: .92rem; color: var(--tinta-2); }
+.trilha .num { color: var(--destaque); font-variant-numeric: tabular-nums; }
+
+/* ── capítulos com gráfico fixo ───────────────────────────── */
+.capitulo { max-width: 76rem; margin: 0 auto; padding-block: 3.5rem 1rem; }
+.capitulo > header { max-width: 42rem; margin-bottom: 1rem; }
+h2 { font-family: var(--fonte-display); font-stretch: 80%; font-weight: 800;
+     font-size: clamp(1.8rem, 4vw, 2.7rem); line-height: 1.05; margin: .2rem 0 .6rem; text-wrap: balance; }
+.capitulo > header p { margin: 0; color: var(--tinta-2); }
+.palco { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 2.5rem; align-items: start; }
+.etapas { display: flex; flex-direction: column; gap: 60vh; padding-block: 14vh 34vh; }
+.etapa { background: var(--cartao); border: 1px solid var(--linha); padding: 1.1rem 1.25rem; max-width: 30rem;
+         transition: border-color .3s, opacity .3s; opacity: .6; }
+.etapa.ativa { border-color: var(--destaque); opacity: 1; }
+.etapa p { margin: 0; }
+.etapa strong { font-family: var(--fonte-dado); font-weight: 600; color: var(--destaque); font-size: 1.08em;
+                font-variant-numeric: tabular-nums; }
+.grafico { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 6vh); min-width: 0; }
+.grafico figure { margin: 0; }
+.grafico svg { width: 100%; height: auto; display: block; overflow: visible; }
+.tela { position: relative; width: 100%; aspect-ratio: 4 / 3.1; max-width: 100%; }
+.tela canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+figcaption { font-family: var(--fonte-dado); font-size: .85rem; color: var(--tinta-2); margin-top: .6rem; }
+.tit-graf { font-family: var(--fonte-dado); font-weight: 600; font-size: .95rem; margin: 0 0 .4rem; min-height: 1.5em; }
+.lentes { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .6rem; }
+.lentes button { border: 1px solid var(--linha); background: var(--papel); color: var(--tinta-2);
+                 border-radius: 999px; padding: .3rem .8rem; font-family: var(--fonte-dado); font-size: .85rem; }
+.lentes button[aria-pressed="true"] { background: var(--tinta); color: var(--papel); border-color: var(--tinta); }
+.legenda-cor { display: flex; align-items: center; gap: .5rem; font-family: var(--fonte-dado); font-size: .8rem;
+               color: var(--tinta-2); margin-top: .4rem; flex-wrap: wrap; }
+.legenda-cor i { display: inline-block; width: 7.5rem; height: .55rem; border-radius: 2px;
+                 background: linear-gradient(90deg, var(--ocre), var(--neutro) 38%, var(--destaque)); }
+svg text { font-family: var(--fonte-dado); fill: var(--tinta); }
+svg .mudo { fill: var(--tinta-2); }
+svg .eixo { stroke: var(--linha); }
+
+/* ── políticas ────────────────────────────────────────────── */
+.politica { max-width: 76rem; margin: 0 auto; padding-block: 3.5rem 1rem; }
+.politica > header { max-width: 44rem; }
+.grade-cartoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+                 gap: 1rem; margin-top: 1.5rem; }
+.cartao { border: 1px solid var(--linha); background: var(--cartao); padding: 1.1rem 1.2rem;
+          display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: .35rem; }
+.chip { font-family: var(--fonte-dado); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em;
+        border: 1px solid var(--destaque); color: var(--destaque); border-radius: 3px; padding: .05rem .4rem; }
+.cartao h3 { font-family: var(--fonte-display); font-stretch: 84%; font-weight: 800; font-size: 1.2rem;
+             line-height: 1.15; margin: 0; text-wrap: balance; }
+.cartao .prova { font-family: var(--fonte-display); font-stretch: 78%; font-weight: 900; font-size: 2.1rem;
+                 line-height: 1; color: var(--destaque); font-variant-numeric: tabular-nums; margin: 0; }
+.cartao .prova small { display: block; font-family: var(--fonte-dado); font-size: .8rem; font-weight: 400;
+                       color: var(--tinta-2); margin-top: .25rem; font-stretch: 100%; }
+.cartao p { margin: 0; font-size: .95rem; }
+.cartao .hoje { font-family: var(--fonte-dado); font-size: .84rem; color: var(--tinta-2); border-top: 1px solid var(--linha);
+                padding-top: .5rem; margin-top: auto; }
+.ressalva { font-family: var(--fonte-dado); font-size: .88rem; color: var(--tinta-2); margin-top: 1rem; }
+
+.cartao.pergunta { background: var(--destaque-suave); border-color: transparent; }
+.cartao.largo { grid-column: 1 / -1; }
+.etapa .hoje { font-family: var(--fonte-dado); font-size: .84rem; color: var(--tinta-2);
+               border-top: 1px solid var(--linha); padding-top: .5rem; margin-top: .6rem; }
+.etapa-busca .campos { margin-top: .8rem; }
+.palco-mapa { margin-top: 2rem; }
+.capitulo > .ressalva, .capitulo > .tabela-uf { max-width: 76rem; }
+.jor-mapa .busca-palco { margin-top: .4rem; }
+.jor-mapa .legenda-cor { margin-top: .4rem; }
+.grade-cartoes.duas { grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); }
+.glossario { display: grid; grid-template-columns: max-content 1fr; gap: .3rem .8rem; margin: .8rem 0 0;
+             font-size: .9rem; }
+.glossario dt { font-family: var(--fonte-dado); font-weight: 600; }
+.glossario dd { margin: 0; }
+@media (max-width: 40rem) { .glossario { grid-template-columns: 1fr; } .glossario dd { margin-bottom: .4rem; } }
+.cg { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1rem 2rem; margin-top: .3rem; }
+.cg h4 { font-family: var(--fonte-dado); font-size: .82rem; font-weight: 600; text-transform: uppercase;
+         letter-spacing: .06em; color: var(--tinta-2); margin: 0 0 .5rem; }
+.cg-linha { display: grid; grid-template-columns: 6.5rem 1fr 3.6rem; align-items: center; gap: .5rem;
+            font-family: var(--fonte-dado); font-size: .9rem; margin-bottom: .35rem; }
+.cg-linha.sep { margin-top: .7rem; }
+.cg-barra { height: .8rem; background: var(--destaque); border-radius: 0 4px 4px 0; }
+.cg-barra.pardo { opacity: .5; }
+.cg-barra.branco { background: var(--cinza); }
+.cg-linha.par { margin-bottom: .1rem; }
+.cg-barra { transition: width .9s cubic-bezier(.65, 0, .35, 1); }
+@media (prefers-reduced-motion: reduce) { .cg-barra { transition: none; } }
+.cg-ref { margin: 0 0 .7rem; }
+.cg-linha b { font-variant-numeric: tabular-nums; text-align: right; font-weight: 600; }
+
+/* ── busca por estado ─────────────────────────────────────── */
+.busca { max-width: 76rem; margin: 0 auto; padding-block: 3rem 1rem; }
+.busca > header { max-width: 44rem; }
+.busca-palco { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 2rem; align-items: start;
+               margin-top: 1.2rem; }
+.campos { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .5rem .8rem; align-items: center; }
+.campos label { font-family: var(--fonte-dado); font-size: .85rem; color: var(--tinta-2); }
+.campos select { font: inherit; font-family: var(--fonte-dado); padding: .45rem .6rem; border: 1px solid var(--linha);
+                 background: var(--papel); color: var(--tinta); border-radius: 4px; min-width: 0; }
+.resultado { margin-top: 1.2rem; border-top: 2px solid var(--tinta); padding-top: .8rem; }
+.res-titulo { font-family: var(--fonte-display); font-stretch: 82%; font-weight: 800; font-size: 1.4rem; margin: 0 0 .6rem; }
+.resultado dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem 1rem; margin: 0; }
+.resultado dt { font-family: var(--fonte-dado); font-size: .8rem; color: var(--tinta-2); }
+.resultado dd { margin: 0; font-family: var(--fonte-display); font-stretch: 80%; font-weight: 800; font-size: 1.7rem;
+                color: var(--destaque); font-variant-numeric: tabular-nums; }
+.res-nota { font-family: var(--fonte-dado); font-size: .82rem; color: var(--tinta-2); margin: .8rem 0 0; }
+.tela-busca { aspect-ratio: 1 / 1; }
+.tabela-uf { margin-top: 1.5rem; }
+.tabela-uf summary { font-family: var(--fonte-dado); font-weight: 600; cursor: pointer; color: var(--destaque); }
+.rolagem { overflow-x: auto; margin-top: .6rem; }
+.tabela-uf table { border-collapse: collapse; width: 100%; font-family: var(--fonte-dado); font-size: .9rem;
+                   font-variant-numeric: tabular-nums; }
+.tabela-uf th, .tabela-uf td { padding: .35rem .6rem; border-bottom: 1px solid var(--linha); text-align: right; }
+.tabela-uf th:first-child, .tabela-uf td:first-child { text-align: left; }
+.tabela-uf th { color: var(--tinta-2); font-weight: 600; }
+.tabela-uf tbody tr { cursor: pointer; }
+.tabela-uf tbody tr:hover { background: var(--destaque-suave); }
+
+/* ── fechamento ───────────────────────────────────────────── */
+.fecho { max-width: 76rem; margin: 2.5rem auto 0; padding-block: 2.5rem 4rem; border-top: 1px solid var(--linha);
+         display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.5rem; }
+.fecho ol { padding-left: 1.1rem; margin: 0; }
+.fecho ol li { margin-bottom: .4rem; }
+.fecho h3 { font-family: var(--fonte-display); font-stretch: 85%; font-weight: 800; margin: 0 0 .5rem; font-size: 1.3rem; }
+.fecho p, .fecho li { font-size: .95rem; color: var(--tinta-2); }
+.fecho ul { padding-left: 1.1rem; margin: 0; }
+
+/* ── modo vídeo ───────────────────────────────────────────── */
+dialog#cinema { border: 0; padding: 0; width: min(1100px, 100vw); max-width: 100vw; max-height: 100vh;
+                background: var(--fundo-video); color: #eef2f5; }
+dialog#cinema::backdrop { background: #000c; }
+.cine { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: min(680px, 92vh); }
+.cine-topo { display: flex; justify-content: space-between; align-items: center; padding: .6rem 1rem;
+             font-family: var(--fonte-dado); font-size: .85rem; color: #a9b6c1; }
+.cine-palco { position: relative; min-height: 0; }
+.cine-palco canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cine-legenda { position: absolute; left: 0; right: 0; bottom: 1.2rem; text-align: center; padding-inline: 1rem; }
+.cine-legenda p { display: inline-block; margin: 0; background: #0e151cd9; padding: .5rem .9rem; border-radius: 6px;
+                  font-family: var(--fonte-display); font-stretch: 85%; font-weight: 700;
+                  font-size: clamp(1.05rem, 2.6vw, 1.6rem); line-height: 1.2; max-width: 46rem;
+                  transition: opacity .35s; }
+.cine-controles { display: flex; align-items: center; gap: .8rem; padding: .7rem 1rem; }
+.cine-controles button { background: #eef2f5; color: #0e151c; border: 0; border-radius: 999px; width: 2.4rem;
+                         height: 2.4rem; display: grid; place-items: center; }
+.cine-controles .fechar { background: transparent; color: #eef2f5; border: 1px solid #44525e; width: auto;
+                          padding-inline: .9rem; font-family: var(--fonte-dado); }
+.barra { flex: 1; height: 4px; background: #33404b; border-radius: 2px; overflow: hidden; }
+.barra i { display: block; height: 100%; width: 0; background: #6aaaf2; }
+
+@media (prefers-reduced-motion: reduce) { .etapa, .cine-legenda p { transition: none; } }
+@media (max-width: 760px) {
+  .abertura { min-height: 0; align-items: end; }
+  #cv-abertura { height: 56%; }
+  .abertura-texto { padding-top: 58vw; }
+  .trilha { grid-template-columns: minmax(0, 1fr); }
+  .palco { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .grafico { order: -1; top: env(safe-area-inset-top, 0px); background: var(--papel); padding-block: .5rem; z-index: 1; }
+  .etapas { gap: 48vh; padding-block: 6vh 26vh; position: relative; z-index: 2; }
+  .fecho { grid-template-columns: minmax(0, 1fr); }
+  .busca-palco { grid-template-columns: minmax(0, 1fr); }
+  .cine-controles { flex-wrap: wrap; }
+}
+</style>
+
+<div class="envelope">
+<header class="abertura">
+  <canvas id="cv-abertura" aria-hidden="true"></canvas>
+  <div class="abertura-texto">
+    <p class="rubrica">PNAD Contínua 2016–2025 · __N_OCUP__ trabalhadores · __N_BAIRROS__ bairros</p>
+    <h1>Bairro, porta e topo<span>o racismo estrutural no mercado de trabalho brasileiro</span></h1>
+    <p class="linha-fina">Com a mesma escolaridade, idade, sexo e bairro, trabalhadores negros ganham menos,
+      entram menos nos cargos qualificados e chegam menos ao topo da renda. Cada ponto do mapa é um bairro.</p>
+    <div class="acoes">
+      <button class="botao" type="button" data-abrir-video><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1l7 4-7 4z" fill="currentColor"/></svg>Assista em 1 minuto</button>
+      <a class="botao leve" href="#bairro">Explorar ↓</a>
+    </div>
+  </div>
+</header>
+
+<ul class="trilha" aria-label="Os três achados">
+  <li><b>Bairro</b><span><span class="num">__MED_BAIRRO__%</span> da diferença salarial vem do lugar onde se mora</span></li>
+  <li><b>Porta</b><span>chances <span class="num">__OCP_MENOR__%</span> menores de chegar a cargo qualificado</span></li>
+  <li><b>Topo</b><span>a penalidade dobra: <span class="num">__QR10__%</span> na base, <span class="num">__QR90__%</span> perto do topo</span></li>
+</ul>
+
+<section class="capitulo" id="bairro">
+  <header><p class="rubrica">Capítulo 1 · Bairro</p><h2>Cada ponto é um bairro</h2>
+    <p>Os mesmos __N_BAIRROS__ pontos, vistos de cinco jeitos. Use os botões ou role a página.</p></header>
+  <div class="palco">
+    <div class="etapas" data-painel>
+      <article class="etapa" data-lente="mapa"><p>Estes são os <strong>__N_BAIRROS__</strong> bairros em que a PNAD
+        entrevista as famílias. A cor diz a diferença de renda entre negros e brancos de mesmo perfil ali dentro:
+        quanto mais azul, mais os negros ganham menos.</p></article>
+      <article class="etapa" data-lente="divisao"><p>Em <strong>__PCT_BAIRROS__%</strong> dos bairros, negros ganham
+        menos que brancos com a mesma escolaridade, idade e sexo. No bairro mediano, <strong>__PEN_MED__%</strong> a menos:
+        enfileirados os bairros da menor para a maior penalidade, é o do meio.</p></article>
+      <article class="etapa" data-lente="negros"><p>O bairro cobra duas vezes. Onde mais de <strong>__PNEG_Q4__%</strong>
+        dos moradores são negros, a renda mediana é <strong>__RENDA_Q4__</strong>; onde são menos de
+        <strong>__PNEG_Q1__%</strong>, <strong>__RENDA_Q1__</strong>.</p></article>
+      <article class="etapa" data-lente="renda"><p>E a penalidade é maior nos bairros de renda mais alta. Chegar a um
+        bairro rico não protege: ali dentro, a distância entre negros e brancos cresce.</p></article>
+      <article class="etapa" data-lente="estados"><p>Acontece em todos os 27 estados: no bairro mediano de cada um, a
+        penalidade vai de <strong>__UF_MIN__</strong> a <strong>__UF_MAX__</strong>. Comparar só estados esconde que a
+        maior variação está entre bairros do mesmo estado.</p></article>
+    </div>
+    <div class="grafico">
+      <div class="lentes" role="group" aria-label="Lentes do painel">
+        <button type="button" data-lente="mapa" aria-pressed="true">Mapa</button>
+        <button type="button" data-lente="divisao" aria-pressed="false">A divisão</button>
+        <button type="button" data-lente="negros" aria-pressed="false">Quem mora onde</button>
+        <button type="button" data-lente="renda" aria-pressed="false">Bairros ricos</button>
+        <button type="button" data-lente="estados" aria-pressed="false">Os 27 estados</button>
+      </div>
+      <figure><p class="tit-graf" id="tit-painel"></p><div class="tela"><canvas id="cv-painel" role="img" aria-label="Painel de pontos: cada ponto é um bairro"></canvas></div>
+        <div class="legenda-cor"><span>negros ganham mais</span><i></i><span>negros ganham menos</span></div>
+        <figcaption>Penalidade estimada em cada bairro: quanto a menos ganham ali os negros, comparados a brancos de mesmo perfil. Fonte: PNAD Contínua (IBGE), elaboração própria.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="busca" id="busca">
+  <header><p class="rubrica">Busque o seu estado</p><h2>E onde você mora?</h2>
+    <p>A PNAD não divulga onde fica cada bairro, mas diz o estado e se ele está na capital, na região
+      metropolitana ou no interior. Escolha e veja os bairros acenderem no mapa.</p></header>
+  <div class="busca-palco">
+    <div class="busca-controle">
+      <div class="campos">
+        <label for="sel-uf">Estado</label>
+        <select id="sel-uf"></select>
+        <label for="sel-area">Onde</label>
+        <select id="sel-area">
+          <option value="0">Todo o estado</option>
+          <option value="1">Capital</option>
+          <option value="2">Região metropolitana</option>
+          <option value="3">Interior</option>
+        </select>
+      </div>
+      <div class="resultado" aria-live="polite">
+        <p class="res-titulo" id="res-titulo"></p>
+        <dl>
+          <div><dt>Penalidade no bairro mediano</dt><dd id="res-pen"></dd></div>
+          <div><dt>Bairros com penalidade</dt><dd id="res-com"></dd></div>
+          <div><dt>Renda do bairro mediano</dt><dd id="res-renda"></dd></div>
+          <div><dt>Moradores negros</dt><dd id="res-pneg"></dd></div>
+        </dl>
+        <p class="res-nota" id="res-nota"></p>
+      </div>
+    </div>
+    <div class="tela tela-busca"><canvas id="cv-busca" role="img" aria-label="Mapa do estado escolhido, com os bairros acesos"></canvas></div>
+  </div>
+  <details class="tabela-uf">
+    <summary>Ver os 27 estados em tabela</summary>
+    <div class="rolagem"><table id="tab-uf"><thead><tr><th scope="col">Estado</th><th scope="col">Capital</th>
+      <th scope="col">Região metropolitana</th><th scope="col">Interior</th><th scope="col">Bairros</th></tr></thead><tbody></tbody></table></div>
+    <p class="res-nota">Penalidade no bairro mediano (o do meio, com os bairros enfileirados da menor para a maior penalidade), em % de renda. “—”: a PNAD não separa esse tipo de área no estado.</p>
+  </details>
+</section>
+
+<section class="capitulo" id="degraus">
+  <header><p class="rubrica">Capítulo 2 · Bairro</p><h2>Comparar vizinhos muda a conta</h2>
+    <p>A mesma diferença salarial, comparando pessoas cada vez mais parecidas.</p></header>
+  <div class="palco">
+    <div class="etapas" data-grafico="g-degraus">
+      <article class="etapa" data-etapa="0"><p>Sem comparar vizinhos, com os mesmos estudos, idade, sexo e estado, um
+        trabalhador negro ganha <strong>__GAP_POOL__%</strong> menos que um branco.</p></article>
+      <article class="etapa" data-etapa="1"><p>Entre vizinhos do mesmo bairro, a diferença cai para
+        <strong>__GAP_M1__%</strong>: <strong>__MED_BAIRRO__%</strong> da diferença vinha de negros e brancos morarem em lugares diferentes.</p></article>
+      <article class="etapa" data-etapa="2"><p>Levar em conta também se o bairro é rico ou pobre, e o estado, quase não muda nada: sobra
+        <strong>__GAP_M3__%</strong>. É a diferença que fica entre vizinhos de mesmo perfil.</p></article>
+      <article class="etapa" data-etapa="3"><p>Dentro da mesma ocupação, persiste <strong>__GAP_M4__%</strong>. É o mínimo: a
+        ocupação de cada um já é, em parte, resultado da barreira para chegar aos melhores cargos.</p></article>
+    </div>
+    <div class="grafico"><figure id="g-degraus"><p class="tit-graf"></p><svg role="img"></svg>
+      <figcaption>Quanto a menos ganham os negros, em % do salário, a cada comparação. Fonte: PNAD Contínua (IBGE), elaboração própria.</figcaption></figure></div>
+  </div>
+</section>
+
+<section class="capitulo" id="porta">
+  <header><p class="rubrica">Capítulo 3 · Porta</p><h2>O diploma iguala o salário, mas não abre a porta</h2>
+    <p>Escolaridade reduz uma barreira e deixa a outra no lugar. Cargos qualificados, aqui, são os de dirigente,
+      profissional de nível superior, técnico e apoio administrativo.</p></header>
+  <div class="palco">
+    <div class="etapas" data-grafico="g-porta">
+      <article class="etapa" data-etapa="0"><p>Entre quem não completou o fundamental, a penalidade salarial é de
+        <strong>__NE_SEMFUND__%</strong>.</p></article>
+      <article class="etapa" data-etapa="1"><p>Ela cai a cada degrau da escola e chega a <strong>__NE_POS__%</strong>
+        na pós-graduação. No salário, o diploma quase iguala.</p></article>
+      <article class="etapa" data-etapa="2"><p>Na porta dos cargos qualificados, não. Com pós-graduação, as chances de
+        um trabalhador negro chegar lá seguem <strong>__PCTPOS__%</strong> menores que as de um branco do mesmo perfil e bairro.</p></article>
+    </div>
+    <div class="grafico"><figure id="g-porta"><p class="tit-graf"></p><svg role="img"></svg>
+      <figcaption>Penalidade salarial por escolaridade e chances de chegar a cargo qualificado. Fonte: PNAD Contínua (IBGE), elaboração própria.</figcaption></figure></div>
+  </div>
+</section>
+
+<section class="capitulo" id="topo">
+  <header><p class="rubrica">Capítulo 4 · Topo</p><h2>Quanto mais alto, mais estreito</h2>
+    <p>A desvantagem não é igual em toda a escada da renda.</p></header>
+  <div class="palco">
+    <div class="etapas" data-grafico="g-topo">
+      <article class="etapa" data-etapa="0"><p>Entre pessoas comparáveis, a penalidade é de <strong>__QR10__%</strong>
+        entre os que ganham menos.</p></article>
+      <article class="etapa" data-etapa="1"><p>Ela sobe rumo ao topo e chega a <strong>__QR90__%</strong> perto do
+        topo, entre quem ganha mais que 90% dos trabalhadores: é o desenho de um teto de vidro, uma barreira que
+        não se vê e aperta à medida que se sobe.</p></article>
+      <article class="etapa" data-etapa="2"><p>As chances seguem o mesmo caminho. Comparado a um branco de mesmo perfil, um trabalhador negro tem chances
+        <strong>__OR_OCP__</strong> de chegar a cargo qualificado, <strong>__OR_T20__</strong> de estar entre os 20% mais
+        ricos e <strong>__OR_T10__</strong> de estar entre os 10% mais ricos.</p></article>
+    </div>
+    <div class="grafico"><figure id="g-topo"><p class="tit-graf"></p><svg role="img"></svg>
+      <figcaption>Penalidade em cada ponto da escala de renda e chances de chegar a cada degrau, entre pessoas de mesmo perfil no mesmo bairro. Fonte: PNAD Contínua (IBGE), elaboração própria.</figcaption></figure></div>
+  </div>
+</section>
+
+<section class="capitulo" id="mulher">
+  <header><p class="rubrica">Capítulo 5 · Topo</p><h2>A mulher negra entra, mas não chega ao comando</h2>
+    <p>Raça e gênero juntos, ocupação por ocupação.</p></header>
+  <div class="palco">
+    <div class="etapas" data-grafico="g-mulher">
+      <article class="etapa" data-etapa="0"><p>Olhando o total, a mulher negra parece em vantagem: tem chances <strong>__MN_AGREG__</strong> que as do homem
+        branco de estar num cargo qualificado.</p></article>
+      <article class="etapa" data-etapa="1"><p>A vantagem vem das ocupações em que a maioria é mulher: no apoio
+        administrativo, as chances dela são <strong>__MN_ADM__</strong>.</p></article>
+      <article class="etapa" data-etapa="2"><p>Entre os dirigentes, ela tem a menor chance de todos os grupos:
+        <strong>__MN_DIR__</strong>. Entre os 10% mais ricos, <strong>__MN_T10__</strong>.</p></article>
+    </div>
+    <div class="grafico"><figure id="g-mulher"><p class="tit-graf"></p><svg role="img"></svg>
+      <figcaption>Chances de cada grupo comparadas às do homem branco de mesmo perfil (linha tracejada: chances iguais). Fonte: PNAD Contínua (IBGE), elaboração própria.</figcaption></figure></div>
+  </div>
+</section>
+
+<section class="capitulo" id="quem">
+  <header><p class="rubrica">Capítulo 6 · Quem paga mais</p><h2>Pele mais escura, mais idade, setor privado</h2>
+    <p>O que a média de todos os trabalhadores negros esconde.</p></header>
+  <div class="palco">
+    <div class="etapas" data-grafico="g-quem">
+      <article class="etapa" data-etapa="0"><p>Pretos e pardos ganham menos que brancos comparáveis, mas não igual: a
+        penalidade é de <strong>__HET_PRETO__%</strong> para pretos e <strong>__HET_PARDO__%</strong> para pardos. O padrão
+        é compatível com o colorismo, a discriminação graduada pela tonalidade da pele.</p></article>
+      <article class="etapa" data-etapa="1"><p>A penalidade cresce com a idade: <strong>__IDADE_JOVEM__%</strong> entre
+        14 e 29 anos e <strong>__IDADE_65__%</strong> a partir dos 65. Pode ser a desigualdade se acumulando na carreira,
+        ou gerações mais novas encontrando menos discriminação; o dado de um só momento não separa as duas.</p></article>
+      <article class="etapa" data-etapa="2"><p>No setor público e no privado, a porta do cargo qualificado é igualmente
+        desigual: chances <strong>__PUB_OCP__</strong> no público e <strong>__PRIV_OCP__</strong> no privado. O que muda é o
+        teto: de chegar aos 10% mais ricos, chances <strong>__PUB_T10__</strong> no público e <strong>__PRIV_T10__</strong> no privado.</p></article>
+    </div>
+    <div class="grafico"><figure id="g-quem"><p class="tit-graf"></p><svg role="img"></svg>
+      <figcaption>As mesmas comparações, feitas separadamente para cada grupo. Fonte: PNAD Contínua (IBGE), elaboração própria.</figcaption></figure></div>
+  </div>
+</section>
+
+<section class="capitulo" id="colorismo">
+  <header><p class="rubrica">Capítulo 7 · Cor</p><h2>Colorismo: quanto mais escura a pele, maior a penalidade</h2>
+    <p>Negros, para a lei e para o IBGE, são pretos e pardos. A soma é a categoria certa para a política, mas esconde
+      uma escada. Colorismo é a discriminação graduada pela tonalidade da pele (Walker, 1983; Telles, 2004).</p></header>
+  <div class="palco">
+    <div class="etapas" data-grafico="g-cor">
+      <article class="etapa" data-etapa="0"><p>No salário, entre vizinhos de mesmo perfil, pretos ganham
+        <strong>__HET_PRETO__%</strong> menos que brancos; pardos, <strong>__HET_PARDO__%</strong>.</p></article>
+      <article class="etapa" data-etapa="1"><p>Na porta dos cargos qualificados, a mesma escada: chances
+        <strong>__OR_PRETO_OCP__</strong> para pretos e <strong>__OR_PARDO_OCP__</strong> para pardos.</p></article>
+      <article class="etapa" data-etapa="2"><p>E na chegada aos 10% mais ricos: <strong>__OR_PRETO_T10__</strong> para
+        pretos, <strong>__OR_PARDO_T10__</strong> para pardos. Os pardos ficam no meio, abaixo dos brancos em todas as
+        medidas, uma desvantagem que nem sempre é vista.</p></article>
+      <article class="etapa" data-etapa="3"><p>Perto do topo da renda, onde a seleção é mais disputada, a penalidade
+        salarial chega a <strong>__QR_PRETO_Q90__%</strong> para pretos e <strong>__QR_PARDO_Q90__%</strong> para
+        pardos.__COR_IC__</p></article>
+      <article class="etapa" data-etapa="4"><p>A escada aparece entre mulheres e entre homens. Contra brancos do mesmo
+        sexo, a maior penalidade é a dos homens pretos: <strong>__CG_H_PRETO_R__%</strong>.</p></article>
+      <article class="etapa" data-etapa="5"><p>Mas quem ganha menos é a mulher negra. Contra o homem branco de mesmo
+        perfil, a parda ganha <strong>__CG_HB_PARDAS__%</strong> menos, e o homem preto, <strong>__CG_HB_PRETOS__%</strong>:
+        à desvantagem de cor soma-se a de gênero.</p></article>
+      <article class="etapa" data-etapa="6"><p><b>O que isso pede da política:</b> manter “negros” como a categoria,
+        porque pretos e pardos estão abaixo dos brancos em todas as medidas (Lei 12.288/2010), e medir e divulgar pretos
+        e pardos separadamente, para que a média não esconda a desvantagem maior dos pretos.</p></article>
+    </div>
+    <div class="grafico"><figure id="g-cor"><p class="tit-graf"></p><svg role="img"></svg>
+      <figcaption>Pretos e pardos comparados a brancos de mesmo perfil no mesmo bairro. Fonte: PNAD Contínua (IBGE), elaboração própria.</figcaption></figure></div>
+  </div>
+  <p class="ressalva">A PNAD registra a cor declarada em cinco categorias, e não a tonalidade da pele: a escada medida
+    é entre pretos e pardos, e os dados não identificam a causa. A diferença entre mulheres e homens inclui o tipo de
+    ocupação, que não foi igualado.</p>
+</section>
+
+<section class="capitulo" id="custo">
+  <header><p class="rubrica">Capítulo 8 · Quanto custa</p><h2>Um país que desperdiça talento produz abaixo do que pode</h2>
+    <p>O que a desigualdade medida aqui significa para a economia, em ordem de grandeza.</p></header>
+  <div class="palco">
+    <div class="etapas" data-grafico="g-custo">
+      <article class="etapa" data-etapa="0"><p>Se tivessem as mesmas chances de um branco de mesmo perfil e bairro,
+        <strong>__ECO_TALENTO__</strong> trabalhadores negros a mais estariam em cargos qualificados, de
+        __ECO_OCUP__ de ocupados negros em __ECO_ANO__.</p></article>
+      <article class="etapa" data-etapa="1"><p>É talento formado que a economia não usa. Nos Estados Unidos, reduzir
+        barreiras assim para mulheres e negros explicou de 20% a 40% do crescimento do produto por pessoa entre 1960 e
+        2010 (Hsieh, Hurst, Jones e Klenow, 2019). Com essa barreira, não se chega à produtividade máxima.</p></article>
+      <article class="etapa" data-etapa="2"><p>No salário, a penalidade de __GAP_M3__% entre vizinhos soma
+        <strong>__ECO_RENDA__</strong> por ano que não chegam aos trabalhadores negros. O dinheiro não some: fica com
+        outros, e os dados não dizem quem. É distribuição, e não produção perdida.</p></article>
+      <article class="etapa" data-etapa="3"><p>Negros são <strong>__DES_POP__%</strong> dos ocupados, mas ficam com
+        <strong>__DES_MASSA__%</strong> da renda do trabalho. Sem a penalidade, seriam __DES_MASSA_SP__%.</p></article>
+      <article class="etapa" data-etapa="4"><p>O índice de Gini (0: todos ganham igual; 1: um só fica com tudo) cairia de
+        <strong>__GINI__</strong> para <strong>__GINI_SP__</strong> sem a penalidade, e para __GINI_IG__ com médias
+        iguais. A diferença entre brancos e negros é __THEIL_ENTRE__% da desigualdade: a maior parte está dentro de cada
+        grupo, mas essa fatia tem padrão, segue a cor.</p></article>
+    </div>
+    <div class="grafico"><figure id="g-custo"><p class="tit-graf"></p><svg role="img"></svg>
+      <figcaption>Totais de __ECO_ANO__ com o peso da PNAD; desigualdade na renda do trabalho dos ocupados. Fonte: PNAD Contínua (IBGE), elaboração própria.</figcaption></figure></div>
+  </div>
+  <p class="ressalva">Ordens de grandeza a partir de associações, e não de causas. O trabalho mede salário e acesso,
+    não produtividade. Mesmo a renda que só muda de mão pesa: concentrada em quem já ganha mais, tende a ser menos gasta.</p>
+</section>
+
+<section class="capitulo" id="jornada">
+  <header><p class="rubrica">Capítulo 9 · Hora e jornada</p><h2>Para receber o mesmo, três semanas a mais de trabalho</h2>
+    <p>A penalidade em tempo, e o que os dados dizem sobre as duas propostas de jornada em debate na eleição de 2026.</p></header>
+  <div class="palco">
+    <div class="etapas" data-grafico="g-jor">
+      <article class="etapa" data-etapa="0"><p>Com a diferença de __GAP_M3__% entre vizinhos, o que um branco recebe de
+        janeiro a dezembro um negro de mesmo perfil só alcança em <strong>__DIA_IGUAL__</strong> do ano seguinte:
+        __DIAS_UTEIS__ dias úteis a mais.</p></article>
+      <article class="etapa" data-etapa="1"><p>Entre vizinhos de mesmo perfil, sem igualar as horas, o salário do mês
+        do negro é __MES__% menor. Quase tudo está no valor da hora: <strong>__HORA__%</strong>. Trabalhar menos horas
+        responde por só __HORAS__%.</p></article>
+      <article class="etapa" data-etapa="2"><p>Negros estão mais em jornadas curtas: <strong>__H30_N__%</strong>
+        trabalham menos de 30 horas por semana, contra __H30_B__% dos brancos.</p></article>
+      <article class="etapa" data-etapa="3"><p>E mais negros querem trabalhar mais horas e não conseguem:
+        <strong>__SUB_N__%</strong>, contra __SUB_B__% dos brancos; entre as mulheres negras, __SUB_MN__%.</p></article>
+      <article class="etapa" data-etapa="4"><p><b>Remuneração por hora trabalhada</b>, defendida pelo candidato Flávio
+        Bolsonaro (PL; PEC 12/2026): empresa e trabalhador combinariam a jornada, com salário, férias, 13º e FGTS
+        proporcionais. Com a renda ligada às horas, fica mais exposto quem não controla as próprias horas, e aí os negros
+        são mais numerosos. O efeito depende de haver salário mínimo por hora e de quem decide a jornada.</p></article>
+      <article class="etapa" data-etapa="5"><p><b>Fim da escala 6x1 e semana de 40 horas</b>, defendida pelo governo
+        Lula (PT): o mesmo salário por menos horas para quem trabalha mais de 40. Aqui a exposição é parecida:
+        <strong>__H40_N__%</strong> dos negros e __H40_B__% dos brancos. O efeito depende da reação das empresas e não
+        alcança quem trabalha sem carteira.</p></article>
+    </div>
+    <div class="grafico"><figure id="g-jor"><p class="tit-graf"></p><svg role="img"></svg>
+      <figcaption>Tempo e hora: vizinhos de mesmo perfil. Horas e subocupação: ocupados de 2016 a 2025, com o peso da
+        PNAD, sem comparar perfis. Fonte: PNAD Contínua (IBGE), elaboração própria.</figcaption></figure></div>
+  </div>
+
+  <div class="palco palco-mapa">
+    <div class="etapas" data-jor>
+      <article class="etapa" data-m="sub"><p>Cada ponto é um bairro, na cor do seu estado e do tipo de área: capital,
+        região metropolitana ou interior. __SUB_UF_FRASE__, negros querem trabalhar
+        mais e não conseguem mais do que brancos.</p></article>
+      <article class="etapa" data-m="hora"><p>A hora do negro vale menos que a do branco vizinho de mesmo perfil em
+        todos os estados: de <strong>__HORA_UF_MIN__</strong> a <strong>__HORA_UF_MAX__</strong>.</p></article>
+      <article class="etapa" data-m="h40"><p>Já trabalhar mais de 40 horas não tem um lado: em alguns estados são mais
+        os negros, em outros, os brancos.</p></article>
+      <article class="etapa etapa-busca" data-m=""><p><b>Escolha um lugar</b> e veja os números ao lado do mapa.</p>
+        <div class="campos">
+          <label for="sel-jor-uf">Lugar</label>
+          <select id="sel-jor-uf"></select>
+          <label for="sel-jor-area">Onde</label>
+          <select id="sel-jor-area">
+            <option value="0">Todo o estado</option>
+            <option value="1">Capital</option>
+            <option value="2">Região metropolitana</option>
+            <option value="3">Interior</option>
+          </select>
+        </div>
+        <div class="resultado" aria-live="polite">
+          <p class="res-titulo" id="jor-res-titulo"></p>
+          <dl>
+            <div><dt>Negros que querem trabalhar mais</dt><dd id="jor-sub-n"></dd></div>
+            <div><dt>Brancos que querem trabalhar mais</dt><dd id="jor-sub-b"></dd></div>
+            <div><dt>Hora do negro vale menos</dt><dd id="jor-hora"></dd></div>
+            <div><dt>Mais de 40 horas: negros (brancos)</dt><dd id="jor-h40"></dd></div>
+          </dl>
+          <p class="res-nota" id="jor-nota"></p>
+        </div></article>
+    </div>
+    <div class="grafico">
+      <div class="lentes" role="group" aria-label="O que o mapa mostra" id="jor-lentes">
+        <button type="button" data-m="sub" aria-pressed="true">Querem trabalhar mais</button>
+        <button type="button" data-m="hora" aria-pressed="false">Valor da hora</button>
+        <button type="button" data-m="h40" aria-pressed="false">Mais de 40 horas</button>
+      </div>
+      <figure><p class="tit-graf" id="jor-tit"></p>
+        <div class="tela"><canvas id="cv-jornada" role="img" aria-label="Mapa do Brasil com os bairros na cor do indicador de jornada escolhido"></canvas></div>
+        <div class="legenda-cor"><span id="jor-leg-esq"></span><i></i><span id="jor-leg-dir"></span></div>
+        <figcaption>Valor da hora estimado em cada grupo; onde há poucos casos, vale o número do estado. A posição dos
+          pontos dentro do estado é ilustrativa. Fonte: PNAD Contínua (IBGE), elaboração própria.</figcaption></figure>
+    </div>
+  </div>
+  <details class="tabela-uf">
+    <summary>Ver os 27 estados em tabela</summary>
+    <div class="rolagem"><table id="tab-jor"><thead><tr><th scope="col">Estado</th><th scope="col">Todo o estado</th>
+      <th scope="col">Capital</th><th scope="col">Região metropolitana</th><th scope="col">Interior</th></tr></thead><tbody></tbody></table></div>
+    <p class="res-nota" id="jor-tab-nota"></p>
+  </details>
+  <p class="ressalva">Este site não avalia as propostas: os dados mostram quem está mais exposto a cada uma, e não o
+    efeito delas, que nenhum dado atual permite medir. Propostas conforme divulgadas na imprensa até outubro de 2026
+    (Revista Cenarium, O Tempo, ICL Notícias, Outras Palavras).</p>
+</section>
+
+<section class="capitulo" id="criticas">
+  <header><p class="rubrica">Capítulo 10 · Pontos cegos</p><h2>A política de diversidade mira a entrada</h2>
+    <p>Quatro lugares aonde ela não chega.</p></header>
+  <div class="palco">
+    <div class="etapas" data-grafico="g-crit">
+      <article class="etapa" data-etapa="0"><p><b>As cotas cuidam do ingresso, não da subida.</b> De chegar aos 10% mais
+        ricos, um negro tem chances <strong>__PRIV_T10__</strong> no setor privado e __PUB_T10__ no público.</p>
+        <p class="hoje">Hoje: cotas no ensino superior (Leis 12.711/2012 e 14.723/2023) e em concursos (Leis 12.990/2014
+        e 15.142/2025); reserva de cargos de confiança só na administração federal (Decreto 11.443/2023).</p></article>
+      <article class="etapa" data-etapa="1"><p><b>O diploma é necessário, mas não basta.</b> A penalidade salarial cai de
+        __NE_SEMFUND__% para __NE_POS__% com a escolaridade; a chance de cargo qualificado, com pós-graduação, segue
+        <strong>__PCTPOS__%</strong> menor.</p>
+        <p class="hoje">Hoje: a aposta principal é ampliar o acesso ao ensino.</p></article>
+      <article class="etapa" data-etapa="2"><p><b>A política de diversidade não olha o território.</b>
+        <strong>__MED_BAIRRO__%</strong> da diferença salarial vem do lugar onde se mora, e a diversidade é medida só
+        dentro da empresa.</p>
+        <p class="hoje">Hoje: nenhum critério territorial nas políticas de diversidade no emprego.</p></article>
+      <article class="etapa" data-etapa="3"><p><b>Um eixo de cada vez deixa a mulher negra de fora.</b> Entre os
+        dirigentes, ela tem chances <strong>__MN_DIR__</strong> que as do homem branco, as menores de todos. Metas
+        separadas para mulheres e para negros podem ser cumpridas pela mulher branca e pelo homem negro.</p>
+        <p class="hoje">Hoje: a lei de transparência salarial (Lei 14.611/2023) coleta raça, mas obriga igualdade só entre
+        mulheres e homens.</p></article>
+    </div>
+    <div class="grafico"><figure id="g-crit"><p class="tit-graf"></p><svg role="img"></svg>
+      <figcaption>Negros comparados a brancos de mesmo perfil no mesmo bairro. Fonte: PNAD Contínua (IBGE), elaboração própria.</figcaption></figure></div>
+  </div>
+</section>
+
+<section class="capitulo" id="propostas">
+  <header><p class="rubrica">Capítulo 11 · O que fazer</p><h2>Cinco propostas, uma para cada barreira</h2>
+    <p>Sugeridas pelos resultados, não avaliadas por eles.</p></header>
+  <div class="palco">
+    <div class="etapas" data-grafico="g-prop">
+      <article class="etapa" data-etapa="0"><p><b>Metas de representação no comando.</b> Metas para cargos de direção e
+        gerência no setor privado, com raça e gênero juntos, usando o relatório que a lei de transparência salarial já
+        exige.</p></article>
+      <article class="etapa" data-etapa="1"><p><b>Igualdade salarial por raça como obrigação.</b> Fiscalização dirigida à
+        diferença que persiste dentro da mesma ocupação (<strong>__GAP_M4__%</strong>), com base na Lei 9.029/1995 e no
+        Estatuto da Igualdade Racial.</p></article>
+      <article class="etapa" data-etapa="2"><p><b>Um componente territorial.</b> Transporte e intermediação que liguem
+        bairros segregados aos polos de emprego; aprendizagem, estágio e mentoria; currículo sem endereço na triagem;
+        escola integral e técnica onde vivem mais negros. E fiscalização também nos bairros ricos, onde a penalidade é
+        maior.</p></article>
+      <article class="etapa" data-etapa="3"><p><b>Promoção, e não só ingresso.</b> Estender a lógica da reserva de
+        cargos de confiança às empresas estatais e à progressão nas carreiras.</p></article>
+      <article class="etapa" data-etapa="4"><p><b>Monitoramento anual.</b> Medir todo ano, com a PNAD Contínua, a
+        diferença salarial entre vizinhos, a chance de acesso e a chance de comando por raça e gênero, e verificar se
+        cada política moveu a barreira que importa.</p></article>
+    </div>
+    <div class="grafico"><figure id="g-prop"><p class="tit-graf"></p><svg role="img"></svg>
+      <figcaption>Cada linha é uma proposta; cada coluna, uma barreira medida neste estudo.</figcaption></figure></div>
+  </div>
+  <p class="ressalva">Os resultados mostram associações entre pessoas comparáveis, e não provam a causa; as propostas
+    são uma agenda, e não um efeito medido.</p>
+</section>
+
+<section class="capitulo" id="degrau">
+  <header><p class="rubrica">Epílogo</p><h2>A década teve um degrau, não uma rampa</h2>
+    <p>O que aconteceu com a penalidade de 2016 a 2025.</p></header>
+  <div class="palco">
+    <div class="etapas" data-grafico="g-degrau">
+      <article class="etapa" data-etapa="0"><p>Até 2019, a penalidade entre vizinhos oscilou em torno de
+        <strong>__COV19__%</strong>, sem tendência.</p></article>
+      <article class="etapa" data-etapa="1"><p>Em 2020 caiu para <strong>__COV20__%</strong> e não voltou: em 2025 era
+        <strong>__COV25__%</strong>. Não foi saída dos mais pobres do emprego nem efeito da entrevista por telefone.</p></article>
+      <article class="etapa" data-etapa="2"><p>Sem um ritmo, não há prazo a extrapolar. A igualdade depende de novos
+        degraus, e não de esperar.</p></article>
+    </div>
+    <div class="grafico"><figure id="g-degrau"><p class="tit-graf"></p><svg role="img"></svg>
+      <figcaption>Penalidade entre vizinhos do mesmo bairro, ano a ano; a faixa clara é a margem de erro. Fonte: PNAD Contínua (IBGE), elaboração própria.</figcaption></figure></div>
+  </div>
+</section>
+
+<footer class="fecho">
+  <div>
+    <h3>Como foi feito</h3>
+    <ol>
+      <li><b>Dados.</b> Os __N_OCUP__ trabalhadores ocupados com renda entrevistados pela PNAD Contínua de 2016 a 2025,
+        sem descartar nenhum, com escolaridade, idade, sexo, jornada, estado e bairro.</li>
+      <li><b>Bairro.</b> Um modelo estatístico em dois níveis, pessoas dentro de bairros, compara negros e brancos
+        vizinhos e separa o que é diferença entre lugares do que é diferença entre pessoas.</li>
+      <li><b>Porta e topo.</b> Um modelo de probabilidade compara as chances de chegar a cargo qualificado e aos mais ricos;
+        outros dois métodos medem a penalidade em cada faixa de renda, da base ao topo.</li>
+      <li><b>Verificação.</b> Um algoritmo de aprendizado de máquina, que não parte de fórmula pronta, aponta os mesmos fatores
+        como os mais importantes; outros testes mostram quão forte teria de ser algo não medido para apagar os resultados.</li>
+    </ol>
+  </div>
+  <div>
+    <h3>Como ler</h3>
+    <p>Os números comparam pessoas com a mesma escolaridade, idade, sexo e jornada, no mesmo bairro. Mostram associações,
+      e não provam a causa. “Bairro” é a área que o IBGE sorteia para entrevistar, um conjunto de domicílios vizinhos,
+      e não o bairro oficial da prefeitura.
+      A PNAD não divulga onde fica cada bairro: no mapa, o ponto está no seu estado, perto da capital, no entorno
+      metropolitano ou no interior, conforme a pesquisa informa, mas a posição exata é ilustrativa. A cor de cada
+      ponto é a estimativa para aquele bairro; onde há poucos entrevistados, ela é puxada para a média, para não exagerar.
+      “Bairro mediano” é o do meio: enfileirados todos os bairros de um grupo da menor para a maior penalidade,
+      metade fica acima dele e metade abaixo. Resume o grupo sem se deixar levar pelos extremos.</p>
+    <dl class="glossario">
+      <dt>Penalidade</dt><dd>quanto a menos, em % do salário, ganha um negro em relação a um branco de mesmo perfil.</dd>
+      <dt>Mesmo perfil</dt><dd>mesma escolaridade, idade, sexo e jornada de trabalho, no mesmo bairro.</dd>
+      <dt>Chances menores</dt><dd>quanto as chances de um negro chegar a um cargo ou faixa de renda ficam abaixo das de um branco de mesmo perfil; 0% seria igualdade.</dd>
+      <dt>Pontos percentuais</dt><dd>a diferença entre duas porcentagens: de 30% para 27% são 3 pontos percentuais.</dd>
+      <dt>Cargo qualificado</dt><dd>dirigente, profissional de nível superior, técnico ou apoio administrativo.</dd>
+      <dt>Margem de erro</dt><dd>a faixa em que o valor verdadeiro provavelmente está, já que a PNAD entrevista uma amostra das famílias.</dd>
+    </dl>
+  </div>
+  <div>
+    <h3>Ficha técnica</h3>
+    <ul>
+      <li>Dados: PNAD Contínua, IBGE, 2016–2025, população completa; malha estadual do IBGE.</li>
+      <li>Métodos: modelo hierárquico, Oaxaca–Blinder, regressão quantílica e RIF, GLMM logístico; XGBoost/SHAP como verificação.</li>
+      <li>Trabalho de conclusão do MBA em Data Science e Analytics, USP/Esalq, 2026. Ricardo Gomes Calheiros, sob orientação de Edilson José Rodrigues.</li>
+      <li>Colorismo: Walker, A. 1983. In Search of Our Mothers' Gardens: Womanist Prose. Harcourt Brace Jovanovich, San Diego, CA, EUA; Telles, E.E. 2004. Race in Another America: The significance of skin color in Brazil. Princeton University Press, Princeton, NJ, EUA.</li>
+      <li>Custo econômico: Hsieh, C.-T.; Hurst, E.; Jones, C.I.; Klenow, P.J. 2019. The allocation of talent and U.S. economic growth. Econometrica 87(5): 1439-1474.</li>
+      <li>Código e resultados: <a href="https://github.com/rickinrj-ux/ProjetoRacismoPNAD">github.com/rickinrj-ux/ProjetoRacismoPNAD</a></li>
+    </ul>
+  </div>
+</footer>
+</div>
+
+<dialog id="cinema" aria-label="Bairro, porta e topo em um minuto">
+  <div class="cine">
+    <div class="cine-topo"><span>Bairro, porta e topo · em 1 minuto</span><span id="cine-tempo">0:00</span></div>
+    <div class="cine-palco"><canvas id="cv-cinema" aria-hidden="true"></canvas>
+      <div class="cine-legenda"><p id="cine-legenda"></p></div></div>
+    <div class="cine-controles">
+      <button type="button" id="cine-play" aria-label="Pausar"><svg viewBox="0 0 10 10" width="14" height="14" aria-hidden="true"><path id="cine-icone" d="M2 1h2v8H2zM6 1h2v8H6z" fill="currentColor"/></svg></button>
+      <div class="barra" aria-hidden="true"><i id="cine-barra"></i></div>
+      <button type="button" class="fechar" id="cine-voz" aria-pressed="true">Narração: ligada</button>
+      <button type="button" class="fechar" id="cine-fechar">Fechar</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+const D = /*__DADOS__*/null;
+const BA = /*__BAIRROS__*/null;
+const reduzido = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmt = (v, c = 1) => v.toLocaleString("pt-BR", { minimumFractionDigits: c, maximumFractionDigits: c });
+// chances em linguagem comum: 0,81 → "−19%", 1,31 → "+31%" (a razão de chances lida como variação)
+const ch = v => (v < 1 ? "−" : "+") + fmt(Math.abs(v - 1) * 100, 0) + "%";
+const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const suave = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+/* ══════════ Motor de pontos (canvas): um ponto por bairro, cinco arranjos ══════════ */
+const N = BA.pen.length;
+const LON0 = -74.2, LON1 = -32.2, LAT0 = 5.4, LAT1 = -33.9, K0 = Math.cos(15 * Math.PI / 180);
+const lin = (d0, d1, r0, r1) => v => r0 + (v - d0) / (d1 - d0) * (r1 - r0);
+const sorteio = i => { const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
+const NB = 25;                                            // faixas de cor: 0 = ocre forte, 12 = neutro, 24 = azul forte
+const faixa = new Uint8Array(N);
+for (let i = 0; i < N; i++) {
+  const p = BA.pen[i];
+  faixa[i] = p >= 0 ? 12 + Math.min(12, Math.round(p / 2)) : 12 - Math.min(12, Math.round(-p / 1.25));
+}
+const CODIGOS = D.geo.features.map(f => +f.properties.codarea).sort((a, b) => a - b);   // mesma ordem de D.ufs
+const ordemUF = (() => {                                  // estados pela mediana da penalidade
+  const grupos = D.ufs.map(() => []);
+  for (let i = 0; i < N; i++) grupos[BA.uf[i]].push(BA.pen[i]);
+  const med = grupos.map(g => { const s = g.slice().sort((a, b) => a - b); return s[Math.floor(s.length / 2)]; });
+  return { med, ordem: med.map((m, k) => [m, k]).sort((a, b) => a[0] - b[0]).map(x => x[1]) };
+})();
+
+function coresFaixa() {
+  const hex = c => { const m = c.match(/#([0-9a-f]{6})/i); const n = parseInt(m[1], 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+  const az = hex(tok("--destaque")), oc = hex(tok("--ocre")), ne = hex(tok("--neutro"));
+  const out = [];
+  for (let k = 0; k < NB; k++) {
+    const t = Math.abs(k - 12) / 12, alvo = k >= 12 ? az : oc, s = Math.min(1, .15 + t * .95);
+    out.push(`rgb(${ne.map((v, j) => Math.round(v + (alvo[j] - v) * s)).join(",")})`);
+  }
+  return out;
+}
+
+class Pontos {
+  constructor(cv, opt = {}) {
+    this.cv = cv; this.ctx = cv.getContext("2d"); this.opt = opt;
+    this.atual = null; this.alvo = null; this.deco = null; this.decoAnt = null; this.k = 1; this.lente = "mapa";
+    this.cores = coresFaixa(); this.anim = 0; this.aceso = null;
+    this.fx = opt.faixa || faixa;                          // faixa de cor de cada ponto (cada mapa pode ter a sua)
+    this.porFaixa = Array.from({ length: NB }, () => []);
+    for (let i = 0; i < N; i++) this.porFaixa[this.fx[i]].push(i);
+    new ResizeObserver(() => this.medir()).observe(cv);
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { this.cores = coresFaixa(); this.medir(); });
+    this.medir();
+  }
+  medir() {
+    const r = this.cv.getBoundingClientRect(); if (!r.width || !r.height) return;
+    this.DPR = Math.min(2, devicePixelRatio || 1); this.W = r.width; this.H = r.height;
+    this.cv.width = Math.round(this.W * this.DPR); this.cv.height = Math.round(this.H * this.DPR);
+    this.arranjo("mapa");                                   // a projeção do contorno vem do arranjo do mapa
+    const l = this.arranjo(this.lente); this.atual = this.copia(l.o); this.alvo = l.o; this.deco = l.e; this.decoAnt = null; this.k = 1;
+    this.desenhar();
+  }
+  copia(o) { return { x: o.x.slice(), y: o.y.slice(), r: o.r.slice(), m: o.m }; }
+  area() { return this.opt.area ? this.opt.area(this.W, this.H) : { x0: 0, y0: 0, x1: this.W, y1: this.H }; }
+  arranjo(nome) {
+    const A = this.area(), W = A.x1 - A.x0, H = A.y1 - A.y0, peq = W < 520;
+    const o = { x: new Float32Array(N), y: new Float32Array(N), r: new Float32Array(N), m: nome === "mapa" ? 1 : 0 };
+    const e = { linhas: [], textos: [] };
+    const cTinta = tok("--tinta"), cMudo = tok("--tinta-2"), cLinha = tok("--linha");
+    const kR = Math.sqrt(W * H) / 760;
+    if (nome === "mapa") {
+      let lo0 = LON0, lo1 = LON1, la0 = LAT0, la1 = LAT1;
+      if (this.foco != null) {                              // aproxima no estado escolhido
+        lo0 = 999; lo1 = -999; la0 = -999; la1 = 999;
+        for (let i = 0; i < N; i++) if (BA.uf[i] === this.foco) {
+          lo0 = Math.min(lo0, BA.lon[i]); lo1 = Math.max(lo1, BA.lon[i]); la0 = Math.max(la0, BA.lat[i]); la1 = Math.min(la1, BA.lat[i]);
+        }
+        const ml = Math.max(.5, (lo1 - lo0) * .1), mt = Math.max(.5, (la0 - la1) * .1);
+        lo0 -= ml; lo1 += ml; la0 += mt; la1 -= mt;
+      }
+      const pad = 8, S = Math.min((W - 2 * pad) / ((lo1 - lo0) * K0), (H - 2 * pad) / (la0 - la1));
+      const SB = Math.min((W - 2 * pad) / ((LON1 - LON0) * K0), (H - 2 * pad) / (LAT0 - LAT1));
+      const ox = A.x0 + (W - (lo1 - lo0) * K0 * S) / 2, oy = A.y0 + (H - (la0 - la1) * S) / 2;
+      const zoom = Math.min(3, Math.sqrt(S / SB));
+      this.proj = { S, ox, oy, lo0, la0 };
+      for (let i = 0; i < N; i++) {
+        o.x[i] = ox + (BA.lon[i] - lo0) * K0 * S; o.y[i] = oy + (la0 - BA.lat[i]) * S;
+        o.r[i] = (0.45 + 1.5 * Math.sqrt(BA.n[i] / 600)) * kR * zoom;
+      }
+      return { o, e };
+    }
+    const P = { l: A.x0 + (peq ? 44 : 60), r: A.x1 - 12, t: A.y0 + 24, b: A.y1 - (peq ? 36 : 42) };
+    const eixoPen = ys => {
+      for (const v of [-20, -10, 0, 10, 20, 30]) {
+        e.linhas.push([P.l, ys(v), P.r, ys(v), v === 0 ? cMudo : cLinha, v === 0 ? [4, 4] : null]);
+        e.textos.push([P.l - 6, ys(v), (v > 0 ? "+" : "") + v + "%", "right", cMudo, "middle"]);
+      }
+      e.textos.push([P.l + 4, P.t - 8, "↑ negros ganham menos", "left", cMudo, "bottom"]);
+    };
+    if (nome === "divisao") {
+      const lo = -20, hi = 34, L = 1, nb = (hi - lo) / L, xs = lin(lo, hi, P.l, P.r), larg = (P.r - P.l) / nb;
+      const bin = p => Math.max(0, Math.min(nb - 1, Math.floor((p - lo) / L)));
+      const conta = new Int32Array(nb); for (let i = 0; i < N; i++) conta[bin(BA.pen[i])]++;
+      let max = 0; for (const c of conta) max = Math.max(max, c);
+      const d = Math.sqrt(larg * (P.b - P.t - 24) / max), cols = Math.max(1, Math.floor(larg / d));
+      const nivel = new Int32Array(nb), ord = [...Array(N).keys()].sort((a, b) => BA.pen[a] - BA.pen[b]);
+      for (const i of ord) {
+        const b = bin(BA.pen[i]), j = nivel[b]++;
+        o.x[i] = xs(lo + b * L) + (j % cols + .5) * (larg / cols); o.y[i] = P.b - (Math.floor(j / cols) + .5) * d;
+        o.r[i] = Math.max(.45, d * .5);
+      }
+      for (const v of [-20, -10, 0, 10, 20, 30]) e.textos.push([xs(v), P.b + 14, (v > 0 ? "+" : "") + v + "%", "center", cMudo, "middle"]);
+      e.linhas.push([xs(0), P.t, xs(0), P.b, cTinta, [4, 4]]);
+      e.textos.push([xs(0) + 8, P.t + 4, `${D.txt.pct_bairros}% dos bairros →`, "left", cTinta, "top", 13, true]);
+      e.textos.push([xs(0) - 8, P.t + 4, "← negros ganham mais", "right", cMudo, "top"]);
+      e.textos.push([(P.l + P.r) / 2, P.b + 30, "penalidade racial no bairro (% de renda)", "center", cMudo, "middle"]);
+      return { o, e };
+    }
+    if (nome === "renda") {
+      const xs = lin(-40, 70, P.l, P.r), ys = lin(-20, 34, P.b, P.t);
+      for (let i = 0; i < N; i++) {
+        o.x[i] = xs(Math.max(-40, Math.min(70, BA.base[i]))) + (sorteio(i) - .5) * 1.2;
+        o.y[i] = ys(Math.max(-20, Math.min(34, BA.pen[i]))); o.r[i] = 1.05 * kR;
+      }
+      eixoPen(ys);
+      for (const v of [-40, -20, 0, 20, 40, 60]) e.textos.push([xs(v), P.b + 14, (v > 0 ? "+" : "") + v + "%", "center", cMudo, "middle"]);
+      e.textos.push([(P.l + P.r) / 2, P.b + 30, "renda-base do bairro, descontado o perfil (→ mais rico)", "center", cMudo, "middle"]);
+      return { o, e };
+    }
+    if (nome === "negros") {
+      const xs = lin(0, 100, P.l, P.r), ly = lin(Math.log(400), Math.log(12500), P.b, P.t);
+      for (let i = 0; i < N; i++) {
+        o.x[i] = xs(BA.pneg[i]) + (sorteio(i) - .5) * 2.2;
+        o.y[i] = ly(Math.log(Math.max(400, Math.min(12500, BA.renda[i] || 400)))); o.r[i] = 1.05 * kR;
+      }
+      for (const v of [500, 1000, 2000, 5000, 10000]) {
+        e.linhas.push([P.l, ly(Math.log(v)), P.r, ly(Math.log(v)), cLinha, null]);
+        e.textos.push([P.l - 6, ly(Math.log(v)), (peq ? "" : "R$ ") + v.toLocaleString("pt-BR"), "right", cMudo, "middle"]);
+      }
+      for (const v of [0, 25, 50, 75, 100]) e.textos.push([xs(v), P.b + 14, v + "%", "center", cMudo, "middle"]);
+      e.textos.push([(P.l + P.r) / 2, P.b + 30, "moradores negros no bairro (%)", "center", cMudo, "middle"]);
+      e.textos.push([P.l + 4, P.t - 8, "↑ renda mediana do bairro (R$ por mês)", "left", cMudo, "bottom"]);
+      return { o, e };
+    }
+    if (nome === "estados") {
+      const ys = lin(-20, 34, P.b, P.t), n = D.ufs.length, cw = (P.r - P.l) / n;
+      const col = new Int32Array(n); ordemUF.ordem.forEach((k, j) => col[k] = j);
+      for (let i = 0; i < N; i++) {
+        const c = col[BA.uf[i]];
+        o.x[i] = P.l + (c + .5) * cw + (sorteio(i) - .5) * cw * .78;
+        o.y[i] = ys(Math.max(-20, Math.min(34, BA.pen[i]))); o.r[i] = .9 * kR;
+      }
+      eixoPen(ys);
+      ordemUF.ordem.forEach((k, j) => {
+        const x = P.l + (j + .5) * cw;
+        e.linhas.push([x - cw * .42, ys(ordemUF.med[k]), x + cw * .42, ys(ordemUF.med[k]), cTinta, null, 2]);
+        e.textos.push([x, P.b + 14, D.ufs[k], "center", cMudo, "middle", peq ? 8 : 11]);
+      });
+      return { o, e };
+    }
+  }
+  irPara(nome, animar = true) {
+    this.lente = nome;
+    if (!this.W) return;
+    const { o, e } = this.arranjo(nome);
+    this.decoAnt = this.deco; this.deco = e; this.alvo = o;
+    if (!this.atual || !animar || reduzido) { this.atual = this.copia(o); this.k = 1; this.decoAnt = null; this.desenhar(); return; }
+    const de = this.copia(this.atual), mDe = this.atual.m, t0 = performance.now(), dur = 1000;
+    cancelAnimationFrame(this.anim);
+    const passo = agora => {
+      const t = Math.min(1, (agora - t0) / dur);
+      // atraso leve e sorteado por ponto: a nuvem se move em onda, não em bloco
+      for (let i = 0; i < N; i++) {
+        const ki = suave(Math.min(1, Math.max(0, (t - sorteio(i) * .3) / .7)));
+        this.atual.x[i] = de.x[i] + (o.x[i] - de.x[i]) * ki; this.atual.y[i] = de.y[i] + (o.y[i] - de.y[i]) * ki;
+        this.atual.r[i] = de.r[i] + (o.r[i] - de.r[i]) * ki;
+      }
+      const k = suave(t); this.atual.m = mDe + (o.m - mDe) * k; this.k = k; this.desenhar();
+      if (t < 1) this.anim = requestAnimationFrame(passo);
+    };
+    this.anim = requestAnimationFrame(passo);
+  }
+  contorno(alfa) {
+    if (alfa < .02 || !this.proj) return;
+    const c = this.ctx, { S, ox, oy, lo0, la0 } = this.proj;
+    c.save(); c.globalAlpha = alfa;
+    for (const f of D.geo.features) {
+      const polis = f.geometry.type === "MultiPolygon" ? f.geometry.coordinates : [f.geometry.coordinates];
+      const escolhido = this.foco != null && CODIGOS.indexOf(+f.properties.codarea) === this.foco;
+      c.strokeStyle = tok(escolhido ? "--tinta-2" : "--linha"); c.lineWidth = escolhido ? 1.6 : 1;
+      c.beginPath();
+      for (const p of polis) p[0].forEach(([lo, la], j) => {
+        const x = ox + (lo - lo0) * K0 * S, y = oy + (la0 - la) * S;
+        if (j) c.lineTo(x, y); else c.moveTo(x, y);
+      });
+      c.stroke();
+    }
+    c.restore();
+  }
+  desenhar() {
+    const c = this.ctx; if (!this.atual) return;
+    c.setTransform(this.DPR, 0, 0, this.DPR, 0, 0); c.clearRect(0, 0, this.W, this.H);
+    this.contorno(this.atual.m);
+    const deco = (e, a) => {
+      if (!e || a < .02) return;
+      c.save(); c.globalAlpha = a;
+      for (const [x1, y1, x2, y2, cor, tr, lw] of e.linhas) {
+        c.strokeStyle = cor; c.lineWidth = lw || 1; c.setLineDash(tr || []); c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
+      }
+      c.setLineDash([]);
+      for (const [x, y, s, al, cor, bl, tam, neg] of e.textos) {
+        c.fillStyle = cor; c.textAlign = al; c.textBaseline = bl || "alphabetic";
+        c.font = `${neg ? 600 : 400} ${tam || 12}px "IBM Plex Sans Condensed", "Arial Narrow", sans-serif`;
+        c.fillText(s, x, y);
+      }
+      c.restore();
+    };
+    deco(this.decoAnt, 1 - this.k); deco(this.deco, this.k);
+    const { x, y, r } = this.atual, aceso = this.aceso, masc = this.mascara;
+    if (aceso || masc) {                                    // apagados (nascimento ou fora da busca): neutro claro
+      c.fillStyle = tok("--neutro"); c.globalAlpha = masc ? .18 : .35; c.beginPath();
+      for (let i = 0; i < N; i++) if ((aceso && !aceso[i]) || (masc && !masc[i])) {
+        const rr = r[i] * .8; c.rect(x[i] - rr, y[i] - rr, 2 * rr, 2 * rr);
+      }
+      c.fill(); c.globalAlpha = 1;
+    }
+    for (let f = 0; f < NB; f++) {
+      c.fillStyle = this.cores[f]; c.beginPath();
+      for (const i of this.porFaixa[f]) {
+        if ((aceso && !aceso[i]) || (masc && !masc[i])) continue;
+        const rr = r[i];
+        if (rr < 1.3) c.rect(x[i] - rr, y[i] - rr, 2 * rr, 2 * rr);
+        else { c.moveTo(x[i] + rr, y[i]); c.arc(x[i], y[i], rr, 0, 6.2832); }
+      }
+      c.fill();
+    }
+  }
+  recolorir(fx) {                                         // troca as cores em onda: cada ponto vira na sua vez
+    const velho = this.fx; this.fx = fx;
+    const montar = t => {
+      const pf = Array.from({ length: NB }, () => []);
+      for (let i = 0; i < N; i++) pf[t >= sorteio(i * 3 + 1) * .7 ? fx[i] : velho[i]].push(i);
+      this.porFaixa = pf;
+    };
+    if (reduzido) { montar(1); this.desenhar(); return; }
+    const t0 = performance.now(), id = (this.corId = (this.corId || 0) + 1);
+    const passo = agora => {
+      if (id !== this.corId) return;
+      const t = Math.min(1, (agora - t0) / 1100); montar(suave(t)); this.desenhar();
+      if (t < 1) requestAnimationFrame(passo);
+    };
+    requestAnimationFrame(passo);
+  }
+  nascer(segundos = 4.5) {                                  // os pontos acendem em ordem sorteada
+    if (reduzido) return;
+    const ordem = [...Array(N).keys()].sort((a, b) => sorteio(a * 7 + 3) - sorteio(b * 7 + 3));
+    this.aceso = new Uint8Array(N); let feito = 0; const t0 = performance.now(), id = (this.nascId = (this.nascId || 0) + 1);
+    const passo = agora => {
+      if (id !== this.nascId) return;
+      const t = Math.min(1, (agora - t0) / (segundos * 1000)), alvo = Math.floor(suave(t) * N);
+      for (; feito < alvo; feito++) this.aceso[ordem[feito]] = 1;
+      this.desenhar();
+      if (t < 1) requestAnimationFrame(passo); else { this.aceso = null; this.desenhar(); }
+    };
+    requestAnimationFrame(passo);
+  }
+}
+
+/* ══════════ Abertura ══════════ */
+const abertura = new Pontos(document.getElementById("cv-abertura"), {
+  area: (W, H) => W >= 760 ? { x0: W * .4, y0: 10, x1: W - 10, y1: H - 10 } : { x0: 6, y0: 6, x1: W - 6, y1: H * .56 }
+});
+abertura.nascer();
+
+/* ══════════ Painel de lentes ══════════ */
+const TITULOS = {
+  mapa: "Cada ponto é um bairro, na cor da penalidade racial estimada nele",
+  divisao: "A divisão: quantos bairros têm penalidade, e de que tamanho",
+  negros: "Quem mora onde: bairros mais negros têm renda mediana menor",
+  renda: "Bairros ricos: a penalidade cresce com a renda do bairro",
+  estados: "Os 27 estados, ordenados pela penalidade do bairro mediano (traço)"
+};
+const painel = new Pontos(document.getElementById("cv-painel"));
+const botoesLente = document.querySelectorAll(".lentes button");
+function lente(nome) {
+  if (painel.lente !== nome) painel.irPara(nome);
+  document.getElementById("tit-painel").textContent = TITULOS[nome];
+  botoesLente.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lente === nome)));
+}
+botoesLente.forEach(b => b.addEventListener("click", () => lente(b.dataset.lente)));
+document.getElementById("tit-painel").textContent = TITULOS.mapa;
+
+/* ══════════ Busca por estado e tipo de área ══════════ */
+const AREAS = ["Todo o estado", "Capital", "Região metropolitana", "Interior"];
+const selUF = document.getElementById("sel-uf"), selArea = document.getElementById("sel-area");
+D.ufs.map((s, k) => [D.nomes[k], k]).sort((a, b) => a[0].localeCompare(b[0], "pt-BR")).forEach(([nome, k]) => {
+  const op = document.createElement("option"); op.value = k; op.textContent = nome; selUF.appendChild(op);
+});
+const mediana = v => { const s = v.slice().sort((a, b) => a - b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+const busca = new Pontos(document.getElementById("cv-busca"));
+function aplicarBusca() {
+  const uf = +selUF.value;
+  const temArea = [0, 0, 0, 0];
+  for (let i = 0; i < N; i++) if (BA.uf[i] === uf) temArea[BA.sit[i]]++;
+  [...selArea.options].forEach(o => { o.disabled = +o.value > 0 && !temArea[+o.value]; });
+  if (selArea.selectedOptions[0].disabled) selArea.value = "0";
+  const ar = +selArea.value, m = new Uint8Array(N), pen = [], renda = [];
+  let neg = 0, tot = 0;
+  for (let i = 0; i < N; i++) if (BA.uf[i] === uf && (!ar || BA.sit[i] === ar)) {
+    m[i] = 1; pen.push(BA.pen[i]); if (BA.renda[i]) renda.push(BA.renda[i]);
+    neg += BA.pneg[i] * BA.n[i]; tot += BA.n[i];
+  }
+  document.getElementById("res-titulo").textContent = `${D.nomes[uf]} · ${AREAS[ar]}`;
+  document.getElementById("res-pen").textContent = fmt(mediana(pen)) + "%";
+  document.getElementById("res-com").textContent = fmt(100 * pen.filter(p => p > 0).length / pen.length, 0) + "%";
+  document.getElementById("res-renda").textContent = "R$ " + fmt(mediana(renda), 0);
+  document.getElementById("res-pneg").textContent = fmt(neg / tot, 0) + "%";
+  document.getElementById("res-nota").textContent =
+    `${pen.length.toLocaleString("pt-BR")} bairros entrevistados. Bairro mediano: metade dos bairros desse grupo tem penalidade maior que essa, metade menor. Não é um bairro específico.` +
+    (pen.length < 60 ? " Poucos bairros: leia com cautela." : "");
+  busca.foco = uf; busca.mascara = m; busca.irPara("mapa");
+}
+selUF.addEventListener("change", aplicarBusca); selArea.addEventListener("change", aplicarBusca);
+selUF.value = String(D.ufs.indexOf("BA")); selArea.value = "1";
+aplicarBusca();
+(() => {                                                  // a tabela dos 27 estados
+  const corpo = document.querySelector("#tab-uf tbody"), porUF = {};
+  for (const b of D.busca) (porUF[b.uf] = porUF[b.uf] || {})[b.area] = b;
+  D.ufs.map((s, k) => [D.nomes[k], s, k]).sort((a, b) => a[0].localeCompare(b[0], "pt-BR")).forEach(([nome, s, k]) => {
+    const g = porUF[s] || {}, tr = document.createElement("tr");
+    const cel = a => g[a] ? fmt(g[a].pen) + "%" : "—";
+    const nb = [1, 2, 3].reduce((acc, a) => acc + (g[a] ? g[a].bairros : 0), 0);
+    tr.innerHTML = `<th scope="row">${nome}</th><td>${cel(1)}</td><td>${cel(2)}</td><td>${cel(3)}</td><td>${nb.toLocaleString("pt-BR")}</td>`;
+    tr.tabIndex = 0;
+    const ir = () => { selUF.value = String(k); selArea.value = "0"; aplicarBusca();
+                       document.getElementById("busca").scrollIntoView({ behavior: reduzido ? "auto" : "smooth" }); };
+    tr.addEventListener("click", ir); tr.addEventListener("keydown", ev => { if (ev.key === "Enter") ir(); });
+    corpo.appendChild(tr);
+  });
+})();
+
+
+/* ══════════ Mapa da jornada: cada bairro na cor do seu estado × tipo de área ══════════ */
+(() => {
+  const JOR = D.jornada, jg = {};
+  for (const g of JOR.grupos) jg[g.uf + "_" + g.area] = g;
+  const MIN_ENTREV = 300;                                  // abaixo disso, a taxa de um dos grupos é instável
+  const grupo = (uf, ar) => { const g = jg[D.ufs[uf] + "_" + ar]; return g && Math.min(g.n_n, g.n_b) >= MIN_ENTREV ? g : null; };
+  const ok = v => v != null && isFinite(v);
+  const JL = {
+    sub: { tit: "Querem trabalhar mais horas e não conseguem: negros menos brancos, em pontos percentuais",
+           v: g => g.sub_n - g.sub_b, u: " p.p.", esq: "brancos mais subocupados", dir: "negros mais subocupados" },
+    hora: { tit: "Quanto a hora do negro vale menos que a do branco vizinho de mesmo perfil, em %",
+            v: g => g.hora_pen, u: "%", esq: "hora do negro vale mais", dir: "hora do negro vale menos" },
+    h40: { tit: "Trabalham mais de 40 horas por semana: negros menos brancos, em pontos percentuais",
+           v: g => g.h40_n - g.h40_b, u: " p.p.", esq: "mais brancos acima de 40h", dir: "mais negros acima de 40h" }
+  };
+  const faixas = l => {
+    const L = JL[l]; let mx = 0;
+    for (const g of JOR.grupos) { const v = L.v(g); if (ok(v)) mx = Math.max(mx, Math.abs(v)); }
+    const fx = new Uint8Array(N);
+    for (let i = 0; i < N; i++) {
+      let g = grupo(BA.uf[i], BA.sit[i]), v = g ? L.v(g) : null;
+      if (!ok(v)) { g = grupo(BA.uf[i], 0); v = g ? L.v(g) : null; }       // sem estimativa na área: a do estado
+      fx[i] = ok(v) ? 12 + Math.max(-12, Math.min(12, Math.round(v / mx * 12))) : 12;
+    }
+    return fx;
+  };
+  let atual = "sub";
+  const jor = new Pontos(document.getElementById("cv-jornada"), { faixa: faixas(atual) });
+  const selU = document.getElementById("sel-jor-uf"), selA = document.getElementById("sel-jor-area");
+  const op0 = document.createElement("option"); op0.value = "-1"; op0.textContent = "Brasil"; selU.appendChild(op0);
+  D.ufs.map((s, k) => [D.nomes[k], k]).sort((a, b) => a[0].localeCompare(b[0], "pt-BR")).forEach(([nome, k]) => {
+    const op = document.createElement("option"); op.value = k; op.textContent = nome; selU.appendChild(op);
+  });
+  const pct = v => ok(v) ? fmt(v) + "%" : "—";
+  function aplicar() {
+    const uf = +selU.value;
+    [...selA.options].forEach(o => { o.disabled = uf < 0 ? +o.value > 0 : +o.value > 0 && !grupo(uf, +o.value); });
+    if (selA.selectedOptions[0].disabled) selA.value = "0";
+    selA.disabled = uf < 0;
+    const ar = +selA.value, g = uf < 0 ? JOR.brasil : grupo(uf, ar);
+    document.getElementById("jor-res-titulo").textContent = uf < 0 ? "Brasil" : `${D.nomes[uf]} · ${AREAS[ar]}`;
+    document.getElementById("jor-sub-n").textContent = pct(g.sub_n);
+    document.getElementById("jor-sub-b").textContent = pct(g.sub_b);
+    document.getElementById("jor-hora").textContent = pct(g.hora_pen);
+    document.getElementById("jor-h40").textContent = ok(g.h40_n) ? `${fmt(g.h40_n, 0)}% (${fmt(g.h40_b, 0)}%)` : "—";
+    document.getElementById("jor-nota").textContent =
+      `${(g.n_n + g.n_b).toLocaleString("pt-BR")} entrevistas de ocupados negros e brancos, 2016 a 2025.` +
+      (ok(g.hora_pen) ? "" : " Poucos bairros ou pessoas para estimar o valor da hora aqui.") +
+      (uf >= 0 && Math.min(g.n_n, g.n_b) < 3000 ? " Poucas entrevistas de um dos grupos: leia com cautela." : "") +
+      (uf < 0 ? " No Brasil, a distância na subocupação é maior que dentro da maioria dos estados: parte dela vem de os negros serem maioria onde a subocupação é mais alta, como no Nordeste." : "");
+    if (uf < 0) { jor.foco = null; jor.mascara = null; }
+    else {
+      const m = new Uint8Array(N);
+      for (let i = 0; i < N; i++) if (BA.uf[i] === uf && (!ar || BA.sit[i] === ar)) m[i] = 1;
+      jor.foco = uf; jor.mascara = m;
+    }
+    jor.irPara("mapa");
+  }
+  function tabela() {
+    const L = JL[atual], corpo = document.querySelector("#tab-jor tbody"); corpo.innerHTML = "";
+    D.ufs.map((s, k) => [D.nomes[k], k]).sort((a, b) => a[0].localeCompare(b[0], "pt-BR")).forEach(([nome, k]) => {
+      const cel = a => { const g = grupo(k, a), v = g ? L.v(g) : null; return ok(v) ? fmt(v) + L.u : "—"; };
+      const tr = document.createElement("tr"); tr.tabIndex = 0;
+      tr.innerHTML = `<th scope="row">${nome}</th><td>${cel(0)}</td><td>${cel(1)}</td><td>${cel(2)}</td><td>${cel(3)}</td>`;
+      const ir = () => { selU.value = String(k); selA.value = "0"; aplicar(); };
+      tr.addEventListener("click", ir); tr.addEventListener("keydown", ev => { if (ev.key === "Enter") ir(); });
+      corpo.appendChild(tr);
+    });
+    document.getElementById("jor-tab-nota").textContent = L.tit + ". “—”: a PNAD não separa esse tipo de área no estado, ou há poucos casos.";
+  }
+  function lenteJor(l) {
+    atual = l; const L = JL[l];
+    document.getElementById("jor-tit").textContent = L.tit;
+    document.getElementById("jor-leg-esq").textContent = L.esq;
+    document.getElementById("jor-leg-dir").textContent = L.dir;
+    document.querySelectorAll("#jor-lentes button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.m === l)));
+    tabela();
+  }
+  window.jorLente = l => { if (!l || l === atual) return; lenteJor(l); jor.recolorir(faixas(l)); };
+  document.querySelectorAll("#jor-lentes button").forEach(b => b.addEventListener("click", () => window.jorLente(b.dataset.m)));
+  selU.addEventListener("change", aplicar); selA.addEventListener("change", aplicar);
+  selU.value = "-1"; lenteJor("sub"); aplicar();
+})();
+
+/* ══════════ Gráficos SVG com transição: cada marca tem chave e desliza até o novo lugar ══════════ */
+const NS = "http://www.w3.org/2000/svg";
+const NUM = new Set(["x", "y", "width", "height", "cx", "cy", "r", "x1", "x2", "y1", "y2", "opacity"]);
+const tweens = new Set();
+function tween(elm, de, para, dur = 750, fim) {
+  for (const t of [...tweens]) if (t.elm === elm) tweens.delete(t);
+  const t0 = performance.now(), item = { elm, fim };
+  item.passo = agora => {
+    const t = Math.min(1, (agora - t0) / dur), k = suave(t);
+    for (const a in para) {
+      if (a === "points") {
+        const A = de.points, B = para.points;
+        elm.setAttribute("points", B.map((p, j) => { const q = A[j] || p; return `${q[0] + (p[0] - q[0]) * k},${q[1] + (p[1] - q[1]) * k}`; }).join(" "));
+      } else elm.setAttribute(a, de[a] + (para[a] - de[a]) * k);
+    }
+    return t >= 1;
+  };
+  const vazio = !tweens.size; tweens.add(item);
+  if (vazio) requestAnimationFrame(rodar);
+}
+function rodar(agora) {
+  for (const t of [...tweens]) if (t.passo(agora)) { tweens.delete(t); if (t.fim) t.fim(); }
+  if (tweens.size) requestAnimationFrame(rodar);
+}
+const pts = s => s.trim().split(/\s+/).map(p => p.split(",").map(Number));
+function cena(id, w, h, titulo, formas) {
+  const fig = document.getElementById(id), svg = fig.querySelector("svg");
+  fig.querySelector(".tit-graf").textContent = titulo;
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`); svg.setAttribute("aria-label", titulo);
+  const mapa = svg._mapa || (svg._mapa = new Map()), vistos = new Set();
+  for (const f of formas) {
+    vistos.add(f.k);
+    let elm = mapa.get(f.k);
+    const novo = !elm;
+    if (novo) { elm = document.createElementNS(NS, f.t); mapa.set(f.k, elm); svg.appendChild(elm); }
+    const de = {}, para = {};
+    for (const [a, v] of Object.entries(f.a)) {
+      if (!novo && !reduzido && NUM.has(a) && elm.hasAttribute(a)) { de[a] = +elm.getAttribute(a); para[a] = +v; }
+      else if (!novo && !reduzido && a === "points" && elm.hasAttribute("points")) { de.points = pts(elm.getAttribute("points")); para.points = pts(v); }
+      else elm.setAttribute(a, v);
+    }
+    if (f.s !== undefined) elm.textContent = f.s;
+    if (novo && !reduzido) { const op = +(f.a.opacity ?? 1); elm.setAttribute("opacity", 0); tween(elm, { opacity: 0 }, { opacity: op }, 600); }
+    else if (Object.keys(para).length) tween(elm, de, para);
+  }
+  for (const [k, elm] of [...mapa]) if (!vistos.has(k)) {
+    mapa.delete(k);
+    if (reduzido) { elm.remove(); continue; }
+    tween(elm, { opacity: +(elm.getAttribute("opacity") ?? 1) }, { opacity: 0 }, 350, () => elm.remove());
+  }
+}
+const R = (k, a) => ({ k, t: "rect", a }), T = (k, a, s) => ({ k, t: "text", a, s }), L = (k, a) => ({ k, t: "line", a }),
+      C = (k, a) => ({ k, t: "circle", a });
+
+function gDegraus(et) {
+  const f = [], x0 = 190, larg = 320, max = 12;
+  D.degraus.forEach((d, i) => {
+    const y = 18 + i * 58, vis = i <= Math.min(et + (et >= 2 ? 1 : 0), 4);
+    const ativo = (et === 0 && i === 0) || (et === 1 && i === 1) || (et === 2 && (i === 2 || i === 3)) || (et === 3 && i === 4);
+    f.push(T("r" + i, { x: x0 - 10, y: y + 22, "text-anchor": "end", class: ativo ? "" : "mudo", "font-size": 15 }, d.rotulo));
+    f.push(R("b" + i, { x: x0, y: y + 6, height: 24, width: vis ? d.valor / max * larg : 0, rx: 2, fill: ativo ? "var(--destaque)" : "var(--cinza)" }));
+    f.push(T("v" + i, { x: x0 + (vis ? d.valor / max * larg : 0) + 8, y: y + 24, "font-size": 16, "font-weight": 600, opacity: vis ? 1 : 0 }, fmt(d.valor) + "%"));
+  });
+  f.push(L("eixo", { x1: x0, x2: x0, y1: 10, y2: 310, class: "eixo", "stroke-width": 1.5 }));
+  cena("g-degraus", 560, 320, "Quanto a menos ganham os negros (% do salário)", f);
+}
+
+function gPorta(et) {
+  const f = [], x0 = 200, larg = 300, max = 10, esc = v => x0 + (v - .5) / .6 * larg;
+  D.educ.forEach((d, i) => {
+    const y = 14 + i * 44, vis = et >= 1 || i === 0, ativo = (et === 0 && i === 0) || (et === 1 && i === 4);
+    f.push(T("r" + i, { x: x0 - 10, y: y + 20, "text-anchor": "end", "font-size": 14, class: ativo ? "" : "mudo" }, d.rotulo));
+    f.push(R("b" + i, { x: x0, y: y + 6, height: 20, width: vis ? d.valor / max * larg : 0, rx: 2,
+                        fill: ativo ? "var(--destaque)" : "var(--cinza)", opacity: et === 2 ? .3 : 1 }));
+    f.push(T("v" + i, { x: x0 + (vis ? d.valor / max * larg : 0) + 8, y: y + 21, "font-size": 14, opacity: vis ? (et === 2 ? .4 : 1) : 0 }, fmt(d.valor) + "%"));
+  });
+  if (et === 2) {
+    const y = 262;
+    f.push(T("pt", { x: 10, y, "font-size": 14, "font-weight": 600 }, "Acesso a cargo qualificado, com pós-graduação"));
+    f.push(L("par", { x1: esc(1), x2: esc(1), y1: y + 12, y2: y + 66, stroke: "var(--tinta-2)", "stroke-dasharray": "4 3" }));
+    f.push(T("pl", { x: esc(1), y: y + 82, "text-anchor": "middle", "font-size": 12, class: "mudo" }, "chances iguais"));
+    f.push(L("ga", { x1: esc(D.or_pos), x2: esc(1), y1: y + 38, y2: y + 38, stroke: "var(--cinza)", "stroke-width": 2 }));
+    f.push(C("pp", { cx: esc(D.or_pos), cy: y + 38, r: 9, fill: "var(--destaque)" }));
+    f.push(T("pv", { x: esc(D.or_pos) - 16, y: y + 43, "text-anchor": "end", "font-size": 15, "font-weight": 600 }, ch(D.or_pos)));
+  }
+  cena("g-porta", 560, 350, et < 2 ? "Penalidade salarial por escolaridade (% de renda)" : "Salário × porta: o que o diploma muda", f);
+}
+
+function gTopo(et) {
+  const f = [];
+  if (et < 2) {
+    const q = D.qr, X = v => 60 + (v - 5) / 95 * 460, Y = v => 300 - v / 12 * 270;
+    for (const g of [0, 4, 8, 12]) {
+      f.push(L("g" + g, { x1: 60, x2: 520, y1: Y(g), y2: Y(g), class: "eixo" }));
+      f.push(T("gl" + g, { x: 50, y: Y(g) + 4, "text-anchor": "end", "font-size": 12, class: "mudo" }, g + "%"));
+    }
+    const n = et === 0 ? 2 : q.length;
+    const lista = q.map((p, j) => j < n ? [X(p.q), Y(p.v)] : [X(q[n - 1].q), Y(q[n - 1].v)]);
+    f.push({ k: "linha", t: "polyline", a: { points: lista.map(p => p.join(",")).join(" "), fill: "none", stroke: "var(--destaque)", "stroke-width": 3 } });
+    q.forEach((p, j) => {
+      const [cx, cy] = lista[j];
+      f.push(C("p" + j, { cx, cy, r: j < n ? 5 : 0, fill: "var(--destaque)" }));
+      f.push(T("t" + j, { x: cx, y: cy - 12, "text-anchor": "middle", "font-size": 13, opacity: j < n ? 1 : 0 }, fmt(p.v)));
+      f.push(T("q" + j, { x: X(p.q), y: 322, "text-anchor": "middle", "font-size": 12, class: "mudo" }, p.q + ""));
+    });
+  } else {
+    const X = v => 60 + (v - .5) / .6 * 460;
+    f.push(L("par", { x1: X(1), x2: X(1), y1: 20, y2: 270, stroke: "var(--tinta-2)", "stroke-dasharray": "4 3" }));
+    f.push(T("pl", { x: X(1), y: 292, "text-anchor": "middle", "font-size": 12, class: "mudo" }, "chances iguais"));
+    D.ors.forEach((d, i) => {
+      const y = 60 + i * 75;
+      f.push(T("or" + i, { x: 60, y: y - 14, "font-size": 14 }, d.rotulo));
+      f.push(L("ol" + i, { x1: X(d.valor), x2: X(1), y1: y, y2: y, stroke: "var(--cinza)", "stroke-width": 2 }));
+      f.push(C("oc" + i, { cx: X(d.valor), cy: y, r: 9, fill: "var(--destaque)" }));
+      f.push(T("ov" + i, { x: X(d.valor) - 16, y: y + 5, "text-anchor": "end", "font-size": 14, "font-weight": 600 }, ch(d.valor)));
+    });
+  }
+  cena("g-topo", 560, 340, et < 2 ? "Penalidade (%) ao longo da renda: da base (10) ao topo (95)" : "Chances do negro em relação às do branco de mesmo perfil", f);
+}
+
+function gMulher(et) {
+  const f = [], lg = Math.log, X = v => 170 + (lg(v) - lg(.25)) / (lg(2.4) - lg(.25)) * 360;
+  for (const g of [.25, .5, 1, 2]) {
+    f.push(L("g" + g, { x1: X(g), x2: X(g), y1: 10, y2: 340, class: "eixo", "stroke-dasharray": g === 1 ? "4 3" : "0" }));
+    f.push(T("gl" + g, { x: X(g), y: 360, "text-anchor": "middle", "font-size": 12, class: "mudo" }, g === 1 ? "iguais" : ch(g)));
+  }
+  D.cbo.forEach((d, i) => {
+    const y = 30 + i * 56, foco = (et === 0 && d.chave === "agreg") || (et === 1 && d.chave === "adm") || (et === 2 && (d.chave === "dir" || d.chave === "t10"));
+    f.push(T("r" + i, { x: 160, y: y + 5, "text-anchor": "end", "font-size": 14, class: foco ? "" : "mudo" }, d.rotulo));
+    f.push(R("mb" + i, { x: X(d.mb) - 5, y: y - 5, width: 10, height: 10, fill: "var(--cinza)" }));
+    f.push({ k: "hn" + i, t: "path", a: { d: `M${X(d.hn)},${y - 6} l6,11 h-12 z`, fill: "var(--cinza)" } });
+    f.push(C("mn" + i, { cx: X(d.mn), cy: y, r: foco ? 9 : 6, fill: "var(--destaque)", opacity: foco ? 1 : .5 }));
+    f.push(T("v" + i, { x: X(d.mn), y: y - 14, "text-anchor": "middle", "font-size": 14, "font-weight": 600, opacity: foco ? 1 : 0 }, ch(d.mn)));
+  });
+  f.push(T("leg", { x: 170, y: 382, "font-size": 12, class: "mudo" }, "● mulher negra   ■ mulher branca   ▲ homem negro"));
+  cena("g-mulher", 560, 390, "Chances em relação às do homem branco de mesmo perfil", f);
+}
+
+function gDegrau(et) {
+  const f = [], s = D.anos, X = a => 60 + (a - 2016) / 9 * 460, Y = v => 290 - (v - 4) / 4 * 260;
+  for (const g of [4, 5, 6, 7, 8]) {
+    f.push(L("g" + g, { x1: 60, x2: 520, y1: Y(g), y2: Y(g), class: "eixo" }));
+    f.push(T("gl" + g, { x: 50, y: Y(g) + 4, "text-anchor": "end", "font-size": 12, class: "mudo" }, g + "%"));
+  }
+  const ref = s.find(p => p.ano === 2019);
+  const pos = p => (et >= 1 || p.ano <= 2019) ? p : { ano: 2019, v: ref.v, lo: ref.v, hi: ref.v };
+  const Q = s.map(pos);
+  f.push({ k: "faixa", t: "path", a: { d: "M" + Q.map(p => `${X(p.ano)},${Y(p.lo)}`).join("L") + "L" +
+          Q.slice().reverse().map(p => `${X(p.ano)},${Y(p.hi)}`).join("L") + "Z", fill: "var(--destaque-suave)" } });
+  f.push({ k: "linha", t: "polyline", a: { points: Q.map(p => `${X(p.ano)},${Y(p.v)}`).join(" "), fill: "none", stroke: "var(--destaque)", "stroke-width": 3 } });
+  s.forEach((p, j) => {
+    const q = Q[j];
+    f.push(C("p" + j, { cx: X(q.ano), cy: Y(q.v), r: (et >= 1 || p.ano <= 2019) ? 4 : 0, fill: "var(--destaque)" }));
+    f.push(T("a" + j, { x: X(p.ano), y: 314, "text-anchor": "middle", "font-size": 11, class: "mudo" }, String(p.ano)));
+  });
+  f.push(L("c20", { x1: X(2019.5), x2: X(2019.5), y1: 20, y2: 290, stroke: "var(--tinta-2)", "stroke-dasharray": "4 3", opacity: et >= 1 ? 1 : 0 }));
+  f.push(T("t20", { x: X(2019.5) + 6, y: 34, "font-size": 12, class: "mudo", opacity: et >= 1 ? 1 : 0 }, "2020"));
+  cena("g-degrau", 560, 330, "Quanto a menos ganham os negros entre vizinhos, por ano (%)", f);
+}
+
+function gQuem(et) {
+  const f = [], x0 = 170, larg = 320;
+  if (et < 2) {                                           // as mesmas barras deslizam de "cor" para "idade"
+    const lista = et === 0 ? D.quem.cor : D.quem.idade, max = 16;
+    for (let i = 0; i < 5; i++) {
+      const d = lista[i], y = 20 + i * 54, vis = !!d;
+      const destaque = d && ((et === 0 && i === 1) || (et === 1 && i === 4));
+      f.push(T("r" + i, { x: x0 - 10, y: y + 21, "text-anchor": "end", "font-size": 14, class: destaque ? "" : "mudo", opacity: vis ? 1 : 0 }, d ? d.rotulo : ""));
+      f.push(R("b" + i, { x: x0, y: y + 6, height: 22, rx: 2, width: vis ? d.valor / max * larg : 0, fill: destaque ? "var(--destaque)" : "var(--cinza)" }));
+      f.push(T("v" + i, { x: x0 + (vis ? d.valor / max * larg : 0) + 8, y: y + 23, "font-size": 15, "font-weight": 600, opacity: vis ? 1 : 0 }, d ? fmt(d.valor) + "%" : ""));
+    }
+    if (et === 0) f.push(T("nota", { x: x0, y: 150, "font-size": 13, class: "mudo" },
+      `Chances de cargo qualificado: pardos ${ch(D.quem.cor_or.pardo)}, pretos ${ch(D.quem.cor_or.preto)}`));
+  } else {
+    const X = v => x0 + (v - .5) / .6 * larg;
+    f.push(L("par", { x1: X(1), x2: X(1), y1: 20, y2: 230, stroke: "var(--tinta-2)", "stroke-dasharray": "4 3" }));
+    f.push(T("pl", { x: X(1), y: 250, "text-anchor": "middle", "font-size": 12, class: "mudo" }, "chances iguais"));
+    D.quem.setor.forEach((d, i) => {
+      const y = 60 + i * 100;
+      f.push(T("sr" + i, { x: 10, y: y + 5, "font-size": 14 }, d.rotulo));
+      f.push(L("sl" + i, { x1: X(d.priv), x2: X(d.pub), y1: y, y2: y, stroke: "var(--cinza)", "stroke-width": 3 }));
+      f.push(C("sp" + i, { cx: X(d.priv), cy: y, r: 9, fill: "var(--cinza)" }));
+      f.push(C("su" + i, { cx: X(d.pub), cy: y, r: 9, fill: "var(--destaque)" }));
+      f.push(T("tp" + i, { x: X(d.priv), y: y - 16, "text-anchor": "middle", "font-size": 13 }, "privado " + ch(d.priv)));
+      f.push(T("tu" + i, { x: X(d.pub), y: y + 28, "text-anchor": "middle", "font-size": 13, "font-weight": 600 }, "público " + ch(d.pub)));
+    });
+  }
+  cena("g-quem", 560, 300, et === 0 ? "Penalidade salarial: pardos × pretos (% de renda)"
+                         : et === 1 ? "Penalidade salarial por idade (% de renda)"
+                         : "Chances do negro no setor privado e no público", f);
+}
+
+
+/* ══════════ Capítulos 7 a 11: barras e marcas com chave, que deslizam entre os passos ══════════ */
+const COR = { negro: "var(--destaque)", preto: "var(--destaque)", pardo: "var(--destaque)", branco: "var(--cinza)" };
+// barras horizontais: [{k, rot, v, g (negro|preto|pardo|branco), txt?, sep?, apaga?}]
+function hbar(itens, { x0 = 170, larg = 300, max, y0 = 14, passo = 44, alt = 22, u = "%" } = {}) {
+  const f = []; let y = y0;
+  itens.forEach((d, i) => {
+    if (d.sep && i) y += 18;
+    const w = Math.max(0, d.v) / max * larg, op = d.apaga ? .3 : 1;
+    f.push(T("r" + d.k, { x: x0 - 10, y: y + alt * .75, "text-anchor": "end", "font-size": 14, class: d.apaga ? "mudo" : "", opacity: d.rot ? 1 : 0 }, d.rot || ""));
+    f.push(R("b" + d.k, { x: x0, y, height: alt, width: w, rx: 2, fill: COR[d.g] || "var(--destaque)", opacity: (d.g === "pardo" ? .5 : 1) * op }));
+    f.push(T("v" + d.k, { x: x0 + w + 8, y: y + alt * .75, "font-size": 14, "font-weight": 600, opacity: op }, d.txt ?? fmt(d.v) + u));
+    y += passo;
+  });
+  return { f, y };
+}
+const legendaCor = (y, pares) => pares.map(([g, s], i) => [
+  R("lq" + i, { x: 170 + i * 120, y: y - 10, width: 12, height: 12, rx: 2, fill: COR[g], opacity: g === "pardo" ? .5 : 1 }),
+  T("lt" + i, { x: 188 + i * 120, y, "font-size": 12, class: "mudo" }, s)]).flat();
+
+function gCor(et) {
+  const c = D.cor2, P2 = [["preto", "Pretos"], ["pardo", "Pardos"]];
+  let f, tit;
+  if (et <= 3) {
+    const chave = ["sal", "ocp", "t10", "q90"][et];
+    tit = ["Salário: quanto a menos que brancos de mesmo perfil (%)", "Chances menores de chegar a cargo qualificado (%)",
+           "Chances menores de chegar aos 10% mais ricos (%)", "Perto do topo da renda: quanto a menos no salário (%)"][et];
+    ({ f } = hbar(P2.map(([g, rot]) => ({ k: g, rot, v: c[chave][g], g })), { max: 32, passo: 84, alt: 44, y0: 60 }));
+  } else {
+    const ref = et === 4 ? c.cg_sexo : c.cg_hb;
+    tit = et === 4 ? "Salário: quanto a menos que brancos do mesmo sexo (%)" : "Salário: quanto a menos que o homem branco (%)";
+    const it = [["pretas", "Pretas", "preto"], ["pardas", "Pardas", "pardo"], ["brancas", "Brancas", "branco"],
+                ["pretos", "Pretos", "preto"], ["pardos", "Pardos", "pardo"], ["brancos", "Brancos", "branco"]]
+      .map(([k, rot, g], i) => { const v = ref[k] ?? 0; return { k: "s" + k, rot, v, g, sep: i === 3, txt: v ? fmt(v) + "%" : "referência" }; });
+    ({ f } = hbar(it, { max: 32, passo: 40, alt: 22, y0: 14 }));
+  }
+  f.push(...legendaCor(et <= 3 ? 250 : 300, et <= 3 ? [["preto", "pretos"], ["pardo", "pardos"]] : [["preto", "pretos"], ["pardo", "pardos"], ["branco", "brancos"]]));
+  cena("g-cor", 560, 316, tit, f);
+}
+
+function gCusto(et) {
+  const e = D.eco, d = D.des;
+  let f = [];
+  if (et <= 1) {                                          // cada ponto: 100 mil ocupados negros
+    const n = Math.round(e.ocup / 1e5), k = Math.round(e.talento / 1e5), col = 30, s = 15;
+    for (let i = 0; i < n; i++) {
+      const fora = i >= n - k;
+      f.push(C("w" + i, { cx: 40 + (i % col) * s, cy: 30 + Math.floor(i / col) * s, r: fora ? 6 : 4.5,
+                         fill: fora ? "var(--destaque)" : "var(--cinza)", opacity: fora || et === 0 ? 1 : .55 }));
+    }
+    f.push(T("wl", { x: 40, y: 340, "font-size": 12, class: "mudo" }, "cada ponto: 100 mil ocupados negros; em azul, os que estariam em cargo qualificado"));
+    cena("g-custo", 560, 352, et === 0 ? "Talento fora do lugar" : "Talento formado que a economia não usa", f);
+    return;
+  }
+  if (et === 2) {
+    const max = (e.massa + e.renda) * 1.05, x0 = 30, larg = 500, w1 = e.massa / max * larg, w2 = e.renda / max * larg;
+    f.push(R("m1", { x: x0, y: 120, width: w1, height: 46, rx: 2, fill: "var(--destaque)" }));
+    f.push(R("m2", { x: x0 + w1 + 2, y: 120, width: w2, height: 46, rx: 2, fill: "none", stroke: "var(--destaque)", "stroke-dasharray": "4 3" }));
+    f.push(T("m1t", { x: x0, y: 106, "font-size": 14, "font-weight": 600 }, "Renda do trabalho dos negros: " + reais(e.massa) + " por ano"));
+    f.push(T("m2t", { x: x0 + w1 + 2 + w2, y: 190, "text-anchor": "end", "font-size": 14, "font-weight": 600, fill: "var(--destaque)" }, "+" + reais(e.renda) + " sem a penalidade"));
+    f.push(T("m3t", { x: x0, y: 230, "font-size": 13, class: "mudo" }, "não some da economia: fica com outros"));
+    cena("g-custo", 560, 260, "Renda que muda de mão, por ano", f);
+    return;
+  }
+  if (et === 3) {
+    f = hbar([{ k: "pp", rot: "Ocupados", v: d.pop, g: "negro" }, { k: "pm", rot: "Renda do trabalho", v: d.massa, g: "negro" },
+              { k: "ps", rot: "Sem a penalidade", v: d.massa_sp, g: "negro", apaga: true }], { max: 70, passo: 60, alt: 30, y0: 40 }).f;
+    cena("g-custo", 560, 260, "Fatia dos negros (%)", f);
+    return;
+  }
+  const X = v => 40 + (v - .44) / .03 * 480;
+  f.push(L("gx", { x1: X(.44), x2: X(.47), y1: 150, y2: 150, class: "eixo", "stroke-width": 2 }));
+  for (const v of [.44, .45, .46, .47]) f.push(T("gt" + v, { x: X(v), y: 176, "text-anchor": "middle", "font-size": 12, class: "mudo" }, fmt(v, 2)));
+  [["g0", d.gini, "hoje", 1], ["g1", d.gini_sp, "sem a penalidade", .75], ["g2", d.gini_ig, "médias iguais", .5]].forEach(([k, v, s, op], i) => {
+    f.push(C(k, { cx: X(v), cy: 150, r: 10, fill: "var(--destaque)", opacity: op }));
+    f.push(T(k + "t", { x: X(v), y: i === 1 ? 208 : 126, "text-anchor": "middle", "font-size": 13, "font-weight": 600 }, `${s}: ${fmt(v, 3)}`));
+  });
+  f.push(T("th", { x: 40, y: 250, "font-size": 13, class: "mudo" }, `entre brancos e negros: ${fmt(d.theil_entre)}% da desigualdade (índice de Theil)`));
+  cena("g-custo", 560, 270, "Índice de Gini da renda do trabalho (menor = menos desigual)", f);
+}
+const reais = v => v >= 1e12 ? "R$ " + fmt(v / 1e12, 2) + " tri" : "R$ " + fmt(v / 1e9, 0) + " bi";
+
+function gJor(et) {
+  const j = D.jor; let f = [];
+  if (et === 0) {
+    const x0 = 90, larg = 420, M = 13, X = mes => x0 + mes / M * larg;
+    const MS = "JFMAMJJASONDJ";
+    for (let i = 0; i <= 12; i++) f.push(T("cm" + i, { x: X(i + .5), y: 40, "text-anchor": "middle", "font-size": 12, class: "mudo" }, MS[i]));
+    f.push(L("dez", { x1: X(12), x2: X(12), y1: 50, y2: 210, stroke: "var(--tinta-2)", "stroke-dasharray": "4 3" }));
+    f.push(T("dezt", { x: X(12) - 4, y: 228, "text-anchor": "end", "font-size": 12, class: "mudo" }, "31 de dezembro"));
+    f.push(T("cb", { x: x0 - 10, y: 90, "text-anchor": "end", "font-size": 14 }, "Branco"));
+    f.push(R("cbb", { x: x0, y: 72, width: X(12) - x0, height: 26, rx: 2, fill: "var(--cinza)" }));
+    f.push(T("cn", { x: x0 - 10, y: 150, "text-anchor": "end", "font-size": 14 }, "Negro"));
+    f.push(R("cnb", { x: x0, y: 132, width: X(12 * (1 + j.extra)) - x0, height: 26, rx: 2, fill: "var(--destaque)" }));
+    f.push(T("cnt", { x: X(12 * (1 + j.extra)), y: 182, "text-anchor": "middle", "font-size": 14, "font-weight": 600, fill: "var(--destaque)" }, j.dia));
+    cena("g-jor", 560, 240, "Para receber o salário de um ano", f);
+    return;
+  }
+  if (et === 1) {
+    const x0 = 40, larg = 480, max = j.mes * 1.15, wh = j.hora / max * larg, wq = j.horas / max * larg;
+    f.push(R("hh", { x: x0, y: 100, width: wh, height: 40, rx: 2, fill: "var(--destaque)" }));
+    f.push(R("hq", { x: x0 + wh + 2, y: 100, width: wq, height: 40, rx: 2, fill: "var(--cinza)" }));
+    f.push(T("ht", { x: x0, y: 86, "font-size": 14, "font-weight": 600 }, `Salário do mês: ${fmt(j.mes)}% menor`));
+    f.push(T("hht", { x: x0, y: 166, "font-size": 13, fill: "var(--destaque)" }, `valor da hora: ${fmt(j.hora)}%`));
+    f.push(T("hqt", { x: x0 + wh + 2 + wq, y: 190, "text-anchor": "end", "font-size": 13, class: "mudo" }, `menos horas: ${fmt(j.horas)}%`));
+    cena("g-jor", 560, 220, "De onde vem a diferença no salário do mês", f);
+    return;
+  }
+  const par = (k, rot, n, b, apaga) => [{ k: k + "n", rot, v: n, g: "negro", sep: true, apaga }, { k: k + "b", v: b, g: "branco", apaga }];
+  let it, tit, max;
+  if (et === 2) {
+    it = j.faixas.flatMap(x => par(x.k, x.rot, x.n, x.b, x.k !== "h_menos30")); tit = "Horas trabalhadas por semana (% dos ocupados)"; max = 60;
+  } else if (et === 3) {
+    it = j.sub.flatMap(x => par("s_" + x.k, x.rot, x.n, x.b)); tit = "Querem trabalhar mais horas e não conseguem (%)"; max = 12;
+  } else if (et === 4) {
+    const s = j.sub.find(x => x.k === "todos"), h = j.faixas.find(x => x.k === "h_menos30");
+    it = [...par("s_todos", "Querem trabalhar mais", s.n, s.b), ...par("h_menos30", "Menos de 30 horas", h.n, h.b)];
+    tit = "Remuneração por hora: quem não controla as próprias horas (%)"; max = 20;
+  } else {
+    it = par("h40", "Mais de 40 horas", j.h40.n, j.h40.b); tit = "40 horas: quem trabalha mais de 40 por semana (%)"; max = 60;
+  }
+  ({ f } = hbar(it, { max, passo: 28, alt: 20, y0: 10 }));
+  f.push(...legendaCor(306, [["negro", "negros"], ["branco", "brancos"]]));
+  cena("g-jor", 560, 320, tit, f);
+}
+
+function gCrit(et) {
+  let f = [], tit;
+  if (et === 0) {
+    const s = D.quem.setor[1], mp = (1 - s.priv) * 100, mu = (1 - s.pub) * 100;
+    ({ f } = hbar([{ k: "cpriv", rot: "Setor privado", v: mp, g: "negro" }, { k: "cpub", rot: "Setor público", v: mu, g: "negro", apaga: true }],
+                  { max: 45, passo: 60, alt: 30, y0: 50 }));
+    tit = "Chances menores de chegar aos 10% mais ricos (%)";
+  } else if (et === 1) {
+    const it = D.educ.map((d, i) => ({ k: "e" + i, rot: d.rotulo, v: d.valor, g: "negro", apaga: true }));
+    it.push({ k: "pos", rot: "Acesso, com pós", v: (1 - D.or_pos) * 100, g: "negro", sep: true, txt: fmt((1 - D.or_pos) * 100, 0) + "% menos chances" });
+    ({ f } = hbar(it, { max: 45, passo: 38, alt: 22, y0: 14 }));
+    tit = "Penalidade salarial por escolaridade, e o acesso com pós-graduação (%)";
+  } else if (et === 2) {
+    const x0 = 30, larg = 500, wb = D.crit.med_bairro / 100 * larg;
+    f.push(R("tb", { x: x0, y: 110, width: wb, height: 44, rx: 2, fill: "var(--destaque)" }));
+    f.push(R("tr", { x: x0 + wb + 2, y: 110, width: larg - wb - 2, height: 44, rx: 2, fill: "var(--cinza)" }));
+    f.push(T("tbt", { x: x0, y: 96, "font-size": 14, "font-weight": 600, fill: "var(--destaque)" }, `${fmt(D.crit.med_bairro)}%: o lugar onde se mora`));
+    f.push(T("trt", { x: x0 + larg, y: 180, "text-anchor": "end", "font-size": 13, class: "mudo" }, "o resto: entre vizinhos do mesmo bairro"));
+    tit = `Diferença salarial sem comparar vizinhos (${fmt(D.crit.gap_pool)}%), em partes`;
+  } else {
+    const dr = D.cbo.find(d => d.chave === "dir"), v = o => (1 - o) * 100;
+    ({ f } = hbar([{ k: "dmn", rot: "Mulher negra", v: v(dr.mn), g: "negro" }, { k: "dhn", rot: "Homem negro", v: v(dr.hn), g: "negro", apaga: true },
+                   { k: "dmb", rot: "Mulher branca", v: v(dr.mb), g: "branco", apaga: true }], { max: 45, passo: 56, alt: 28, y0: 40 }));
+    tit = "Entre dirigentes: chances menores que as do homem branco (%)";
+  }
+  cena("g-crit", 560, 300, tit, f);
+}
+
+function gProp(et) {
+  const cols = ["Bairro", "Porta", "Salário", "Topo", "Mulher negra"];
+  const linhas = [["Metas no comando", [3, 4]], ["Igualdade salarial por raça", [2]], ["Componente territorial", [0]],
+                  ["Promoção, não só ingresso", [1, 3]], ["Monitoramento anual", [0, 1, 2, 3, 4]]];
+  const f = [], x0 = 210, dx = 70, y0 = 70, dy = 48;
+  cols.forEach((c, j) => f.push(T("pc" + j, { x: x0 + j * dx, y: 40, "text-anchor": "middle", "font-size": 12, class: "mudo" }, c)));
+  linhas.forEach(([rot, on], i) => {
+    const ativo = i === et;
+    f.push(T("pr" + i, { x: x0 - 34, y: y0 + i * dy + 5, "text-anchor": "end", "font-size": 14, "font-weight": ativo ? 600 : 400, class: ativo ? "" : "mudo" }, rot));
+    cols.forEach((c, j) => {
+      const tem = on.includes(j);
+      f.push(C(`pd${i}_${j}`, { cx: x0 + j * dx, cy: y0 + i * dy, r: tem ? (ativo ? 11 : 8) : 3,
+                               fill: tem ? "var(--destaque)" : "var(--linha)", opacity: tem && !ativo ? .35 : 1 }));
+    });
+  });
+  cena("g-prop", 560, 320, "Que barreira cada proposta ataca", f);
+}
+
+const GRAFICOS = { "g-degraus": gDegraus, "g-porta": gPorta, "g-topo": gTopo, "g-mulher": gMulher, "g-quem": gQuem, "g-degrau": gDegrau,
+                   "g-cor": gCor, "g-custo": gCusto, "g-jor": gJor, "g-crit": gCrit, "g-prop": gProp };
+for (const g of Object.values(GRAFICOS)) g(0);
+
+/* ══════════ Rolagem: cada etapa ativa a sua lente ou o seu estado do gráfico ══════════ */
+const obs = new IntersectionObserver(ents => {
+  for (const e of ents) {
+    if (!e.isIntersecting) continue;
+    const art = e.target, grupo = art.closest(".etapas");
+    grupo.querySelectorAll(".etapa").forEach(a => a.classList.toggle("ativa", a === art));
+    if (grupo.hasAttribute("data-painel")) lente(art.dataset.lente);
+    else if (grupo.hasAttribute("data-jor")) window.jorLente(art.dataset.m);
+    else GRAFICOS[grupo.dataset.grafico](+art.dataset.etapa);
+  }
+}, { rootMargin: "-45% 0px -45% 0px" });
+document.querySelectorAll(".etapa").forEach(a => obs.observe(a));
+document.querySelectorAll(".etapas").forEach(g => g.querySelector(".etapa").classList.add("ativa"));
+
+/* ══════════ Modo vídeo: o painel toca sozinho, com legendas ══════════ */
+const ROTEIRO = D.roteiro;                                // [{lente, legenda, s, nascer?}]
+const dlg = document.getElementById("cinema"), leg = document.getElementById("cine-legenda");
+let cine = null, cenaAt = -1, tocando = false, tDecorrido = 0, tUlt = 0, rafCine = 0;
+const TOTAL = ROTEIRO.reduce((a, c) => a + c.s, 0);
+/* narração pela voz do navegador (lê a legenda de cada cena; a qualidade depende do aparelho) */
+const fala = "speechSynthesis" in window ? window.speechSynthesis : null;
+let voz = !!fala;
+function vozPt() {
+  const vs = fala ? fala.getVoices() : [];
+  return vs.find(v => /pt[-_]BR/i.test(v.lang)) || vs.find(v => /^pt/i.test(v.lang)) || null;
+}
+function falar(texto) {
+  if (!voz || !fala) return;
+  fala.cancel();
+  const u = new SpeechSynthesisUtterance(texto.replace(/R\$ /g, "R$")); u.lang = "pt-BR"; u.rate = 1.05;
+  const v = vozPt(); if (v) u.voice = v;
+  fala.speak(u);
+}
+const botaoVoz = document.getElementById("cine-voz");
+if (!fala) { botaoVoz.disabled = true; botaoVoz.textContent = "Sem narração neste navegador"; }
+botaoVoz.addEventListener("click", () => {
+  voz = !voz; botaoVoz.setAttribute("aria-pressed", String(voz));
+  botaoVoz.textContent = voz ? "Narração: ligada" : "Narração: desligada";
+  if (!voz && fala) fala.cancel(); else if (tocando && cenaAt >= 0) falar(ROTEIRO[cenaAt].legenda);
+});
+function irCena(j) {
+  cenaAt = j; const c = ROTEIRO[j];
+  falar(c.legenda);
+  leg.style.opacity = 0;
+  setTimeout(() => { leg.textContent = c.legenda; leg.style.opacity = 1; }, reduzido ? 0 : 320);
+  if (c.nascer) { cine.irPara("mapa", false); cine.nascer(c.s * .75); } else cine.irPara(c.lente);
+}
+function atualizarBarra() {
+  document.getElementById("cine-barra").style.width = (100 * Math.min(1, tDecorrido / TOTAL)) + "%";
+  const s = Math.floor(tDecorrido); document.getElementById("cine-tempo").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+function quadroCine(agora) {
+  if (!tocando) return;
+  tDecorrido += (agora - tUlt) / 1000; tUlt = agora;
+  let acc = 0, j = 0;
+  for (; j < ROTEIRO.length; j++) { if (tDecorrido < acc + ROTEIRO[j].s) break; acc += ROTEIRO[j].s; }
+  if (j >= ROTEIRO.length) { tDecorrido = TOTAL; atualizarBarra(); pausar(); return; }
+  if (j !== cenaAt) irCena(j);
+  atualizarBarra(); rafCine = requestAnimationFrame(quadroCine);
+}
+function tocar() {
+  if (tDecorrido >= TOTAL) { tDecorrido = 0; cenaAt = -1; }
+  tocando = true; tUlt = performance.now(); rafCine = requestAnimationFrame(quadroCine);
+  if (cenaAt >= 0) falar(ROTEIRO[cenaAt].legenda);
+  document.getElementById("cine-icone").setAttribute("d", "M2 1h2v8H2zM6 1h2v8H6z");
+  document.getElementById("cine-play").setAttribute("aria-label", "Pausar");
+}
+function pausar() {
+  tocando = false; cancelAnimationFrame(rafCine);
+  if (fala) fala.cancel();
+  document.getElementById("cine-icone").setAttribute("d", "M2 1l7 4-7 4z");
+  document.getElementById("cine-play").setAttribute("aria-label", tDecorrido >= TOTAL ? "Assistir de novo" : "Tocar");
+}
+document.querySelectorAll("[data-abrir-video]").forEach(b => b.addEventListener("click", () => {
+  dlg.showModal();
+  requestAnimationFrame(() => {
+    if (!cine) cine = new Pontos(document.getElementById("cv-cinema")); else cine.medir();
+    tDecorrido = 0; cenaAt = -1; tocar();
+  });
+}));
+document.getElementById("cine-play").addEventListener("click", () => tocando ? pausar() : tocar());
+document.getElementById("cine-fechar").addEventListener("click", () => dlg.close());
+dlg.addEventListener("close", pausar);
+
+</script>
