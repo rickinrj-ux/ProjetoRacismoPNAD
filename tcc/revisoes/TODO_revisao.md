@@ -363,3 +363,13 @@ Legenda: 🖥 reestimação · ✍ texto/gerador · 🎨 layout · ❓ decisão 
 - [x] E7.2 (04/10: RETOMADA com a seção de 04/10; lições 24–27 em tcc/licoes_aprendidas.md; memórias de interseccionalidade e GLMM atualizadas; sobras da releitura feitas — interseccionalidade abre pela pergunta, frase das UPAs por método, 39,5% padronizado; regeneração 11:47 OK) Atualizar `RETOMADA_reestimacao_loo.md`, `releitura_2026-10-02.md` e memória
 - [~] E7.3 (04/10: commits 2c07798 código e 3894ce7 resultados/entregáveis, no branch correcao-escolaridade-2026-10, enviado ao GitHub em 04/10; falta a tag de entrega, depois do E2.9/E2.13) Commits (código / resultados e entregáveis) e tag de entrega
 - [ ] E7.4 Versão para o orientador
+
+## Bloco W — Página scrollytelling (fora do TCC, artefato privado)
+
+- [x] W.1 (07/10: versão 4 publicada no mesmo link) Colorismo pretos × pardos com ressalva; recorte por sexo (`scripts/analise/run_colorismo_genero.py` → `colorismo_genero.csv`, efeito fixo de bairro, erro agrupado, toda a base); "bairro mediano" no lugar de "bairro típico"; cartões de desigualdade (Gini, Theil, participação na massa) e "renda que muda de mão"
+- [x] W.2 (07/10: versão 5) Linguagem para o público geral: sem “razão de chances”, “gap”, “M3”, “efeito fixo”, “decil”, “IC 95%”, nomes de modelos nas legendas; chances como “X% menores/maiores”; glossário no “Como ler”
+- [x] W.3 (07/10: versão 6) Cartão cor e gênero com dois botões: contra brancos do mesmo sexo × contra o homem branco (mulher parda 27,2% × homem preto 8,4%)
+- [x] W.4 (07/10: versão 7) Seção "Hora e jornada": +3,4 semanas/24 de janeiro (de GAP_M3), hora 5,7% menor entre vizinhos, horas e subocupação por cor (40 trimestres brutos, V1028) e as duas propostas de jornada lado a lado, sem avaliá-las (`scripts/analise/run_jornada_raca.py`)
+- [x] W.5 (07/10: versão 8) Mapa da jornada: pontos por bairro na cor do estado × capital/RM/interior; lentes subocupação (negros − brancos), valor da hora (FE por grupo, 101/103 grupos) e mais de 40h; seletor de lugar, tabela dos 27 estados, grupos com menos de 300 entrevistas de um lado caem para o estado (`run_jornada_raca.py --territorio`, cache `data/processed/jornada_micro.parquet`)
+- [x] W.6 (07/10: versão 9) Site inteiro em scrollytelling: capítulos 7 Cor (g-cor), 8 Quanto custa (g-custo: pontos de talento, renda que muda de mão, fatias, Gini), 9 Hora e jornada (g-jor + mapa comandado pela rolagem), 10 Pontos cegos (g-crit), 11 O que fazer (g-prop, matriz proposta × barreira); epílogo movido para o fim
+- [ ] W.7 Commit dos arquivos da página (só quando o usuário pedir)
